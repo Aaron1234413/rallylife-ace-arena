@@ -11,7 +11,7 @@ export function useReadyPlayerMe() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Fetch current avatar URL
+  // Fetch current avatar URL from the database
   useEffect(() => {
     const fetchAvatarUrl = async () => {
       if (!user?.id) {
@@ -41,7 +41,7 @@ export function useReadyPlayerMe() {
     fetchAvatarUrl();
   }, [user?.id]);
 
-  // Save new avatar URL
+  // Save new avatar URL to the database
   const saveAvatarUrl = async (newAvatarUrl: string) => {
     if (!user?.id) {
       toast({
@@ -54,7 +54,7 @@ export function useReadyPlayerMe() {
 
     setSaving(true);
     try {
-      const { data, error } = await supabase
+      const { error } = await supabase
         .from('profiles')
         .update({ ready_player_me_url: newAvatarUrl })
         .eq('id', user.id);
