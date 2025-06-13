@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { User, Edit, Eye } from 'lucide-react';
-import { ReadyPlayerMeCreator } from './ReadyPlayerMeCreator';
+import { ReadyPlayerMeCreatorAPI } from './ReadyPlayerMeCreatorAPI';
 import { ReadyPlayerMeAvatar } from './ReadyPlayerMeAvatar';
 import { useReadyPlayerMe } from '@/hooks/useReadyPlayerMe';
 import { useAuth } from '@/hooks/useAuth';
@@ -22,7 +22,7 @@ export function UniversalReadyPlayerMe({
   showCreator = true 
 }: UniversalReadyPlayerMeProps) {
   const { user } = useAuth();
-  const { avatarUrl, loading, saveAvatarUrl } = useReadyPlayerMe();
+  const { avatarUrl, loading } = useReadyPlayerMe();
   const [isCreating, setIsCreating] = useState(false);
   const [profile, setProfile] = useState<any>(null);
 
@@ -50,10 +50,8 @@ export function UniversalReadyPlayerMe({
   }, [user?.id]);
 
   const handleAvatarSaved = async (newAvatarUrl: string) => {
-    const success = await saveAvatarUrl(newAvatarUrl);
-    if (success) {
-      setIsCreating(false);
-    }
+    setIsCreating(false);
+    // The hook will automatically refresh the avatar URL
   };
 
   const getUserTypeLabel = () => {
@@ -164,15 +162,16 @@ export function UniversalReadyPlayerMe({
 
             {/* Info */}
             <div className="text-sm text-gray-600 space-y-1">
-              <p>• Create a personalized 3D avatar</p>
-              <p>• Customize appearance and style</p>
+              <p>• Create a personalized 3D avatar with Ready Player Me API</p>
+              <p>• Choose from tennis-specific clothing and equipment</p>
+              <p>• Future: Custom RallyPointX gear and branded items</p>
               {profile?.role === 'coach' && (
-                <p>• Professional coaching appearance</p>
+                <p>• Professional coaching appearance options</p>
               )}
             </div>
           </div>
         ) : (
-          <ReadyPlayerMeCreator
+          <ReadyPlayerMeCreatorAPI
             currentAvatarUrl={avatarUrl}
             onAvatarSaved={handleAvatarSaved}
           />
