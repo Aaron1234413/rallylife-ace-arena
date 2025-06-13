@@ -44,12 +44,12 @@ export function useConversations() {
       // Get participant details and latest messages for each conversation
       const conversationsWithData = await Promise.all(
         (conversations || []).map(async (conversation) => {
-          // Get other participants (not the current user)
-          const { data: participants, error: participantsError } = await supabase
+          // Get other participants (not the current user) with their profiles
+          const { data: otherParticipants, error: participantsError } = await supabase
             .from('conversation_participants')
             .select(`
               user_id,
-              profiles:user_id(
+              profiles!inner(
                 id,
                 full_name,
                 avatar_url
@@ -75,7 +75,8 @@ export function useConversations() {
             console.error('Error fetching latest message:', messageError);
           }
 
-          const otherParticipant = participants?.[0]?.profiles;
+          // For direct conversations, get the other participant's profile
+          const otherParticipant = otherParticipants?.[0]?.profiles || null;
 
           return {
             ...conversation,

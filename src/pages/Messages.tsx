@@ -36,7 +36,7 @@ export default function Messages() {
 
   // Fetch data
   const { data: conversations, isLoading: conversationsLoading } = useConversations();
-  const { messages, loading: messagesLoading } = useMessages(selectedConversation);
+  const { messages, loading: messagesLoading, sendMessage, sending } = useMessages(selectedConversation);
   const { data: profiles } = useProfiles();
   
   // Player data
@@ -203,7 +203,11 @@ export default function Messages() {
               </div>
 
               {/* Message Composer */}
-              <MessageComposer conversationId={selectedConversation} />
+              <MessageComposer 
+                conversationId={selectedConversation} 
+                onSendMessage={sendMessage}
+                sending={sending}
+              />
             </>
           ) : (
             <div className="flex-1 flex items-center justify-center text-center p-8">

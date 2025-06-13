@@ -1,24 +1,26 @@
 
 import React, { useState } from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
-import { Send, Smile, Paperclip } from 'lucide-react';
-import { useMessages } from '@/hooks/useMessages';
+import { Send } from 'lucide-react';
 
 interface MessageComposerProps {
   conversationId: string;
+  onSendMessage?: (data: { content: string; messageType?: string; metadata?: any }) => void;
+  sending?: boolean;
 }
 
-export function MessageComposer({ conversationId }: MessageComposerProps) {
+export function MessageComposer({ conversationId, onSendMessage, sending }: MessageComposerProps) {
   const [message, setMessage] = useState('');
-  const { sendMessage, sending } = useMessages(conversationId);
 
   const handleSend = () => {
-    if (message.trim() && !sending) {
-      sendMessage({ content: message.trim() });
-      setMessage('');
+    if (!message.trim() || sending) return;
+    
+    if (onSendMessage) {
+      onSendMessage({ content: message.trim() });
     }
+    
+    setMessage('');
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
@@ -29,36 +31,24 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
   };
 
   return (
-    <Card>
-      <CardContent className="p-3">
-        <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="flex-shrink-0" disabled>
-            <Paperclip className="h-4 w-4" />
-          </Button>
-
-          <Input
-            value={message}
-            onChange={(e) => setMessage(e.target.value)}
-            onKeyPress={handleKeyPress}
-            placeholder="Type a message..."
-            className="flex-1"
-            disabled={sending}
-          />
-
-          <Button variant="ghost" size="sm" className="flex-shrink-0" disabled>
-            <Smile className="h-4 w-4" />
-          </Button>
-
-          <Button 
-            onClick={handleSend}
-            disabled={!message.trim() || sending}
-            size="sm"
-            className="bg-tennis-green-dark hover:bg-tennis-green-medium flex-shrink-0"
-          >
-            <Send className="h-4 w-4" />
-          </Button>
-        </div>
-      </CardContent>
-    </Card>
+    <div className="border-t bg-background p-4">
+      <div className="flex items-center space-x-2">
+        <Input
+          value={message}
+          onChange={(e) => setMessage(e.target.value)}
+          onKeyPress={handleKeyPress}
+          placeholder="Type a message..."
+          disabled={sending}
+          className="flex-1"
+        />
+        <Button
+          onClick={handleSend}
+          disabled={!message.trim() || sending}
+          size="sm"
+        >
+          <Send className="h-4 w-4" />
+        </Button>
+      </div>
+    </div>
   );
 }
