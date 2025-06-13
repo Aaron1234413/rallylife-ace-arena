@@ -36,6 +36,17 @@ interface EquippedItem {
   avatar_items: AvatarItem;
 }
 
+interface DatabaseFunctionResponse {
+  success: boolean;
+  error?: string;
+  item_name?: string;
+  item_category?: string;
+  unlock_method?: string;
+  category?: string;
+  tokens_spent?: number;
+  premium_spent?: number;
+}
+
 export function usePlayerAvatar() {
   const { user } = useAuth();
   const [allItems, setAllItems] = useState<AvatarItem[]>([]);
@@ -143,13 +154,15 @@ export function usePlayerAvatar() {
         throw error;
       }
 
-      if (data.success) {
+      const result = data as DatabaseFunctionResponse;
+      
+      if (result.success) {
         await fetchAvatarData();
-        toast.success(`Successfully purchased ${data.item_name}!`);
-        return { success: true, data };
+        toast.success(`Successfully purchased ${result.item_name}!`);
+        return { success: true, data: result };
       } else {
-        toast.error(data.error || 'Purchase failed');
-        return { success: false, error: data.error };
+        toast.error(result.error || 'Purchase failed');
+        return { success: false, error: result.error };
       }
     } catch (error) {
       console.error('Error:', error);
@@ -172,13 +185,15 @@ export function usePlayerAvatar() {
         throw error;
       }
 
-      if (data.success) {
+      const result = data as DatabaseFunctionResponse;
+
+      if (result.success) {
         await fetchAvatarData();
-        toast.success(`Equipped ${data.item_name}!`);
-        return { success: true, data };
+        toast.success(`Equipped ${result.item_name}!`);
+        return { success: true, data: result };
       } else {
-        toast.error(data.error || 'Failed to equip item');
-        return { success: false, error: data.error };
+        toast.error(result.error || 'Failed to equip item');
+        return { success: false, error: result.error };
       }
     } catch (error) {
       console.error('Error:', error);
@@ -206,8 +221,11 @@ export function usePlayerAvatar() {
 
         if (error) {
           console.error('Error unlocking item:', error);
-        } else if (data.success) {
-          toast.success(`🎉 New avatar item unlocked: ${item.name}!`);
+        } else {
+          const result = data as DatabaseFunctionResponse;
+          if (result.success) {
+            toast.success(`🎉 New avatar item unlocked: ${item.name}!`);
+          }
         }
       }
 
