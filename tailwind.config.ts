@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -61,6 +62,24 @@ export default {
 					'accent-foreground': 'hsl(var(--sidebar-accent-foreground))',
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
+				},
+				// Tennis-specific colors matching your mockups
+				tennis: {
+					green: {
+						dark: 'hsl(var(--tennis-green-dark))',
+						medium: 'hsl(var(--tennis-green-medium))',
+						light: 'hsl(var(--tennis-green-light))',
+						bg: 'hsl(var(--tennis-green-bg))'
+					},
+					yellow: 'hsl(var(--tennis-yellow))',
+					court: 'hsl(var(--tennis-court))'
+				},
+				hp: {
+					red: 'hsl(var(--hp-red))',
+					green: 'hsl(var(--hp-green))'
+				},
+				xp: {
+					blue: 'hsl(var(--xp-blue))'
 				}
 			},
 			borderRadius: {
