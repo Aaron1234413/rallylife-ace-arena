@@ -105,7 +105,16 @@ export function useCoachTokens() {
         throw error;
       }
 
-      return data as TokenResult;
+      // Safely cast the result
+      const result = data as unknown;
+      if (Array.isArray(result) && result.length > 0) {
+        return result[0] as TokenResult;
+      } else if (result && typeof result === 'object') {
+        return result as TokenResult;
+      } else {
+        console.warn('Unexpected result structure from add_coach_tokens:', result);
+        throw new Error('Unexpected response format');
+      }
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['coach-tokens'] });
@@ -148,7 +157,16 @@ export function useCoachTokens() {
         throw error;
       }
 
-      return data as TokenResult;
+      // Safely cast the result
+      const result = data as unknown;
+      if (Array.isArray(result) && result.length > 0) {
+        return result[0] as TokenResult;
+      } else if (result && typeof result === 'object') {
+        return result as TokenResult;
+      } else {
+        console.warn('Unexpected result structure from spend_coach_tokens:', result);
+        throw new Error('Unexpected response format');
+      }
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['coach-tokens'] });

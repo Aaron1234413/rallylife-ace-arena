@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -13,7 +14,7 @@ import { PlayerActionCards } from "@/components/dashboard/PlayerActionCards";
 import { PlayerActivityLogs } from "@/components/dashboard/PlayerActivityLogs";
 import { TokenEconomy } from "@/components/dashboard/TokenEconomy";
 import { QuickActionButtons } from "@/components/activities/QuickActionButtons";
-import { ActivityFeed } from "@/components/activities/ActivityStats";
+import { ActivityFeed } from "@/components/activities/ActivityFeed";
 import { ActivityStats } from "@/components/activities/ActivityStats";
 import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
 import { CXPActivityLog } from "@/components/cxp/CXPActivityLog";
