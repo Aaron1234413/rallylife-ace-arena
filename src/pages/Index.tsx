@@ -17,6 +17,7 @@ import { QuickActionButtons } from "@/components/activities/QuickActionButtons";
 import { ActivityFeed } from "@/components/activities/ActivityFeed";
 import { ActivityStats } from "@/components/activities/ActivityStats";
 import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
+import { CoachAvatarCustomization } from "@/components/avatar/CoachAvatarCustomization";
 import { CXPActivityLog } from "@/components/cxp/CXPActivityLog";
 import { CXPEarnActions } from "@/components/cxp/CXPEarnActions";
 import { CTKEarnActions } from "@/components/ctk/CTKEarnActions";

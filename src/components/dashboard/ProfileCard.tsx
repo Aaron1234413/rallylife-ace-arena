@@ -5,6 +5,7 @@ import { User } from 'lucide-react';
 import { CRPDisplay } from '@/components/crp/CRPDisplay';
 import { CXPDisplay } from '@/components/cxp/CXPDisplay';
 import { CTKDisplay } from '@/components/ctk/CTKDisplay';
+import { CoachAvatarDisplay } from '@/components/avatar/CoachAvatarDisplay';
 
 interface ProfileCardProps {
   profile: any;
@@ -30,14 +31,23 @@ export function ProfileCard({ profile, user, profileLoading, isPlayer }: Profile
           {profileLoading ? (
             <p className="text-tennis-green-medium">Loading profile...</p>
           ) : (
-            <div className="space-y-2 text-sm">
-              <p><strong className="text-tennis-green-dark">Email:</strong> <span className="break-all">{user?.email}</span></p>
-              <p><strong className="text-tennis-green-dark">Full Name:</strong> {profile?.full_name}</p>
-              <p><strong className="text-tennis-green-dark">Role:</strong> {profile?.role}</p>
-              <p className="text-tennis-green-medium text-xs mt-3">
-                🎾 Phase 2.5 (Achievement System) is now live! 
-                {isPlayer ? ' Earn achievements by playing, training, and progressing in the game!' : ' Monitor your players\' achievement progress and unlocks.'}
-              </p>
+            <div className="space-y-4">
+              {/* Coach Avatar for coaches */}
+              {!isPlayer && (
+                <div className="flex justify-center">
+                  <CoachAvatarDisplay size="md" showItems={true} />
+                </div>
+              )}
+              
+              <div className="space-y-2 text-sm">
+                <p><strong className="text-tennis-green-dark">Email:</strong> <span className="break-all">{user?.email}</span></p>
+                <p><strong className="text-tennis-green-dark">Full Name:</strong> {profile?.full_name}</p>
+                <p><strong className="text-tennis-green-dark">Role:</strong> {profile?.role}</p>
+                <p className="text-tennis-green-medium text-xs mt-3">
+                  🎾 Phase 2.5 (Achievement System) is now live! 
+                  {isPlayer ? ' Earn achievements by playing, training, and progressing in the game!' : ' Monitor your players\' achievement progress and unlocks.'}
+                </p>
+              </div>
             </div>
           )}
         </CardContent>

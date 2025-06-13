@@ -321,6 +321,118 @@ export type Database = {
           },
         ]
       }
+      coach_avatar_equipped: {
+        Row: {
+          avatar_item_id: string
+          category: string
+          coach_id: string
+          equipped_at: string
+          id: string
+        }
+        Insert: {
+          avatar_item_id: string
+          category: string
+          coach_id: string
+          equipped_at?: string
+          id?: string
+        }
+        Update: {
+          avatar_item_id?: string
+          category?: string
+          coach_id?: string
+          equipped_at?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_avatar_equipped_avatar_item_id_fkey"
+            columns: ["avatar_item_id"]
+            isOneToOne: false
+            referencedRelation: "coach_avatar_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_avatar_items: {
+        Row: {
+          category: string
+          created_at: string
+          ctk_cost: number | null
+          description: string | null
+          id: string
+          image_url: string
+          is_default: boolean | null
+          is_professional: boolean | null
+          item_type: string
+          name: string
+          rarity: string
+          unlock_requirement: Json | null
+          unlock_type: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          ctk_cost?: number | null
+          description?: string | null
+          id?: string
+          image_url: string
+          is_default?: boolean | null
+          is_professional?: boolean | null
+          item_type: string
+          name: string
+          rarity?: string
+          unlock_requirement?: Json | null
+          unlock_type: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          ctk_cost?: number | null
+          description?: string | null
+          id?: string
+          image_url?: string
+          is_default?: boolean | null
+          is_professional?: boolean | null
+          item_type?: string
+          name?: string
+          rarity?: string
+          unlock_requirement?: Json | null
+          unlock_type?: string
+        }
+        Relationships: []
+      }
+      coach_avatar_owned: {
+        Row: {
+          avatar_item_id: string
+          coach_id: string
+          id: string
+          unlock_method: string
+          unlocked_at: string
+        }
+        Insert: {
+          avatar_item_id: string
+          coach_id: string
+          id?: string
+          unlock_method: string
+          unlocked_at?: string
+        }
+        Update: {
+          avatar_item_id?: string
+          coach_id?: string
+          id?: string
+          unlock_method?: string
+          unlocked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_avatar_owned_avatar_item_id_fkey"
+            columns: ["avatar_item_id"]
+            isOneToOne: false
+            referencedRelation: "coach_avatar_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_crp: {
         Row: {
           booking_rate_bonus: number
@@ -1251,6 +1363,10 @@ export type Database = {
         Args: { user_id: string; item_id: string }
         Returns: Json
       }
+      equip_coach_avatar_item: {
+        Args: { user_id: string; item_id: string }
+        Returns: Json
+      }
       get_activity_feed: {
         Args: {
           user_id: string
@@ -1284,6 +1400,10 @@ export type Database = {
       get_activity_stats: {
         Args: { user_id: string; days_back?: number }
         Returns: Json
+      }
+      initialize_coach_avatar: {
+        Args: { user_id: string }
+        Returns: undefined
       }
       initialize_coach_crp: {
         Args: { user_id: string }
@@ -1352,6 +1472,10 @@ export type Database = {
         Args: { user_id: string; item_id: string }
         Returns: Json
       }
+      purchase_coach_avatar_item: {
+        Args: { user_id: string; item_id: string }
+        Returns: Json
+      }
       restore_hp: {
         Args: {
           user_id: string
@@ -1411,6 +1535,10 @@ export type Database = {
         Returns: Json
       }
       unlock_avatar_item: {
+        Args: { user_id: string; item_id: string; unlock_method?: string }
+        Returns: Json
+      }
+      unlock_coach_avatar_item: {
         Args: { user_id: string; item_id: string; unlock_method?: string }
         Returns: Json
       }
