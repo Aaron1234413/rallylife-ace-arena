@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -154,7 +153,7 @@ export function usePlayerAvatar() {
         throw error;
       }
 
-      const result = data as DatabaseFunctionResponse;
+      const result = data as unknown as DatabaseFunctionResponse;
       
       if (result.success) {
         await fetchAvatarData();
@@ -185,7 +184,7 @@ export function usePlayerAvatar() {
         throw error;
       }
 
-      const result = data as DatabaseFunctionResponse;
+      const result = data as unknown as DatabaseFunctionResponse;
 
       if (result.success) {
         await fetchAvatarData();
@@ -222,7 +221,7 @@ export function usePlayerAvatar() {
         if (error) {
           console.error('Error unlocking item:', error);
         } else {
-          const result = data as DatabaseFunctionResponse;
+          const result = data as unknown as DatabaseFunctionResponse;
           if (result.success) {
             toast.success(`🎉 New avatar item unlocked: ${item.name}!`);
           }
