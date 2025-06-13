@@ -152,9 +152,10 @@ export function usePlayerXP() {
 
       loadData();
 
-      // Set up real-time subscription for XP changes
+      // Set up real-time subscription for XP changes with unique channel name
+      const channelName = `xp-changes-${user.id}-${Date.now()}`;
       const channel = supabase
-        .channel('xp-changes')
+        .channel(channelName)
         .on(
           'postgres_changes',
           {
@@ -182,7 +183,7 @@ export function usePlayerXP() {
         .subscribe();
 
       return () => {
-        supabase.removeChannel(channel);
+        channel.unsubscribe();
       };
     } else {
       setXpData(null);

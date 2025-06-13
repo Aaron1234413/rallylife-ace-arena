@@ -242,9 +242,10 @@ export function usePlayerTokens() {
 
       loadData();
 
-      // Set up real-time subscription for token changes
+      // Set up real-time subscription for token changes with unique channel name
+      const channelName = `token-changes-${user.id}-${Date.now()}`;
       const channel = supabase
-        .channel('token-changes')
+        .channel(channelName)
         .on(
           'postgres_changes',
           {
@@ -272,7 +273,7 @@ export function usePlayerTokens() {
         .subscribe();
 
       return () => {
-        supabase.removeChannel(channel);
+        channel.unsubscribe();
       };
     } else {
       setTokenData(null);

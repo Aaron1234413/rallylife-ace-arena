@@ -141,9 +141,10 @@ export function usePlayerHP() {
 
       loadData();
 
-      // Set up real-time subscription for HP changes
+      // Set up real-time subscription for HP changes with unique channel name
+      const channelName = `hp-changes-${user.id}-${Date.now()}`;
       const channel = supabase
-        .channel('hp-changes')
+        .channel(channelName)
         .on(
           'postgres_changes',
           {
@@ -171,7 +172,7 @@ export function usePlayerHP() {
         .subscribe();
 
       return () => {
-        supabase.removeChannel(channel);
+        channel.unsubscribe();
       };
     } else {
       setHpData(null);
