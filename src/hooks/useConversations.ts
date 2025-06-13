@@ -11,8 +11,22 @@ export function useConversations() {
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
 
-      // First get conversations the user participates in
-      const { data: userConversations, error: conversationsError } = await supabase
+      // First get conversation IDs where user participates
+      const { data: participantData, error: participantError } = await supabase
+        .from('conversation_participants')
+        .select('conversation_id')
+        .eq('user_id', user.id);
+
+      if (participantError) throw participantError;
+
+      const conversationIds = participantData?.map(p => p.conversation_id) || [];
+      
+      if (conversationIds.length === 0) {
+        return [];
+      }
+
+      // Get conversations
+      const { data: conversations, error: conversationsError } = await supabase
         .from('conversations')
         .select(`
           id,
@@ -22,25 +36,20 @@ export function useConversations() {
           created_at,
           updated_at
         `)
-        .in('id', 
-          supabase
-            .from('conversation_participants')
-            .select('conversation_id')
-            .eq('user_id', user.id)
-        )
+        .in('id', conversationIds)
         .order('updated_at', { ascending: false });
 
       if (conversationsError) throw conversationsError;
 
       // Get participant details and latest messages for each conversation
       const conversationsWithData = await Promise.all(
-        (userConversations || []).map(async (conversation) => {
+        (conversations || []).map(async (conversation) => {
           // Get other participants (not the current user)
           const { data: participants, error: participantsError } = await supabase
             .from('conversation_participants')
             .select(`
               user_id,
-              profiles!conversation_participants_user_id_fkey(
+              profiles:user_id(
                 id,
                 full_name,
                 avatar_url
