@@ -45,6 +45,75 @@ export type Database = {
         }
         Relationships: []
       }
+      hp_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string | null
+          hp_after: number
+          hp_before: number
+          hp_change: number
+          id: string
+          player_id: string
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description?: string | null
+          hp_after: number
+          hp_before: number
+          hp_change: number
+          id?: string
+          player_id: string
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          hp_after?: number
+          hp_before?: number
+          hp_change?: number
+          id?: string
+          player_id?: string
+        }
+        Relationships: []
+      }
+      player_hp: {
+        Row: {
+          created_at: string
+          current_hp: number
+          decay_paused: boolean
+          decay_rate: number
+          id: string
+          last_activity: string
+          max_hp: number
+          player_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          current_hp?: number
+          decay_paused?: boolean
+          decay_rate?: number
+          id?: string
+          last_activity?: string
+          max_hp?: number
+          player_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          current_hp?: number
+          decay_paused?: boolean
+          decay_rate?: number
+          id?: string
+          last_activity?: string
+          max_hp?: number
+          player_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       player_profiles: {
         Row: {
           bio: string | null
@@ -113,7 +182,23 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      calculate_hp_decay: {
+        Args: { user_id: string }
+        Returns: number
+      }
+      initialize_player_hp: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
+      restore_hp: {
+        Args: {
+          user_id: string
+          restoration_amount: number
+          activity_type: string
+          description?: string
+        }
+        Returns: number
+      }
     }
     Enums: {
       user_role: "player" | "coach"
