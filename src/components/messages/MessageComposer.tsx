@@ -4,6 +4,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Send, Smile, Paperclip } from 'lucide-react';
+import { useMessages } from '@/hooks/useMessages';
 
 interface MessageComposerProps {
   conversationId: string;
@@ -11,11 +12,11 @@ interface MessageComposerProps {
 
 export function MessageComposer({ conversationId }: MessageComposerProps) {
   const [message, setMessage] = useState('');
+  const { sendMessage, sending } = useMessages(conversationId);
 
   const handleSend = () => {
-    if (message.trim()) {
-      // TODO: Implement message sending logic
-      console.log('Sending message:', message, 'to conversation:', conversationId);
+    if (message.trim() && !sending) {
+      sendMessage({ content: message.trim() });
       setMessage('');
     }
   };
@@ -31,7 +32,7 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
     <Card>
       <CardContent className="p-3">
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="flex-shrink-0">
+          <Button variant="ghost" size="sm" className="flex-shrink-0" disabled>
             <Paperclip className="h-4 w-4" />
           </Button>
 
@@ -41,15 +42,16 @@ export function MessageComposer({ conversationId }: MessageComposerProps) {
             onKeyPress={handleKeyPress}
             placeholder="Type a message..."
             className="flex-1"
+            disabled={sending}
           />
 
-          <Button variant="ghost" size="sm" className="flex-shrink-0">
+          <Button variant="ghost" size="sm" className="flex-shrink-0" disabled>
             <Smile className="h-4 w-4" />
           </Button>
 
           <Button 
             onClick={handleSend}
-            disabled={!message.trim()}
+            disabled={!message.trim() || sending}
             size="sm"
             className="bg-tennis-green-dark hover:bg-tennis-green-medium flex-shrink-0"
           >

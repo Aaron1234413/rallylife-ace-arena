@@ -259,6 +259,68 @@ export type Database = {
         }
         Relationships: []
       }
+      challenges: {
+        Row: {
+          accepted_at: string | null
+          challenge_type: string
+          challenged_id: string
+          challenger_id: string
+          completed_at: string | null
+          conversation_id: string | null
+          created_at: string
+          id: string
+          message: string | null
+          metadata: Json | null
+          stakes_premium_tokens: number | null
+          stakes_tokens: number | null
+          status: string
+          updated_at: string
+          winner_id: string | null
+        }
+        Insert: {
+          accepted_at?: string | null
+          challenge_type: string
+          challenged_id: string
+          challenger_id: string
+          completed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          stakes_premium_tokens?: number | null
+          stakes_tokens?: number | null
+          status?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Update: {
+          accepted_at?: string | null
+          challenge_type?: string
+          challenged_id?: string
+          challenger_id?: string
+          completed_at?: string | null
+          conversation_id?: string | null
+          created_at?: string
+          id?: string
+          message?: string | null
+          metadata?: Json | null
+          stakes_premium_tokens?: number | null
+          stakes_tokens?: number | null
+          status?: string
+          updated_at?: string
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "challenges_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_profiles: {
         Row: {
           bio: string | null
@@ -295,6 +357,65 @@ export type Database = {
         }
         Relationships: []
       }
+      conversation_participants: {
+        Row: {
+          conversation_id: string
+          id: string
+          joined_at: string
+          last_read_at: string | null
+          user_id: string
+        }
+        Insert: {
+          conversation_id: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          user_id: string
+        }
+        Update: {
+          conversation_id?: string
+          id?: string
+          joined_at?: string
+          last_read_at?: string | null
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "conversation_participants_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      conversations: {
+        Row: {
+          created_at: string
+          created_by: string
+          id: string
+          is_group: boolean
+          name: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by: string
+          id?: string
+          is_group?: boolean
+          name?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string
+          id?: string
+          is_group?: boolean
+          name?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       hp_activities: {
         Row: {
           activity_type: string
@@ -327,6 +448,47 @@ export type Database = {
           player_id?: string
         }
         Relationships: []
+      }
+      messages: {
+        Row: {
+          content: string
+          conversation_id: string
+          created_at: string
+          id: string
+          message_type: string
+          metadata: Json | null
+          sender_id: string
+          updated_at: string
+        }
+        Insert: {
+          content: string
+          conversation_id: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          metadata?: Json | null
+          sender_id: string
+          updated_at?: string
+        }
+        Update: {
+          content?: string
+          conversation_id?: string
+          created_at?: string
+          id?: string
+          message_type?: string
+          metadata?: Json | null
+          sender_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "messages_conversation_id_fkey"
+            columns: ["conversation_id"]
+            isOneToOne: false
+            referencedRelation: "conversations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       player_achievements: {
         Row: {
@@ -719,6 +881,10 @@ export type Database = {
         }
         Returns: Json
       }
+      create_direct_conversation: {
+        Args: { other_user_id: string; conversation_name?: string }
+        Returns: string
+      }
       equip_avatar_item: {
         Args: { user_id: string; item_id: string }
         Returns: Json
@@ -820,6 +986,26 @@ export type Database = {
           description?: string
         }
         Returns: number
+      }
+      send_challenge: {
+        Args: {
+          challenged_user_id: string
+          challenge_type: string
+          stakes_tokens?: number
+          stakes_premium_tokens?: number
+          message?: string
+          metadata?: Json
+        }
+        Returns: string
+      }
+      send_message: {
+        Args: {
+          conversation_id: string
+          content: string
+          message_type?: string
+          metadata?: Json
+        }
+        Returns: string
       }
       spend_tokens: {
         Args: {

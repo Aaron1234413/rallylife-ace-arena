@@ -6,7 +6,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
-import { Zap, Trophy, Coins } from 'lucide-react';
+import { Zap, Coins } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { useConversations } from '@/hooks/useConversations';
+import { useQueryClient } from '@tanstack/react-query';
+import { toast } from 'sonner';
 
 interface ChallengeCardProps {
   conversationId: string;
@@ -22,6 +26,9 @@ export function ChallengeCard({ conversationId, playerStats }: ChallengeCardProp
   const [stakes, setStakes] = useState('');
   const [customStakes, setCustomStakes] = useState('');
   const [message, setMessage] = useState('');
+  const [sending, setSending] = useState(false);
+
+  const queryClient = useQueryClient();
 
   const challengeTypes = [
     { value: 'friendly_match', label: '🎾 Friendly Match', description: 'Casual game for fun' },
@@ -38,24 +45,51 @@ export function ChallengeCard({ conversationId, playerStats }: ChallengeCardProp
     { value: 'custom', label: 'Custom amount' }
   ];
 
-  const handleSendChallenge = () => {
-    if (!challengeType) return;
+  const handleSendChallenge = async () => {
+    if (!challengeType || sending) return;
 
-    const finalStakes = stakes === 'custom' ? customStakes : stakes;
-    
-    // TODO: Implement challenge sending logic
-    console.log('Sending challenge:', {
-      type: challengeType,
-      stakes: finalStakes,
-      message,
-      conversationId
-    });
+    setSending(true);
+    try {
+      const finalStakes = stakes === 'custom' ? parseInt(customStakes) || 0 : parseInt(stakes) || 0;
+      
+      // Get the other participant in the conversation
+      const { data: participants, error: participantsError } = await supabase
+        .from('conversation_participants')
+        .select('user_id')
+        .eq('conversation_id', conversationId)
+        .neq('user_id', (await supabase.auth.getUser()).data.user?.id);
 
-    // Reset form
-    setChallengeType('');
-    setStakes('');
-    setCustomStakes('');
-    setMessage('');
+      if (participantsError) throw participantsError;
+      if (!participants[0]) throw new Error('No other participant found');
+
+      const { data, error } = await supabase.rpc('send_challenge', {
+        challenged_user_id: participants[0].user_id,
+        challenge_type: challengeType,
+        stakes_tokens: finalStakes,
+        stakes_premium_tokens: 0,
+        message: message || `${challengeTypes.find(t => t.value === challengeType)?.label} challenge!`,
+        metadata: { conversation_id: conversationId }
+      });
+
+      if (error) throw error;
+
+      // Reset form
+      setChallengeType('');
+      setStakes('');
+      setCustomStakes('');
+      setMessage('');
+
+      // Refresh messages
+      queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
+
+      toast.success('Challenge sent successfully!');
+    } catch (error) {
+      console.error('Error sending challenge:', error);
+      toast.error('Failed to send challenge. Please try again.');
+    } finally {
+      setSending(false);
+    }
   };
 
   return (
@@ -140,11 +174,11 @@ export function ChallengeCard({ conversationId, playerStats }: ChallengeCardProp
         {/* Send Button */}
         <Button 
           onClick={handleSendChallenge}
-          disabled={!challengeType}
+          disabled={!challengeType || sending}
           className="w-full bg-tennis-green-dark hover:bg-tennis-green-medium"
         >
           <Zap className="h-4 w-4 mr-2" />
-          Send Challenge
+          {sending ? 'Sending...' : 'Send Challenge'}
         </Button>
 
         {/* Quick Challenge Buttons */}
@@ -157,6 +191,7 @@ export function ChallengeCard({ conversationId, playerStats }: ChallengeCardProp
               setStakes('0');
             }}
             className="text-xs"
+            disabled={sending}
           >
             🎾 Quick Match
           </Button>
@@ -168,6 +203,7 @@ export function ChallengeCard({ conversationId, playerStats }: ChallengeCardProp
               setStakes('50');
             }}
             className="text-xs"
+            disabled={sending}
           >
             🏆 Ranked (50T)
           </Button>

@@ -1,10 +1,12 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Trophy, Share } from 'lucide-react';
+import { useMessages } from '@/hooks/useMessages';
+import { toast } from 'sonner';
 
 interface AchievementShareCardProps {
   achievements: any[];
@@ -12,11 +14,37 @@ interface AchievementShareCardProps {
 }
 
 export function AchievementShareCard({ achievements, conversationId }: AchievementShareCardProps) {
+  const [sharing, setSharing] = useState<string | null>(null);
+  const { sendMessage } = useMessages(conversationId);
   const recentAchievements = achievements.slice(0, 5);
 
-  const handleShareAchievement = (achievement: any) => {
-    // TODO: Implement achievement sharing logic
-    console.log('Sharing achievement:', achievement, 'to conversation:', conversationId);
+  const handleShareAchievement = async (achievement: any) => {
+    if (sharing) return;
+
+    setSharing(achievement.id);
+    try {
+      const achievementData = achievement.achievement;
+      if (!achievementData) return;
+
+      const shareMessage = `🏆 I just unlocked the "${achievementData.name}" achievement! ${achievementData.description}`;
+      
+      sendMessage({
+        content: shareMessage,
+        messageType: 'achievement',
+        metadata: { 
+          achievement_id: achievementData.id,
+          achievement_name: achievementData.name,
+          achievement_tier: achievementData.tier
+        }
+      });
+
+      toast.success('Achievement shared!');
+    } catch (error) {
+      console.error('Error sharing achievement:', error);
+      toast.error('Failed to share achievement. Please try again.');
+    } finally {
+      setSharing(null);
+    }
   };
 
   return (
@@ -56,10 +84,11 @@ export function AchievementShareCard({ achievements, conversationId }: Achieveme
                     </div>
 
                     <Button
-                      onClick={() => handleShareAchievement(achievement)}
+                      onClick={() => handleShareAchievement(playerAchievement)}
                       size="sm"
                       variant="outline"
                       className="ml-3 flex-shrink-0"
+                      disabled={sharing === playerAchievement.id}
                     >
                       <Share className="h-3 w-3" />
                     </Button>

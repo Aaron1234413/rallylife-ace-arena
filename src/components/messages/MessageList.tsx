@@ -1,144 +1,131 @@
 
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import React, { useEffect, useRef } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Heart, Trophy, Zap } from 'lucide-react';
-
-interface Message {
-  id: string;
-  senderId: string;
-  content: string;
-  timestamp: string;
-  type: 'text' | 'achievement' | 'challenge' | 'status';
-  metadata?: any;
-}
+import { Trophy, Zap } from 'lucide-react';
+import { useMessages } from '@/hooks/useMessages';
+import { useAuth } from '@/hooks/useAuth';
 
 interface MessageListProps {
   conversationId: string;
 }
 
 export function MessageList({ conversationId }: MessageListProps) {
-  // Mock messages for demonstration
-  const messages: Message[] = [
-    {
-      id: '1',
-      senderId: 'other',
-      content: 'Hey! How was your training session today?',
-      timestamp: '10:30 AM',
-      type: 'text'
-    },
-    {
-      id: '2',
-      senderId: 'me',
-      content: 'It was great! Just reached level 5! 🎾',
-      timestamp: '10:32 AM',
-      type: 'achievement',
-      metadata: {
-        achievement: 'Rising Star',
-        level: 5,
-        xpEarned: 100
-      }
-    },
-    {
-      id: '3',
-      senderId: 'other',
-      content: 'Awesome! Want to play a match later?',
-      timestamp: '10:35 AM',
-      type: 'text'
-    },
-    {
-      id: '4',
-      senderId: 'me',
-      content: 'I challenge you to a friendly match! 🏆',
-      timestamp: '10:36 AM',
-      type: 'challenge',
-      metadata: {
-        challengeType: 'friendly_match',
-        stakes: '50 tokens'
-      }
-    },
-    {
-      id: '5',
-      senderId: 'other',
-      content: 'Challenge accepted! See you at the court at 3 PM',
-      timestamp: '10:38 AM',
-      type: 'text'
+  const { user } = useAuth();
+  const { messages, loading } = useMessages(conversationId);
+  const scrollAreaRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new messages arrive
+  useEffect(() => {
+    if (scrollAreaRef.current) {
+      scrollAreaRef.current.scrollTop = scrollAreaRef.current.scrollHeight;
     }
-  ];
+  }, [messages]);
 
-  const renderMessage = (message: Message) => {
-    const isMe = message.senderId === 'me';
-
+  if (loading) {
     return (
-      <div
-        key={message.id}
-        className={`flex ${isMe ? 'justify-end' : 'justify-start'} mb-4`}
-      >
-        <div className={`max-w-xs lg:max-w-md ${isMe ? 'order-2' : 'order-1'}`}>
-          {/* Message Content */}
-          <div
-            className={`px-4 py-2 rounded-lg ${
-              isMe
-                ? 'bg-tennis-green-dark text-white'
-                : 'bg-white border border-gray-200'
-            }`}
-          >
-            {message.type === 'text' && (
-              <p className="text-sm">{message.content}</p>
-            )}
-
-            {message.type === 'achievement' && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Trophy className="h-4 w-4 text-yellow-500" />
-                  <span className="font-medium text-sm">Achievement Unlocked!</span>
-                </div>
-                <div className="text-sm">
-                  <p className="font-medium">{message.metadata.achievement}</p>
-                  <p className="text-xs opacity-80">
-                    Reached Level {message.metadata.level} • +{message.metadata.xpEarned} XP
-                  </p>
-                </div>
-              </div>
-            )}
-
-            {message.type === 'challenge' && (
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Zap className="h-4 w-4 text-orange-500" />
-                  <span className="font-medium text-sm">Challenge Sent!</span>
-                </div>
-                <div className="text-sm">
-                  <p>{message.content}</p>
-                  <Badge variant="outline" className="mt-1">
-                    Stakes: {message.metadata.stakes}
-                  </Badge>
-                </div>
-              </div>
-            )}
-          </div>
-
-          {/* Timestamp */}
-          <p
-            className={`text-xs text-muted-foreground mt-1 ${
-              isMe ? 'text-right' : 'text-left'
-            }`}
-          >
-            {message.timestamp}
-          </p>
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-tennis-green-dark mx-auto mb-2"></div>
+          <p className="text-sm text-muted-foreground">Loading messages...</p>
         </div>
       </div>
     );
+  }
+
+  if (messages.length === 0) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="text-center">
+          <p className="text-muted-foreground">No messages yet. Start the conversation!</p>
+        </div>
+      </div>
+    );
+  }
+
+  const formatTime = (timestamp: string) => {
+    const date = new Date(timestamp);
+    return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  };
+
+  const renderMessageContent = (message: any) => {
+    if (message.message_type === 'challenge' && message.metadata?.challenge_id) {
+      return (
+        <div className="bg-orange-50 border border-orange-200 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Zap className="h-4 w-4 text-orange-600" />
+            <span className="font-medium text-orange-800">Challenge Sent!</span>
+          </div>
+          <p className="text-sm text-orange-700">{message.content}</p>
+        </div>
+      );
+    }
+
+    if (message.message_type === 'achievement' && message.metadata?.achievement_id) {
+      return (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+          <div className="flex items-center gap-2 mb-2">
+            <Trophy className="h-4 w-4 text-yellow-600" />
+            <span className="font-medium text-yellow-800">Achievement Shared!</span>
+          </div>
+          <p className="text-sm text-yellow-700">{message.content}</p>
+        </div>
+      );
+    }
+
+    return <p>{message.content}</p>;
   };
 
   return (
-    <Card>
-      <CardContent className="p-0">
-        <ScrollArea className="h-96 p-4">
-          {messages.map(renderMessage)}
-        </ScrollArea>
-      </CardContent>
-    </Card>
+    <ScrollArea className="h-full pr-4" ref={scrollAreaRef}>
+      <div className="space-y-4 pb-4">
+        {messages.map((message: any) => {
+          const isCurrentUser = message.sender_id === user?.id;
+          const senderName = message.profiles?.full_name || 'Unknown User';
+
+          return (
+            <div
+              key={message.id}
+              className={`flex gap-3 ${isCurrentUser ? 'flex-row-reverse' : 'flex-row'}`}
+            >
+              {!isCurrentUser && (
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  <AvatarImage src={message.profiles?.avatar_url || ''} />
+                  <AvatarFallback>{senderName.charAt(0)}</AvatarFallback>
+                </Avatar>
+              )}
+
+              <div className={`flex-1 max-w-xs ${isCurrentUser ? 'text-right' : 'text-left'}`}>
+                {!isCurrentUser && (
+                  <p className="text-xs text-muted-foreground mb-1">{senderName}</p>
+                )}
+                
+                <div
+                  className={`rounded-lg px-3 py-2 inline-block ${
+                    isCurrentUser
+                      ? 'bg-tennis-green-dark text-white'
+                      : 'bg-muted text-foreground'
+                  }`}
+                >
+                  {renderMessageContent(message)}
+                </div>
+                
+                <p className="text-xs text-muted-foreground mt-1">
+                  {formatTime(message.created_at)}
+                </p>
+              </div>
+
+              {isCurrentUser && (
+                <Avatar className="h-8 w-8 flex-shrink-0">
+                  <AvatarImage src={user?.user_metadata?.avatar_url || ''} />
+                  <AvatarFallback>{user?.user_metadata?.full_name?.charAt(0) || 'U'}</AvatarFallback>
+                </Avatar>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </ScrollArea>
   );
 }
