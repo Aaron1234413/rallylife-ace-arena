@@ -9,6 +9,72 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      coach_profiles: {
+        Row: {
+          bio: string | null
+          certifications: string[] | null
+          coaching_focus: string | null
+          created_at: string
+          experience_years: number | null
+          hourly_rate: number | null
+          id: string
+          location: string | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          certifications?: string[] | null
+          coaching_focus?: string | null
+          created_at?: string
+          experience_years?: number | null
+          hourly_rate?: number | null
+          id: string
+          location?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          certifications?: string[] | null
+          coaching_focus?: string | null
+          created_at?: string
+          experience_years?: number | null
+          hourly_rate?: number | null
+          id?: string
+          location?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      player_profiles: {
+        Row: {
+          bio: string | null
+          created_at: string
+          id: string
+          location: string | null
+          preferred_play_style: string | null
+          skill_level: string | null
+          updated_at: string
+        }
+        Insert: {
+          bio?: string | null
+          created_at?: string
+          id: string
+          location?: string | null
+          preferred_play_style?: string | null
+          skill_level?: string | null
+          updated_at?: string
+        }
+        Update: {
+          bio?: string | null
+          created_at?: string
+          id?: string
+          location?: string | null
+          preferred_play_style?: string | null
+          skill_level?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -16,6 +82,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          onboarding_completed: boolean
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
         }
@@ -25,6 +92,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          onboarding_completed?: boolean
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
@@ -34,6 +102,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          onboarding_completed?: boolean
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
         }
