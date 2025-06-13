@@ -7,9 +7,9 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Ready Player Me API configuration - using the correct API endpoint
-const RPM_API_KEY = "sk_live_QJzvaO1CtP0_BygC1aKZtpIjV7_WdBKU_vvd";
-const RPM_BASE_URL = "https://api.readyplayer.me/v2";
+// Ready Player Me configuration - using their recommended approach
+const RPM_SUBDOMAIN = "demo"; // This should be replaced with your actual subdomain
+const RPM_BASE_URL = `https://${RPM_SUBDOMAIN}.readyplayer.me`;
 
 serve(async (req) => {
   if (req.method === "OPTIONS") {
@@ -36,14 +36,12 @@ serve(async (req) => {
     const { action, ...body } = await req.json();
     
     switch (action) {
-      case "create_avatar":
-        return await createAvatar(body, userData.user.id, supabaseClient);
-      case "update_avatar":
-        return await updateAvatar(body, userData.user.id, supabaseClient);
-      case "get_avatar":
-        return await getAvatar(userData.user.id, supabaseClient);
-      case "get_assets":
-        return await getAssets();
+      case "get_avatar_url":
+        return await getAvatarUrl(userData.user.id, supabaseClient);
+      case "save_avatar_url":
+        return await saveAvatarUrl(body.avatarUrl, userData.user.id, supabaseClient);
+      case "validate_avatar":
+        return await validateAvatar(body.avatarUrl);
       case "test_connection":
         return await testConnection();
       default:
@@ -63,62 +61,25 @@ serve(async (req) => {
 
 async function testConnection() {
   try {
-    console.log("Testing Ready Player Me API connection...");
-    console.log("Using API Key:", RPM_API_KEY ? "Present" : "Missing");
+    console.log("Testing Ready Player Me connection...");
+    console.log("Using subdomain:", RPM_SUBDOMAIN);
     console.log("Base URL:", RPM_BASE_URL);
     
-    // Test with a simple API call that doesn't require authentication first
-    const response = await fetch(`${RPM_BASE_URL}/applications`, {
-      method: "GET",
-      headers: {
-        "X-API-KEY": RPM_API_KEY,
-        "Content-Type": "application/json",
-      },
+    // Test the Ready Player Me iframe URL
+    const testUrl = `${RPM_BASE_URL}/avatar?frameApi`;
+    
+    const response = await fetch(testUrl, {
+      method: "HEAD",
     });
 
-    console.log("API Response Status:", response.status);
-    const responseText = await response.text();
-    console.log("API Response Body:", responseText);
-
-    if (!response.ok) {
-      // If that fails, try the v1 endpoint format
-      console.log("Trying v1 endpoint format...");
-      const v1Response = await fetch("https://api.readyplayer.me/v1/applications", {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${RPM_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      console.log("V1 API Response Status:", v1Response.status);
-      const v1ResponseText = await v1Response.text();
-      console.log("V1 API Response Body:", v1ResponseText);
-
-      if (!v1Response.ok) {
-        throw new Error(`Ready Player Me API error: ${response.status} - ${responseText}`);
-      }
-
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          message: "Connection successful using v1 API",
-          status: v1Response.status,
-          data: v1ResponseText
-        }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200 
-        }
-      );
-    }
+    console.log("Connection test response status:", response.status);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Connection successful",
-        status: response.status,
-        data: responseText
+        message: "Ready Player Me connection successful",
+        baseUrl: RPM_BASE_URL,
+        status: response.status
       }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -131,7 +92,7 @@ async function testConnection() {
       JSON.stringify({ 
         success: false, 
         error: `Connection test failed: ${error.message}`,
-        fallback: true
+        baseUrl: RPM_BASE_URL
       }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -141,200 +102,7 @@ async function testConnection() {
   }
 }
 
-async function createAvatar(avatarData: any, userId: string, supabase: any) {
-  try {
-    console.log("Creating avatar with data:", avatarData);
-    
-    // Try v2 API first
-    let response = await fetch(`${RPM_BASE_URL}/avatars`, {
-      method: "POST",
-      headers: {
-        "X-API-KEY": RPM_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        bodyType: avatarData.bodyType || "fullbody",
-        gender: avatarData.gender || "male",
-        assets: avatarData.assets || {},
-      }),
-    });
-
-    console.log("Create Avatar Response Status:", response.status);
-    let responseText = await response.text();
-    console.log("Create Avatar Response:", responseText);
-
-    // If v2 fails, try v1 with different format
-    if (!response.ok) {
-      console.log("Trying v1 API format for avatar creation...");
-      response = await fetch("https://api.readyplayer.me/v1/avatars", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${RPM_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          partner: "default",
-          bodyType: avatarData.bodyType || "fullbody",
-          gender: avatarData.gender || "male",
-          assets: avatarData.assets || {},
-        }),
-      });
-
-      responseText = await response.text();
-      console.log("V1 Create Avatar Response Status:", response.status);
-      console.log("V1 Create Avatar Response:", responseText);
-    }
-
-    if (!response.ok) {
-      // Generate a placeholder avatar URL as fallback
-      const placeholderUrl = `https://models.readyplayer.me/placeholder-${avatarData.gender || 'male'}-${avatarData.bodyType || 'fullbody'}.glb`;
-      
-      console.log("Using placeholder avatar URL:", placeholderUrl);
-      
-      // Save placeholder URL to user profile
-      const { error: updateError } = await supabase
-        .from("profiles")
-        .update({ ready_player_me_url: placeholderUrl })
-        .eq("id", userId);
-
-      if (updateError) {
-        console.error("Database update error:", updateError);
-        throw updateError;
-      }
-
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          avatarUrl: placeholderUrl,
-          avatarId: `placeholder-${Date.now()}`,
-          note: "Using placeholder avatar due to API limitations"
-        }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200 
-        }
-      );
-    }
-
-    const rpmAvatar = JSON.parse(responseText);
-    
-    // Save avatar URL to user profile
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ ready_player_me_url: rpmAvatar.modelUrl || rpmAvatar.url })
-      .eq("id", userId);
-
-    if (updateError) {
-      console.error("Database update error:", updateError);
-      throw updateError;
-    }
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        avatarUrl: rpmAvatar.modelUrl || rpmAvatar.url,
-        avatarId: rpmAvatar.id 
-      }),
-      { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200 
-      }
-    );
-  } catch (error) {
-    console.error("Create avatar error:", error);
-    throw new Error(`Failed to create avatar: ${error.message}`);
-  }
-}
-
-async function updateAvatar(avatarData: any, userId: string, supabase: any) {
-  try {
-    console.log("Updating avatar with data:", avatarData);
-    
-    // Get current avatar from profile
-    const { data: profile, error: profileError } = await supabase
-      .from("profiles")
-      .select("ready_player_me_url")
-      .eq("id", userId)
-      .single();
-
-    if (profileError || !profile?.ready_player_me_url) {
-      throw new Error("No existing avatar found");
-    }
-
-    // Extract avatar ID from URL
-    const avatarId = profile.ready_player_me_url.split('/').pop()?.split('.')[0];
-    if (!avatarId) {
-      throw new Error("Invalid avatar URL");
-    }
-
-    // Try updating with v2 API first
-    let response = await fetch(`${RPM_BASE_URL}/avatars/${avatarId}`, {
-      method: "PATCH",
-      headers: {
-        "X-API-KEY": RPM_API_KEY,
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        assets: avatarData.assets || {},
-      }),
-    });
-
-    console.log("Update Avatar Response Status:", response.status);
-    let responseText = await response.text();
-    console.log("Update Avatar Response:", responseText);
-
-    // If v2 fails, try v1
-    if (!response.ok) {
-      console.log("Trying v1 API format for avatar update...");
-      response = await fetch(`https://api.readyplayer.me/v1/avatars/${avatarId}`, {
-        method: "PATCH",
-        headers: {
-          "Authorization": `Bearer ${RPM_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          assets: avatarData.assets || {},
-        }),
-      });
-
-      responseText = await response.text();
-      console.log("V1 Update Avatar Response Status:", response.status);
-      console.log("V1 Update Avatar Response:", responseText);
-    }
-
-    if (!response.ok) {
-      throw new Error(`Ready Player Me API error: ${response.status} - ${responseText}`);
-    }
-
-    const updatedAvatar = JSON.parse(responseText);
-    
-    // Update avatar URL in profile
-    const { error: updateError } = await supabase
-      .from("profiles")
-      .update({ ready_player_me_url: updatedAvatar.modelUrl || updatedAvatar.url })
-      .eq("id", userId);
-
-    if (updateError) {
-      throw updateError;
-    }
-
-    return new Response(
-      JSON.stringify({ 
-        success: true, 
-        avatarUrl: updatedAvatar.modelUrl || updatedAvatar.url
-      }),
-      { 
-        headers: { ...corsHeaders, "Content-Type": "application/json" },
-        status: 200 
-      }
-    );
-  } catch (error) {
-    console.error("Update avatar error:", error);
-    throw new Error(`Failed to update avatar: ${error.message}`);
-  }
-}
-
-async function getAvatar(userId: string, supabase: any) {
+async function getAvatarUrl(userId: string, supabase: any) {
   try {
     const { data: profile, error } = await supabase
       .from("profiles")
@@ -361,88 +129,30 @@ async function getAvatar(userId: string, supabase: any) {
   }
 }
 
-async function getAssets() {
+async function saveAvatarUrl(avatarUrl: string, userId: string, supabase: any) {
   try {
-    console.log("Fetching assets from Ready Player Me API...");
+    console.log("Saving avatar URL:", avatarUrl, "for user:", userId);
     
-    // Try v2 API first
-    let response = await fetch(`${RPM_BASE_URL}/assets`, {
-      method: "GET",
-      headers: {
-        "X-API-KEY": RPM_API_KEY,
-        "Content-Type": "application/json",
-      },
-    });
-
-    console.log("Get Assets Response Status:", response.status);
-    let responseText = await response.text();
-    console.log("Get Assets Response:", responseText);
-
-    // If v2 fails, try v1
-    if (!response.ok) {
-      console.log("Trying v1 API format for assets...");
-      response = await fetch("https://api.readyplayer.me/v1/assets", {
-        method: "GET",
-        headers: {
-          "Authorization": `Bearer ${RPM_API_KEY}`,
-          "Content-Type": "application/json",
-        },
-      });
-
-      responseText = await response.text();
-      console.log("V1 Get Assets Response Status:", response.status);
-      console.log("V1 Get Assets Response:", responseText);
+    // Validate the avatar URL format
+    if (!avatarUrl || !avatarUrl.includes('readyplayer.me')) {
+      throw new Error("Invalid Ready Player Me avatar URL");
     }
 
-    if (!response.ok) {
-      console.error("Assets API failed, providing fallback tennis assets");
-      // Provide fallback tennis-themed assets
-      const fallbackAssets = [
-        {
-          id: "tennis_shirt_1",
-          name: "Tennis Polo Shirt",
-          type: "shirt",
-          category: "clothing",
-          iconUrl: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=100&h=100&fit=crop",
-          previewUrl: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=300&h=300&fit=crop"
-        },
-        {
-          id: "tennis_shorts_1",
-          name: "Tennis Shorts",
-          type: "shorts",
-          category: "clothing", 
-          iconUrl: "https://images.unsplash.com/photo-1506629905972-b19b22ad8beb?w=100&h=100&fit=crop",
-          previewUrl: "https://images.unsplash.com/photo-1506629905972-b19b22ad8beb?w=300&h=300&fit=crop"
-        },
-        {
-          id: "tennis_racket_1",
-          name: "Professional Tennis Racket",
-          type: "racket",
-          category: "equipment",
-          iconUrl: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=100&h=100&fit=crop",
-          previewUrl: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=300&h=300&fit=crop"
-        }
-      ];
+    const { error: updateError } = await supabase
+      .from("profiles")
+      .update({ ready_player_me_url: avatarUrl })
+      .eq("id", userId);
 
-      return new Response(
-        JSON.stringify({ 
-          success: true, 
-          assets: fallbackAssets,
-          note: "Using fallback tennis assets due to API limitations"
-        }),
-        { 
-          headers: { ...corsHeaders, "Content-Type": "application/json" },
-          status: 200 
-        }
-      );
+    if (updateError) {
+      console.error("Database update error:", updateError);
+      throw updateError;
     }
-
-    const assets = JSON.parse(responseText);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        assets: assets.data || assets || []
+        message: "Avatar URL saved successfully",
+        avatarUrl: avatarUrl
       }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -450,7 +160,50 @@ async function getAssets() {
       }
     );
   } catch (error) {
-    console.error("Get assets error:", error);
-    throw new Error(`Failed to get assets: ${error.message}`);
+    console.error("Save avatar error:", error);
+    throw new Error(`Failed to save avatar: ${error.message}`);
+  }
+}
+
+async function validateAvatar(avatarUrl: string) {
+  try {
+    console.log("Validating avatar URL:", avatarUrl);
+    
+    if (!avatarUrl || !avatarUrl.includes('readyplayer.me')) {
+      throw new Error("Invalid Ready Player Me avatar URL");
+    }
+
+    // Try to fetch the avatar to verify it exists
+    const response = await fetch(avatarUrl, {
+      method: "HEAD",
+    });
+
+    const isValid = response.ok;
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        valid: isValid,
+        avatarUrl: avatarUrl,
+        status: response.status
+      }),
+      { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200 
+      }
+    );
+  } catch (error) {
+    console.error("Validate avatar error:", error);
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        valid: false,
+        error: error.message
+      }),
+      { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200 
+      }
+    );
   }
 }

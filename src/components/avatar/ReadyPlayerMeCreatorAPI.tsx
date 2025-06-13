@@ -3,10 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useReadyPlayerMeAPI } from '@/hooks/useReadyPlayerMeAPI';
 import { ReadyPlayerMeAvatar } from './ReadyPlayerMeAvatar';
-import { User, Shirt, Palette, Save, RefreshCw, Wifi, AlertCircle, CheckCircle } from 'lucide-react';
+import { User, Save, RefreshCw, Wifi, AlertCircle, CheckCircle, ExternalLink } from 'lucide-react';
 
 interface ReadyPlayerMeCreatorAPIProps {
   currentAvatarUrl?: string;
@@ -20,43 +19,34 @@ export function ReadyPlayerMeCreatorAPI({
   const { 
     loading, 
     avatarUrl, 
-    assets, 
     connectionStatus,
     testConnection,
-    createAvatar, 
-    updateAvatar, 
-    getAssets 
+    getAvatarUrl,
+    saveAvatarUrl,
+    validateAvatar
   } = useReadyPlayerMeAPI();
 
-  const [selectedAssets, setSelectedAssets] = useState<Record<string, string>>({});
-  const [gender, setGender] = useState<'male' | 'female'>('male');
-  const [bodyType, setBodyType] = useState<'fullbody' | 'halfbody'>('fullbody');
+  const [localAvatarUrl, setLocalAvatarUrl] = useState<string>(currentAvatarUrl || '');
 
   useEffect(() => {
-    getAssets();
+    getAvatarUrl();
   }, []);
 
-  const handleAssetSelect = (category: string, assetId: string) => {
-    setSelectedAssets(prev => ({
-      ...prev,
-      [category]: assetId
-    }));
-  };
+  useEffect(() => {
+    if (avatarUrl) {
+      setLocalAvatarUrl(avatarUrl);
+    }
+  }, [avatarUrl]);
 
-  const handleSaveAvatar = async () => {
+  const handleAvatarChange = async (newAvatarUrl: string) => {
+    console.log('Avatar changed:', newAvatarUrl);
+    setLocalAvatarUrl(newAvatarUrl);
+    
+    // Auto-save the new avatar
     try {
-      const avatarData = {
-        gender,
-        bodyType,
-        assets: selectedAssets
-      };
-
-      const result = currentAvatarUrl 
-        ? await updateAvatar(avatarData)
-        : await createAvatar(avatarData);
-
-      if (result.success && onAvatarSaved) {
-        onAvatarSaved(result.avatarUrl);
+      await saveAvatarUrl(newAvatarUrl);
+      if (onAvatarSaved) {
+        onAvatarSaved(newAvatarUrl);
       }
     } catch (error) {
       console.error('Failed to save avatar:', error);
@@ -67,13 +57,11 @@ export function ReadyPlayerMeCreatorAPI({
     await testConnection();
   };
 
-  const assetCategories = assets.reduce((acc, asset) => {
-    if (!acc[asset.category]) {
-      acc[asset.category] = [];
+  const handleValidateAvatar = async () => {
+    if (localAvatarUrl) {
+      await validateAvatar(localAvatarUrl);
     }
-    acc[asset.category].push(asset);
-    return acc;
-  }, {} as Record<string, typeof assets>);
+  };
 
   const getConnectionStatusIcon = () => {
     switch (connectionStatus) {
@@ -102,7 +90,7 @@ export function ReadyPlayerMeCreatorAPI({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
-          Create Your 3D Avatar
+          Ready Player Me Avatar Creator
           <div className="ml-auto flex items-center gap-2">
             {getConnectionStatusIcon()}
             <span className="text-sm text-muted-foreground">
@@ -116,9 +104,9 @@ export function ReadyPlayerMeCreatorAPI({
         <div className="border rounded-lg p-4 bg-gray-50">
           <div className="flex items-center justify-between">
             <div>
-              <h4 className="font-medium">API Connection Status</h4>
+              <h4 className="font-medium">Ready Player Me Service</h4>
               <p className="text-sm text-muted-foreground">
-                Test connection to Ready Player Me service
+                Test connection to Ready Player Me avatar creation service
               </p>
             </div>
             <Button 
@@ -137,136 +125,62 @@ export function ReadyPlayerMeCreatorAPI({
           </div>
         </div>
 
-        {/* Avatar Preview */}
-        {(avatarUrl || currentAvatarUrl) && (
-          <div className="text-center">
+        {/* Avatar Creation Interface */}
+        <div className="space-y-4">
+          <h3 className="text-lg font-semibold">Create Your 3D Avatar</h3>
+          
+          {/* Current Avatar Display */}
+          {localAvatarUrl && (
+            <div className="text-center space-y-2">
+              <h4 className="font-medium">Your Current Avatar</h4>
+              <ReadyPlayerMeAvatar 
+                avatarUrl={localAvatarUrl}
+                size="lg"
+              />
+            </div>
+          )}
+
+          {/* Avatar Creator */}
+          <div className="border rounded-lg p-4">
             <ReadyPlayerMeAvatar 
-              avatarUrl={avatarUrl || currentAvatarUrl || ''}
+              onAvatarChange={handleAvatarChange}
               size="lg"
             />
           </div>
-        )}
-
-        {/* Basic Settings */}
-        <div className="space-y-4">
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium mb-2">Gender</label>
-              <div className="flex gap-2">
-                <Button
-                  variant={gender === 'male' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setGender('male')}
-                >
-                  Male
-                </Button>
-                <Button
-                  variant={gender === 'female' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setGender('female')}
-                >
-                  Female
-                </Button>
-              </div>
-            </div>
-            
-            <div>
-              <label className="block text-sm font-medium mb-2">Body Type</label>
-              <div className="flex gap-2">
-                <Button
-                  variant={bodyType === 'fullbody' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setBodyType('fullbody')}
-                >
-                  Full Body
-                </Button>
-                <Button
-                  variant={bodyType === 'halfbody' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setBodyType('halfbody')}
-                >
-                  Half Body
-                </Button>
-              </div>
-            </div>
-          </div>
         </div>
-
-        {/* Asset Selection */}
-        {Object.keys(assetCategories).length > 0 && (
-          <Tabs defaultValue={Object.keys(assetCategories)[0]}>
-            <TabsList className="grid w-full grid-cols-3">
-              {Object.keys(assetCategories).slice(0, 3).map((category) => (
-                <TabsTrigger key={category} value={category} className="capitalize">
-                  {category}
-                </TabsTrigger>
-              ))}
-            </TabsList>
-
-            {Object.entries(assetCategories).map(([category, categoryAssets]) => (
-              <TabsContent key={category} value={category} className="space-y-4">
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                  {categoryAssets.map((asset) => (
-                    <Card 
-                      key={asset.id}
-                      className={`cursor-pointer transition-all hover:shadow-md ${
-                        selectedAssets[category] === asset.id ? 'ring-2 ring-tennis-green-light' : ''
-                      }`}
-                      onClick={() => handleAssetSelect(category, asset.id)}
-                    >
-                      <CardContent className="p-3">
-                        <div className="space-y-2">
-                          <img 
-                            src={asset.iconUrl} 
-                            alt={asset.name}
-                            className="w-full h-16 object-cover rounded"
-                          />
-                          <div>
-                            <h4 className="text-xs font-medium">{asset.name}</h4>
-                            <Badge variant="outline" className="text-xs">
-                              {asset.type}
-                            </Badge>
-                          </div>
-                        </div>
-                      </CardContent>
-                    </Card>
-                  ))}
-                </div>
-              </TabsContent>
-            ))}
-          </Tabs>
-        )}
 
         {/* Action Buttons */}
         <div className="flex gap-2">
           <Button 
-            onClick={handleSaveAvatar}
-            disabled={loading || connectionStatus === 'error'}
+            onClick={handleValidateAvatar}
+            disabled={loading || !localAvatarUrl}
+            variant="outline"
             className="flex-1"
           >
             {loading ? (
               <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
             ) : (
-              <Save className="h-4 w-4 mr-2" />
+              <CheckCircle className="h-4 w-4 mr-2" />
             )}
-            {currentAvatarUrl ? 'Update Avatar' : 'Create Avatar'}
+            Validate Avatar
           </Button>
-          
+
           <Button 
             variant="outline" 
-            onClick={getAssets}
-            disabled={loading}
+            onClick={() => window.open('https://readyplayer.me', '_blank')}
+            size="icon"
+            title="Open Ready Player Me Website"
           >
-            <RefreshCw className="h-4 w-4" />
+            <ExternalLink className="h-4 w-4" />
           </Button>
         </div>
 
         {/* Info */}
         <div className="text-sm text-gray-600 space-y-1">
-          <p>• Test the connection first to ensure API communication</p>
-          <p>• Customize your 3D avatar with Ready Player Me</p>
-          <p>• Choose from professional tennis clothing and equipment</p>
-          <p>• Your avatar will be saved and used throughout RallyLife</p>
+          <p>• Create a personalized 3D avatar using Ready Player Me</p>
+          <p>• Your avatar will be automatically saved when created</p>
+          <p>• The avatar will be used throughout the RallyLife application</p>
+          <p>• Test the connection first to ensure proper communication</p>
         </div>
       </CardContent>
     </Card>
