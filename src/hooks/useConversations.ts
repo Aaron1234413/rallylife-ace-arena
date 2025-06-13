@@ -3,6 +3,35 @@ import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
+type ConversationParticipantWithProfile = {
+  user_id: string;
+  conversation_id: string;
+  joined_at: string;
+  last_read_at: string | null;
+  id: string;
+  profiles: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+};
+
+type ConversationWithData = {
+  id: string;
+  name: string | null;
+  is_group: boolean;
+  created_by: string;
+  created_at: string;
+  updated_at: string;
+  otherParticipant: {
+    id: string;
+    full_name: string | null;
+    avatar_url: string | null;
+  } | null;
+  lastMessage: string;
+  lastMessageTime: string;
+};
+
 export function useConversations() {
   const { user } = useAuth();
 
@@ -42,21 +71,26 @@ export function useConversations() {
       if (conversationsError) throw conversationsError;
 
       // Get participant details and latest messages for each conversation
-      const conversationsWithData = await Promise.all(
+      const conversationsWithData: ConversationWithData[] = await Promise.all(
         (conversations || []).map(async (conversation) => {
           // Get other participants (not the current user) with their profiles
           const { data: otherParticipants, error: participantsError } = await supabase
             .from('conversation_participants')
             .select(`
               user_id,
-              profiles!inner(
+              conversation_id,
+              joined_at,
+              last_read_at,
+              id,
+              profiles (
                 id,
                 full_name,
                 avatar_url
               )
             `)
             .eq('conversation_id', conversation.id)
-            .neq('user_id', user.id);
+            .neq('user_id', user.id)
+            .returns<ConversationParticipantWithProfile[]>();
 
           if (participantsError) {
             console.error('Error fetching participants:', participantsError);
