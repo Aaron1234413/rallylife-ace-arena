@@ -105,8 +105,8 @@ export function usePlayerXP() {
         return;
       }
 
-      // Type assertion for the RPC result
-      const result = data as XPGainResult;
+      // Properly handle the RPC result - first cast to unknown, then to our interface
+      const result = data as unknown as XPGainResult;
       
       // Show appropriate toast message
       if (result.level_up) {
