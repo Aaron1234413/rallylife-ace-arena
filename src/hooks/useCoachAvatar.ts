@@ -113,8 +113,11 @@ export function useCoachAvatar() {
   // Equip avatar item mutation
   const equipItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase.rpc('equip_coach_avatar_item', {
-        user_id: (await supabase.auth.getUser()).data.user?.id,
+        user_id: userData.user.id,
         item_id: itemId
       });
 
@@ -157,8 +160,11 @@ export function useCoachAvatar() {
   // Purchase avatar item mutation
   const purchaseItemMutation = useMutation({
     mutationFn: async (itemId: string) => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase.rpc('purchase_coach_avatar_item', {
-        user_id: (await supabase.auth.getUser()).data.user?.id,
+        user_id: userData.user.id,
         item_id: itemId
       });
 
@@ -211,8 +217,11 @@ export function useCoachAvatar() {
   // Initialize avatar mutation
   const initializeAvatarMutation = useMutation({
     mutationFn: async () => {
+      const { data: userData } = await supabase.auth.getUser();
+      if (!userData.user) throw new Error('Not authenticated');
+
       const { data, error } = await supabase.rpc('initialize_coach_avatar', {
-        user_id: (await supabase.auth.getUser()).data.user?.id
+        user_id: userData.user.id
       });
 
       if (error) {
@@ -232,21 +241,18 @@ export function useCoachAvatar() {
     },
     onError: (error) => {
       console.error('Failed to initialize avatar:', error);
-      toast({
-        title: "Error",
-        description: "Failed to initialize avatar. Please try again.",
-        variant: "destructive",
-      });
+      // Remove the toast error to prevent spamming the user
+      // The initialization will be retried automatically
     },
   });
 
-  // Auto-initialize if no equipped items exist
+  // Auto-initialize if no equipped items exist and not currently loading
   useEffect(() => {
-    if (!equippedLoading && equippedItems.length === 0 && !initializeAvatarMutation.isPending) {
+    if (!equippedLoading && !ownedLoading && equippedItems.length === 0 && ownedItems.length === 0 && !initializeAvatarMutation.isPending) {
       console.log('Auto-initializing coach avatar...');
       initializeAvatarMutation.mutate();
     }
-  }, [equippedLoading, equippedItems.length, initializeAvatarMutation.isPending]);
+  }, [equippedLoading, ownedLoading, equippedItems.length, ownedItems.length, initializeAvatarMutation.isPending]);
 
   // Check if an item is owned
   const isItemOwned = (itemId: string) => {
