@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -15,11 +14,19 @@ import { XPDisplay, LevelBadge } from "@/components/xp/XPDisplay";
 import { XPCard } from "@/components/xp/XPCard";
 import { XPActivityLog } from "@/components/xp/XPActivityLog";
 import { XPEarnActions } from "@/components/xp/XPEarnActions";
+import { usePlayerTokens } from "@/hooks/usePlayerTokens";
+import { TokenDisplay } from "@/components/tokens/TokenDisplay";
+import { TokenCard } from "@/components/tokens/TokenCard";
+import { TokenEarnActions } from "@/components/tokens/TokenEarnActions";
+import { TokenStore } from "@/components/tokens/TokenStore";
+import { TokenTransactionHistory } from "@/components/tokens/TokenTransactionHistory";
+import { TokenConverter } from "@/components/tokens/TokenConverter";
 
 const Index = () => {
   const { user, signOut } = useAuth();
   const { hpData, activities: hpActivities, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
   const { xpData, activities: xpActivities, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
+  const { tokenData, transactions, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -30,14 +37,17 @@ const Index = () => {
   }, [user]);
 
   useEffect(() => {
-    // Initialize HP and XP for existing users who don't have data yet
+    // Initialize HP, XP, and Tokens for existing users who don't have data yet
     if (user && !hpLoading && !hpData && profile?.role === 'player') {
       initializeHP();
     }
     if (user && !xpLoading && !xpData && profile?.role === 'player') {
       initializeXP();
     }
-  }, [user, hpLoading, hpData, xpLoading, xpData, profile, initializeHP, initializeXP]);
+    if (user && !tokensLoading && !tokenData && profile?.role === 'player') {
+      initializeTokens();
+    }
+  }, [user, hpLoading, hpData, xpLoading, xpData, tokensLoading, tokenData, profile, initializeHP, initializeXP, initializeTokens]);
 
   const fetchProfile = async () => {
     try {
@@ -69,7 +79,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-tennis-green-bg p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header with HP and XP Display */}
+        {/* Header with HP, XP, and Token Display */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
             {profile?.avatar_url && (
@@ -95,8 +105,8 @@ const Index = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* HP and XP Display in Header for Players */}
-            {isPlayer && (hpData || xpData) && (
+            {/* HP, XP, and Token Display in Header for Players */}
+            {isPlayer && (hpData || xpData || tokenData) && (
               <div className="bg-white rounded-lg px-4 py-3 shadow-sm space-y-2">
                 {hpData && (
                   <HPDisplay 
@@ -112,6 +122,14 @@ const Index = () => {
                     xpToNextLevel={xpData.xp_to_next_level}
                     size="small"
                     showLevel={false}
+                  />
+                )}
+                {tokenData && (
+                  <TokenDisplay
+                    regularTokens={tokenData.regular_tokens}
+                    premiumTokens={tokenData.premium_tokens}
+                    size="small"
+                    showPremium={true}
                   />
                 )}
               </div>
@@ -150,19 +168,19 @@ const Index = () => {
                   <p><strong className="text-tennis-green-dark">Role:</strong> {profile?.role}</p>
                   <p><strong className="text-tennis-green-dark">User ID:</strong> {user?.id}</p>
                   <p className="text-tennis-green-medium text-sm mt-4">
-                    🎾 Phase 2.1 (HP & XP Systems) is now live! 
-                    {isPlayer ? ' Track your health points, earn experience, and level up as you play!' : ' Monitor your players\' engagement through the HP and XP systems.'}
+                    🎾 Phase 2.3 (Token Economy) is now live! 
+                    {isPlayer ? ' Earn and spend tokens, manage your currency, and unlock premium features!' : ' Monitor your players\' token economy engagement.'}
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* HP & XP System UI - Only for Players */}
+          {/* HP, XP & Token System UI - Only for Players */}
           {isPlayer && (
             <div className="grid gap-6">
               {/* Status Cards Row */}
-              <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-6 lg:grid-cols-3">
                 {/* HP Status Card */}
                 {hpData ? (
                   <HPCard
@@ -209,10 +227,33 @@ const Index = () => {
                     </CardContent>
                   </Card>
                 )}
+
+                {/* Token Status Card */}
+                {tokenData ? (
+                  <TokenCard
+                    regularTokens={tokenData.regular_tokens}
+                    premiumTokens={tokenData.premium_tokens}
+                    lifetimeEarned={tokenData.lifetime_earned}
+                  />
+                ) : tokensLoading ? (
+                  <Card>
+                    <CardContent className="p-4">
+                      <p className="text-center">Loading token data...</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardContent className="p-4">
+                      <p className="text-center text-muted-foreground">
+                        Token system initializing...
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
               </div>
 
               {/* Action Cards Row */}
-              <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-6 lg:grid-cols-3">
                 {/* HP Restore Actions */}
                 {hpData && (
                   <HPRestoreActions
@@ -228,10 +269,35 @@ const Index = () => {
                     onEarnXP={addXP}
                   />
                 )}
+
+                {/* Token Earn Actions */}
+                {tokenData && (
+                  <TokenEarnActions
+                    onEarnTokens={addTokens}
+                  />
+                )}
               </div>
 
+              {/* Token Economy Features Row */}
+              {tokenData && (
+                <div className="grid gap-6 lg:grid-cols-2">
+                  {/* Token Store */}
+                  <TokenStore
+                    onSpendTokens={spendTokens}
+                    regularTokens={tokenData.regular_tokens}
+                    premiumTokens={tokenData.premium_tokens}
+                  />
+
+                  {/* Token Converter */}
+                  <TokenConverter
+                    onConvertTokens={convertPremiumTokens}
+                    premiumTokens={tokenData.premium_tokens}
+                  />
+                </div>
+              )}
+
               {/* Activity Logs Row */}
-              <div className="grid gap-6 lg:grid-cols-2">
+              <div className="grid gap-6 lg:grid-cols-3">
                 {/* HP Activity Log */}
                 <HPActivityLog
                   activities={hpActivities}
@@ -242,6 +308,12 @@ const Index = () => {
                 <XPActivityLog
                   activities={xpActivities}
                   loading={xpLoading}
+                />
+
+                {/* Token Transaction History */}
+                <TokenTransactionHistory
+                  transactions={transactions}
+                  loading={tokensLoading}
                 />
               </div>
             </div>

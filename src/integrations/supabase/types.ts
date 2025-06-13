@@ -210,6 +210,78 @@ export type Database = {
         }
         Relationships: []
       }
+      token_balances: {
+        Row: {
+          created_at: string
+          id: string
+          lifetime_earned: number
+          player_id: string
+          premium_tokens: number
+          regular_tokens: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          lifetime_earned?: number
+          player_id: string
+          premium_tokens?: number
+          regular_tokens?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          lifetime_earned?: number
+          player_id?: string
+          premium_tokens?: number
+          regular_tokens?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      token_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          player_id: string
+          source: string
+          token_type: string
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          player_id: string
+          source: string
+          token_type: string
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          player_id?: string
+          source?: string
+          token_type?: string
+          transaction_type?: string
+        }
+        Relationships: []
+      }
       xp_activities: {
         Row: {
           activity_type: string
@@ -248,6 +320,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_tokens: {
+        Args: {
+          user_id: string
+          amount: number
+          token_type?: string
+          source?: string
+          description?: string
+        }
+        Returns: Json
+      }
       add_xp: {
         Args: {
           user_id: string
@@ -269,7 +351,19 @@ export type Database = {
         Args: { level: number }
         Returns: number
       }
+      convert_premium_tokens: {
+        Args: {
+          user_id: string
+          premium_amount: number
+          conversion_rate?: number
+        }
+        Returns: Json
+      }
       initialize_player_hp: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
+      initialize_player_tokens: {
         Args: { user_id: string }
         Returns: undefined
       }
@@ -285,6 +379,16 @@ export type Database = {
           description?: string
         }
         Returns: number
+      }
+      spend_tokens: {
+        Args: {
+          user_id: string
+          amount: number
+          token_type?: string
+          source?: string
+          description?: string
+        }
+        Returns: Json
       }
     }
     Enums: {
