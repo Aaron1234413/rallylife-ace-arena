@@ -38,6 +38,13 @@ export interface CoachAvatarEquipped {
   avatar_item: CoachAvatarItem;
 }
 
+type CoachAvatarResponse = {
+  item_name: string;
+  ctk_spent?: number;
+  success: boolean;
+  error?: string;
+};
+
 export function useCoachAvatar() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -116,13 +123,25 @@ export function useCoachAvatar() {
         throw error;
       }
 
-      return data;
+      // Safe casting for Supabase function response
+      const raw = data as unknown;
+      let result: CoachAvatarResponse | null = null;
+
+      if (Array.isArray(raw) && raw.length > 0) {
+        result = raw[0] as CoachAvatarResponse;
+      } else if (raw && typeof raw === 'object') {
+        result = raw as CoachAvatarResponse;
+      } else {
+        console.warn("Unexpected structure:", raw);
+      }
+
+      return result;
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['coach-avatar-equipped'] });
       toast({
         title: "Item Equipped",
-        description: `${result.item_name} has been equipped!`,
+        description: `${result?.item_name || 'Item'} has been equipped!`,
       });
     },
     onError: (error) => {
@@ -148,21 +167,33 @@ export function useCoachAvatar() {
         throw error;
       }
 
-      return data;
+      // Safe casting for Supabase function response
+      const raw = data as unknown;
+      let result: CoachAvatarResponse | null = null;
+
+      if (Array.isArray(raw) && raw.length > 0) {
+        result = raw[0] as CoachAvatarResponse;
+      } else if (raw && typeof raw === 'object') {
+        result = raw as CoachAvatarResponse;
+      } else {
+        console.warn("Unexpected structure:", raw);
+      }
+
+      return result;
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['coach-avatar-owned'] });
       queryClient.invalidateQueries({ queryKey: ['coach-tokens'] });
       
-      if (result.success) {
+      if (result?.success) {
         toast({
           title: "Purchase Successful",
-          description: `${result.item_name} purchased for ${result.ctk_spent} CTK!`,
+          description: `${result.item_name} purchased for ${result.ctk_spent || 0} CTK!`,
         });
       } else {
         toast({
           title: "Purchase Failed",
-          description: result.error || "Purchase failed",
+          description: result?.error || "Purchase failed",
           variant: "destructive",
         });
       }
