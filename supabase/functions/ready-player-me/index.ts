@@ -7,10 +7,6 @@ const corsHeaders = {
   "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
 };
 
-// Ready Player Me configuration - using their recommended approach
-const RPM_SUBDOMAIN = "demo"; // This should be replaced with your actual subdomain
-const RPM_BASE_URL = `https://${RPM_SUBDOMAIN}.readyplayer.me`;
-
 serve(async (req) => {
   if (req.method === "OPTIONS") {
     return new Response(null, { headers: corsHeaders });
@@ -62,11 +58,9 @@ serve(async (req) => {
 async function testConnection() {
   try {
     console.log("Testing Ready Player Me connection...");
-    console.log("Using subdomain:", RPM_SUBDOMAIN);
-    console.log("Base URL:", RPM_BASE_URL);
     
-    // Test the Ready Player Me iframe URL
-    const testUrl = `${RPM_BASE_URL}/avatar?frameApi`;
+    // Test the Ready Player Me iframe URL (web integration)
+    const testUrl = "https://demo.readyplayer.me/avatar?frameApi";
     
     const response = await fetch(testUrl, {
       method: "HEAD",
@@ -77,8 +71,7 @@ async function testConnection() {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        message: "Ready Player Me connection successful",
-        baseUrl: RPM_BASE_URL,
+        message: "Ready Player Me web integration connection successful",
         status: response.status
       }),
       { 
@@ -91,8 +84,7 @@ async function testConnection() {
     return new Response(
       JSON.stringify({ 
         success: false, 
-        error: `Connection test failed: ${error.message}`,
-        baseUrl: RPM_BASE_URL
+        error: `Connection test failed: ${error.message}`
       }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -133,7 +125,7 @@ async function saveAvatarUrl(avatarUrl: string, userId: string, supabase: any) {
   try {
     console.log("Saving avatar URL:", avatarUrl, "for user:", userId);
     
-    // Validate the avatar URL format
+    // Validate the avatar URL format for web integration
     if (!avatarUrl || !avatarUrl.includes('readyplayer.me')) {
       throw new Error("Invalid Ready Player Me avatar URL");
     }
