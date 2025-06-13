@@ -1,174 +1,338 @@
 
-# ✅ RallyLife Full Build To-Do List (Phase-by-Phase)
+# RallyLife User-Centric Implementation To-Do List
 
-**Status: Starting Phase 1 MVP** | **Last Updated:** Initial Creation
+This document outlines a phase-by-phase, step-by-step plan for implementing the RallyLife project, reorganized from a user's perspective, starting from their initial interaction with the platform.
 
----
+## Phase 1: User Onboarding & Authentication
 
-## 🚀 Phase 1: MVP Core Systems
+### 1.1 Authentication & Authorization
 
-**Goal:** Launch a fully working player experience for match/session logging, stat progression, and profile viewing.
+**Backend Development**
+- Implement secure authentication and authorization for both player and coach roles.
 
-### 1. Authentication
-- [ ] **To-Do:** Implement Supabase email/password auth (no social auth needed at MVP)
-- **🔧 How:**
-  - Use Supabase's built-in auth.signUp() and auth.signInWithPassword() in the frontend
-  - On successful login, store session in context/provider
-  - Redirect user to onboarding via useNavigate()
+**Frontend Development**
+- Design and implement user registration flow.
+- Design and implement user login flow.
+- Design and implement password recovery/reset functionality.
 
-### 2. Onboarding Flow (Player Setup)
-- [ ] **To-Do:** Capture play style, favorite pro, and generate avatar description
-- **🔧 How:**
-  - Build 3-question form (see: 01_Onboarding_Desktop.png)
-  - Map answers to a stylized avatar descriptor (e.g. "Aggressive Baseliner with max forehand power")
-  - Save data into players table using Supabase client insert()
-  - Direct user to Dashboard
+### 1.2 Initial Profile Setup & Onboarding
 
-### 3. Dashboard Core (Gamified View)
-- [ ] **To-Do:** Create gamified dashboard with XP/HP bar, quick actions, and activity feed
-- **🔧 How:**
-  - Use progress bar components for XP/HP with animated updates
-  - Recreate layout as in 04_Dashboard_Desktop.png: left = stats, right = activity feed
-  - Cards: "Log Match", "Log Session", "Restore HP" (each triggers modal)
-  - Display most recent matches/sessions in feed
+**Backend Development**
+- Develop API endpoints for initial player/coach profile creation.
 
-### 4. Match Logging
-- [ ] **To-Do:** Manual match input with win/loss outcome
-- **🔧 How:**
-  - Modal: opponent input, win/loss radio, optional notes
-  - Compute XP (+20 win, +5 loss), HP delta (-10 on loss)
-  - Write to matches table and patch players.hp and players.xp
+**Frontend Development**
+- Design and implement initial player profile setup (e.g., name, basic preferences).
+- Design and implement initial coach profile setup (e.g., name, coaching focus).
+- Design and implement initial avatar selection/creation during onboarding.
+- Develop an interactive onboarding tutorial/instructions page for new users (player and coach) on how to navigate the platform and understand core concepts.
 
-### 5. Session Logging
-- [ ] **To-Do:** Drill name + time + notes input form
-- **🔧 How:**
-  - Modal with select + input + textarea (see Dashboard "Log Session" CTA)
-  - On submit, restore +10 HP and +15 XP (caps apply)
-  - Write to sessions table
+## Phase 2: Core Player Experience
 
-### 6. Profile Page
-- [ ] **To-Do:** Show stylized avatar card, performance stats, graph
-- **🔧 How:**
-  - Build layout matching 12_Profile_Desktop.png
-  - Display play style, weapon, motto, and XP rings
-  - Render badge grid with locked/unlocked visuals
-  - Plot HP/XP over time using Recharts
+### 2.1 Player Gamification Systems
 
-### 7. Backend Setup
-- [ ] **To-Do:** Create all necessary Supabase tables and backend logic
-- **🔧 How:**
-  - Tables: users, players, matches, sessions
-  - Use Supabase Edge Function to run a weekly cron that checks inactivity and applies -5 HP decay
-  - Store stats as integers and XP thresholds in constants
+**Health Points (HP) System Implementation**
 
----
+*Backend Development*
+- Design and implement HPSystem data model (currentHP, maxHP, lastActivity, decayRate, decayPaused).
+- Develop API endpoints for:
+  - Initializing player HP.
+  - Calculating HP decay based on inactivity.
+  - Restoring HP from various sources (matches, training, lessons, health packs).
+  - Retrieving current HP status.
+- Implement logic for HP thresholds (min 20, max 150).
 
-## 🌟 Phase 2: Enhanced Loop & Engagement
+*Frontend Development*
+- Integrate HP display in the header across all pages.
+- Develop visual feedback for HP restoration (animations).
+- Implement push notifications and email alerts for HP decay.
+- Integrate HP status into matchmaking recommendations (if applicable).
 
-**Goal:** Introduce community, token economy, and achievements.
+**Experience Points (XP) & Leveling System Implementation**
 
-### 1. Feed System
-- [ ] **To-Do:** Create a shared feed with player stats and match/session posts
-- **🔧 How:**
-  - Reference 08_Feed_Desktop.png
-  - feed_posts table with post_type (match/session), description, delta_xp/hp, player_id
-  - Comments on post = separate comments table
-  - Feed card includes XP/HP outcome flags visually
+*Backend Development*
+- Design and implement XPSystem data model (currentXP, totalXPEarned, currentLevel, xpToNextLevel).
+- Develop API endpoints for:
+  - Adding XP from various sources (matches, training, lessons, social engagement, achievements).
+  - Calculating player level based on total XP.
+  - Retrieving XP progress to next level.
+  - Retrieving recent XP gains history.
+- Implement curved difficulty scale for level progression.
 
-### 2. Messaging System
-- [ ] **To-Do:** Enable direct player-to-player messaging
-- **🔧 How:**
-  - UI based on 21_Messages_Desktop.png
-  - messages table with sender, receiver, content, timestamp
-  - Use Supabase Realtime for live chat OR poll with SWR for fallback
-  - Typing indicator with local state toggle
+*Frontend Development*
+- Integrate XP progress bar in user profile and dashboard.
+- Develop level-up celebration animations and sound effects.
+- Display level badges next to usernames.
+- Implement detailed XP history log in player profile.
 
-### 3. Token Store & Purchases
-- [ ] **To-Do:** Players can buy HP packs, cosmetic upgrades with tokens
-- **🔧 How:**
-  - UI: Modal store page with token cost (not visualized in mockup)
-  - Add token_transactions table and modify players.tokens
-  - Tokens = reward from XP streaks, challenges, or direct purchase (Phase 3)
+**Token Economy Implementation**
 
-### 4. Badges + Leaderboards
-- [ ] **To-Do:** Reward badges and show global XP ranks
-- **🔧 How:**
-  - Add badges table with player_id, name, awarded_at
-  - Compute badge eligibility on new match/session insert
-  - Leaderboard = query players ordered by xp DESC
-  - Support filters via dropdown (play style, country)
+*Backend Development*
+- Design and implement TokenSystem data model (balance, premiumBalance, lifetimeEarned).
+- Develop API endpoints for:
+  - Adding tokens from various earning methods (daily login, achievements, tournaments, events).
+  - Spending tokens on various options (health packs, avatar items, court bookings, challenge entries).
+  - Adding premium currency (Rally Points) from real-money purchases.
+  - Converting premium currency to regular tokens.
+  - Retrieving token transaction history.
 
-### 5. Avatar Customization
-- [ ] **To-Do:** Token-unlocked bio upgrades or asset toggles
-- **🔧 How:**
-  - avatar_customizations table (player_id, item_name, unlocked)
-  - Render conditionally based on token unlock
-  - Include unlockable badges, motto lines, visual elements
+*Frontend Development*
+- Display current token balance in the platform header.
+- Develop visual animations for token earnings.
+- Design and implement in-game token store.
+- Implement token transaction history view in account settings.
 
----
+**Avatar & Customization System Implementation** *(beyond initial setup)*
 
-## 🌍 Phase 3: Real World + Coaching
+*Backend Development*
+- Develop API endpoints for:
+  - Updating avatar appearance.
+  - Equipping avatar items.
+  - Unlocking new customization options.
+  - Retrieving available and locked avatar items.
+- Implement logic for unlocking items through level progression, achievements, purchases, and victories.
 
-**Goal:** Add local engagement, court tracking, and coach verification
+*Frontend Development*
+- Integrate avatar display on profile, messages, and match results screens.
+- Design and implement dedicated avatar customization interface.
+- Develop avatar animations for in-game events.
 
-### 1. Court Map System
-- [ ] **To-Do:** Map view with courts, player activity, and check-in
-- **🔧 How:**
-  - Reference 18_Maps_Desktop.png
-  - Use Mapbox with courts table (id, name, lat, lng, type)
-  - On check-in, write to check_ins table with timestamp + XP
-  - Leaderboard module: users ranked by plays/check-ins at that court
+**Achievement System Implementation**
 
-### 2. Match Location Logging
-- [ ] **To-Do:** Link match or session to a court
-- **🔧 How:**
-  - Add court_id foreign key to matches and sessions
-  - Autofill nearest court using geolocation or allow manual select
-  - Match history includes court name tag
+*Backend Development*
+- Design and implement achievement data models (multi-tiered categories, rewards).
+- Develop API endpoints for:
+  - Tracking player progress towards achievements.
+  - Unlocking achievements.
+  - Granting achievement rewards (XP, tokens, items).
+  - Retrieving player achievements.
 
-### 3. Coach Integration
-- [ ] **To-Do:** Add coach account type and approve session logs
-- **🔧 How:**
-  - users.role enum: 'player' or 'coach'
-  - Coach UI = simple dashboard of linked players with session approval toggles
-  - Session gets approved_by field and timestamp
+*Frontend Development*
+- Design and implement achievement display in player profile.
+- Develop achievement unlock celebration animations.
+- Implement sharing functionality for achievements.
 
-### 4. Video Upload (future-facing)
-- [ ] **To-Do:** Upload training videos for future AI tagging
-- **🔧 How:**
-  - videos table (player_id, title, url, status)
-  - Upload to Supabase Storage or Bunny CDN
-  - Tag with "Analysis Pending" and prepare for future AI integration
+**Activity Logging Implementation**
 
-### 5. Challenges & Events
-- [ ] **To-Do:** Weekly XP/token quests and dynamic events
-- **🔧 How:**
-  - quests and quest_completions tables
-  - Dashboard module: current weekly challenges, reward shown
-  - Evaluate client-side for XP/token grants or use RPC trigger
+*Backend Development*
+- Design and implement comprehensive activity log data model.
+- Develop API endpoints for logging all on-court and off-court activities.
+- Ensure activity data feeds into HP, XP, and achievement systems.
 
----
+*Frontend Development*
+- Integrate activity logging forms/interfaces for matches, training, lessons, social interactions.
+- Display activity feed on dashboard and profile.
 
-## 🛠 Global Engineering To-Dos
+### 2.2 Key Player Pages
 
-- [ ] 🔧 Build reusable component lib (cards, modals, input blocks)
-- [ ] 🔧 Supabase schema with validation and RLS for all tables
-- [ ] 🔧 Responsive layout via Tailwind and mobile-first breakpoints
-- [ ] 🔧 LocalStorage fallback for XP/HP UI in low network
-- [ ] 🔧 Add analytics (e.g. XP events, token transactions)
-- [ ] 🔧 Set up PWA manifest and service worker
+**Dashboard Page Implementation**
 
----
+*Frontend Development*
+- Design and implement player dashboard (progress, challenges, activity feed).
+- Ensure responsive design for desktop, tablet, and mobile.
 
-## 📊 Progress Tracking
+**Messages Page Implementation**
 
-**Phase 1 Completion:** 0/7 tasks
-**Phase 2 Completion:** 0/5 tasks  
-**Phase 3 Completion:** 0/5 tasks
-**Global Tasks:** 0/6 tasks
+*Frontend Development*
+- Design and implement player messaging interface (HP/XP/level displays, challenge integration, achievement sharing).
+- Ensure responsive design for desktop, tablet, and mobile.
 
-**Overall Progress:** 0% (0/23 total tasks)
+**Feed Page Implementation**
 
----
+*Frontend Development*
+- Design and implement player activity feed (level-ups, match results, achievements, tournament updates).
+- Ensure responsive design for desktop, tablet, and mobile.
 
-*This document will be updated as tasks are completed and new requirements are identified.*
+## Phase 3: Core Coach Experience
+
+### 3.1 Coach Gamification Systems
+
+**Coach Reputation Points (CRP) System Implementation**
+
+*Backend Development*
+- Design and implement CRPSystem data model.
+- Develop API endpoints for:
+  - Earning CRP (player feedback, successful player progression, community contributions).
+  - Retrieving coach CRP status.
+- Implement logic for CRP influencing coach visibility and booking rates.
+
+*Frontend Development*
+- Display CRP prominently on coach profiles.
+- Implement player feedback mechanism for CRP earning.
+
+**Coach Experience Points (CXP) & Leveling System Implementation**
+
+*Backend Development*
+- Design and implement CXPSystem data model.
+- Develop API endpoints for:
+  - Earning CXP (coaching sessions, player achievements, content creation).
+  - Calculating coach level based on CXP.
+  - Retrieving CXP progress.
+- Implement logic for unlocking advanced coaching tools, higher commission rates, and certifications.
+
+*Frontend Development*
+- Integrate CXP progress bar on coach dashboard.
+- Display coach level and associated benefits.
+
+**Coach Tokens (CTK) Economy Implementation**
+
+*Backend Development*
+- Design and implement CTKSystem data model.
+- Develop API endpoints for:
+  - Earning CTK (successful coaching, premium content sales, platform engagement).
+  - Spending CTK (marketing tools, professional development, premium analytics).
+
+*Frontend Development*
+- Display CTK balance on coach dashboard.
+- Design and implement CTK store for coaches.
+
+**Coach Avatar & Customization System Implementation**
+
+*Backend Development*
+- Design and implement coach avatar data models.
+- Develop API endpoints for coach avatar customization.
+
+*Frontend Development*
+- Implement coach avatar display on profiles and search results.
+- Design and implement coach avatar customization interface.
+
+**Coach Achievements Implementation**
+
+*Backend Development*
+- Design and implement coach achievement data models.
+- Develop API endpoints for tracking and unlocking coach achievements.
+
+*Frontend Development*
+- Display coach achievements on coach profiles.
+
+**Coach Leaderboards Implementation**
+
+*Backend Development*
+- Design and implement leaderboard data models for coaches.
+- Develop API endpoints for generating coach leaderboards (CRP, CXP, player success).
+
+*Frontend Development*
+- Design and implement coach leaderboard pages.
+
+### 3.2 Key Coach Pages
+
+**Dashboard Page Implementation**
+
+*Frontend Development*
+- Design and implement coach dashboard (client management, analytics, CTK/CXP).
+- Ensure responsive design for desktop, tablet, and mobile.
+
+**Messages Page Implementation**
+
+*Frontend Development*
+- Design and implement coach messaging interface (client communication, lesson coordination).
+- Ensure responsive design for desktop, tablet, and mobile.
+
+**Feed Page Implementation**
+
+*Frontend Development*
+- Design and implement coach activity feed (player progress, new clients, achievements).
+- Ensure responsive design for desktop, tablet, and mobile.
+
+## Phase 4: Coach-Player Ecosystem & Advanced Features
+
+### 4.1 Interaction Loops Implementation
+
+**Backend Development**
+- Develop API endpoints for coaches to assign training plans, challenges, and lessons to players.
+- Develop API endpoints for players to request coaching, report progress, and provide feedback.
+- Implement logic for player achievements and progress contributing to coach CXP and CRP.
+- Implement logic for coach guidance impacting player HP/XP.
+
+**Frontend Development**
+- Design and implement coach interfaces for assigning tasks.
+- Design and implement player interfaces for requesting coaching and reporting progress.
+- Integrate feedback mechanisms.
+
+### 4.2 Communication Hub Implementation
+
+**Backend Development**
+- Integrate messaging system (real-time chat).
+- Integrate scheduling system for lessons and sessions.
+
+**Frontend Development**
+- Design and implement integrated messaging interface.
+- Design and implement scheduling interface.
+
+### 4.3 Maps Page Implementation
+
+**Frontend Development**
+- Design and implement map interface for finding courts, coaches, and players.
+- Ensure responsive design for desktop, tablet, and mobile.
+
+### 4.4 Search Page Implementation
+
+**Frontend Development**
+- Design and implement search interface for players, coaches, courts, and events.
+- Ensure responsive design for desktop, tablet, and mobile.
+
+### 4.5 Profile Page Implementation (Detailed)
+
+**Frontend Development**
+- Design and implement player profile (avatar, stats, achievements, XP/HP, detailed history).
+- Design and implement coach profile (avatar, CRP/CXP, achievements, client testimonials, detailed analytics).
+- Ensure responsive design for desktop, tablet, and mobile.
+
+## Phase 5: Backend Architecture & Infrastructure
+
+### 5.1 Core Backend Services Setup
+
+**Backend Development**
+- Set up microservices-based architecture.
+- Configure database schemas for all data models (players, coaches, gamification, activities, etc.).
+
+**Infrastructure**
+- Set up development, staging, and production environments.
+- Implement CI/CD pipelines.
+
+### 5.2 API Development
+
+**Backend Development**
+- Develop RESTful APIs for all frontend-backend communication.
+- Implement data validation and error handling for all API endpoints.
+- Document all API endpoints with OpenAPI/Swagger.
+
+### 5.3 Real-time Updates Implementation
+
+**Backend Development**
+- Implement WebSockets for real-time updates (HP, XP, messages, activity feeds).
+
+## Phase 6: Testing & Quality Assurance
+
+### 6.1 Unit Testing
+- Write and execute unit tests for all backend logic and frontend components.
+
+### 6.2 Integration Testing
+- Conduct integration tests to ensure seamless communication between frontend, backend, and third-party services.
+
+### 6.3 User Acceptance Testing (UAT)
+- Conduct UAT with a diverse group of players and coaches to gather feedback and identify issues.
+
+### 6.4 Performance Testing
+- Conduct performance tests to ensure the system can handle anticipated user load.
+
+### 6.5 Security Audits
+- Perform security audits to identify and mitigate vulnerabilities.
+
+## Phase 7: Deployment & Monitoring
+
+### 7.1 Deployment
+- Deploy the application to production environment.
+- Configure load balancing and scaling.
+
+### 7.2 Monitoring & Analytics
+- Implement comprehensive monitoring for system health and performance.
+- Set up analytics to track user engagement and gamification metrics.
+
+## Phase 8: Post-Launch & Iteration
+
+### 8.1 User Feedback & Support
+- Establish channels for ongoing user feedback.
+- Provide dedicated user support.
+
+### 8.2 Feature Iteration & Enhancements
+- Continuously analyze data and feedback to plan future feature iterations and enhancements.
