@@ -2,210 +2,248 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { MessageCircle, Users, Plus } from 'lucide-react';
-import { MessageList } from '@/components/messages/MessageList';
-import { MessageComposer } from '@/components/messages/MessageComposer';
-import { PlayerStatusCard } from '@/components/messages/PlayerStatusCard';
-import { AchievementShareCard } from '@/components/messages/AchievementShareCard';
-import { ChallengeCard } from '@/components/messages/ChallengeCard';
+import { Input } from '@/components/ui/input';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
+import { ScrollArea } from '@/components/ui/scroll-area';
+import { Separator } from '@/components/ui/separator';
+import { 
+  MessageSquare, 
+  Search, 
+  Plus,
+  Users,
+  Send,
+  ArrowLeft
+} from 'lucide-react';
+import { useConversations } from '@/hooks/useConversations';
+import { useMessages } from '@/hooks/useMessages';
+import { useProfiles } from '@/hooks/useProfiles';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
-import { useConversations } from '@/hooks/useConversations';
-import { useProfiles } from '@/hooks/useProfiles';
-import { supabase } from '@/integrations/supabase/client';
-import { useAuth } from '@/hooks/useAuth';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { MessageList } from '@/components/messages/MessageList';
+import { MessageComposer } from '@/components/messages/MessageComposer';
+import { PlayerStatusCard } from '@/components/messages/PlayerStatusCard';
+import { ChallengeCard } from '@/components/messages/ChallengeCard';
+import { AchievementShareCard } from '@/components/messages/AchievementShareCard';
+import { format } from 'date-fns';
 
 export default function Messages() {
-  const { user } = useAuth();
-  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
-  const [isNewChatOpen, setIsNewChatOpen] = useState(false);
+  const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showMobileConversation, setShowMobileConversation] = useState(false);
 
-  const { data: hpData, isLoading: hpLoading } = usePlayerHP();
-  const { data: xpData, isLoading: xpLoading } = usePlayerXP();
-  const { data: tokenData, isLoading: tokensLoading } = usePlayerTokens();
-  const { data: achievements = [] } = usePlayerAchievements();
-  const { data: conversations = [], isLoading: conversationsLoading } = useConversations();
-  const { data: profiles = [] } = useProfiles();
+  // Fetch data
+  const { data: conversations, loading: conversationsLoading } = useConversations();
+  const { messages, loading: messagesLoading } = useMessages(selectedConversation);
+  const { data: profiles } = useProfiles();
+  
+  // Player data
+  const { hpData, loading: hpLoading } = usePlayerHP();
+  const { xpData, loading: xpLoading } = usePlayerXP();
+  const { tokenData, loading: tokensLoading } = usePlayerTokens();
+  const { playerAchievements } = usePlayerAchievements();
 
-  const playerStats = { hpData, xpData, tokenData };
+  // Filter conversations based on search
+  const filteredConversations = conversations?.filter(conversation => {
+    if (!searchTerm) return true;
+    const otherParticipant = conversation.otherParticipant;
+    return otherParticipant?.full_name?.toLowerCase().includes(searchTerm.toLowerCase());
+  }) || [];
 
-  const handleStartConversation = async (otherUserId: string) => {
-    try {
-      const { data, error } = await supabase.rpc('create_direct_conversation', {
-        other_user_id: otherUserId
-      });
-
-      if (error) throw error;
-
-      setSelectedConversationId(data);
-      setIsNewChatOpen(false);
-    } catch (error) {
-      console.error('Error creating conversation:', error);
-    }
+  const handleConversationSelect = (conversationId: string) => {
+    setSelectedConversation(conversationId);
+    setShowMobileConversation(true);
   };
 
-  const selectedConversation = conversations.find(c => c.id === selectedConversationId);
+  const handleCreateConversation = () => {
+    // TODO: Implement conversation creation modal
+    console.log('Create new conversation');
+  };
+
+  const selectedConversationData = conversations?.find(c => c.id === selectedConversation);
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-tennis-green-light/20 to-tennis-green-medium/20 p-4">
-      <div className="max-w-7xl mx-auto">
-        <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">Messages</h1>
-          <p className="text-gray-600">Chat with other players, share achievements, and send challenges</p>
+    <div className="h-screen flex flex-col">
+      {/* Header */}
+      <div className="border-b bg-background px-4 py-3">
+        <div className="flex items-center justify-between">
+          <h1 className="text-xl font-semibold">Messages</h1>
+          <Button onClick={handleCreateConversation} size="sm">
+            <Plus className="h-4 w-4 mr-2" />
+            New Chat
+          </Button>
         </div>
+      </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Left Sidebar - Conversations List */}
-          <div className="lg:col-span-1">
-            <Card className="h-[calc(100vh-12rem)]">
-              <CardHeader className="pb-3">
-                <div className="flex items-center justify-between">
-                  <CardTitle className="flex items-center gap-2">
-                    <MessageCircle className="h-5 w-5" />
-                    Conversations
-                  </CardTitle>
-                  <Dialog open={isNewChatOpen} onOpenChange={setIsNewChatOpen}>
-                    <DialogTrigger asChild>
-                      <Button size="sm" variant="outline">
-                        <Plus className="h-4 w-4" />
-                      </Button>
-                    </DialogTrigger>
-                    <DialogContent>
-                      <DialogHeader>
-                        <DialogTitle>Start New Conversation</DialogTitle>
-                      </DialogHeader>
-                      <div className="space-y-3 max-h-96 overflow-y-auto">
-                        {profiles.map((profile) => (
-                          <div
-                            key={profile.id}
-                            className="flex items-center gap-3 p-3 rounded-lg hover:bg-muted cursor-pointer"
-                            onClick={() => handleStartConversation(profile.id)}
-                          >
-                            <Avatar className="h-10 w-10">
-                              <AvatarImage src={profile.avatar_url || ''} />
-                              <AvatarFallback>
-                                {profile.full_name?.charAt(0) || 'U'}
-                              </AvatarFallback>
-                            </Avatar>
-                            <div>
-                              <p className="font-medium">{profile.full_name || 'Unknown User'}</p>
-                              <p className="text-sm text-muted-foreground">{profile.email}</p>
-                            </div>
-                          </div>
-                        ))}
-                      </div>
-                    </DialogContent>
-                  </Dialog>
-                </div>
-              </CardHeader>
-              <CardContent className="p-0">
-                {conversationsLoading ? (
-                  <div className="p-4 text-center text-muted-foreground">
-                    Loading conversations...
-                  </div>
-                ) : conversations.length === 0 ? (
-                  <div className="p-4 text-center text-muted-foreground">
-                    No conversations yet. Start chatting with other players!
-                  </div>
-                ) : (
-                  <div className="space-y-1 p-2">
-                    {conversations.map((conversation) => (
-                      <div
-                        key={conversation.id}
-                        className={`p-3 rounded-lg cursor-pointer transition-colors ${
-                          selectedConversationId === conversation.id
-                            ? 'bg-tennis-green-light text-white'
-                            : 'hover:bg-muted'
-                        }`}
-                        onClick={() => setSelectedConversationId(conversation.id)}
-                      >
-                        <div className="flex items-center gap-3">
-                          <Avatar className="h-8 w-8">
-                            <AvatarImage src={conversation.otherParticipant?.avatar_url || ''} />
-                            <AvatarFallback>
-                              {conversation.otherParticipant?.full_name?.charAt(0) || 'U'}
-                            </AvatarFallback>
-                          </Avatar>
-                          <div className="flex-1 min-w-0">
-                            <p className="font-medium truncate">
-                              {conversation.name || conversation.otherParticipant?.full_name || 'Unknown User'}
-                            </p>
-                            <p className="text-sm opacity-75 truncate">
-                              {conversation.lastMessage}
-                            </p>
-                          </div>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </CardContent>
-            </Card>
+      <div className="flex-1 flex overflow-hidden">
+        {/* Conversations List - Hidden on mobile when conversation is selected */}
+        <div className={`w-full md:w-80 border-r bg-background flex flex-col ${
+          showMobileConversation ? 'hidden md:flex' : 'flex'
+        }`}>
+          {/* Search */}
+          <div className="p-4 border-b">
+            <div className="relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+              <Input
+                placeholder="Search conversations..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                className="pl-10"
+              />
+            </div>
           </div>
 
-          {/* Main Chat Area */}
-          <div className="lg:col-span-2">
-            {selectedConversationId ? (
-              <div className="space-y-4">
-                <Card className="h-[calc(100vh-20rem)]">
-                  <CardHeader className="pb-3">
-                    <CardTitle className="flex items-center gap-2">
-                      <MessageCircle className="h-5 w-5" />
-                      {selectedConversation?.name || selectedConversation?.otherParticipant?.full_name || 'Chat'}
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="h-full overflow-hidden">
-                    <MessageList conversationId={selectedConversationId} />
-                  </CardContent>
-                </Card>
-                <MessageComposer conversationId={selectedConversationId} />
+          {/* Conversations */}
+          <ScrollArea className="flex-1">
+            {conversationsLoading ? (
+              <div className="p-4 space-y-4">
+                {[...Array(5)].map((_, i) => (
+                  <div key={i} className="flex items-center space-x-3 animate-pulse">
+                    <div className="w-10 h-10 bg-gray-200 rounded-full" />
+                    <div className="flex-1">
+                      <div className="h-4 bg-gray-200 rounded mb-1" />
+                      <div className="h-3 bg-gray-200 rounded w-3/4" />
+                    </div>
+                  </div>
+                ))}
+              </div>
+            ) : filteredConversations.length === 0 ? (
+              <div className="p-4 text-center text-muted-foreground">
+                <MessageSquare className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <p>No conversations yet</p>
+                <p className="text-sm">Start a new chat to begin messaging</p>
               </div>
             ) : (
-              <Card className="h-[calc(100vh-12rem)] flex items-center justify-center">
-                <div className="text-center">
-                  <MessageCircle className="h-16 w-16 mx-auto text-muted-foreground mb-4" />
-                  <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
-                  <p className="text-muted-foreground">
-                    Choose a conversation from the list or start a new one
-                  </p>
-                </div>
-              </Card>
+              <div className="divide-y">
+                {filteredConversations.map((conversation) => {
+                  const otherParticipant = conversation.otherParticipant;
+                  const isSelected = selectedConversation === conversation.id;
+                  
+                  return (
+                    <button
+                      key={conversation.id}
+                      onClick={() => handleConversationSelect(conversation.id)}
+                      className={`w-full p-4 text-left hover:bg-muted transition-colors ${
+                        isSelected ? 'bg-muted' : ''
+                      }`}
+                    >
+                      <div className="flex items-center space-x-3">
+                        <Avatar className="h-10 w-10">
+                          <AvatarImage src={otherParticipant?.avatar_url || ''} />
+                          <AvatarFallback>
+                            {otherParticipant?.full_name?.charAt(0) || 'U'}
+                          </AvatarFallback>
+                        </Avatar>
+                        
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center justify-between">
+                            <p className="font-medium truncate">
+                              {otherParticipant?.full_name || 'Unknown User'}
+                            </p>
+                            <span className="text-xs text-muted-foreground">
+                              {format(new Date(conversation.lastMessageTime), 'MMM d')}
+                            </span>
+                          </div>
+                          <p className="text-sm text-muted-foreground truncate">
+                            {conversation.lastMessage}
+                          </p>
+                        </div>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
             )}
-          </div>
-
-          {/* Right Sidebar - Player Stats & Actions */}
-          <div className="lg:col-span-1 space-y-4">
-            <PlayerStatusCard
-              hpData={hpData}
-              xpData={xpData}
-              tokenData={tokenData}
-            />
-
-            {selectedConversationId && (
-              <>
-                <ChallengeCard
-                  conversationId={selectedConversationId}
-                  playerStats={playerStats}
-                />
-
-                <AchievementShareCard
-                  achievements={achievements}
-                  conversationId={selectedConversationId}
-                />
-              </>
-            )}
-          </div>
+          </ScrollArea>
         </div>
+
+        {/* Chat Area */}
+        <div className={`flex-1 flex flex-col ${
+          !showMobileConversation ? 'hidden md:flex' : 'flex'
+        }`}>
+          {selectedConversation ? (
+            <>
+              {/* Chat Header */}
+              <div className="border-b bg-background px-4 py-3">
+                <div className="flex items-center space-x-3">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    onClick={() => setShowMobileConversation(false)}
+                    className="md:hidden"
+                  >
+                    <ArrowLeft className="h-4 w-4" />
+                  </Button>
+                  
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={selectedConversationData?.otherParticipant?.avatar_url || ''} />
+                    <AvatarFallback>
+                      {selectedConversationData?.otherParticipant?.full_name?.charAt(0) || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  
+                  <div>
+                    <p className="font-medium">
+                      {selectedConversationData?.otherParticipant?.full_name || 'Unknown User'}
+                    </p>
+                    <p className="text-xs text-muted-foreground">Online</p>
+                  </div>
+                </div>
+              </div>
+
+              {/* Messages */}
+              <div className="flex-1 overflow-hidden">
+                <MessageList
+                  messages={messages}
+                  loading={messagesLoading}
+                  conversationId={selectedConversation}
+                />
+              </div>
+
+              {/* Message Composer */}
+              <MessageComposer conversationId={selectedConversation} />
+            </>
+          ) : (
+            <div className="flex-1 flex items-center justify-center text-center p-8">
+              <div>
+                <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
+                <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
+                <p className="text-muted-foreground">
+                  Choose a conversation from the list to start messaging
+                </p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Right Sidebar - Only show on desktop when conversation is selected */}
+        {selectedConversation && (
+          <div className="hidden lg:block w-80 border-l bg-muted/20">
+            <ScrollArea className="h-full">
+              <div className="p-4 space-y-4">
+                <PlayerStatusCard
+                  hpData={hpData}
+                  xpData={xpData}
+                  tokenData={tokenData}
+                  loading={hpLoading || xpLoading || tokensLoading}
+                />
+                
+                <ChallengeCard
+                  otherUserId={selectedConversationData?.otherParticipant?.id}
+                  conversationId={selectedConversation}
+                  tokenData={tokenData}
+                />
+                
+                <AchievementShareCard
+                  achievements={playerAchievements}
+                  conversationId={selectedConversation}
+                />
+              </div>
+            </ScrollArea>
+          </div>
+        )}
       </div>
     </div>
   );
