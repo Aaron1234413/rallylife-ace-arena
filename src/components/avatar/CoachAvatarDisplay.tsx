@@ -3,13 +3,14 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { useCoachAvatar } from '@/hooks/useCoachAvatar';
+import { useReadyPlayerMe } from '@/hooks/useReadyPlayerMe';
 import { ReadyPlayerMeAvatar } from './ReadyPlayerMeAvatar';
 
 interface CoachAvatarDisplayProps {
   size?: 'sm' | 'md' | 'lg';
   showItems?: boolean;
   className?: string;
-  readyPlayerMeUrl?: string;
+  readyPlayerMeUrl?: string; // Keep for backward compatibility, but prefer database
 }
 
 export function CoachAvatarDisplay({ 
@@ -19,6 +20,10 @@ export function CoachAvatarDisplay({
   readyPlayerMeUrl 
 }: CoachAvatarDisplayProps) {
   const { equippedItems, loading } = useCoachAvatar();
+  const { avatarUrl: storedAvatarUrl } = useReadyPlayerMe();
+
+  // Use stored avatar URL or fallback to prop
+  const effectiveAvatarUrl = storedAvatarUrl || readyPlayerMeUrl;
 
   const sizeClasses = {
     sm: 'w-16 h-16',
@@ -35,11 +40,11 @@ export function CoachAvatarDisplay({
   }
 
   // If we have a Ready Player Me avatar, use that
-  if (readyPlayerMeUrl) {
+  if (effectiveAvatarUrl) {
     return (
       <div className={`relative ${className}`}>
         <ReadyPlayerMeAvatar 
-          avatarUrl={readyPlayerMeUrl}
+          avatarUrl={effectiveAvatarUrl}
           size={size}
         />
 

@@ -4,7 +4,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { useToast } from '@/hooks/use-toast';
-import { User, Download, Edit } from 'lucide-react';
+import { useReadyPlayerMe } from '@/hooks/useReadyPlayerMe';
+import { User, Edit } from 'lucide-react';
 
 interface ReadyPlayerMeCreatorProps {
   currentAvatarUrl?: string;
@@ -18,7 +19,7 @@ export function ReadyPlayerMeCreator({
   className = '' 
 }: ReadyPlayerMeCreatorProps) {
   const [isCreating, setIsCreating] = useState(false);
-  const [avatarUrl, setAvatarUrl] = useState(currentAvatarUrl || '');
+  const { saving } = useReadyPlayerMe();
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const { toast } = useToast();
 
@@ -35,7 +36,6 @@ export function ReadyPlayerMeCreator({
         // Extract the avatar ID from the full URL
         const avatarId = newAvatarUrl.split('/').pop()?.replace('.glb', '');
         if (avatarId) {
-          setAvatarUrl(avatarId);
           onAvatarSaved(avatarId);
           setIsCreating(false);
           
@@ -76,12 +76,12 @@ export function ReadyPlayerMeCreator({
         {!isCreating ? (
           <div className="space-y-4">
             {/* Current Avatar Display */}
-            {avatarUrl && (
+            {currentAvatarUrl && (
               <div className="text-center space-y-2">
                 <h4 className="font-medium">Your Current Avatar</h4>
                 <div className="w-32 h-32 mx-auto">
                   <iframe
-                    src={`https://models.readyplayer.me/${avatarUrl}?morphTargets=ARKit,Oculus Visemes&textureAtlas=1024&lod=0`}
+                    src={`https://models.readyplayer.me/${currentAvatarUrl}?morphTargets=ARKit,Oculus Visemes&textureAtlas=1024&lod=0`}
                     className="w-full h-full rounded-lg border"
                     title="Current Avatar"
                   />
@@ -94,9 +94,10 @@ export function ReadyPlayerMeCreator({
               <Button 
                 onClick={startCreation} 
                 className="flex-1"
-                variant={avatarUrl ? "outline" : "default"}
+                variant={currentAvatarUrl ? "outline" : "default"}
+                disabled={saving}
               >
-                {avatarUrl ? (
+                {currentAvatarUrl ? (
                   <>
                     <Edit className="h-4 w-4 mr-2" />
                     Edit Avatar
@@ -135,12 +136,13 @@ export function ReadyPlayerMeCreator({
               onClick={cancelCreation} 
               variant="outline" 
               className="w-full"
+              disabled={saving}
             >
               Cancel
             </Button>
 
             <div className="text-sm text-gray-600">
-              <p>Follow the steps in the avatar creator above to create your personalized coaching avatar.</p>
+              <p>Follow the steps in the avatar creator above to create your personalized avatar.</p>
             </div>
           </div>
         )}

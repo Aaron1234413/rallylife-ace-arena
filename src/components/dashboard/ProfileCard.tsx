@@ -6,6 +6,7 @@ import { CRPDisplay } from '@/components/crp/CRPDisplay';
 import { CXPDisplay } from '@/components/cxp/CXPDisplay';
 import { CTKDisplay } from '@/components/ctk/CTKDisplay';
 import { CoachAvatarDisplay } from '@/components/avatar/CoachAvatarDisplay';
+import { PlayerAvatarDisplay } from '@/components/avatar/PlayerAvatarDisplay';
 
 interface ProfileCardProps {
   profile: any;
@@ -32,12 +33,14 @@ export function ProfileCard({ profile, user, profileLoading, isPlayer }: Profile
             <p className="text-tennis-green-medium">Loading profile...</p>
           ) : (
             <div className="space-y-4">
-              {/* Coach Avatar for coaches */}
-              {!isPlayer && (
-                <div className="flex justify-center">
+              {/* Avatar Display for both players and coaches */}
+              <div className="flex justify-center">
+                {isPlayer ? (
+                  <PlayerAvatarDisplay size="md" />
+                ) : (
                   <CoachAvatarDisplay size="md" showItems={true} />
-                </div>
-              )}
+                )}
+              </div>
               
               <div className="space-y-2 text-sm">
                 <p><strong className="text-tennis-green-dark">Email:</strong> <span className="break-all">{user?.email}</span></p>
