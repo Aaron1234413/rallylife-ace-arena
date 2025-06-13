@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -14,11 +13,14 @@ import { PlayerActionCards } from "@/components/dashboard/PlayerActionCards";
 import { PlayerActivityLogs } from "@/components/dashboard/PlayerActivityLogs";
 import { TokenEconomy } from "@/components/dashboard/TokenEconomy";
 import { QuickActionButtons } from "@/components/activities/QuickActionButtons";
-import { ActivityFeed } from "@/components/activities/ActivityFeed";
+import { ActivityFeed } from "@/components/activities/ActivityStats";
 import { ActivityStats } from "@/components/activities/ActivityStats";
 import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
 import { CXPActivityLog } from "@/components/cxp/CXPActivityLog";
 import { CXPEarnActions } from "@/components/cxp/CXPEarnActions";
+import { CTKEarnActions } from "@/components/ctk/CTKEarnActions";
+import { CTKStore } from "@/components/ctk/CTKStore";
+import { CTKTransactionHistory } from "@/components/ctk/CTKTransactionHistory";
 
 const Index = () => {
   const { user } = useAuth();
@@ -177,8 +179,17 @@ const Index = () => {
           {/* CXP Earning Actions */}
           <CXPEarnActions />
 
-          {/* CXP Activity Log */}
-          <CXPActivityLog />
+          {/* CTK Earning Actions */}
+          <CTKEarnActions />
+
+          {/* CTK Store */}
+          <CTKStore />
+
+          {/* Activity Logs */}
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <CXPActivityLog />
+            <CTKTransactionHistory />
+          </div>
         </>
       )}
     </div>

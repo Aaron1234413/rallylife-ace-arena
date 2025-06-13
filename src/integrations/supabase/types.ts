@@ -454,6 +454,72 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_token_transactions: {
+        Row: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          coach_id: string
+          created_at: string
+          description: string | null
+          id: string
+          metadata: Json | null
+          source: string
+          transaction_type: string
+        }
+        Insert: {
+          amount: number
+          balance_after: number
+          balance_before: number
+          coach_id: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          source: string
+          transaction_type: string
+        }
+        Update: {
+          amount?: number
+          balance_after?: number
+          balance_before?: number
+          coach_id?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          source?: string
+          transaction_type?: string
+        }
+        Relationships: []
+      }
+      coach_tokens: {
+        Row: {
+          coach_id: string
+          created_at: string
+          current_tokens: number
+          id: string
+          lifetime_earned: number
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          current_tokens?: number
+          id?: string
+          lifetime_earned?: number
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          current_tokens?: number
+          id?: string
+          lifetime_earned?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -1091,6 +1157,15 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_coach_tokens: {
+        Args: {
+          user_id: string
+          amount: number
+          source?: string
+          description?: string
+        }
+        Returns: Json
+      }
       add_crp: {
         Args: {
           user_id: string
@@ -1218,6 +1293,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: undefined
       }
+      initialize_coach_tokens: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
       initialize_default_achievements: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -1301,6 +1380,15 @@ export type Database = {
           metadata?: Json
         }
         Returns: string
+      }
+      spend_coach_tokens: {
+        Args: {
+          user_id: string
+          amount: number
+          source?: string
+          description?: string
+        }
+        Returns: Json
       }
       spend_tokens: {
         Args: {

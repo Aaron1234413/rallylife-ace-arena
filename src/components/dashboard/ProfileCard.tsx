@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { User } from 'lucide-react';
 import { CRPDisplay } from '@/components/crp/CRPDisplay';
 import { CXPDisplay } from '@/components/cxp/CXPDisplay';
+import { CTKDisplay } from '@/components/ctk/CTKDisplay';
 
 interface ProfileCardProps {
   profile: any;
@@ -46,6 +47,7 @@ export function ProfileCard({ profile, user, profileLoading, isPlayer }: Profile
         <div className="space-y-4">
           <CRPDisplay />
           <CXPDisplay />
+          <CTKDisplay />
         </div>
       )}
     </div>
