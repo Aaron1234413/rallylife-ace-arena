@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,7 +8,7 @@ import { usePlayerXP } from "@/hooks/usePlayerXP";
 import { usePlayerAvatar } from "@/hooks/usePlayerAvatar";
 import { usePlayerAchievements } from "@/hooks/usePlayerAchievements";
 import { supabase } from "@/integrations/supabase/client";
-import { LogOut, User } from "lucide-react";
+import { LogOut, User, Menu } from "lucide-react";
 import { HPDisplay } from "@/components/hp/HPDisplay";
 import { HPCard } from "@/components/hp/HPDisplay";
 import { HPActivityLog } from "@/components/hp/HPActivityLog";
@@ -29,6 +30,7 @@ import { AchievementDisplay } from "@/components/achievements/AchievementDisplay
 import { QuickActionButtons } from "@/components/activities/QuickActionButtons";
 import { ActivityFeed } from "@/components/activities/ActivityFeed";
 import { ActivityStats } from "@/components/activities/ActivityStats";
+import { Sheet, SheetContent, SheetTrigger } from "@/components/ui/sheet";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -120,116 +122,141 @@ const Index = () => {
   const isPlayer = profile?.role === 'player';
 
   return (
-    <div className="min-h-screen bg-tennis-green-bg p-4">
-      <div className="max-w-6xl mx-auto">
-        {/* Header with HP, XP, Token Display, and Avatar */}
-        <div className="flex justify-between items-center mb-8">
-          <div className="flex items-center gap-4">
-            <AvatarDisplay 
-              avatarUrl={profile?.avatar_url}
-              equippedItems={equippedItems}
-              size="large"
-              showBorder={true}
-            />
-            <div>
-              <div className="flex items-center gap-3">
-                <h1 className="text-3xl font-bold text-tennis-green-dark">
-                  Welcome back, {profile?.full_name || 'User'}!
-                </h1>
-                {isPlayer && xpData && (
-                  <LevelBadge level={xpData.current_level} size="medium" />
-                )}
-              </div>
-              <p className="text-tennis-green-medium mt-1">
-                Ready to continue your tennis journey?
-              </p>
-              {isPlayer && (
-                <div className="flex gap-2 mt-2">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.location.href = '/achievements'}
-                    className="border-tennis-green-dark text-tennis-green-dark hover:bg-tennis-green-dark hover:text-white"
-                  >
-                    🏆 Achievements
-                  </Button>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => window.location.href = '/activities'}
-                    className="border-tennis-green-dark text-tennis-green-dark hover:bg-tennis-green-dark hover:text-white"
-                  >
-                    📋 Activities
-                  </Button>
+    <div className="min-h-screen bg-tennis-green-bg">
+      <div className="w-full">
+        {/* Mobile-First Header */}
+        <div className="sticky top-0 z-50 bg-tennis-green-bg border-b border-tennis-green-light p-3 sm:p-4">
+          <div className="flex items-center justify-between">
+            {/* Left side - Avatar and Name */}
+            <div className="flex items-center gap-2 sm:gap-3 min-w-0 flex-1">
+              <AvatarDisplay 
+                avatarUrl={profile?.avatar_url}
+                equippedItems={equippedItems}
+                size="medium"
+                showBorder={true}
+                className="flex-shrink-0"
+              />
+              <div className="min-w-0 flex-1">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h1 className="text-lg sm:text-xl font-bold text-tennis-green-dark truncate">
+                    {profile?.full_name || 'User'}
+                  </h1>
+                  {isPlayer && xpData && (
+                    <LevelBadge level={xpData.current_level} size="small" />
+                  )}
                 </div>
-              )}
-            </div>
-          </div>
-
-          <div className="flex items-center gap-4">
-            {/* HP, XP, and Token Display in Header for Players */}
-            {isPlayer && (hpData || xpData || tokenData) && (
-              <div className="bg-white rounded-lg px-4 py-3 shadow-sm space-y-2">
-                {hpData && (
-                  <HPDisplay 
-                    currentHP={hpData.current_hp} 
-                    maxHP={hpData.max_hp} 
-                    size="small"
-                  />
-                )}
-                {xpData && (
-                  <XPDisplay
-                    currentLevel={xpData.current_level}
-                    currentXP={xpData.current_xp}
-                    xpToNextLevel={xpData.xp_to_next_level}
-                    size="small"
-                    showLevel={false}
-                  />
-                )}
-                {tokenData && (
-                  <TokenDisplay
-                    regularTokens={tokenData.regular_tokens}
-                    premiumTokens={tokenData.premium_tokens}
-                    size="small"
-                    showPremium={true}
-                  />
+                {/* Mobile Stats Bar */}
+                {isPlayer && (hpData || xpData || tokenData) && (
+                  <div className="mt-1 space-y-1">
+                    {hpData && (
+                      <HPDisplay 
+                        currentHP={hpData.current_hp} 
+                        maxHP={hpData.max_hp} 
+                        size="small"
+                        showText={false}
+                      />
+                    )}
+                    {xpData && (
+                      <XPDisplay
+                        currentLevel={xpData.current_level}
+                        currentXP={xpData.current_xp}
+                        xpToNextLevel={xpData.xp_to_next_level}
+                        size="small"
+                        showLevel={false}
+                      />
+                    )}
+                  </div>
                 )}
               </div>
-            )}
-            
-            <Button 
-              onClick={handleSignOut} 
-              variant="outline" 
-              className="flex items-center gap-2 border-tennis-green-dark text-tennis-green-dark hover:bg-tennis-green-dark hover:text-white"
-            >
-              <LogOut className="h-4 w-4" />
-              Sign Out
-            </Button>
+            </div>
+
+            {/* Right side - Menu */}
+            <div className="flex items-center gap-2">
+              {tokenData && (
+                <TokenDisplay
+                  regularTokens={tokenData.regular_tokens}
+                  premiumTokens={tokenData.premium_tokens}
+                  size="small"
+                  showPremium={false}
+                  className="hidden sm:flex"
+                />
+              )}
+              
+              <Sheet>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="border-tennis-green-dark">
+                    <Menu className="h-4 w-4" />
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-80">
+                  <div className="space-y-4 pt-6">
+                    {isPlayer && (
+                      <div className="space-y-3">
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start border-tennis-green-dark text-tennis-green-dark hover:bg-tennis-green-dark hover:text-white"
+                          onClick={() => window.location.href = '/achievements'}
+                        >
+                          🏆 Achievements
+                        </Button>
+                        <Button
+                          variant="outline"
+                          className="w-full justify-start border-tennis-green-dark text-tennis-green-dark hover:bg-tennis-green-dark hover:text-white"
+                          onClick={() => window.location.href = '/activities'}
+                        >
+                          📋 Activities
+                        </Button>
+                      </div>
+                    )}
+                    
+                    {tokenData && (
+                      <div className="p-3 bg-white rounded-lg space-y-2">
+                        <TokenDisplay
+                          regularTokens={tokenData.regular_tokens}
+                          premiumTokens={tokenData.premium_tokens}
+                          size="small"
+                          showPremium={true}
+                        />
+                      </div>
+                    )}
+
+                    <Button 
+                      onClick={handleSignOut} 
+                      variant="outline" 
+                      className="w-full justify-start flex items-center gap-2 border-tennis-green-dark text-tennis-green-dark hover:bg-tennis-green-dark hover:text-white"
+                    >
+                      <LogOut className="h-4 w-4" />
+                      Sign Out
+                    </Button>
+                  </div>
+                </SheetContent>
+              </Sheet>
+            </div>
           </div>
         </div>
 
-        <div className="grid gap-6">
-          {/* Profile Card */}
+        {/* Main Content */}
+        <div className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4 sm:space-y-6">
+          {/* Profile Card - Mobile Optimized */}
           <Card className="border-tennis-green-light">
-            <CardHeader className="bg-tennis-green-light text-white">
-              <CardTitle className="flex items-center gap-2">
+            <CardHeader className="bg-tennis-green-light text-white p-4">
+              <CardTitle className="flex items-center gap-2 text-lg">
                 <User className="h-5 w-5" />
                 Your Profile
               </CardTitle>
-              <CardDescription className="text-tennis-green-bg">
+              <CardDescription className="text-tennis-green-bg text-sm">
                 {profile?.role === 'player' ? 'Player Profile' : 'Coach Profile'}
               </CardDescription>
             </CardHeader>
-            <CardContent className="mt-4">
+            <CardContent className="p-4">
               {profileLoading ? (
                 <p className="text-tennis-green-medium">Loading profile...</p>
               ) : (
-                <div className="space-y-2">
-                  <p><strong className="text-tennis-green-dark">Email:</strong> {user?.email}</p>
+                <div className="space-y-2 text-sm">
+                  <p><strong className="text-tennis-green-dark">Email:</strong> <span className="break-all">{user?.email}</span></p>
                   <p><strong className="text-tennis-green-dark">Full Name:</strong> {profile?.full_name}</p>
                   <p><strong className="text-tennis-green-dark">Role:</strong> {profile?.role}</p>
-                  <p><strong className="text-tennis-green-dark">User ID:</strong> {user?.id}</p>
-                  <p className="text-tennis-green-medium text-sm mt-4">
+                  <p className="text-tennis-green-medium text-xs mt-3">
                     🎾 Phase 2.5 (Achievement System) is now live! 
                     {isPlayer ? ' Earn achievements by playing, training, and progressing in the game!' : ' Monitor your players\' achievement progress and unlocks.'}
                   </p>
@@ -238,24 +265,14 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          {/* Activity Logging System - Only for Players */}
+          {/* Player-specific content */}
           {isPlayer && (
-            <div className="grid gap-6">
-              {/* Quick Actions Row */}
+            <>
+              {/* Quick Actions - Mobile First */}
               <QuickActionButtons />
 
-              {/* Activity Overview Row */}
-              <div className="grid gap-6 lg:grid-cols-2">
-                {/* Activity Feed */}
-                <ActivityFeed limit={8} showFilters={true} />
-
-                {/* Activity Statistics */}
-                <ActivityStats />
-              </div>
-
-              {/* Status Cards Row */}
-              <div className="grid gap-6 lg:grid-cols-3">
-                {/* HP Status Card */}
+              {/* Status Cards - Stacked on Mobile */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {hpData ? (
                   <HPCard
                     currentHP={hpData.current_hp}
@@ -265,20 +282,19 @@ const Index = () => {
                 ) : hpLoading ? (
                   <Card>
                     <CardContent className="p-4">
-                      <p className="text-center">Loading HP data...</p>
+                      <p className="text-center text-sm">Loading HP data...</p>
                     </CardContent>
                   </Card>
                 ) : (
                   <Card>
                     <CardContent className="p-4">
-                      <p className="text-center text-muted-foreground">
+                      <p className="text-center text-muted-foreground text-sm">
                         HP system initializing...
                       </p>
                     </CardContent>
                   </Card>
                 )}
 
-                {/* XP Status Card */}
                 {xpData ? (
                   <XPCard
                     currentLevel={xpData.current_level}
@@ -289,20 +305,19 @@ const Index = () => {
                 ) : xpLoading ? (
                   <Card>
                     <CardContent className="p-4">
-                      <p className="text-center">Loading XP data...</p>
+                      <p className="text-center text-sm">Loading XP data...</p>
                     </CardContent>
                   </Card>
                 ) : (
                   <Card>
                     <CardContent className="p-4">
-                      <p className="text-center text-muted-foreground">
+                      <p className="text-center text-muted-foreground text-sm">
                         XP system initializing...
                       </p>
                     </CardContent>
                   </Card>
                 )}
 
-                {/* Token Status Card */}
                 {tokenData ? (
                   <TokenCard
                     regularTokens={tokenData.regular_tokens}
@@ -312,13 +327,13 @@ const Index = () => {
                 ) : tokensLoading ? (
                   <Card>
                     <CardContent className="p-4">
-                      <p className="text-center">Loading token data...</p>
+                      <p className="text-center text-sm">Loading token data...</p>
                     </CardContent>
                   </Card>
                 ) : (
                   <Card>
                     <CardContent className="p-4">
-                      <p className="text-center text-muted-foreground">
+                      <p className="text-center text-muted-foreground text-sm">
                         Token system initializing...
                       </p>
                     </CardContent>
@@ -326,12 +341,17 @@ const Index = () => {
                 )}
               </div>
 
-              {/* Avatar Customization Full Width */}
+              {/* Activity Overview - Mobile Optimized */}
+              <div className="grid gap-4 lg:grid-cols-2">
+                <ActivityFeed limit={5} showFilters={false} />
+                <ActivityStats />
+              </div>
+
+              {/* Avatar Customization - Mobile Friendly */}
               <AvatarCustomization />
 
-              {/* Action Cards Row */}
-              <div className="grid gap-6 lg:grid-cols-3">
-                {/* HP Restore Actions */}
+              {/* Action Cards - Stacked on Mobile */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
                 {hpData && (
                   <HPRestoreActions
                     onRestoreHP={handleRestoreHP}
@@ -340,14 +360,12 @@ const Index = () => {
                   />
                 )}
 
-                {/* XP Earn Actions */}
                 {xpData && (
                   <XPEarnActions
                     onEarnXP={handleAddXP}
                   />
                 )}
 
-                {/* Token Earn Actions */}
                 {tokenData && (
                   <TokenEarnActions
                     onEarnTokens={handleAddTokens}
@@ -355,17 +373,14 @@ const Index = () => {
                 )}
               </div>
 
-              {/* Token Economy Features Row */}
+              {/* Token Economy - Mobile Stacked */}
               {tokenData && (
-                <div className="grid gap-6 lg:grid-cols-2">
-                  {/* Token Store */}
+                <div className="grid gap-4 lg:grid-cols-2">
                   <TokenStore
                     onSpendTokens={spendTokens}
                     regularTokens={tokenData.regular_tokens}
                     premiumTokens={tokenData.premium_tokens}
                   />
-
-                  {/* Token Converter */}
                   <TokenConverter
                     onConvertTokens={convertPremiumTokens}
                     premiumTokens={tokenData.premium_tokens}
@@ -373,33 +388,26 @@ const Index = () => {
                 </div>
               )}
 
-              {/* Activity Logs and Achievements Row */}
-              <div className="grid gap-6 lg:grid-cols-4">
-                {/* HP Activity Log */}
+              {/* Activity Logs - Mobile Stacked */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 <HPActivityLog
                   activities={hpActivities}
                   loading={hpLoading}
                 />
-
-                {/* XP Activity Log */}
                 <XPActivityLog
                   activities={xpActivities}
                   loading={xpLoading}
                 />
-
-                {/* Token Transaction History */}
                 <TokenTransactionHistory
                   transactions={transactions}
                   loading={tokensLoading}
                 />
-
-                {/* Recent Achievements */}
                 <AchievementDisplay 
                   showRecent={true}
-                  maxItems={5}
+                  maxItems={3}
                 />
               </div>
-            </div>
+            </>
           )}
         </div>
       </div>

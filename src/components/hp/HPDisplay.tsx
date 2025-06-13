@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Heart, Zap } from 'lucide-react';
 import { Progress } from '@/components/ui/progress';
@@ -30,15 +31,15 @@ export function HPDisplay({
   };
 
   const iconSizes = {
-    small: 'h-4 w-4',
-    medium: 'h-5 w-5',
-    large: 'h-6 w-6'
+    small: 'h-3 w-3 sm:h-4 sm:w-4',
+    medium: 'h-4 w-4 sm:h-5 sm:w-5',
+    large: 'h-5 w-5 sm:h-6 sm:w-6'
   };
 
   const textSizes = {
-    small: 'text-sm',
-    medium: 'text-base',
-    large: 'text-lg'
+    small: 'text-xs sm:text-sm',
+    medium: 'text-sm sm:text-base',
+    large: 'text-base sm:text-lg'
   };
 
   return (
@@ -63,7 +64,7 @@ export function HPDisplay({
 
       {showText && (
         <span className={cn(
-          'font-semibold tabular-nums',
+          'font-semibold tabular-nums whitespace-nowrap',
           textSizes[size],
           isCritical ? 'text-red-500' : isLow ? 'text-orange-500' : 'text-foreground'
         )}>
@@ -94,19 +95,20 @@ export function HPCard({
 
   return (
     <Card className={cn('border-red-200', className)}>
-      <CardContent className="p-4">
+      <CardContent className="p-3 sm:p-4">
         <div className="flex items-center justify-between mb-3">
           <div className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-red-500" />
-            <span className="font-semibold text-foreground">Health Points</span>
+            <Heart className="h-4 w-4 sm:h-5 sm:w-5 text-red-500" />
+            <span className="font-semibold text-foreground text-sm sm:text-base">Health Points</span>
           </div>
           {isLow && onRestoreHP && (
             <button
               onClick={onRestoreHP}
-              className="flex items-center gap-1 px-2 py-1 bg-red-500 text-white rounded text-sm hover:bg-red-600 transition-colors"
+              className="flex items-center gap-1 px-2 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 transition-colors whitespace-nowrap"
             >
               <Zap className="h-3 w-3" />
-              Use Health Pack
+              <span className="hidden sm:inline">Use Health Pack</span>
+              <span className="sm:hidden">Heal</span>
             </button>
           )}
         </div>
