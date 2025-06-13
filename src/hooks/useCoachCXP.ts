@@ -51,17 +51,26 @@ export function useCoachCXP() {
   const { data: cxpData, isLoading: cxpLoading, error: cxpError } = useQuery({
     queryKey: ['coach-cxp'],
     queryFn: async () => {
+      console.log('Fetching coach CXP data...');
       const { data, error } = await supabase
         .from('coach_cxp')
         .select('*')
         .single();
 
-      if (error && error.code !== 'PGRST116') {
+      if (error) {
         console.error('Error fetching coach CXP:', error);
+        
+        // If no record found (PGRST116), that's expected for new coaches
+        if (error.code === 'PGRST116') {
+          console.log('No CXP record found, will need to initialize');
+          return null;
+        }
+        
         throw error;
       }
 
-      return data as CoachCXP | null;
+      console.log('Coach CXP data loaded:', data);
+      return data as CoachCXP;
     },
   });
 
@@ -147,8 +156,9 @@ export function useCoachCXP() {
     },
   });
 
-  const initializeCXP = async () => {
-    try {
+  const initializeCXPMutation = useMutation({
+    mutationFn: async () => {
+      console.log('Initializing coach CXP...');
       const { data, error } = await supabase.rpc('initialize_coach_cxp', {
         user_id: (await supabase.auth.getUser()).data.user?.id
       });
@@ -158,13 +168,37 @@ export function useCoachCXP() {
         throw error;
       }
 
-      queryClient.invalidateQueries({ queryKey: ['coach-cxp'] });
       return data;
-    } catch (error) {
+    },
+    onSuccess: () => {
+      console.log('Coach CXP initialized successfully');
+      queryClient.invalidateQueries({ queryKey: ['coach-cxp'] });
+      toast({
+        title: "CXP Initialized",
+        description: "Your coaching experience system is now active!",
+      });
+    },
+    onError: (error) => {
       console.error('Failed to initialize CXP:', error);
-      throw error;
-    }
+      toast({
+        title: "Initialization Error",
+        description: "Failed to initialize CXP system. Please try again.",
+        variant: "destructive",
+      });
+    },
+  });
+
+  const initializeCXP = () => {
+    initializeCXPMutation.mutate();
   };
+
+  // Auto-initialize CXP if no data exists and not currently loading
+  useEffect(() => {
+    if (!cxpLoading && !cxpData && !cxpError && !initializeCXPMutation.isPending) {
+      console.log('Auto-initializing CXP for coach...');
+      initializeCXP();
+    }
+  }, [cxpLoading, cxpData, cxpError, initializeCXPMutation.isPending]);
 
   return {
     cxpData,
@@ -173,6 +207,7 @@ export function useCoachCXP() {
     addCXP: addCXPMutation.mutate,
     addCXPLoading: addCXPMutation.isPending,
     initializeCXP,
+    initializingCXP: initializeCXPMutation.isPending,
     error: cxpError
   };
 }
