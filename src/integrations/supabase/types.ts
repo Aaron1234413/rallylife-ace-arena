@@ -144,6 +144,39 @@ export type Database = {
         }
         Relationships: []
       }
+      player_xp: {
+        Row: {
+          created_at: string
+          current_level: number
+          current_xp: number
+          id: string
+          player_id: string
+          total_xp_earned: number
+          updated_at: string
+          xp_to_next_level: number
+        }
+        Insert: {
+          created_at?: string
+          current_level?: number
+          current_xp?: number
+          id?: string
+          player_id: string
+          total_xp_earned?: number
+          updated_at?: string
+          xp_to_next_level?: number
+        }
+        Update: {
+          created_at?: string
+          current_level?: number
+          current_xp?: number
+          id?: string
+          player_id?: string
+          total_xp_earned?: number
+          updated_at?: string
+          xp_to_next_level?: number
+        }
+        Relationships: []
+      }
       profiles: {
         Row: {
           avatar_url: string | null
@@ -177,16 +210,70 @@ export type Database = {
         }
         Relationships: []
       }
+      xp_activities: {
+        Row: {
+          activity_type: string
+          created_at: string
+          description: string | null
+          id: string
+          level_after: number
+          level_before: number
+          player_id: string
+          xp_earned: number
+        }
+        Insert: {
+          activity_type: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          level_after: number
+          level_before: number
+          player_id: string
+          xp_earned: number
+        }
+        Update: {
+          activity_type?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          level_after?: number
+          level_before?: number
+          player_id?: string
+          xp_earned?: number
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
+      add_xp: {
+        Args: {
+          user_id: string
+          xp_amount: number
+          activity_type: string
+          description?: string
+        }
+        Returns: Json
+      }
       calculate_hp_decay: {
         Args: { user_id: string }
         Returns: number
       }
+      calculate_level_from_xp: {
+        Args: { total_xp: number }
+        Returns: number
+      }
+      calculate_xp_for_level: {
+        Args: { level: number }
+        Returns: number
+      }
       initialize_player_hp: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
+      initialize_player_xp: {
         Args: { user_id: string }
         Returns: undefined
       }

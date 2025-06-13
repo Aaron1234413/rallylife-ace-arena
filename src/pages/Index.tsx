@@ -4,16 +4,22 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
+import { usePlayerXP } from "@/hooks/usePlayerXP";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, User } from "lucide-react";
 import { HPDisplay } from "@/components/hp/HPDisplay";
 import { HPCard } from "@/components/hp/HPDisplay";
 import { HPActivityLog } from "@/components/hp/HPActivityLog";
 import { HPRestoreActions } from "@/components/hp/HPRestoreActions";
+import { XPDisplay, LevelBadge } from "@/components/xp/XPDisplay";
+import { XPCard } from "@/components/xp/XPCard";
+import { XPActivityLog } from "@/components/xp/XPActivityLog";
+import { XPEarnActions } from "@/components/xp/XPEarnActions";
 
 const Index = () => {
   const { user, signOut } = useAuth();
-  const { hpData, activities, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
+  const { hpData, activities: hpActivities, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
+  const { xpData, activities: xpActivities, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -24,11 +30,14 @@ const Index = () => {
   }, [user]);
 
   useEffect(() => {
-    // Initialize HP for existing users who don't have HP data yet
+    // Initialize HP and XP for existing users who don't have data yet
     if (user && !hpLoading && !hpData && profile?.role === 'player') {
       initializeHP();
     }
-  }, [user, hpLoading, hpData, profile, initializeHP]);
+    if (user && !xpLoading && !xpData && profile?.role === 'player') {
+      initializeXP();
+    }
+  }, [user, hpLoading, hpData, xpLoading, xpData, profile, initializeHP, initializeXP]);
 
   const fetchProfile = async () => {
     try {
@@ -60,7 +69,7 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-tennis-green-bg p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header with HP Display */}
+        {/* Header with HP and XP Display */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
             {profile?.avatar_url && (
@@ -71,9 +80,14 @@ const Index = () => {
               />
             )}
             <div>
-              <h1 className="text-3xl font-bold text-tennis-green-dark">
-                Welcome back, {profile?.full_name || 'User'}!
-              </h1>
+              <div className="flex items-center gap-3">
+                <h1 className="text-3xl font-bold text-tennis-green-dark">
+                  Welcome back, {profile?.full_name || 'User'}!
+                </h1>
+                {isPlayer && xpData && (
+                  <LevelBadge level={xpData.current_level} size="medium" />
+                )}
+              </div>
               <p className="text-tennis-green-medium mt-1">
                 Ready to continue your tennis journey?
               </p>
@@ -81,14 +95,25 @@ const Index = () => {
           </div>
 
           <div className="flex items-center gap-4">
-            {/* HP Display in Header for Players */}
-            {isPlayer && hpData && (
-              <div className="bg-white rounded-lg px-4 py-2 shadow-sm">
-                <HPDisplay 
-                  currentHP={hpData.current_hp} 
-                  maxHP={hpData.max_hp} 
-                  size="medium"
-                />
+            {/* HP and XP Display in Header for Players */}
+            {isPlayer && (hpData || xpData) && (
+              <div className="bg-white rounded-lg px-4 py-3 shadow-sm space-y-2">
+                {hpData && (
+                  <HPDisplay 
+                    currentHP={hpData.current_hp} 
+                    maxHP={hpData.max_hp} 
+                    size="small"
+                  />
+                )}
+                {xpData && (
+                  <XPDisplay
+                    currentLevel={xpData.current_level}
+                    currentXP={xpData.current_xp}
+                    xpToNextLevel={xpData.xp_to_next_level}
+                    size="small"
+                    showLevel={false}
+                  />
+                )}
               </div>
             )}
             
@@ -125,19 +150,20 @@ const Index = () => {
                   <p><strong className="text-tennis-green-dark">Role:</strong> {profile?.role}</p>
                   <p><strong className="text-tennis-green-dark">User ID:</strong> {user?.id}</p>
                   <p className="text-tennis-green-medium text-sm mt-4">
-                    🎾 Phase 2.1 (HP System) is now live! 
-                    {isPlayer ? ' Track your health points and stay active to maintain them.' : ' Monitor your players\' engagement through the HP system.'}
+                    🎾 Phase 2.1 (HP & XP Systems) is now live! 
+                    {isPlayer ? ' Track your health points, earn experience, and level up as you play!' : ' Monitor your players\' engagement through the HP and XP systems.'}
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* HP System UI - Only for Players */}
+          {/* HP & XP System UI - Only for Players */}
           {isPlayer && (
-            <div className="grid gap-6 lg:grid-cols-2">
-              {/* HP Status Card */}
-              <div className="space-y-6">
+            <div className="grid gap-6">
+              {/* Status Cards Row */}
+              <div className="grid gap-6 lg:grid-cols-2">
+                {/* HP Status Card */}
                 {hpData ? (
                   <HPCard
                     currentHP={hpData.current_hp}
@@ -160,6 +186,33 @@ const Index = () => {
                   </Card>
                 )}
 
+                {/* XP Status Card */}
+                {xpData ? (
+                  <XPCard
+                    currentLevel={xpData.current_level}
+                    currentXP={xpData.current_xp}
+                    totalXPEarned={xpData.total_xp_earned}
+                    xpToNextLevel={xpData.xp_to_next_level}
+                  />
+                ) : xpLoading ? (
+                  <Card>
+                    <CardContent className="p-4">
+                      <p className="text-center">Loading XP data...</p>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <Card>
+                    <CardContent className="p-4">
+                      <p className="text-center text-muted-foreground">
+                        XP system initializing...
+                      </p>
+                    </CardContent>
+                  </Card>
+                )}
+              </div>
+
+              {/* Action Cards Row */}
+              <div className="grid gap-6 lg:grid-cols-2">
                 {/* HP Restore Actions */}
                 {hpData && (
                   <HPRestoreActions
@@ -168,13 +221,29 @@ const Index = () => {
                     maxHP={hpData.max_hp}
                   />
                 )}
+
+                {/* XP Earn Actions */}
+                {xpData && (
+                  <XPEarnActions
+                    onEarnXP={addXP}
+                  />
+                )}
               </div>
 
-              {/* HP Activity Log */}
-              <HPActivityLog
-                activities={activities}
-                loading={hpLoading}
-              />
+              {/* Activity Logs Row */}
+              <div className="grid gap-6 lg:grid-cols-2">
+                {/* HP Activity Log */}
+                <HPActivityLog
+                  activities={hpActivities}
+                  loading={hpLoading}
+                />
+
+                {/* XP Activity Log */}
+                <XPActivityLog
+                  activities={xpActivities}
+                  loading={xpLoading}
+                />
+              </div>
             </div>
           )}
         </div>
