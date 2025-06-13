@@ -1,137 +1,72 @@
 
-# 🧠 RallyLife Gamified Tennis Platform – Full PRD
+# RallyLife Summarized Product Requirements Document (PRD)
 
-## 🎯 Executive Summary
+## 1. Introduction
 
-RallyLife is a standalone, gamified tennis app that blends real-world match and training data with RPG-inspired progression mechanics. It motivates players to train, compete, and re-engage through visual rewards (HP, XP, tokens), stylized avatars, and interactive dashboards — all powered by a clean, scalable backend and built for community.
+This document provides a high-level overview of the RallyLife gamified tennis system, encompassing both player and coach experiences. It outlines the core functionalities, gamification mechanics, and the integrated ecosystem designed to enhance engagement and skill development.
 
-## 🖥️ UI Flow Reference (Based on Uploaded Mockups)
+## 2. Player Gamification System
 
-| Screen | Desktop View | Tablet View | Mobile View |
-|--------|-------------|-------------|-------------|
-| Onboarding | 01_Onboarding_Desktop.png | 02_Onboarding_Tablet.png | 03_Onboarding_Phone.png |
-| Dashboard | 04_Dashboard_Desktop.png | 05_Dashboard_Tablet.png | 06_Dashboard_Phone.png |
-| Dashboard (Annotated) | 07_Dashboard_Annotated.png | | |
-| Feed | 08_Feed_Desktop.png | 09_Feed_Tablet.png | 10_Feed_Phone.png |
-| Feed (Annotated) | 11_Feed_Annotated.png | | |
-| Profile | 12_Profile_Desktop.png | 13_Profile_Tablet.png | 14_Profile_Phone.png |
-| Search | 15_Search_Desktop.png | 16_Search_Tablet.png | 17_Search_Phone.png |
-| Maps | 18_Maps_Desktop.png | 19_Maps_Tablet.png | 20_Maps_Phone.png |
-| Messages | 21_Messages_Desktop.png | 22_Messages_Tablet.png | 23_Messages_Phone.png |
+• **Health Points (HP)**: Tracks player vitality, decays with inactivity, restored by logging activities (matches, training, lessons) or using health packs. Displayed prominently.
 
-## 🧩 Component Inventory
+• **Experience Points (XP) & Leveling**: Earned through various activities (matches, training, lessons, social engagement, achievements). Progressively more XP needed for higher levels. Levels unlock rewards (avatar customization, badges, features).
 
-### Global Components
-- **Top Nav Bar**: Displays player name, HP/XP/token stats, and avatar icon
-- **Bottom Tab Menu (Mobile)**: Navigation between Dashboard, Feed, Search, Messages, Profile
-- **Page Containers**: Responsive layout blocks with left-sidebar logic for tablets/desktops
+• **Token Economy**: In-game currency earned via daily logins, achievements, tournaments, and special events. Spent on health packs, avatar items, premium court bookings, and challenge entries. Premium currency (Rally Points) can be purchased with real money.
 
-### Dashboard Components
-- **HP Heart Meter**: Depletes on loss/inactivity, fills via session logs, animated on change
-- **XP Progress Bar**: Horizontal bar that fills per XP gain; triggers level-up animation
-- **Token Counter**: Top-right balance display with hover/click to go to token store
-- **Quick Action Cards**: "Log Match", "Log Session", "Get HP" with icon/tooltip
-- **Match Activity Tiles**: Log of recent matches with outcome, XP/HP effects, time
-- **Session Tile**: Drill name + time + player comment + recovery stat effect
+• **Avatar & Customization**: Personalized avatars with customizable features (appearance, tennis style, equipment, signature shot animation). Unlocked through level progression, achievements, token purchases, and tournament victories.
 
-### Feed Components
-- **Player Feed Card**: Avatar, rank, XP, post (text/image/video), token or stat icon
-- **Outcome Flags**: Match win/loss badge that shows stat result (e.g., +20 XP, -10 HP)
-- **Comments/Actions**: Comment bar, like/favorite, emoji react, challenge CTA
+• **Achievement System**: Structured goals across performance, activity, and social categories. Multi-tiered achievements with rewards (XP, tokens, exclusive items). Shared with community.
 
-### Profile Components
-- **Player Bio Card**: Rank title, avatar style, play style, weapon tag, motto
-- **Performance Rings**: Circular stat blocks for XP, win %, matches played
-- **Badges Grid**: Visual trophy wall of achievements (unlocked + locked badges)
-- **Stat Chart**: Weekly stat graph (HP, XP, wins)
+• **Activity Logging**: Comprehensive tracking of on-court and off-court activities (matches, training, lessons, social interactions). Powers HP/XP systems and provides data for insights.
 
-### Search Components
-- **Search Results Card**: Avatar + XP/HP bar + play style + match/challenge button
-- **Sort/Filter Panel**: Dropdown + toggle group for filtering by rank, style, region
+## 3. Coach Gamification System
 
-### Maps Components
-- **Court Pin Map**: Court name + match history + check-in bonus + nearby users
-- **Check-in Button**: Earn XP or token, flag as visited, log match here
-- **Leaderboard Ribbon**: Top 3 users who've played there with XP overlay
+• **Coach Reputation Points (CRP)**: Earned through positive player feedback, successful player progression, and community contributions. Influences coach visibility and booking rates.
 
-### Messages Components
-- **Chat Thread**: User list sidebar + conversation window + typing bubble + status dot
-- **Coach Tip Message**: Marked tag with special icon, expandable to view tip details
+• **Coach Experience Points (CXP) & Leveling**: Earned by coaching sessions, player achievements, and content creation. Unlocks advanced coaching tools, higher commission rates, and exclusive certifications.
 
-## ⚙️ Gamification System (HP / XP / Tokens)
+• **Coach Tokens (CTK)**: Earned through successful coaching, premium content sales, and platform engagement. Spent on marketing tools, professional development resources, and premium analytics.
 
-### HP (Health Points)
-- **Max HP**: 100
-- **Loss** = -10 HP
-- **No match for 7 days** = -5 HP (passive decay)
-- **Session Log** = +10 HP
-- **Max weekly restore** = 20 HP unless override by token
+• **Coach Avatar & Customization**: Professional avatars with customizable branding elements, virtual coaching gear, and badges reflecting expertise and achievements.
 
-### XP (Experience Points)
-- **Win** = +20 XP
-- **Loss** = +5 XP
-- **Coaching Session** = +15 XP
-- **Level up** = +100 XP milestone
-- **Rank Badge** auto-updates by XP tier
+• **Coach Achievements**: Recognition for coaching milestones (e.g., number of players coached, total player XP gained, successful challenge completions).
 
-### Tokens
-- **Earned** by winning matches, coaching others, completing streaks
-- **Spent** on HP refill, avatar upgrades, challenge entries
-- **Purchasable** via store (freemium economy model)
+• **Coach Leaderboards**: Ranks coaches based on CRP, CXP, and player success metrics, promoting healthy competition and visibility.
 
-## 👥 Onboarding Flow
+## 4. Coach-Player Ecosystem & Integration
 
-1. Sign up/login
-2. Answer 3-player style questions
-3. Pick your favorite pro (inspires avatar traits)
-4. Avatar stylized bio card created
-5. Directed to Dashboard with default stats
+• **Seamless Interaction**: Coaches can assign training plans, challenges, and lessons to players. Players can request coaching, report progress, and provide feedback.
 
-## 🧱 Feature Build Plan
+• **Shared Progress**: Player achievements and progress contribute to coach CXP and CRP. Coach guidance directly impacts player HP/XP.
 
-### Phase 1: MVP
-- Auth (email/password, username)
-- Avatar Creation Flow
-- HP/XP System Logic
-- Match Logging (Manual: Win/Loss)
-- Session Logging (Time + Notes)
-- Dashboard Stats + Quick Action Tiles
-- Profile Page with Bio + Stats
+• **Communication Hub**: Integrated messaging and scheduling tools facilitate direct communication and lesson booking.
 
-### Phase 2: Enhanced
-- Messages (Coach → Player)
-- Token Store + Economy
-- Badges/Achievements
-- Leaderboard & XP Rank System
-- Feed (Basic + Stat Posts)
-- Avatar Customization Options
+• **Mutual Benefits**: Players gain structured guidance and motivation; coaches gain reputation, income, and tools to manage their clientele.
 
-### Phase 3: Full Expansion
-- Court Map Integration
-- Location-Based XP Drops
-- Check-in Leaderboards
-- Video Upload for AI Feedback (partner w/ SwingVision)
-- Coach Verification of Sessions
-- Animated Avatars (optional)
+## 5. Backend Architecture
 
-## 🗃️ Database (Supabase)
+• **Modular Design**: Microservices-based architecture for scalability and maintainability.
 
-### Tables
-- **users** (id, username, email, password, role)
-- **players** (user_id, avatar_style, xp, hp, tokens, play_style, weapon, special_move)
-- **matches** (id, player_1, player_2, result, hp_delta, xp_delta, timestamp)
-- **sessions** (id, player_id, type, time_logged, notes, hp_restored, xp_earned)
-- **messages** (id, from_user, to_user, content, timestamp, seen)
-- **courts** (id, name, lat, lng, type)
-- **check_ins** (id, court_id, player_id, xp_bonus, timestamp)
-- **badges** (id, player_id, name, condition_met, awarded_at)
-- **logs** (event, metadata, created_at)
+• **Data Models**: Dedicated data models for players, coaches, gamification elements (HP, XP, Tokens, CRP, CXP), activities, and interactions.
 
-## 🧠 Final Notes
+• **API Endpoints**: RESTful APIs for all frontend-backend communication, ensuring secure and efficient data exchange.
 
-- **MVP** should emphasize quick gratification and easy engagement: XP popups, token glow, level-up flashes
-- Keep UI **playful but clean** — closer to Duolingo than Fortnite
-- Store early progress in **local storage/cache** to reduce friction
-- **Modular component system** for ease of scaling into Phase 3
+• **Real-time Updates**: WebSockets for real-time updates on HP, XP, messages, and activity feeds.
 
-Built for RallyLife — a fresh gamified journey into real-world tennis. 🎾
+## 6. Responsive Design & UI/UX
+
+• **Adaptive Interfaces**: All pages (Dashboard, Messages, Feed, Maps, Search, Profile) are designed to be fully responsive across desktop, tablet, and mobile devices.
+
+• **Intuitive Navigation**: Clear and consistent navigation for both player and coach roles.
+
+• **Visual Feedback**: Gamified elements (HP bars, XP progress, token counts) are visually prominent and provide immediate feedback.
+
+• **Personalized Dashboards**: Tailored dashboards for players (progress, challenges) and coaches (client management, analytics).
+
+## 7. Implementation Roadmap & Conclusion
+
+• **Phased Approach**: Development will follow a phased roadmap, prioritizing core gamification features and essential coach-player interactions.
+
+• **Continuous Iteration**: Agile development methodology with regular releases and feedback integration.
+
+• **Scalability**: Architecture designed to support future growth and feature expansion.
