@@ -126,7 +126,7 @@ export function useActivityLogs() {
       }
 
       // Type assertion since we know the structure from our SQL function
-      setStats(data as ActivityStats);
+      setStats(data as unknown as ActivityStats);
     } catch (error) {
       console.error('Error in fetchStats:', error);
     }
@@ -148,7 +148,7 @@ export function useActivityLogs() {
       }
 
       // Type assertion since we know the structure from our SQL function
-      const result = data as LogActivityResult;
+      const result = data as unknown as LogActivityResult;
       
       if (result.success) {
         toast.success(`Activity logged! ${result.hp_change > 0 ? '+' : ''}${result.hp_change} HP, +${result.xp_earned} XP`);
@@ -197,9 +197,10 @@ export function useActivityLogs() {
 
       loadData();
 
-      // Set up real-time subscription for activity changes
+      // Set up real-time subscription for activity changes with unique channel name
+      const channelName = `activity-changes-${user.id}-${Date.now()}`;
       const channel = supabase
-        .channel(`activity-changes-${user.id}`)
+        .channel(channelName)
         .on(
           'postgres_changes',
           {
@@ -216,7 +217,7 @@ export function useActivityLogs() {
         .subscribe();
 
       return () => {
-        supabase.removeChannel(channel);
+        channel.unsubscribe();
       };
     } else {
       setActivities([]);

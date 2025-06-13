@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -241,9 +242,10 @@ export function usePlayerTokens() {
 
       loadData();
 
-      // Set up real-time subscription for token changes
+      // Set up real-time subscription for token changes with unique channel name
+      const channelName = `token-changes-${user.id}-${Math.random().toString(36).substr(2, 9)}`;
       const channel = supabase
-        .channel(`token-changes-${user.id}`)
+        .channel(channelName)
         .on(
           'postgres_changes',
           {
@@ -271,7 +273,7 @@ export function usePlayerTokens() {
         .subscribe();
 
       return () => {
-        supabase.removeChannel(channel);
+        channel.unsubscribe();
       };
     } else {
       setTokenData(null);
