@@ -87,8 +87,8 @@ export function usePlayerXP() {
     amount: number,
     activityType: string,
     description?: string
-  ): Promise<XPGainResult | null> => {
-    if (!user) return null;
+  ): Promise<void> => {
+    if (!user) return;
 
     try {
       const { data, error } = await supabase
@@ -102,9 +102,10 @@ export function usePlayerXP() {
       if (error) {
         console.error('Error adding XP:', error);
         toast.error('Failed to add XP');
-        return null;
+        return;
       }
 
+      // Type assertion for the RPC result
       const result = data as XPGainResult;
       
       // Show appropriate toast message
@@ -116,12 +117,9 @@ export function usePlayerXP() {
 
       await fetchXP();
       await fetchActivities();
-      
-      return result;
     } catch (error) {
       console.error('Error in addXP:', error);
       toast.error('An error occurred while adding XP');
-      return null;
     }
   };
 
