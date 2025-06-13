@@ -19,7 +19,7 @@ import { ActivityStats } from "@/components/activities/ActivityStats";
 import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
 
 const Index = () => {
-  const { user, signOut } = useAuth();
+  const { user } = useAuth();
   const { hpData, activities: hpActivities, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
   const { xpData, activities: xpActivities, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
   const { tokenData, transactions, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
@@ -71,10 +71,6 @@ const Index = () => {
     }
   };
 
-  const handleSignOut = async () => {
-    await signOut();
-  };
-
   // Enhanced XP earning function that checks for avatar unlocks and achievements
   const handleAddXP = async (amount: number, activityType: string, description?: string) => {
     const oldLevel = xpData?.current_level || 1;
@@ -108,83 +104,68 @@ const Index = () => {
   const isPlayer = profile?.role === 'player';
 
   return (
-    <div className="min-h-screen bg-tennis-green-bg">
-      <div className="w-full">
-        {/* Dashboard Header */}
-        <DashboardHeader
-          profile={profile}
-          hpData={hpData}
-          xpData={xpData}
-          tokenData={tokenData}
-          equippedItems={equippedItems}
-          onSignOut={handleSignOut}
-        />
+    <div className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4 sm:space-y-6">
+      {/* Profile Card */}
+      <ProfileCard
+        profile={profile}
+        user={user}
+        profileLoading={profileLoading}
+        isPlayer={isPlayer}
+      />
 
-        {/* Main Content */}
-        <div className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4 sm:space-y-6">
-          {/* Profile Card */}
-          <ProfileCard
-            profile={profile}
-            user={user}
-            profileLoading={profileLoading}
-            isPlayer={isPlayer}
+      {/* Player-specific content */}
+      {isPlayer && (
+        <>
+          {/* Quick Actions */}
+          <QuickActionButtons />
+
+          {/* Status Cards */}
+          <PlayerStatsCards
+            hpData={hpData}
+            xpData={xpData}
+            tokenData={tokenData}
+            hpLoading={hpLoading}
+            xpLoading={xpLoading}
+            tokensLoading={tokensLoading}
           />
 
-          {/* Player-specific content */}
-          {isPlayer && (
-            <>
-              {/* Quick Actions */}
-              <QuickActionButtons />
+          {/* Activity Overview */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <ActivityFeed limit={5} showFilters={false} />
+            <ActivityStats />
+          </div>
 
-              {/* Status Cards */}
-              <PlayerStatsCards
-                hpData={hpData}
-                xpData={xpData}
-                tokenData={tokenData}
-                hpLoading={hpLoading}
-                xpLoading={xpLoading}
-                tokensLoading={tokensLoading}
-              />
+          {/* Avatar Customization */}
+          <AvatarCustomization />
 
-              {/* Activity Overview */}
-              <div className="grid gap-4 lg:grid-cols-2">
-                <ActivityFeed limit={5} showFilters={false} />
-                <ActivityStats />
-              </div>
+          {/* Action Cards */}
+          <PlayerActionCards
+            hpData={hpData}
+            xpData={xpData}
+            tokenData={tokenData}
+            onRestoreHP={handleRestoreHP}
+            onAddXP={handleAddXP}
+            onAddTokens={handleAddTokens}
+          />
 
-              {/* Avatar Customization */}
-              <AvatarCustomization />
+          {/* Token Economy */}
+          <TokenEconomy
+            tokenData={tokenData}
+            onSpendTokens={spendTokens}
+            onConvertTokens={convertPremiumTokens}
+          />
 
-              {/* Action Cards */}
-              <PlayerActionCards
-                hpData={hpData}
-                xpData={xpData}
-                tokenData={tokenData}
-                onRestoreHP={handleRestoreHP}
-                onAddXP={handleAddXP}
-                onAddTokens={handleAddTokens}
-              />
-
-              {/* Token Economy */}
-              <TokenEconomy
-                tokenData={tokenData}
-                onSpendTokens={spendTokens}
-                onConvertTokens={convertPremiumTokens}
-              />
-
-              {/* Activity Logs */}
-              <PlayerActivityLogs
-                hpActivities={hpActivities}
-                xpActivities={xpActivities}
-                transactions={transactions}
-                hpLoading={hpLoading}
-                xpLoading={xpLoading}
-                tokensLoading={tokensLoading}
-              />
-            </>
-          )}
-        </div>
-      </div>
+          {/* Activity Logs */}
+          <PlayerActivityLogs
+            hpActivities={hpActivities}
+            xpActivities={xpActivities}
+            transactions={transactions}
+            hpLoading={hpLoading}
+            xpLoading={xpLoading}
+            tokensLoading={tokensLoading}
+          />
+        </>
+      )}
     </div>
   );
 };
