@@ -30,6 +30,20 @@ export interface CXPActivity {
   created_at: string;
 }
 
+interface CXPResult {
+  cxp_earned: number;
+  total_cxp: number;
+  current_level: number;
+  level_up: boolean;
+  levels_gained: number;
+  current_cxp_in_level: number;
+  cxp_to_next_level: number;
+  coaching_tier: string;
+  commission_rate: number;
+  tools_unlocked: string[];
+  certifications_unlocked: string[];
+}
+
 export function useCoachCXP() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
@@ -97,7 +111,7 @@ export function useCoachCXP() {
         throw error;
       }
 
-      return data;
+      return data as CXPResult;
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['coach-cxp'] });
