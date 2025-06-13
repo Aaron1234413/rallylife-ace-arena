@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { User } from 'lucide-react';
 import { CRPDisplay } from '@/components/crp/CRPDisplay';
+import { CXPDisplay } from '@/components/cxp/CXPDisplay';
 
 interface ProfileCardProps {
   profile: any;
@@ -42,7 +43,10 @@ export function ProfileCard({ profile, user, profileLoading, isPlayer }: Profile
       </Card>
 
       {!isPlayer && !profileLoading && (
-        <CRPDisplay />
+        <div className="space-y-4">
+          <CRPDisplay />
+          <CXPDisplay />
+        </div>
       )}
     </div>
   );

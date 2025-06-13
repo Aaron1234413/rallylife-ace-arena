@@ -17,6 +17,8 @@ import { QuickActionButtons } from "@/components/activities/QuickActionButtons";
 import { ActivityFeed } from "@/components/activities/ActivityFeed";
 import { ActivityStats } from "@/components/activities/ActivityStats";
 import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
+import { CXPActivityLog } from "@/components/cxp/CXPActivityLog";
+import { CXPEarnActions } from "@/components/cxp/CXPEarnActions";
 
 const Index = () => {
   const { user } = useAuth();
@@ -105,6 +107,8 @@ const Index = () => {
 
   return (
     <div className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4 sm:space-y-6">
+      <DashboardHeader />
+
       {/* Profile Card */}
       <ProfileCard
         profile={profile}
@@ -164,6 +168,17 @@ const Index = () => {
             xpLoading={xpLoading}
             tokensLoading={tokensLoading}
           />
+        </>
+      )}
+
+      {/* Coach-specific content */}
+      {!isPlayer && !profileLoading && (
+        <>
+          {/* CXP Earning Actions */}
+          <CXPEarnActions />
+
+          {/* CXP Activity Log */}
+          <CXPActivityLog />
         </>
       )}
     </div>

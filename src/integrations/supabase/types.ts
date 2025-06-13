@@ -365,6 +365,59 @@ export type Database = {
           },
         ]
       }
+      coach_cxp: {
+        Row: {
+          certifications_unlocked: string[] | null
+          coach_id: string
+          coaching_tier: string
+          commission_rate: number
+          created_at: string
+          current_cxp: number
+          current_level: number
+          cxp_to_next_level: number
+          id: string
+          tools_unlocked: string[] | null
+          total_cxp_earned: number
+          updated_at: string
+        }
+        Insert: {
+          certifications_unlocked?: string[] | null
+          coach_id: string
+          coaching_tier?: string
+          commission_rate?: number
+          created_at?: string
+          current_cxp?: number
+          current_level?: number
+          cxp_to_next_level?: number
+          id?: string
+          tools_unlocked?: string[] | null
+          total_cxp_earned?: number
+          updated_at?: string
+        }
+        Update: {
+          certifications_unlocked?: string[] | null
+          coach_id?: string
+          coaching_tier?: string
+          commission_rate?: number
+          created_at?: string
+          current_cxp?: number
+          current_level?: number
+          cxp_to_next_level?: number
+          id?: string
+          tools_unlocked?: string[] | null
+          total_cxp_earned?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_cxp_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_profiles: {
         Row: {
           bio: string | null
@@ -514,6 +567,54 @@ export type Database = {
           },
           {
             foreignKeyName: "crp_activities_source_player_id_fkey"
+            columns: ["source_player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      cxp_activities: {
+        Row: {
+          activity_type: string
+          coach_id: string
+          created_at: string
+          cxp_earned: number
+          description: string | null
+          id: string
+          metadata: Json | null
+          source_player_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          coach_id: string
+          created_at?: string
+          cxp_earned: number
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          source_player_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          coach_id?: string
+          created_at?: string
+          cxp_earned?: number
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          source_player_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "cxp_activities_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "cxp_activities_source_player_id_fkey"
             columns: ["source_player_id"]
             isOneToOne: false
             referencedRelation: "profiles"
@@ -1001,6 +1102,17 @@ export type Database = {
         }
         Returns: Json
       }
+      add_cxp: {
+        Args: {
+          user_id: string
+          cxp_amount: number
+          activity_type: string
+          description?: string
+          source_player_id?: string
+          metadata?: Json
+        }
+        Returns: Json
+      }
       add_tokens: {
         Args: {
           user_id: string
@@ -1020,8 +1132,16 @@ export type Database = {
         }
         Returns: Json
       }
+      calculate_cxp_for_level: {
+        Args: { level: number }
+        Returns: number
+      }
       calculate_hp_decay: {
         Args: { user_id: string }
+        Returns: number
+      }
+      calculate_level_from_cxp: {
+        Args: { total_cxp: number }
         Returns: number
       }
       calculate_level_from_xp: {
@@ -1091,6 +1211,10 @@ export type Database = {
         Returns: Json
       }
       initialize_coach_crp: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
+      initialize_coach_cxp: {
         Args: { user_id: string }
         Returns: undefined
       }
