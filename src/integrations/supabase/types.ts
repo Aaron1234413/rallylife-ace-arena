@@ -321,6 +321,50 @@ export type Database = {
           },
         ]
       }
+      coach_crp: {
+        Row: {
+          booking_rate_bonus: number
+          coach_id: string
+          created_at: string
+          current_crp: number
+          id: string
+          reputation_level: string
+          total_crp_earned: number
+          updated_at: string
+          visibility_score: number
+        }
+        Insert: {
+          booking_rate_bonus?: number
+          coach_id: string
+          created_at?: string
+          current_crp?: number
+          id?: string
+          reputation_level?: string
+          total_crp_earned?: number
+          updated_at?: string
+          visibility_score?: number
+        }
+        Update: {
+          booking_rate_bonus?: number
+          coach_id?: string
+          created_at?: string
+          current_crp?: number
+          id?: string
+          reputation_level?: string
+          total_crp_earned?: number
+          updated_at?: string
+          visibility_score?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_crp_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_profiles: {
         Row: {
           bio: string | null
@@ -422,6 +466,60 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      crp_activities: {
+        Row: {
+          activity_type: string
+          coach_id: string
+          created_at: string
+          crp_after: number
+          crp_before: number
+          crp_change: number
+          description: string | null
+          id: string
+          metadata: Json | null
+          source_player_id: string | null
+        }
+        Insert: {
+          activity_type: string
+          coach_id: string
+          created_at?: string
+          crp_after: number
+          crp_before: number
+          crp_change: number
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          source_player_id?: string | null
+        }
+        Update: {
+          activity_type?: string
+          coach_id?: string
+          created_at?: string
+          crp_after?: number
+          crp_before?: number
+          crp_change?: number
+          description?: string | null
+          id?: string
+          metadata?: Json | null
+          source_player_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "crp_activities_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "crp_activities_source_player_id_fkey"
+            columns: ["source_player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       hp_activities: {
         Row: {
@@ -595,6 +693,57 @@ export type Database = {
             columns: ["avatar_item_id"]
             isOneToOne: false
             referencedRelation: "avatar_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_feedback: {
+        Row: {
+          coach_id: string
+          created_at: string
+          crp_awarded: number
+          feedback_text: string | null
+          id: string
+          player_id: string
+          rating: number
+          session_date: string
+          session_type: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          crp_awarded?: number
+          feedback_text?: string | null
+          id?: string
+          player_id: string
+          rating: number
+          session_date: string
+          session_type: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          crp_awarded?: number
+          feedback_text?: string | null
+          id?: string
+          player_id?: string
+          rating?: number
+          session_date?: string
+          session_type?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_feedback_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_feedback_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -841,6 +990,17 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      add_crp: {
+        Args: {
+          user_id: string
+          crp_amount: number
+          activity_type: string
+          description?: string
+          source_player_id?: string
+          metadata?: Json
+        }
+        Returns: Json
+      }
       add_tokens: {
         Args: {
           user_id: string
@@ -929,6 +1089,10 @@ export type Database = {
       get_activity_stats: {
         Args: { user_id: string; days_back?: number }
         Returns: Json
+      }
+      initialize_coach_crp: {
+        Args: { user_id: string }
+        Returns: undefined
       }
       initialize_default_achievements: {
         Args: Record<PropertyKey, never>
@@ -1021,6 +1185,16 @@ export type Database = {
           token_type?: string
           source?: string
           description?: string
+        }
+        Returns: Json
+      }
+      submit_player_feedback: {
+        Args: {
+          coach_user_id: string
+          rating: number
+          feedback_text?: string
+          session_type?: string
+          session_date?: string
         }
         Returns: Json
       }
