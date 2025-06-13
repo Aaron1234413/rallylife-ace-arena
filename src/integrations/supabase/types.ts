@@ -9,6 +9,106 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      achievement_progress: {
+        Row: {
+          achievement_id: string
+          current_progress: number | null
+          id: string
+          last_updated: string
+          player_id: string
+        }
+        Insert: {
+          achievement_id: string
+          current_progress?: number | null
+          id?: string
+          last_updated?: string
+          player_id: string
+        }
+        Update: {
+          achievement_id?: string
+          current_progress?: number | null
+          id?: string
+          last_updated?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievement_progress_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      achievements: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          icon_url: string | null
+          id: string
+          is_active: boolean | null
+          is_hidden: boolean | null
+          name: string
+          requirement_data: Json | null
+          requirement_type: string
+          requirement_value: number | null
+          reward_avatar_item_id: string | null
+          reward_premium_tokens: number | null
+          reward_tokens: number | null
+          reward_xp: number | null
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_hidden?: boolean | null
+          name: string
+          requirement_data?: Json | null
+          requirement_type: string
+          requirement_value?: number | null
+          reward_avatar_item_id?: string | null
+          reward_premium_tokens?: number | null
+          reward_tokens?: number | null
+          reward_xp?: number | null
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_hidden?: boolean | null
+          name?: string
+          requirement_data?: Json | null
+          requirement_type?: string
+          requirement_value?: number | null
+          reward_avatar_item_id?: string | null
+          reward_premium_tokens?: number | null
+          reward_tokens?: number | null
+          reward_xp?: number | null
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "achievements_reward_avatar_item_id_fkey"
+            columns: ["reward_avatar_item_id"]
+            isOneToOne: false
+            referencedRelation: "avatar_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avatar_items: {
         Row: {
           category: string
@@ -125,6 +225,44 @@ export type Database = {
           player_id?: string
         }
         Relationships: []
+      }
+      player_achievements: {
+        Row: {
+          achievement_id: string
+          claimed_at: string | null
+          id: string
+          is_claimed: boolean | null
+          player_id: string
+          progress_value: number | null
+          unlocked_at: string
+        }
+        Insert: {
+          achievement_id: string
+          claimed_at?: string | null
+          id?: string
+          is_claimed?: boolean | null
+          player_id: string
+          progress_value?: number | null
+          unlocked_at?: string
+        }
+        Update: {
+          achievement_id?: string
+          claimed_at?: string | null
+          id?: string
+          is_claimed?: boolean | null
+          player_id?: string
+          progress_value?: number | null
+          unlocked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_achievements_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "achievements"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       player_avatar_equipped: {
         Row: {
@@ -463,6 +601,14 @@ export type Database = {
         Args: { level: number }
         Returns: number
       }
+      check_achievement_unlock: {
+        Args: { user_id: string; achievement_id: string }
+        Returns: Json
+      }
+      claim_achievement_reward: {
+        Args: { user_id: string; achievement_id: string }
+        Returns: Json
+      }
       convert_premium_tokens: {
         Args: {
           user_id: string
@@ -474,6 +620,10 @@ export type Database = {
       equip_avatar_item: {
         Args: { user_id: string; item_id: string }
         Returns: Json
+      }
+      initialize_default_achievements: {
+        Args: Record<PropertyKey, never>
+        Returns: undefined
       }
       initialize_player_avatar: {
         Args: { user_id: string }

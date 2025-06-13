@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -6,6 +5,7 @@ import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
 import { usePlayerXP } from "@/hooks/usePlayerXP";
 import { usePlayerAvatar } from "@/hooks/usePlayerAvatar";
+import { usePlayerAchievements } from "@/hooks/usePlayerAchievements";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, User } from "lucide-react";
 import { HPDisplay } from "@/components/hp/HPDisplay";
@@ -25,6 +25,7 @@ import { TokenTransactionHistory } from "@/components/tokens/TokenTransactionHis
 import { TokenConverter } from "@/components/tokens/TokenConverter";
 import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
 import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
+import { AchievementDisplay } from "@/components/achievements/AchievementDisplay";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -32,6 +33,7 @@ const Index = () => {
   const { xpData, activities: xpActivities, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
   const { tokenData, transactions, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
   const { equippedItems, loading: avatarLoading, initializeAvatar, checkLevelUnlocks } = usePlayerAvatar();
+  const { checkAllAchievements } = usePlayerAchievements();
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -82,7 +84,7 @@ const Index = () => {
     await signOut();
   };
 
-  // Enhanced XP earning function that checks for avatar unlocks
+  // Enhanced XP earning function that checks for avatar unlocks and achievements
   const handleAddXP = async (amount: number, activityType: string, description?: string) => {
     const oldLevel = xpData?.current_level || 1;
     const result = await addXP(amount, activityType, description);
@@ -92,7 +94,24 @@ const Index = () => {
       await checkLevelUnlocks(xpData.current_level);
     }
     
+    // Check for achievement unlocks
+    await checkAllAchievements();
+    
     return result;
+  };
+
+  // Enhanced token earning function that checks for achievements
+  const handleAddTokens = async (amount: number, tokenType: string = 'regular', source: string = 'manual', description?: string) => {
+    await addTokens(amount, tokenType, source, description);
+    // Check for achievement unlocks
+    await checkAllAchievements();
+  };
+
+  // Enhanced HP restoration function that checks for achievements
+  const handleRestoreHP = async (amount: number, activityType: string, description?: string) => {
+    await restoreHP(amount, activityType, description);
+    // Check for achievement unlocks
+    await checkAllAchievements();
   };
 
   const isPlayer = profile?.role === 'player';
@@ -188,8 +207,8 @@ const Index = () => {
                   <p><strong className="text-tennis-green-dark">Role:</strong> {profile?.role}</p>
                   <p><strong className="text-tennis-green-dark">User ID:</strong> {user?.id}</p>
                   <p className="text-tennis-green-medium text-sm mt-4">
-                    🎾 Phase 2.4 (Avatar & Customization System) is now live! 
-                    {isPlayer ? ' Customize your avatar, unlock new items by leveling up, and purchase premium gear!' : ' Monitor your players\' avatar customization and unlocks.'}
+                    🎾 Phase 2.5 (Achievement System) is now live! 
+                    {isPlayer ? ' Earn achievements by playing, training, and progressing in the game!' : ' Monitor your players\' achievement progress and unlocks.'}
                   </p>
                 </div>
               )}
@@ -280,7 +299,7 @@ const Index = () => {
                 {/* HP Restore Actions */}
                 {hpData && (
                   <HPRestoreActions
-                    onRestoreHP={restoreHP}
+                    onRestoreHP={handleRestoreHP}
                     currentHP={hpData.current_hp}
                     maxHP={hpData.max_hp}
                   />
@@ -296,7 +315,7 @@ const Index = () => {
                 {/* Token Earn Actions */}
                 {tokenData && (
                   <TokenEarnActions
-                    onEarnTokens={addTokens}
+                    onEarnTokens={handleAddTokens}
                   />
                 )}
               </div>
@@ -319,8 +338,8 @@ const Index = () => {
                 </div>
               )}
 
-              {/* Activity Logs Row */}
-              <div className="grid gap-6 lg:grid-cols-3">
+              {/* Activity Logs and Achievements Row */}
+              <div className="grid gap-6 lg:grid-cols-4">
                 {/* HP Activity Log */}
                 <HPActivityLog
                   activities={hpActivities}
@@ -337,6 +356,12 @@ const Index = () => {
                 <TokenTransactionHistory
                   transactions={transactions}
                   loading={tokensLoading}
+                />
+
+                {/* Recent Achievements */}
+                <AchievementDisplay 
+                  showRecent={true}
+                  maxItems={5}
                 />
               </div>
             </div>
