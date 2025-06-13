@@ -109,6 +109,13 @@ export function DashboardHeader({
                     >
                       📋 Activities
                     </Button>
+                    <Button
+                      variant="outline"
+                      className="w-full justify-start border-tennis-green-dark text-tennis-green-dark hover:bg-tennis-green-dark hover:text-white"
+                      onClick={() => window.location.href = '/messages'}
+                    >
+                      💬 Messages
+                    </Button>
                   </div>
                 )}
                 
