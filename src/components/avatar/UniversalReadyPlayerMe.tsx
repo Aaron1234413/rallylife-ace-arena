@@ -1,5 +1,5 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
@@ -8,6 +8,7 @@ import { ReadyPlayerMeCreator } from './ReadyPlayerMeCreator';
 import { ReadyPlayerMeAvatar } from './ReadyPlayerMeAvatar';
 import { useReadyPlayerMe } from '@/hooks/useReadyPlayerMe';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 interface UniversalReadyPlayerMeProps {
   className?: string;
@@ -20,9 +21,33 @@ export function UniversalReadyPlayerMe({
   size = 'md',
   showCreator = true 
 }: UniversalReadyPlayerMeProps) {
-  const { profile } = useAuth();
+  const { user } = useAuth();
   const { avatarUrl, loading, saveAvatarUrl } = useReadyPlayerMe();
   const [isCreating, setIsCreating] = useState(false);
+  const [profile, setProfile] = useState<any>(null);
+
+  // Fetch user profile
+  useEffect(() => {
+    const fetchProfile = async () => {
+      if (!user?.id) return;
+
+      try {
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (!error) {
+          setProfile(data);
+        }
+      } catch (error) {
+        console.error('Error fetching profile:', error);
+      }
+    };
+
+    fetchProfile();
+  }, [user?.id]);
 
   const handleAvatarSaved = async (newAvatarUrl: string) => {
     const success = await saveAvatarUrl(newAvatarUrl);

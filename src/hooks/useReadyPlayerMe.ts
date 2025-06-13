@@ -54,10 +54,10 @@ export function useReadyPlayerMe() {
 
     setSaving(true);
     try {
-      const { data, error } = await supabase.rpc('update_ready_player_me_avatar', {
-        user_id: user.id,
-        avatar_url: newAvatarUrl
-      });
+      const { data, error } = await supabase
+        .from('profiles')
+        .update({ ready_player_me_url: newAvatarUrl })
+        .eq('id', user.id);
 
       if (error) {
         console.error('Error saving Ready Player Me avatar:', error);
