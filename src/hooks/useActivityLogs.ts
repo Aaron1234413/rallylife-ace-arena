@@ -198,7 +198,7 @@ export function useActivityLogs() {
       loadData();
 
       // Set up real-time subscription for activity changes with unique channel name
-      const channelName = `activity-changes-${user.id}-${Date.now()}`;
+      const channelName = `activities-${user.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const channel = supabase
         .channel(channelName)
         .on(

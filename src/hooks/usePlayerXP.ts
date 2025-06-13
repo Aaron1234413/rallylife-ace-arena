@@ -153,7 +153,7 @@ export function usePlayerXP() {
       loadData();
 
       // Set up real-time subscription for XP changes with unique channel name
-      const channelName = `xp-changes-${user.id}-${Math.random().toString(36).substr(2, 9)}`;
+      const channelName = `xp-${user.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const channel = supabase
         .channel(channelName)
         .on(

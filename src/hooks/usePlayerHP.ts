@@ -142,7 +142,7 @@ export function usePlayerHP() {
       loadData();
 
       // Set up real-time subscription for HP changes with unique channel name
-      const channelName = `hp-changes-${user.id}-${Math.random().toString(36).substr(2, 9)}`;
+      const channelName = `hp-${user.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const channel = supabase
         .channel(channelName)
         .on(

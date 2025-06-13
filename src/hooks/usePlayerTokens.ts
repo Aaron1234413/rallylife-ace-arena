@@ -243,7 +243,7 @@ export function usePlayerTokens() {
       loadData();
 
       // Set up real-time subscription for token changes with unique channel name
-      const channelName = `token-changes-${user.id}-${Math.random().toString(36).substr(2, 9)}`;
+      const channelName = `tokens-${user.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const channel = supabase
         .channel(channelName)
         .on(
