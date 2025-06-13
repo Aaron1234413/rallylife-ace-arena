@@ -37,6 +37,16 @@ interface ActivityStats {
   losses: number;
 }
 
+interface LogActivityResult {
+  success: boolean;
+  activity_id: string;
+  activity_title: string;
+  hp_change: number;
+  xp_earned: number;
+  activity_type: string;
+  logged_at: string;
+}
+
 interface LogActivityParams {
   activity_type: string;
   activity_category: string;
@@ -115,7 +125,8 @@ export function useActivityLogs() {
         return;
       }
 
-      setStats(data);
+      // Type assertion since we know the structure from our SQL function
+      setStats(data as ActivityStats);
     } catch (error) {
       console.error('Error in fetchStats:', error);
     }
@@ -136,7 +147,8 @@ export function useActivityLogs() {
         return;
       }
 
-      const result = data;
+      // Type assertion since we know the structure from our SQL function
+      const result = data as LogActivityResult;
       
       if (result.success) {
         toast.success(`Activity logged! ${result.hp_change > 0 ? '+' : ''}${result.hp_change} HP, +${result.xp_earned} XP`);
