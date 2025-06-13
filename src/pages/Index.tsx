@@ -1,9 +1,11 @@
+
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
 import { usePlayerXP } from "@/hooks/usePlayerXP";
+import { usePlayerAvatar } from "@/hooks/usePlayerAvatar";
 import { supabase } from "@/integrations/supabase/client";
 import { LogOut, User } from "lucide-react";
 import { HPDisplay } from "@/components/hp/HPDisplay";
@@ -21,12 +23,15 @@ import { TokenEarnActions } from "@/components/tokens/TokenEarnActions";
 import { TokenStore } from "@/components/tokens/TokenStore";
 import { TokenTransactionHistory } from "@/components/tokens/TokenTransactionHistory";
 import { TokenConverter } from "@/components/tokens/TokenConverter";
+import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
+import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
 
 const Index = () => {
   const { user, signOut } = useAuth();
   const { hpData, activities: hpActivities, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
   const { xpData, activities: xpActivities, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
   const { tokenData, transactions, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
+  const { equippedItems, loading: avatarLoading, initializeAvatar, checkLevelUnlocks } = usePlayerAvatar();
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -37,7 +42,7 @@ const Index = () => {
   }, [user]);
 
   useEffect(() => {
-    // Initialize HP, XP, and Tokens for existing users who don't have data yet
+    // Initialize HP, XP, Tokens, and Avatar for existing users who don't have data yet
     if (user && !hpLoading && !hpData && profile?.role === 'player') {
       initializeHP();
     }
@@ -47,7 +52,10 @@ const Index = () => {
     if (user && !tokensLoading && !tokenData && profile?.role === 'player') {
       initializeTokens();
     }
-  }, [user, hpLoading, hpData, xpLoading, xpData, tokensLoading, tokenData, profile, initializeHP, initializeXP, initializeTokens]);
+    if (user && !avatarLoading && equippedItems.length === 0 && profile?.role === 'player') {
+      initializeAvatar();
+    }
+  }, [user, hpLoading, hpData, xpLoading, xpData, tokensLoading, tokenData, avatarLoading, equippedItems, profile, initializeHP, initializeXP, initializeTokens, initializeAvatar]);
 
   const fetchProfile = async () => {
     try {
@@ -74,21 +82,33 @@ const Index = () => {
     await signOut();
   };
 
+  // Enhanced XP earning function that checks for avatar unlocks
+  const handleAddXP = async (amount: number, activityType: string, description?: string) => {
+    const oldLevel = xpData?.current_level || 1;
+    const result = await addXP(amount, activityType, description);
+    
+    // Check if level increased and unlock avatar items
+    if (xpData && xpData.current_level > oldLevel) {
+      await checkLevelUnlocks(xpData.current_level);
+    }
+    
+    return result;
+  };
+
   const isPlayer = profile?.role === 'player';
 
   return (
     <div className="min-h-screen bg-tennis-green-bg p-4">
       <div className="max-w-6xl mx-auto">
-        {/* Header with HP, XP, and Token Display */}
+        {/* Header with HP, XP, Token Display, and Avatar */}
         <div className="flex justify-between items-center mb-8">
           <div className="flex items-center gap-4">
-            {profile?.avatar_url && (
-              <img 
-                src={profile.avatar_url} 
-                alt="Avatar"
-                className="w-12 h-12 rounded-full border-2 border-tennis-green-dark"
-              />
-            )}
+            <AvatarDisplay 
+              avatarUrl={profile?.avatar_url}
+              equippedItems={equippedItems}
+              size="large"
+              showBorder={true}
+            />
             <div>
               <div className="flex items-center gap-3">
                 <h1 className="text-3xl font-bold text-tennis-green-dark">
@@ -168,15 +188,15 @@ const Index = () => {
                   <p><strong className="text-tennis-green-dark">Role:</strong> {profile?.role}</p>
                   <p><strong className="text-tennis-green-dark">User ID:</strong> {user?.id}</p>
                   <p className="text-tennis-green-medium text-sm mt-4">
-                    🎾 Phase 2.3 (Token Economy) is now live! 
-                    {isPlayer ? ' Earn and spend tokens, manage your currency, and unlock premium features!' : ' Monitor your players\' token economy engagement.'}
+                    🎾 Phase 2.4 (Avatar & Customization System) is now live! 
+                    {isPlayer ? ' Customize your avatar, unlock new items by leveling up, and purchase premium gear!' : ' Monitor your players\' avatar customization and unlocks.'}
                   </p>
                 </div>
               )}
             </CardContent>
           </Card>
 
-          {/* HP, XP & Token System UI - Only for Players */}
+          {/* HP, XP, Token & Avatar System UI - Only for Players */}
           {isPlayer && (
             <div className="grid gap-6">
               {/* Status Cards Row */}
@@ -252,6 +272,9 @@ const Index = () => {
                 )}
               </div>
 
+              {/* Avatar Customization Full Width */}
+              <AvatarCustomization />
+
               {/* Action Cards Row */}
               <div className="grid gap-6 lg:grid-cols-3">
                 {/* HP Restore Actions */}
@@ -266,7 +289,7 @@ const Index = () => {
                 {/* XP Earn Actions */}
                 {xpData && (
                   <XPEarnActions
-                    onEarnXP={addXP}
+                    onEarnXP={handleAddXP}
                   />
                 )}
 

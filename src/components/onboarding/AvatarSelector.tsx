@@ -1,6 +1,7 @@
 
 import { useState } from 'react';
 import { Button } from '@/components/ui/button';
+import { AvatarDisplay } from '@/components/avatar/AvatarDisplay';
 
 interface AvatarSelectorProps {
   selectedAvatar: string;
@@ -32,10 +33,10 @@ export function AvatarSelector({ selectedAvatar, onAvatarSelect }: AvatarSelecto
                 : 'border-gray-200 hover:border-tennis-green-light'
             }`}
           >
-            <img 
-              src={avatar} 
-              alt={`Avatar option ${index + 1}`}
-              className="w-16 h-16 rounded-full mx-auto"
+            <AvatarDisplay 
+              avatarUrl={avatar}
+              size="large"
+              className="mx-auto"
             />
           </button>
         ))}
@@ -44,11 +45,13 @@ export function AvatarSelector({ selectedAvatar, onAvatarSelect }: AvatarSelecto
       {selectedAvatar && (
         <div className="text-center">
           <p className="text-sm text-gray-600 mb-2">Selected Avatar:</p>
-          <img 
-            src={selectedAvatar} 
-            alt="Selected avatar"
-            className="w-20 h-20 rounded-full mx-auto border-2 border-tennis-green-dark"
-          />
+          <div className="flex justify-center">
+            <AvatarDisplay 
+              avatarUrl={selectedAvatar}
+              size="xl"
+              showBorder={true}
+            />
+          </div>
         </div>
       )}
     </div>

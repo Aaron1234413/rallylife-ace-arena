@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      avatar_items: {
+        Row: {
+          category: string
+          created_at: string
+          description: string | null
+          id: string
+          image_url: string
+          is_default: boolean | null
+          item_type: string
+          name: string
+          premium_cost: number | null
+          rarity: string
+          token_cost: number | null
+          unlock_requirement: Json | null
+          unlock_type: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url: string
+          is_default?: boolean | null
+          item_type: string
+          name: string
+          premium_cost?: number | null
+          rarity?: string
+          token_cost?: number | null
+          unlock_requirement?: Json | null
+          unlock_type: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string | null
+          id?: string
+          image_url?: string
+          is_default?: boolean | null
+          item_type?: string
+          name?: string
+          premium_cost?: number | null
+          rarity?: string
+          token_cost?: number | null
+          unlock_requirement?: Json | null
+          unlock_type?: string
+        }
+        Relationships: []
+      }
       coach_profiles: {
         Row: {
           bio: string | null
@@ -77,6 +125,70 @@ export type Database = {
           player_id?: string
         }
         Relationships: []
+      }
+      player_avatar_equipped: {
+        Row: {
+          avatar_item_id: string
+          category: string
+          equipped_at: string
+          id: string
+          player_id: string
+        }
+        Insert: {
+          avatar_item_id: string
+          category: string
+          equipped_at?: string
+          id?: string
+          player_id: string
+        }
+        Update: {
+          avatar_item_id?: string
+          category?: string
+          equipped_at?: string
+          id?: string
+          player_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_avatar_equipped_avatar_item_id_fkey"
+            columns: ["avatar_item_id"]
+            isOneToOne: false
+            referencedRelation: "avatar_items"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      player_avatar_items: {
+        Row: {
+          avatar_item_id: string
+          id: string
+          player_id: string
+          unlock_method: string
+          unlocked_at: string
+        }
+        Insert: {
+          avatar_item_id: string
+          id?: string
+          player_id: string
+          unlock_method: string
+          unlocked_at?: string
+        }
+        Update: {
+          avatar_item_id?: string
+          id?: string
+          player_id?: string
+          unlock_method?: string
+          unlocked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_avatar_items_avatar_item_id_fkey"
+            columns: ["avatar_item_id"]
+            isOneToOne: false
+            referencedRelation: "avatar_items"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       player_hp: {
         Row: {
@@ -359,6 +471,14 @@ export type Database = {
         }
         Returns: Json
       }
+      equip_avatar_item: {
+        Args: { user_id: string; item_id: string }
+        Returns: Json
+      }
+      initialize_player_avatar: {
+        Args: { user_id: string }
+        Returns: undefined
+      }
       initialize_player_hp: {
         Args: { user_id: string }
         Returns: undefined
@@ -370,6 +490,10 @@ export type Database = {
       initialize_player_xp: {
         Args: { user_id: string }
         Returns: undefined
+      }
+      purchase_avatar_item: {
+        Args: { user_id: string; item_id: string }
+        Returns: Json
       }
       restore_hp: {
         Args: {
@@ -388,6 +512,10 @@ export type Database = {
           source?: string
           description?: string
         }
+        Returns: Json
+      }
+      unlock_avatar_item: {
+        Args: { user_id: string; item_id: string; unlock_method?: string }
         Returns: Json
       }
     }
