@@ -9,9 +9,25 @@ interface PlayerStatusCardProps {
   hpData: any;
   xpData: any;
   tokenData: any;
+  loading?: boolean;
 }
 
-export function PlayerStatusCard({ hpData, xpData, tokenData }: PlayerStatusCardProps) {
+export function PlayerStatusCard({ hpData, xpData, tokenData, loading }: PlayerStatusCardProps) {
+  if (loading) {
+    return (
+      <Card className="border-tennis-green-light">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-sm font-medium">Your Status</CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="text-center text-sm text-muted-foreground">
+            Loading...
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="border-tennis-green-light">
       <CardHeader className="pb-3">

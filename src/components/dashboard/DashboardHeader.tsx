@@ -14,9 +14,27 @@ import {
   Rss
 } from 'lucide-react';
 
-export function DashboardHeader() {
+interface DashboardHeaderProps {
+  profile?: any;
+  hpData?: any;
+  xpData?: any;
+  tokenData?: any;
+  equippedItems?: any[];
+  onSignOut?: () => Promise<void>;
+}
+
+export function DashboardHeader({ 
+  profile, 
+  hpData, 
+  xpData, 
+  tokenData, 
+  equippedItems, 
+  onSignOut 
+}: DashboardHeaderProps) {
   const { user, signOut } = useAuth();
   const navigate = useNavigate();
+
+  const handleSignOut = onSignOut || signOut;
 
   return (
     <Card className="mb-6">
@@ -75,7 +93,7 @@ export function DashboardHeader() {
             <Button
               variant="ghost"
               size="sm"
-              onClick={signOut}
+              onClick={handleSignOut}
               className="text-red-600 hover:text-red-700 hover:bg-red-50"
             >
               <LogOut className="h-4 w-4" />

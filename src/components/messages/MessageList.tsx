@@ -4,16 +4,16 @@ import { ScrollArea } from '@/components/ui/scroll-area';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Trophy, Zap } from 'lucide-react';
-import { useMessages } from '@/hooks/useMessages';
 import { useAuth } from '@/hooks/useAuth';
 
 interface MessageListProps {
+  messages: any[];
+  loading: boolean;
   conversationId: string;
 }
 
-export function MessageList({ conversationId }: MessageListProps) {
+export function MessageList({ messages, loading, conversationId }: MessageListProps) {
   const { user } = useAuth();
-  const { messages, loading } = useMessages(conversationId);
   const scrollAreaRef = useRef<HTMLDivElement>(null);
 
   // Auto-scroll to bottom when new messages arrive

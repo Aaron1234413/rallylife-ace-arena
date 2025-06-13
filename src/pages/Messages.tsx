@@ -35,7 +35,7 @@ export default function Messages() {
   const [showMobileConversation, setShowMobileConversation] = useState(false);
 
   // Fetch data
-  const { data: conversations, loading: conversationsLoading } = useConversations();
+  const { data: conversations, isLoading: conversationsLoading } = useConversations();
   const { messages, loading: messagesLoading } = useMessages(selectedConversation);
   const { data: profiles } = useProfiles();
   
@@ -63,6 +63,7 @@ export default function Messages() {
   };
 
   const selectedConversationData = conversations?.find(c => c.id === selectedConversation);
+  const otherParticipant = selectedConversationData?.otherParticipant;
 
   return (
     <div className="h-screen flex flex-col">
@@ -118,7 +119,6 @@ export default function Messages() {
             ) : (
               <div className="divide-y">
                 {filteredConversations.map((conversation) => {
-                  const otherParticipant = conversation.otherParticipant;
                   const isSelected = selectedConversation === conversation.id;
                   
                   return (
@@ -131,16 +131,16 @@ export default function Messages() {
                     >
                       <div className="flex items-center space-x-3">
                         <Avatar className="h-10 w-10">
-                          <AvatarImage src={otherParticipant?.avatar_url || ''} />
+                          <AvatarImage src={conversation.otherParticipant?.avatar_url || ''} />
                           <AvatarFallback>
-                            {otherParticipant?.full_name?.charAt(0) || 'U'}
+                            {conversation.otherParticipant?.full_name?.charAt(0) || 'U'}
                           </AvatarFallback>
                         </Avatar>
                         
                         <div className="flex-1 min-w-0">
                           <div className="flex items-center justify-between">
                             <p className="font-medium truncate">
-                              {otherParticipant?.full_name || 'Unknown User'}
+                              {conversation.otherParticipant?.full_name || 'Unknown User'}
                             </p>
                             <span className="text-xs text-muted-foreground">
                               {format(new Date(conversation.lastMessageTime), 'MMM d')}
@@ -178,15 +178,15 @@ export default function Messages() {
                   </Button>
                   
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={selectedConversationData?.otherParticipant?.avatar_url || ''} />
+                    <AvatarImage src={otherParticipant?.avatar_url || ''} />
                     <AvatarFallback>
-                      {selectedConversationData?.otherParticipant?.full_name?.charAt(0) || 'U'}
+                      {otherParticipant?.full_name?.charAt(0) || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   
                   <div>
                     <p className="font-medium">
-                      {selectedConversationData?.otherParticipant?.full_name || 'Unknown User'}
+                      {otherParticipant?.full_name || 'Unknown User'}
                     </p>
                     <p className="text-xs text-muted-foreground">Online</p>
                   </div>
@@ -231,7 +231,7 @@ export default function Messages() {
                 />
                 
                 <ChallengeCard
-                  otherUserId={selectedConversationData?.otherParticipant?.id}
+                  otherUserId={otherParticipant?.id}
                   conversationId={selectedConversation}
                   tokenData={tokenData}
                 />

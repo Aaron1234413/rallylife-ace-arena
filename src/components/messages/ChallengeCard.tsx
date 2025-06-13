@@ -8,20 +8,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import { Zap, Coins } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
-import { useConversations } from '@/hooks/useConversations';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 interface ChallengeCardProps {
   conversationId: string;
-  playerStats: {
-    hpData: any;
-    xpData: any;
-    tokenData: any;
-  };
+  otherUserId?: string;
+  tokenData?: any;
 }
 
-export function ChallengeCard({ conversationId, playerStats }: ChallengeCardProps) {
+export function ChallengeCard({ conversationId, otherUserId, tokenData }: ChallengeCardProps) {
   const [challengeType, setChallengeType] = useState('');
   const [stakes, setStakes] = useState('');
   const [customStakes, setCustomStakes] = useState('');
@@ -46,24 +42,14 @@ export function ChallengeCard({ conversationId, playerStats }: ChallengeCardProp
   ];
 
   const handleSendChallenge = async () => {
-    if (!challengeType || sending) return;
+    if (!challengeType || sending || !otherUserId) return;
 
     setSending(true);
     try {
       const finalStakes = stakes === 'custom' ? parseInt(customStakes) || 0 : parseInt(stakes) || 0;
       
-      // Get the other participant in the conversation
-      const { data: participants, error: participantsError } = await supabase
-        .from('conversation_participants')
-        .select('user_id')
-        .eq('conversation_id', conversationId)
-        .neq('user_id', (await supabase.auth.getUser()).data.user?.id);
-
-      if (participantsError) throw participantsError;
-      if (!participants[0]) throw new Error('No other participant found');
-
       const { data, error } = await supabase.rpc('send_challenge', {
-        challenged_user_id: participants[0].user_id,
+        challenged_user_id: otherUserId,
         challenge_type: challengeType,
         stakes_tokens: finalStakes,
         stakes_premium_tokens: 0,
@@ -102,12 +88,12 @@ export function ChallengeCard({ conversationId, playerStats }: ChallengeCardProp
       </CardHeader>
       <CardContent className="space-y-4">
         {/* Player's current tokens display */}
-        {playerStats.tokenData && (
+        {tokenData && (
           <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
             <span className="text-sm font-medium">Your Tokens:</span>
             <div className="flex items-center gap-1">
               <Coins className="h-4 w-4 text-yellow-500" />
-              <span className="font-medium">{playerStats.tokenData.regular_tokens}</span>
+              <span className="font-medium">{tokenData.regular_tokens}</span>
             </div>
           </div>
         )}
@@ -154,7 +140,7 @@ export function ChallengeCard({ conversationId, playerStats }: ChallengeCardProp
               placeholder="Enter custom token amount"
               value={customStakes}
               onChange={(e) => setCustomStakes(e.target.value)}
-              max={playerStats.tokenData?.regular_tokens || 0}
+              max={tokenData?.regular_tokens || 0}
             />
           )}
         </div>
@@ -174,7 +160,7 @@ export function ChallengeCard({ conversationId, playerStats }: ChallengeCardProp
         {/* Send Button */}
         <Button 
           onClick={handleSendChallenge}
-          disabled={!challengeType || sending}
+          disabled={!challengeType || sending || !otherUserId}
           className="w-full bg-tennis-green-dark hover:bg-tennis-green-medium"
         >
           <Zap className="h-4 w-4 mr-2" />
@@ -191,7 +177,7 @@ export function ChallengeCard({ conversationId, playerStats }: ChallengeCardProp
               setStakes('0');
             }}
             className="text-xs"
-            disabled={sending}
+            disabled={sending || !otherUserId}
           >
             🎾 Quick Match
           </Button>
@@ -203,7 +189,7 @@ export function ChallengeCard({ conversationId, playerStats }: ChallengeCardProp
               setStakes('50');
             }}
             className="text-xs"
-            disabled={sending}
+            disabled={sending || !otherUserId}
           >
             🏆 Ranked (50T)
           </Button>

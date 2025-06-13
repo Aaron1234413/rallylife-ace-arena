@@ -11,52 +11,73 @@ export function useConversations() {
     queryFn: async () => {
       if (!user) throw new Error('User not authenticated');
 
-      const { data, error } = await supabase
+      // First get conversations the user participates in
+      const { data: userConversations, error: conversationsError } = await supabase
         .from('conversations')
         .select(`
-          *,
-          conversation_participants!inner(
-            user_id,
-            last_read_at
-          ),
-          messages(
-            id,
-            content,
-            created_at,
-            sender_id
-          )
+          id,
+          name,
+          is_group,
+          created_by,
+          created_at,
+          updated_at
         `)
+        .in('id', 
+          supabase
+            .from('conversation_participants')
+            .select('conversation_id')
+            .eq('user_id', user.id)
+        )
         .order('updated_at', { ascending: false });
 
-      if (error) throw error;
+      if (conversationsError) throw conversationsError;
 
-      // Get participant details for each conversation
-      const conversationsWithParticipants = await Promise.all(
-        data.map(async (conversation) => {
+      // Get participant details and latest messages for each conversation
+      const conversationsWithData = await Promise.all(
+        (userConversations || []).map(async (conversation) => {
+          // Get other participants (not the current user)
           const { data: participants, error: participantsError } = await supabase
             .from('conversation_participants')
             .select(`
               user_id,
-              profiles(full_name, avatar_url)
+              profiles!conversation_participants_user_id_fkey(
+                id,
+                full_name,
+                avatar_url
+              )
             `)
             .eq('conversation_id', conversation.id)
             .neq('user_id', user.id);
 
-          if (participantsError) throw participantsError;
+          if (participantsError) {
+            console.error('Error fetching participants:', participantsError);
+          }
 
-          const otherParticipant = participants[0];
-          const lastMessage = conversation.messages?.[0];
+          // Get latest message
+          const { data: latestMessage, error: messageError } = await supabase
+            .from('messages')
+            .select('content, created_at')
+            .eq('conversation_id', conversation.id)
+            .order('created_at', { ascending: false })
+            .limit(1)
+            .single();
+
+          if (messageError && messageError.code !== 'PGRST116') {
+            console.error('Error fetching latest message:', messageError);
+          }
+
+          const otherParticipant = participants?.[0]?.profiles;
 
           return {
             ...conversation,
-            otherParticipant: otherParticipant?.profiles,
-            lastMessage: lastMessage?.content || 'No messages yet',
-            lastMessageTime: lastMessage?.created_at || conversation.created_at
+            otherParticipant,
+            lastMessage: latestMessage?.content || 'No messages yet',
+            lastMessageTime: latestMessage?.created_at || conversation.created_at
           };
         })
       );
 
-      return conversationsWithParticipants;
+      return conversationsWithData;
     },
     enabled: !!user
   });
