@@ -248,9 +248,8 @@ export function usePlayerAchievements() {
 
     // Set up real-time subscription for achievement changes
     if (user) {
-      const channelName = `achievement-changes-${user.id}-${Date.now()}`;
       const channel = supabase
-        .channel(channelName)
+        .channel(`achievement-changes-${user.id}`)
         .on(
           'postgres_changes',
           {
@@ -278,7 +277,7 @@ export function usePlayerAchievements() {
         .subscribe();
 
       return () => {
-        channel.unsubscribe();
+        supabase.removeChannel(channel);
       };
     }
   }, [user]);
