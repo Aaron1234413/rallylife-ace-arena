@@ -111,7 +111,15 @@ export function useCoachCXP() {
         throw error;
       }
 
-      return data as CXPResult;
+      // Safely cast the JSON result to CXPResult
+      const result = data as unknown;
+      
+      // Validate it's the expected object structure
+      if (result && typeof result === 'object' && !Array.isArray(result)) {
+        return result as CXPResult;
+      }
+      
+      throw new Error('Invalid response format from add_cxp function');
     },
     onSuccess: (result) => {
       queryClient.invalidateQueries({ queryKey: ['coach-cxp'] });
