@@ -1,56 +1,37 @@
-
+import {
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { Toaster } from "@/components/ui/sonner";
-import { AuthProvider } from "@/hooks/useAuth";
-import { ProtectedRoute } from "@/components/ProtectedRoute";
-import Index from "@/pages/Index";
+import { Toaster } from "@/components/ui/toaster"
+
 import Auth from "@/pages/Auth";
-import Onboarding from "@/pages/Onboarding";
-import Achievements from "@/pages/Achievements";
+import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
-import "./App.css";
+import Onboarding from "@/pages/Onboarding";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Achievements from "@/pages/Achievements";
+import Activities from "@/pages/Activities";
 
 const queryClient = new QueryClient();
 
-function QueryWrapper({ children }: { children: React.ReactNode }) {
-  return (
-    <QueryClientProvider client={queryClient}>
-      {children}
-    </QueryClientProvider>
-  );
-}
-
 function App() {
   return (
-    <AuthProvider>
-      <QueryWrapper>
-        <BrowserRouter>
-          <div className="min-h-screen">
-            <Toaster />
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/onboarding" element={
-                <ProtectedRoute>
-                  <Onboarding />
-                </ProtectedRoute>
-              } />
-              <Route path="/" element={
-                <ProtectedRoute>
-                  <Index />
-                </ProtectedRoute>
-              } />
-              <Route path="/achievements" element={
-                <ProtectedRoute>
-                  <Achievements />
-                </ProtectedRoute>
-              } />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
-        </BrowserRouter>
-      </QueryWrapper>
-    </AuthProvider>
+    <QueryClientProvider client={queryClient}>
+      <BrowserRouter>
+        <div className="min-h-screen bg-background">
+          <Toaster />
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
+            <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </div>
+      </BrowserRouter>
+    </QueryClientProvider>
   );
 }
 

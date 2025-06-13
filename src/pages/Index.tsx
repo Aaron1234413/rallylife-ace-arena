@@ -26,6 +26,9 @@ import { TokenConverter } from "@/components/tokens/TokenConverter";
 import { AvatarDisplay } from "@/components/avatar/AvatarDisplay";
 import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
 import { AchievementDisplay } from "@/components/achievements/AchievementDisplay";
+import { QuickActionButtons } from "@/components/activities/QuickActionButtons";
+import { ActivityFeed } from "@/components/activities/ActivityFeed";
+import { ActivityStats } from "@/components/activities/ActivityStats";
 
 const Index = () => {
   const { user, signOut } = useAuth();
@@ -140,6 +143,26 @@ const Index = () => {
               <p className="text-tennis-green-medium mt-1">
                 Ready to continue your tennis journey?
               </p>
+              {isPlayer && (
+                <div className="flex gap-2 mt-2">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.location.href = '/achievements'}
+                    className="border-tennis-green-dark text-tennis-green-dark hover:bg-tennis-green-dark hover:text-white"
+                  >
+                    🏆 Achievements
+                  </Button>
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => window.location.href = '/activities'}
+                    className="border-tennis-green-dark text-tennis-green-dark hover:bg-tennis-green-dark hover:text-white"
+                  >
+                    📋 Activities
+                  </Button>
+                </div>
+              )}
             </div>
           </div>
 
@@ -215,9 +238,21 @@ const Index = () => {
             </CardContent>
           </Card>
 
-          {/* HP, XP, Token & Avatar System UI - Only for Players */}
+          {/* Activity Logging System - Only for Players */}
           {isPlayer && (
             <div className="grid gap-6">
+              {/* Quick Actions Row */}
+              <QuickActionButtons />
+
+              {/* Activity Overview Row */}
+              <div className="grid gap-6 lg:grid-cols-2">
+                {/* Activity Feed */}
+                <ActivityFeed limit={8} showFilters={true} />
+
+                {/* Activity Statistics */}
+                <ActivityStats />
+              </div>
+
               {/* Status Cards Row */}
               <div className="grid gap-6 lg:grid-cols-3">
                 {/* HP Status Card */}

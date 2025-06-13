@@ -109,6 +109,108 @@ export type Database = {
           },
         ]
       }
+      activity_logs: {
+        Row: {
+          activity_category: string
+          activity_type: string
+          coach_name: string | null
+          court_surface: string | null
+          created_at: string
+          description: string | null
+          difficulty_rating: number | null
+          duration_minutes: number | null
+          energy_after: number | null
+          energy_before: number | null
+          enjoyment_rating: number | null
+          equipment_used: string[] | null
+          hp_impact: number | null
+          id: string
+          intensity_level: string | null
+          is_competitive: boolean | null
+          is_official: boolean | null
+          location: string | null
+          logged_at: string
+          metadata: Json | null
+          notes: string | null
+          opponent_name: string | null
+          player_id: string
+          result: string | null
+          score: string | null
+          skills_practiced: string[] | null
+          tags: string[] | null
+          title: string
+          updated_at: string
+          weather_conditions: string | null
+          xp_earned: number | null
+        }
+        Insert: {
+          activity_category: string
+          activity_type: string
+          coach_name?: string | null
+          court_surface?: string | null
+          created_at?: string
+          description?: string | null
+          difficulty_rating?: number | null
+          duration_minutes?: number | null
+          energy_after?: number | null
+          energy_before?: number | null
+          enjoyment_rating?: number | null
+          equipment_used?: string[] | null
+          hp_impact?: number | null
+          id?: string
+          intensity_level?: string | null
+          is_competitive?: boolean | null
+          is_official?: boolean | null
+          location?: string | null
+          logged_at?: string
+          metadata?: Json | null
+          notes?: string | null
+          opponent_name?: string | null
+          player_id: string
+          result?: string | null
+          score?: string | null
+          skills_practiced?: string[] | null
+          tags?: string[] | null
+          title: string
+          updated_at?: string
+          weather_conditions?: string | null
+          xp_earned?: number | null
+        }
+        Update: {
+          activity_category?: string
+          activity_type?: string
+          coach_name?: string | null
+          court_surface?: string | null
+          created_at?: string
+          description?: string | null
+          difficulty_rating?: number | null
+          duration_minutes?: number | null
+          energy_after?: number | null
+          energy_before?: number | null
+          enjoyment_rating?: number | null
+          equipment_used?: string[] | null
+          hp_impact?: number | null
+          id?: string
+          intensity_level?: string | null
+          is_competitive?: boolean | null
+          is_official?: boolean | null
+          location?: string | null
+          logged_at?: string
+          metadata?: Json | null
+          notes?: string | null
+          opponent_name?: string | null
+          player_id?: string
+          result?: string | null
+          score?: string | null
+          skills_practiced?: string[] | null
+          tags?: string[] | null
+          title?: string
+          updated_at?: string
+          weather_conditions?: string | null
+          xp_earned?: number | null
+        }
+        Relationships: []
+      }
       avatar_items: {
         Row: {
           category: string
@@ -621,6 +723,40 @@ export type Database = {
         Args: { user_id: string; item_id: string }
         Returns: Json
       }
+      get_activity_feed: {
+        Args: {
+          user_id: string
+          limit_count?: number
+          offset_count?: number
+          activity_type_filter?: string
+          date_from?: string
+          date_to?: string
+        }
+        Returns: {
+          id: string
+          activity_type: string
+          activity_category: string
+          title: string
+          description: string
+          duration_minutes: number
+          intensity_level: string
+          location: string
+          opponent_name: string
+          coach_name: string
+          score: string
+          result: string
+          hp_impact: number
+          xp_earned: number
+          enjoyment_rating: number
+          is_competitive: boolean
+          logged_at: string
+          created_at: string
+        }[]
+      }
+      get_activity_stats: {
+        Args: { user_id: string; days_back?: number }
+        Returns: Json
+      }
       initialize_default_achievements: {
         Args: Record<PropertyKey, never>
         Returns: undefined
@@ -640,6 +776,37 @@ export type Database = {
       initialize_player_xp: {
         Args: { user_id: string }
         Returns: undefined
+      }
+      log_comprehensive_activity: {
+        Args: {
+          user_id: string
+          activity_type: string
+          activity_category: string
+          title: string
+          description?: string
+          duration_minutes?: number
+          intensity_level?: string
+          location?: string
+          opponent_name?: string
+          coach_name?: string
+          score?: string
+          result?: string
+          notes?: string
+          weather_conditions?: string
+          court_surface?: string
+          equipment_used?: string[]
+          skills_practiced?: string[]
+          energy_before?: number
+          energy_after?: number
+          enjoyment_rating?: number
+          difficulty_rating?: number
+          tags?: string[]
+          is_competitive?: boolean
+          is_official?: boolean
+          logged_at?: string
+          metadata?: Json
+        }
+        Returns: Json
       }
       purchase_avatar_item: {
         Args: { user_id: string; item_id: string }
