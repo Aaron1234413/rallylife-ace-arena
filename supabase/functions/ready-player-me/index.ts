@@ -44,6 +44,8 @@ serve(async (req) => {
         return await getAvatar(userData.user.id, supabaseClient);
       case "get_assets":
         return await getAssets();
+      case "test_connection":
+        return await testConnection();
       default:
         throw new Error("Invalid action");
     }
@@ -59,8 +61,49 @@ serve(async (req) => {
   }
 });
 
+async function testConnection() {
+  try {
+    console.log("Testing Ready Player Me API connection...");
+    
+    // Test the API connection with a simple request to get user info
+    const response = await fetch(`${RPM_BASE_URL}/me`, {
+      method: "GET",
+      headers: {
+        "Authorization": `Bearer ${RPM_API_KEY}`,
+        "Content-Type": "application/json",
+      },
+    });
+
+    console.log("API Response Status:", response.status);
+    const responseText = await response.text();
+    console.log("API Response Body:", responseText);
+
+    if (!response.ok) {
+      throw new Error(`Ready Player Me API error: ${response.status} - ${responseText}`);
+    }
+
+    return new Response(
+      JSON.stringify({ 
+        success: true, 
+        message: "Connection successful",
+        status: response.status,
+        data: responseText
+      }),
+      { 
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200 
+      }
+    );
+  } catch (error) {
+    console.error("Connection test failed:", error);
+    throw new Error(`Connection test failed: ${error.message}`);
+  }
+}
+
 async function createAvatar(avatarData: any, userId: string, supabase: any) {
   try {
+    console.log("Creating avatar with data:", avatarData);
+    
     // Create avatar via Ready Player Me API
     const response = await fetch(`${RPM_BASE_URL}/avatars`, {
       method: "POST",
@@ -69,33 +112,38 @@ async function createAvatar(avatarData: any, userId: string, supabase: any) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        partner: "rallylife",
+        partner: "default", // Changed from "rallylife" to default
         bodyType: avatarData.bodyType || "fullbody",
         gender: avatarData.gender || "male",
         assets: avatarData.assets || {},
       }),
     });
 
+    console.log("Create Avatar Response Status:", response.status);
+    const responseText = await response.text();
+    console.log("Create Avatar Response:", responseText);
+
     if (!response.ok) {
-      throw new Error(`Ready Player Me API error: ${response.statusText}`);
+      throw new Error(`Ready Player Me API error: ${response.status} - ${responseText}`);
     }
 
-    const rpmAvatar = await response.json();
+    const rpmAvatar = JSON.parse(responseText);
     
     // Save avatar URL to user profile
     const { error: updateError } = await supabase
       .from("profiles")
-      .update({ ready_player_me_url: rpmAvatar.modelUrl })
+      .update({ ready_player_me_url: rpmAvatar.modelUrl || rpmAvatar.url })
       .eq("id", userId);
 
     if (updateError) {
+      console.error("Database update error:", updateError);
       throw updateError;
     }
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        avatarUrl: rpmAvatar.modelUrl,
+        avatarUrl: rpmAvatar.modelUrl || rpmAvatar.url,
         avatarId: rpmAvatar.id 
       }),
       { 
@@ -104,12 +152,15 @@ async function createAvatar(avatarData: any, userId: string, supabase: any) {
       }
     );
   } catch (error) {
+    console.error("Create avatar error:", error);
     throw new Error(`Failed to create avatar: ${error.message}`);
   }
 }
 
 async function updateAvatar(avatarData: any, userId: string, supabase: any) {
   try {
+    console.log("Updating avatar with data:", avatarData);
+    
     // Get current avatar from profile
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
@@ -139,16 +190,20 @@ async function updateAvatar(avatarData: any, userId: string, supabase: any) {
       }),
     });
 
+    console.log("Update Avatar Response Status:", response.status);
+    const responseText = await response.text();
+    console.log("Update Avatar Response:", responseText);
+
     if (!response.ok) {
-      throw new Error(`Ready Player Me API error: ${response.statusText}`);
+      throw new Error(`Ready Player Me API error: ${response.status} - ${responseText}`);
     }
 
-    const updatedAvatar = await response.json();
+    const updatedAvatar = JSON.parse(responseText);
     
     // Update avatar URL in profile
     const { error: updateError } = await supabase
       .from("profiles")
-      .update({ ready_player_me_url: updatedAvatar.modelUrl })
+      .update({ ready_player_me_url: updatedAvatar.modelUrl || updatedAvatar.url })
       .eq("id", userId);
 
     if (updateError) {
@@ -158,7 +213,7 @@ async function updateAvatar(avatarData: any, userId: string, supabase: any) {
     return new Response(
       JSON.stringify({ 
         success: true, 
-        avatarUrl: updatedAvatar.modelUrl 
+        avatarUrl: updatedAvatar.modelUrl || updatedAvatar.url
       }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -166,6 +221,7 @@ async function updateAvatar(avatarData: any, userId: string, supabase: any) {
       }
     );
   } catch (error) {
+    console.error("Update avatar error:", error);
     throw new Error(`Failed to update avatar: ${error.message}`);
   }
 }
@@ -199,6 +255,8 @@ async function getAvatar(userId: string, supabase: any) {
 
 async function getAssets() {
   try {
+    console.log("Fetching assets from Ready Player Me API...");
+    
     // Get available assets from Ready Player Me
     const response = await fetch(`${RPM_BASE_URL}/assets`, {
       method: "GET",
@@ -208,16 +266,59 @@ async function getAssets() {
       },
     });
 
+    console.log("Get Assets Response Status:", response.status);
+    const responseText = await response.text();
+    console.log("Get Assets Response:", responseText);
+
     if (!response.ok) {
-      throw new Error(`Ready Player Me API error: ${response.statusText}`);
+      console.error("Assets API failed, providing fallback tennis assets");
+      // Provide fallback tennis-themed assets
+      const fallbackAssets = [
+        {
+          id: "tennis_shirt_1",
+          name: "Tennis Polo Shirt",
+          type: "shirt",
+          category: "clothing",
+          iconUrl: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=100&h=100&fit=crop",
+          previewUrl: "https://images.unsplash.com/photo-1551698618-1dfe5d97d256?w=300&h=300&fit=crop"
+        },
+        {
+          id: "tennis_shorts_1",
+          name: "Tennis Shorts",
+          type: "shorts",
+          category: "clothing", 
+          iconUrl: "https://images.unsplash.com/photo-1506629905972-b19b22ad8beb?w=100&h=100&fit=crop",
+          previewUrl: "https://images.unsplash.com/photo-1506629905972-b19b22ad8beb?w=300&h=300&fit=crop"
+        },
+        {
+          id: "tennis_racket_1",
+          name: "Professional Tennis Racket",
+          type: "racket",
+          category: "equipment",
+          iconUrl: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=100&h=100&fit=crop",
+          previewUrl: "https://images.unsplash.com/photo-1622279457486-62dcc4a431d6?w=300&h=300&fit=crop"
+        }
+      ];
+
+      return new Response(
+        JSON.stringify({ 
+          success: true, 
+          assets: fallbackAssets,
+          note: "Using fallback tennis assets"
+        }),
+        { 
+          headers: { ...corsHeaders, "Content-Type": "application/json" },
+          status: 200 
+        }
+      );
     }
 
-    const assets = await response.json();
+    const assets = JSON.parse(responseText);
 
     return new Response(
       JSON.stringify({ 
         success: true, 
-        assets: assets.data || [] 
+        assets: assets.data || assets || []
       }),
       { 
         headers: { ...corsHeaders, "Content-Type": "application/json" },
@@ -225,6 +326,7 @@ async function getAssets() {
       }
     );
   } catch (error) {
+    console.error("Get assets error:", error);
     throw new Error(`Failed to get assets: ${error.message}`);
   }
 }

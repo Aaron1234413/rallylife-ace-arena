@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useReadyPlayerMeAPI } from '@/hooks/useReadyPlayerMeAPI';
 import { ReadyPlayerMeAvatar } from './ReadyPlayerMeAvatar';
-import { User, Shirt, Palette, Save, RefreshCw } from 'lucide-react';
+import { User, Shirt, Palette, Save, RefreshCw, Wifi, AlertCircle, CheckCircle } from 'lucide-react';
 
 interface ReadyPlayerMeCreatorAPIProps {
   currentAvatarUrl?: string;
@@ -21,6 +21,8 @@ export function ReadyPlayerMeCreatorAPI({
     loading, 
     avatarUrl, 
     assets, 
+    connectionStatus,
+    testConnection,
     createAvatar, 
     updateAvatar, 
     getAssets 
@@ -61,6 +63,10 @@ export function ReadyPlayerMeCreatorAPI({
     }
   };
 
+  const handleTestConnection = async () => {
+    await testConnection();
+  };
+
   const assetCategories = assets.reduce((acc, asset) => {
     if (!acc[asset.category]) {
       acc[asset.category] = [];
@@ -69,15 +75,68 @@ export function ReadyPlayerMeCreatorAPI({
     return acc;
   }, {} as Record<string, typeof assets>);
 
+  const getConnectionStatusIcon = () => {
+    switch (connectionStatus) {
+      case 'connected':
+        return <CheckCircle className="h-4 w-4 text-green-500" />;
+      case 'error':
+        return <AlertCircle className="h-4 w-4 text-red-500" />;
+      default:
+        return <Wifi className="h-4 w-4 text-gray-400" />;
+    }
+  };
+
+  const getConnectionStatusText = () => {
+    switch (connectionStatus) {
+      case 'connected':
+        return 'Connected';
+      case 'error':
+        return 'Connection Error';
+      default:
+        return 'Unknown';
+    }
+  };
+
   return (
     <Card>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <User className="h-5 w-5" />
           Create Your 3D Avatar
+          <div className="ml-auto flex items-center gap-2">
+            {getConnectionStatusIcon()}
+            <span className="text-sm text-muted-foreground">
+              {getConnectionStatusText()}
+            </span>
+          </div>
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-6">
+        {/* Connection Test Section */}
+        <div className="border rounded-lg p-4 bg-gray-50">
+          <div className="flex items-center justify-between">
+            <div>
+              <h4 className="font-medium">API Connection Status</h4>
+              <p className="text-sm text-muted-foreground">
+                Test connection to Ready Player Me service
+              </p>
+            </div>
+            <Button 
+              onClick={handleTestConnection}
+              disabled={loading}
+              variant="outline"
+              size="sm"
+            >
+              {loading ? (
+                <RefreshCw className="h-4 w-4 animate-spin" />
+              ) : (
+                <Wifi className="h-4 w-4" />
+              )}
+              Test Connection
+            </Button>
+          </div>
+        </div>
+
         {/* Avatar Preview */}
         {(avatarUrl || currentAvatarUrl) && (
           <div className="text-center">
@@ -182,7 +241,7 @@ export function ReadyPlayerMeCreatorAPI({
         <div className="flex gap-2">
           <Button 
             onClick={handleSaveAvatar}
-            disabled={loading}
+            disabled={loading || connectionStatus === 'error'}
             className="flex-1"
           >
             {loading ? (
@@ -204,6 +263,7 @@ export function ReadyPlayerMeCreatorAPI({
 
         {/* Info */}
         <div className="text-sm text-gray-600 space-y-1">
+          <p>• Test the connection first to ensure API communication</p>
           <p>• Customize your 3D avatar with Ready Player Me</p>
           <p>• Choose from professional tennis clothing and equipment</p>
           <p>• Your avatar will be saved and used throughout RallyLife</p>

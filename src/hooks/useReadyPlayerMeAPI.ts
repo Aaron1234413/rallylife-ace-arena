@@ -23,26 +23,51 @@ export function useReadyPlayerMeAPI() {
   const [loading, setLoading] = useState(false);
   const [assets, setAssets] = useState<AvatarAsset[]>([]);
   const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [connectionStatus, setConnectionStatus] = useState<'unknown' | 'connected' | 'error'>('unknown');
 
   const callAPI = async (action: string, data?: any) => {
     try {
       setLoading(true);
+      console.log(`Calling Ready Player Me API: ${action}`, data);
+      
       const { data: response, error } = await supabase.functions.invoke('ready-player-me', {
         body: { action, ...data }
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase function error:', error);
+        throw error;
+      }
+      
+      console.log('API Response:', response);
       return response;
     } catch (error) {
       console.error('Ready Player Me API Error:', error);
       toast({
         title: "Error",
-        description: "Failed to communicate with avatar service",
+        description: `Failed to ${action.replace('_', ' ')}: ${error.message}`,
         variant: "destructive",
       });
       throw error;
     } finally {
       setLoading(false);
+    }
+  };
+
+  const testConnection = async () => {
+    try {
+      const response = await callAPI('test_connection');
+      if (response.success) {
+        setConnectionStatus('connected');
+        toast({
+          title: "Success",
+          description: "Connected to Ready Player Me API successfully!",
+        });
+      }
+      return response;
+    } catch (error) {
+      setConnectionStatus('error');
+      return { success: false, error: error.message };
     }
   };
 
@@ -82,6 +107,12 @@ export function useReadyPlayerMeAPI() {
     const response = await callAPI('get_assets');
     if (response.success) {
       setAssets(response.assets);
+      if (response.note) {
+        toast({
+          title: "Info",
+          description: response.note,
+        });
+      }
     }
     return response;
   };
@@ -90,6 +121,8 @@ export function useReadyPlayerMeAPI() {
     loading,
     avatarUrl,
     assets,
+    connectionStatus,
+    testConnection,
     createAvatar,
     updateAvatar,
     getAvatar,
