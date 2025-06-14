@@ -47,11 +47,21 @@ export function useUserLocation() {
         },
         (error) => {
           console.error('Location error:', error);
-          setLocationPermission('denied');
-          toast.error('Unable to get your location. Please enable location services.');
+          // Only set permission to 'denied' if it's actually a permission error
+          if (error.code === error.PERMISSION_DENIED) {
+            setLocationPermission('denied');
+            toast.error('Location access denied. Please enable location services to use this feature.');
+          } else {
+            // For other errors (timeout, unavailable), don't change permission status
+            // but still show an error message
+            toast.error('Unable to get your location. Please try again.');
+          }
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
       );
+    } else {
+      setLocationPermission('denied');
+      toast.error('Geolocation is not supported by this browser.');
     }
   }, []);
 
