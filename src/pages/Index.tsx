@@ -178,9 +178,6 @@ const Index = () => {
       {/* Coach-specific content */}
       {!isPlayer && !profileLoading && (
         <>
-          {/* Coach Avatar Customization */}
-          <CoachAvatarCustomization />
-
           {/* CXP Earning Actions */}
           <CXPEarnActions />
 
