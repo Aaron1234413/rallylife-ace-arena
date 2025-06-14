@@ -321,6 +321,121 @@ export type Database = {
           },
         ]
       }
+      coach_achievement_progress: {
+        Row: {
+          achievement_id: string
+          coach_id: string
+          current_progress: number | null
+          id: string
+          last_updated: string
+        }
+        Insert: {
+          achievement_id: string
+          coach_id: string
+          current_progress?: number | null
+          id?: string
+          last_updated?: string
+        }
+        Update: {
+          achievement_id?: string
+          coach_id?: string
+          current_progress?: number | null
+          id?: string
+          last_updated?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_achievement_progress_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "coach_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_achievements: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          id: string
+          is_active: boolean | null
+          name: string
+          requirement_type: string
+          requirement_value: number
+          reward_cxp: number | null
+          reward_special: string | null
+          reward_tokens: number | null
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          requirement_type: string
+          requirement_value: number
+          reward_cxp?: number | null
+          reward_special?: string | null
+          reward_tokens?: number | null
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+          reward_cxp?: number | null
+          reward_special?: string | null
+          reward_tokens?: number | null
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      coach_achievements_unlocked: {
+        Row: {
+          achievement_id: string
+          claimed_at: string | null
+          coach_id: string
+          id: string
+          is_claimed: boolean | null
+          unlocked_at: string
+        }
+        Insert: {
+          achievement_id: string
+          claimed_at?: string | null
+          coach_id: string
+          id?: string
+          is_claimed?: boolean | null
+          unlocked_at?: string
+        }
+        Update: {
+          achievement_id?: string
+          claimed_at?: string | null
+          coach_id?: string
+          id?: string
+          is_claimed?: boolean | null
+          unlocked_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_achievements_unlocked_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "coach_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_avatar_equipped: {
         Row: {
           avatar_item_id: string

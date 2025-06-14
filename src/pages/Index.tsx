@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -23,6 +22,7 @@ import { CXPEarnActions } from "@/components/cxp/CXPEarnActions";
 import { CTKEarnActions } from "@/components/ctk/CTKEarnActions";
 import { CTKStore } from "@/components/ctk/CTKStore";
 import { CTKTransactionHistory } from "@/components/ctk/CTKTransactionHistory";
+import { CoachAchievementsDisplay } from "@/components/achievements/CoachAchievementsDisplay";
 
 const Index = () => {
   const { user } = useAuth();
@@ -166,7 +166,7 @@ const Index = () => {
           {/* Activity Logs */}
           <PlayerActivityLogs
             hpActivities={hpActivities}
-            xpActivities={xpActivities}
+            xpActivities={transactions}
             transactions={transactions}
             hpLoading={hpLoading}
             xpLoading={xpLoading}
@@ -180,6 +180,9 @@ const Index = () => {
         <>
           {/* Coach Avatar Customization */}
           <CoachAvatarCustomization />
+
+          {/* Coach Achievements */}
+          <CoachAchievementsDisplay />
 
           {/* CXP Earning Actions */}
           <CXPEarnActions />
