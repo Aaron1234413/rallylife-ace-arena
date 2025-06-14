@@ -27,6 +27,7 @@ export function useTrainingPlans() {
 
 export function useCreateTrainingPlan() {
   const queryClient = useQueryClient();
+  const { user } = useAuth();
   
   return useMutation({
     mutationFn: async (planData: {
@@ -38,9 +39,14 @@ export function useCreateTrainingPlan() {
       equipment_needed?: string[];
       instructions?: any;
     }) => {
+      if (!user) throw new Error('User not authenticated');
+      
       const { data, error } = await supabase
         .from('training_plans')
-        .insert([planData])
+        .insert([{
+          ...planData,
+          coach_id: user.id
+        }])
         .select()
         .single();
       
@@ -76,7 +82,7 @@ export function useAssignTrainingPlan() {
       });
       
       if (error) throw error;
-      return data;
+      return data as { success: boolean; assignment_id?: string; message?: string; error?: string };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['training-assignments'] });

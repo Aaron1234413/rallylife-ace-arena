@@ -52,6 +52,8 @@ export function AssignTrainingDialog({ trigger }: AssignTrainingDialogProps) {
         setSelectedPlayer('');
         setDueDate(undefined);
         setCoachNotes('');
+      } else {
+        toast.error(result.error || 'Failed to assign training plan');
       }
     } catch (error) {
       console.error('Error assigning training plan:', error);

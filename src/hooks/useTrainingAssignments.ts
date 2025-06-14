@@ -46,7 +46,13 @@ export function useCompleteTrainingAssignment() {
       });
       
       if (error) throw error;
-      return data;
+      return data as { 
+        success: boolean; 
+        xp_earned?: number; 
+        tokens_earned?: number; 
+        coach_crp_earned?: number;
+        error?: string;
+      };
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['training-assignments'] });

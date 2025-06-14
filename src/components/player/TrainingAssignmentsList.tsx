@@ -21,7 +21,9 @@ export function TrainingAssignmentsList() {
       });
       
       if (result.success) {
-        toast.success(`Assignment completed! Earned ${result.xp_earned} XP and ${result.tokens_earned} tokens`);
+        toast.success(`Assignment completed! Earned ${result.xp_earned || 0} XP and ${result.tokens_earned || 0} tokens`);
+      } else {
+        toast.error(result.error || 'Failed to complete assignment');
       }
     } catch (error) {
       console.error('Error completing assignment:', error);
