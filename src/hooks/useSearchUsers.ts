@@ -73,9 +73,9 @@ export function useSearchUsers({ query, userType, filters }: SearchParams) {
 
       // Transform and filter the results
       const transformedResults: SearchResult[] = (data || []).map(user => {
-        const playerProfile = user.player_profiles?.[0];
-        const coachProfile = user.coach_profiles?.[0];
-        const playerXP = user.player_xp?.[0];
+        const playerProfile = Array.isArray(user.player_profiles) ? user.player_profiles[0] : null;
+        const coachProfile = Array.isArray(user.coach_profiles) ? user.coach_profiles[0] : null;
+        const playerXP = Array.isArray(user.player_xp) ? user.player_xp[0] : null;
         
         // Calculate a simple match percentage (placeholder logic)
         const matchPercentage = Math.floor(Math.random() * 40) + 60; // 60-100%
