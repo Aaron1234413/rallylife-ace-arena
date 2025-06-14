@@ -1,4 +1,3 @@
-
 import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
@@ -29,19 +28,14 @@ export function MapView({
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
 
-  // Get token from environment variable
-  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
+  // Use the provided Mapbox token
+  const mapboxToken = 'pk.eyJ1IjoiYWFyb24yMWNhbXBvcyIsImEiOiJjbWJ3ajIyMWoxMXB1MmtwdXQwcTd4eHNqIn0.K6MA2bvtxRxTyH9y9me--w';
 
   useEffect(() => {
     console.log('MapView: Starting initialization...');
     
     if (!mapContainer.current || map.current) {
       console.log('MapView: Skipping - container missing or map already exists');
-      return;
-    }
-
-    if (!mapboxToken) {
-      console.error('MapView: VITE_MAPBOX_TOKEN not found');
       return;
     }
 
