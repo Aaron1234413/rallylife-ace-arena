@@ -10,8 +10,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { MapPin, Loader2, AlertCircle } from 'lucide-react';
-import { Alert, AlertDescription } from '@/components/ui/alert';
+import { MapPin, Loader2 } from 'lucide-react';
 
 export default function Maps() {
   const [isLocationSharing, setIsLocationSharing] = useState(false);
@@ -22,7 +21,6 @@ export default function Maps() {
   const {
     currentLocation,
     locationPermission,
-    isGettingLocation,
     nearbyUsers,
     isLoadingNearby,
     updateLocation,
@@ -59,8 +57,21 @@ export default function Maps() {
   const coachCount = nearbyUsers.filter(user => user.role === 'coach').length;
   const playerCount = nearbyUsers.filter(user => user.role === 'player').length;
 
-  // Show loading state only while actively getting location
-  if (isGettingLocation) {
+  if (locationPermission === 'denied') {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="text-center space-y-4">
+          <MapPin className="h-12 w-12 mx-auto text-muted-foreground" />
+          <h1 className="text-2xl font-bold">Location Access Required</h1>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            To find nearby tennis courts, coaches, and players, please enable location access in your browser settings.
+          </p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!currentLocation) {
     return (
       <div className="container mx-auto p-6">
         <div className="text-center space-y-4">
@@ -84,16 +95,6 @@ export default function Maps() {
           </p>
         </div>
       </div>
-
-      {/* Location Permission Alert */}
-      {locationPermission === 'denied' && (
-        <Alert>
-          <AlertCircle className="h-4 w-4" />
-          <AlertDescription>
-            Location access is disabled. You can still search for places and use the map, but nearby user features won't be available.
-          </AlertDescription>
-        </Alert>
-      )}
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Controls Panel */}
@@ -138,10 +139,7 @@ export default function Maps() {
                       ) : nearbyUsers.length === 0 ? (
                         <div className="text-center py-8">
                           <p className="text-sm text-muted-foreground">
-                            {locationPermission === 'denied' 
-                              ? 'Location access required to find nearby users.'
-                              : 'No users found nearby. Try enabling location sharing to see others!'
-                            }
+                            No users found nearby. Try enabling location sharing to see others!
                           </p>
                         </div>
                       ) : (
@@ -177,27 +175,15 @@ export default function Maps() {
         <div className="lg:col-span-2">
           <Card className="h-[600px]">
             <CardContent className="p-0 h-full">
-              {currentLocation ? (
-                <MapView
-                  center={currentLocation}
-                  nearbyUsers={nearbyUsers}
-                  places={searchResults}
-                  selectedPlace={selectedPlace}
-                  onUserClick={handleUserClick}
-                  onPlaceClick={handlePlaceClick}
-                  onMapClick={(lat, lng) => console.log('Map clicked:', lat, lng)}
-                />
-              ) : (
-                <div className="flex items-center justify-center h-full">
-                  <div className="text-center space-y-4">
-                    <MapPin className="h-12 w-12 mx-auto text-muted-foreground" />
-                    <h3 className="text-lg font-semibold">Map Unavailable</h3>
-                    <p className="text-sm text-muted-foreground">
-                      Unable to load map. Please check your internet connection and try again.
-                    </p>
-                  </div>
-                </div>
-              )}
+              <MapView
+                center={currentLocation}
+                nearbyUsers={nearbyUsers}
+                places={searchResults}
+                selectedPlace={selectedPlace}
+                onUserClick={handleUserClick}
+                onPlaceClick={handlePlaceClick}
+                onMapClick={(lat, lng) => console.log('Map clicked:', lat, lng)}
+              />
             </CardContent>
           </Card>
         </div>
