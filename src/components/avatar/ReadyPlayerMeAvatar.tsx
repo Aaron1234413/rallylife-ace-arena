@@ -28,18 +28,11 @@ export function ReadyPlayerMeAvatar({
     const handleMessage = (event: MessageEvent) => {
       if (event.data?.source !== 'readyplayerme') return;
       
-      console.log('Ready Player Me event:', event.data);
-
-      // Handle avatar export - this is the key event from the guide
+      // Handle avatar selection
       if (event.data.eventName === 'v1.avatar.exported') {
-        const avatarUrl = event.data.data.url;
-        console.log('Avatar exported:', avatarUrl);
-        
-        // Extract avatar ID from the URL for storage
-        const avatarId = avatarUrl.split('/').pop()?.replace('.glb', '');
-        if (avatarId && onAvatarChange) {
-          onAvatarChange(avatarId);
-        }
+        const newAvatarUrl = event.data.data.url;
+        console.log('New avatar created:', newAvatarUrl);
+        onAvatarChange?.(newAvatarUrl);
       }
     };
 
@@ -47,18 +40,13 @@ export function ReadyPlayerMeAvatar({
     return () => window.removeEventListener('message', handleMessage);
   }, [onAvatarChange]);
 
-  // If we have an avatar URL, display it using Ready Player Me's web viewer
+  // If we have an avatar URL, display the avatar
   if (avatarUrl) {
-    // Use the full avatar ID to create the proper display URL
-    const displayUrl = avatarUrl.includes('http') 
-      ? avatarUrl 
-      : `https://models.readyplayer.me/${avatarUrl}?morphTargets=ARKit,Oculus%20Visemes&textureAtlas=1024&lod=1`;
-
     return (
       <div className={`${sizeClasses[size]} ${className}`}>
         <iframe
           ref={iframeRef}
-          src={displayUrl}
+          src={`https://models.readyplayer.me/${avatarUrl}?morphTargets=ARKit,Oculus Visemes&textureAtlas=1024&lod=0`}
           className="w-full h-full rounded-full border-2 border-tennis-green-light"
           allow="camera *; microphone *"
           title="Ready Player Me Avatar"
@@ -67,7 +55,7 @@ export function ReadyPlayerMeAvatar({
     );
   }
 
-  // Avatar creation interface - following the guide's iframe approach
+  // Avatar creation interface
   return (
     <div className={`${sizeClasses[size]} ${className}`}>
       <iframe

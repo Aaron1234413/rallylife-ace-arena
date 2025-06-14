@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -53,8 +52,6 @@ export function usePlayerAvatar() {
   const [ownedItems, setOwnedItems] = useState<PlayerAvatarItem[]>([]);
   const [equippedItems, setEquippedItems] = useState<EquippedItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const [equipItemLoading, setEquipItemLoading] = useState(false);
-  const [purchaseItemLoading, setPurchaseItemLoading] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -146,7 +143,6 @@ export function usePlayerAvatar() {
     if (!user) return;
 
     try {
-      setPurchaseItemLoading(true);
       const { data, error } = await supabase.rpc('purchase_avatar_item', {
         user_id: user.id,
         item_id: itemId
@@ -171,8 +167,6 @@ export function usePlayerAvatar() {
       console.error('Error:', error);
       toast.error('Failed to purchase item');
       return { success: false, error: 'Purchase failed' };
-    } finally {
-      setPurchaseItemLoading(false);
     }
   };
 
@@ -180,7 +174,6 @@ export function usePlayerAvatar() {
     if (!user) return;
 
     try {
-      setEquipItemLoading(true);
       const { data, error } = await supabase.rpc('equip_avatar_item', {
         user_id: user.id,
         item_id: itemId
@@ -205,8 +198,6 @@ export function usePlayerAvatar() {
       console.error('Error:', error);
       toast.error('Failed to equip item');
       return { success: false, error: 'Equip failed' };
-    } finally {
-      setEquipItemLoading(false);
     }
   };
 
@@ -274,12 +265,9 @@ export function usePlayerAvatar() {
 
   return {
     allItems,
-    availableItems: allItems, // Alias for backward compatibility
     ownedItems,
     equippedItems,
     loading,
-    equipItemLoading,
-    purchaseItemLoading,
     initializeAvatar,
     purchaseItem,
     equipItem,

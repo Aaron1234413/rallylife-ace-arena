@@ -25,18 +25,16 @@ export function ReadyPlayerMeCreator({
 
   useEffect(() => {
     const handleMessage = (event: MessageEvent) => {
-      // Following the guide - check for readyplayerme source
       if (event.data?.source !== 'readyplayerme') return;
       
-      console.log('Ready Player Me Creator event:', event.data);
+      console.log('Ready Player Me event:', event.data);
 
-      // Handle avatar exported event as per the guide
       if (event.data.eventName === 'v1.avatar.exported') {
-        const avatarUrl = event.data.data.url;
-        console.log('Avatar exported from creator:', avatarUrl);
+        const newAvatarUrl = event.data.data.url;
+        console.log('Avatar exported:', newAvatarUrl);
         
         // Extract the avatar ID from the full URL
-        const avatarId = avatarUrl.split('/').pop()?.replace('.glb', '');
+        const avatarId = newAvatarUrl.split('/').pop()?.replace('.glb', '');
         if (avatarId) {
           onAvatarSaved(avatarId);
           setIsCreating(false);
@@ -48,7 +46,6 @@ export function ReadyPlayerMeCreator({
         }
       }
 
-      // Handle frame ready event
       if (event.data.eventName === 'v1.frame.ready') {
         console.log('Ready Player Me frame is ready');
       }
@@ -84,7 +81,7 @@ export function ReadyPlayerMeCreator({
                 <h4 className="font-medium">Your Current Avatar</h4>
                 <div className="w-32 h-32 mx-auto">
                   <iframe
-                    src={`https://models.readyplayer.me/${currentAvatarUrl}?morphTargets=ARKit,Oculus%20Visemes&textureAtlas=1024&lod=1`}
+                    src={`https://models.readyplayer.me/${currentAvatarUrl}?morphTargets=ARKit,Oculus Visemes&textureAtlas=1024&lod=0`}
                     className="w-full h-full rounded-lg border"
                     title="Current Avatar"
                   />
@@ -118,12 +115,12 @@ export function ReadyPlayerMeCreator({
             <div className="text-sm text-gray-600 space-y-1">
               <p>• Create a personalized 3D avatar</p>
               <p>• Customize appearance and clothing</p>
-              <p>• Professional tennis gear available</p>
+              <p>• Professional coaching items available</p>
             </div>
           </div>
         ) : (
           <div className="space-y-4">
-            {/* Avatar Creator Interface - following the guide's iframe approach */}
+            {/* Avatar Creator Interface */}
             <div className="w-full h-96">
               <iframe
                 ref={iframeRef}

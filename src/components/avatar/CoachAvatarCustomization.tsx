@@ -8,11 +8,12 @@ import { useCoachAvatar } from '@/hooks/useCoachAvatar';
 import { useCoachTokens } from '@/hooks/useCoachTokens';
 import { useCoachCXP } from '@/hooks/useCoachCXP';
 import { CoachAvatarDisplay } from './CoachAvatarDisplay';
-import { UniversalReadyPlayerMe } from './UniversalReadyPlayerMe';
+import { ReadyPlayerMeCreator } from './ReadyPlayerMeCreator';
 import { ShoppingCart, Trophy, Briefcase, Zap, User } from 'lucide-react';
 
 export function CoachAvatarCustomization() {
   const [selectedCategory, setSelectedCategory] = useState('avatar');
+  const [readyPlayerMeUrl, setReadyPlayerMeUrl] = useState<string>('');
 
   const { 
     availableItems, 
@@ -31,7 +32,7 @@ export function CoachAvatarCustomization() {
   const { cxpData } = useCoachCXP();
 
   const categories = [
-    { id: 'avatar', name: '3D Avatar', icon: User },
+    { id: 'avatar', name: 'Avatar', icon: User },
     { id: 'attire', name: 'Attire', icon: Briefcase },
     { id: 'equipment', name: 'Equipment', icon: Zap },
     { id: 'badge', name: 'Badges', icon: Trophy },
@@ -68,6 +69,12 @@ export function CoachAvatarCustomization() {
     purchaseItem(itemId);
   };
 
+  const handleReadyPlayerMeAvatarSaved = (avatarUrl: string) => {
+    setReadyPlayerMeUrl(avatarUrl);
+    // TODO: Save this to the user's profile or coach avatar data
+    console.log('Ready Player Me avatar saved:', avatarUrl);
+  };
+
   if (loading) {
     return (
       <Card>
@@ -99,7 +106,11 @@ export function CoachAvatarCustomization() {
       <CardContent className="space-y-6">
         {/* Avatar Preview */}
         <div className="flex justify-center">
-          <CoachAvatarDisplay size="lg" showItems={true} />
+          <CoachAvatarDisplay 
+            size="lg" 
+            showItems={true} 
+            readyPlayerMeUrl={readyPlayerMeUrl}
+          />
         </div>
 
         {/* Category Tabs */}
@@ -116,9 +127,12 @@ export function CoachAvatarCustomization() {
             })}
           </TabsList>
 
-          {/* 3D Avatar Tab */}
+          {/* Ready Player Me Avatar Tab */}
           <TabsContent value="avatar" className="space-y-4">
-            <UniversalReadyPlayerMe showCreator={true} />
+            <ReadyPlayerMeCreator
+              currentAvatarUrl={readyPlayerMeUrl}
+              onAvatarSaved={handleReadyPlayerMeAvatarSaved}
+            />
           </TabsContent>
 
           {/* Existing category tabs */}
