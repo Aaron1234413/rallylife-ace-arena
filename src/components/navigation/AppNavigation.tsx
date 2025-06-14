@@ -9,8 +9,7 @@ import {
   MessageSquare, 
   Rss,
   LogOut,
-  Users,
-  BarChart3
+  Users
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -25,11 +24,6 @@ export function AppNavigation() {
     { path: '/achievements', label: 'Achievements', icon: Trophy },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
     { path: '/feed', label: 'Feed', icon: Rss },
-  ];
-
-  // Add coach-specific navigation items
-  const coachNavItems = [
-    { path: '/coach-dashboard', label: 'Coach Hub', icon: BarChart3 },
     { path: '/leaderboards', label: 'Leaderboards', icon: Users },
   ];
 
@@ -65,25 +59,6 @@ export function AppNavigation() {
                 </Link>
               );
             })}
-            
-            {/* Coach-specific navigation */}
-            {coachNavItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
-                    isActive(item.path)
-                      ? 'bg-tennis-green-light text-white'
-                      : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gray-100'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
           </div>
 
           {/* Sign Out Button */}
@@ -101,7 +76,7 @@ export function AppNavigation() {
         {/* Mobile Navigation */}
         <div className="md:hidden pb-3 pt-2">
           <div className="flex flex-wrap gap-2">
-            {navItems.concat(coachNavItems).map((item) => {
+            {navItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link

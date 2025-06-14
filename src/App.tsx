@@ -9,7 +9,6 @@ import { AppLayout } from "@/components/layout/AppLayout";
 
 import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
-import CoachDashboard from "@/pages/CoachDashboard";
 import NotFound from "@/pages/NotFound";
 import Onboarding from "@/pages/Onboarding";
 import ProtectedRoute from "@/components/ProtectedRoute";
@@ -38,7 +37,6 @@ function App() {
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
             <Route path="/leaderboards" element={<ProtectedRoute><Leaderboards /></ProtectedRoute>} />
-            <Route path="/coach-dashboard" element={<ProtectedRoute><CoachDashboard /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
