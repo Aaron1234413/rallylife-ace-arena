@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -22,6 +21,8 @@ import { PlayerStatusCard } from '@/components/messages/PlayerStatusCard';
 import { ChallengeCard } from '@/components/messages/ChallengeCard';
 import { AchievementShareCard } from '@/components/messages/AchievementShareCard';
 import { NewConversationDialog } from '@/components/messages/NewConversationDialog';
+import { QuickScheduleCard } from '@/components/messages/QuickScheduleCard';
+import { useAuth } from '@/hooks/useAuth';
 
 export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -37,6 +38,7 @@ export default function Messages() {
   const { xpData, loading: xpLoading } = usePlayerXP();
   const { tokenData, loading: tokensLoading } = usePlayerTokens();
   const { playerAchievements } = usePlayerAchievements();
+  const { user } = useAuth();
 
   const handleConversationSelect = (conversationId: string) => {
     setSelectedConversation(conversationId);
@@ -159,6 +161,14 @@ export default function Messages() {
                   conversationId={selectedConversation}
                   tokenData={tokenData}
                 />
+
+                {/* Quick Schedule Card for coaches */}
+                {user?.user_metadata?.role === 'coach' && (
+                  <QuickScheduleCard
+                    otherUserId={otherParticipant?.id}
+                    conversationId={selectedConversation}
+                  />
+                )}
                 
                 <AchievementShareCard
                   achievements={playerAchievements}

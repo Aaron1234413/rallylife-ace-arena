@@ -1,21 +1,14 @@
 
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { ScrollArea } from '@/components/ui/scroll-area';
-import { Badge } from '@/components/ui/badge';
-import { Plus, Search, Users, MessageSquare } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { MessageSquare, Search } from 'lucide-react';
 import { useProfiles } from '@/hooks/useProfiles';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
@@ -25,22 +18,27 @@ interface NewConversationDialogProps {
 
 export function NewConversationDialog({ children }: NewConversationDialogProps) {
   const [open, setOpen] = useState(false);
+  const [selectedUser, setSelectedUser] = useState('');
   const [searchTerm, setSearchTerm] = useState('');
   const [creating, setCreating] = useState(false);
-  
-  const { data: profiles, isLoading } = useProfiles();
+
+  const { user } = useAuth();
+  const { data: profiles } = useProfiles();
   const queryClient = useQueryClient();
 
   const filteredProfiles = profiles?.filter(profile => 
-    profile.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    profile.email?.toLowerCase().includes(searchTerm.toLowerCase())
+    profile.id !== user?.id &&
+    (profile.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+     profile.email.toLowerCase().includes(searchTerm.toLowerCase()))
   ) || [];
 
-  const handleCreateConversation = async (otherUserId: string, otherUserName: string) => {
+  const handleCreateConversation = async () => {
+    if (!selectedUser || creating) return;
+
     setCreating(true);
     try {
       const { data, error } = await supabase.rpc('create_direct_conversation', {
-        other_user_id: otherUserId
+        other_user_id: selectedUser
       });
 
       if (error) throw error;
@@ -48,12 +46,13 @@ export function NewConversationDialog({ children }: NewConversationDialogProps) 
       // Refresh conversations
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
       
-      toast.success(`Started conversation with ${otherUserName}`);
+      toast.success('Conversation created successfully!');
       setOpen(false);
+      setSelectedUser('');
       setSearchTerm('');
     } catch (error) {
       console.error('Error creating conversation:', error);
-      toast.error('Failed to start conversation. Please try again.');
+      toast.error('Failed to create conversation');
     } finally {
       setCreating(false);
     }
@@ -73,8 +72,9 @@ export function NewConversationDialog({ children }: NewConversationDialogProps) 
         </DialogHeader>
         
         <div className="space-y-4">
+          {/* Search Input */}
           <div className="space-y-2">
-            <Label htmlFor="search">Search users</Label>
+            <Label htmlFor="search">Search Users</Label>
             <div className="relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
               <Input
@@ -87,68 +87,39 @@ export function NewConversationDialog({ children }: NewConversationDialogProps) 
             </div>
           </div>
 
-          <ScrollArea className="h-64">
-            {isLoading ? (
-              <div className="space-y-3">
-                {[...Array(5)].map((_, i) => (
-                  <div key={i} className="flex items-center space-x-3 animate-pulse">
-                    <div className="w-10 h-10 bg-gray-200 rounded-full" />
-                    <div className="flex-1">
-                      <div className="h-4 bg-gray-200 rounded mb-1" />
-                      <div className="h-3 bg-gray-200 rounded w-3/4" />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            ) : filteredProfiles.length === 0 ? (
-              <div className="text-center py-8 text-muted-foreground">
-                <Users className="h-12 w-12 mx-auto mb-4 opacity-50" />
-                <p>No users found</p>
-                <p className="text-sm">Try adjusting your search terms</p>
-              </div>
-            ) : (
-              <div className="space-y-2">
+          {/* User Selection */}
+          <div className="space-y-2">
+            <Label htmlFor="user">Select User</Label>
+            <Select value={selectedUser} onValueChange={setSelectedUser}>
+              <SelectTrigger>
+                <SelectValue placeholder="Choose a user to message..." />
+              </SelectTrigger>
+              <SelectContent>
                 {filteredProfiles.map((profile) => (
-                  <div
-                    key={profile.id}
-                    className="flex items-center justify-between p-3 rounded-lg border hover:bg-muted transition-colors"
-                  >
-                    <div className="flex items-center space-x-3">
-                      <Avatar className="h-10 w-10">
-                        <AvatarImage src={profile.avatar_url || ''} />
-                        <AvatarFallback>
-                          {profile.full_name?.charAt(0) || 'U'}
-                        </AvatarFallback>
-                      </Avatar>
-                      
-                      <div>
-                        <p className="font-medium text-sm">
-                          {profile.full_name || 'Unknown User'}
-                        </p>
-                        <div className="flex items-center gap-2">
-                          <p className="text-xs text-muted-foreground">
-                            {profile.email}
-                          </p>
-                          <Badge variant="outline" className="text-xs">
-                            {profile.role}
-                          </Badge>
-                        </div>
-                      </div>
+                  <SelectItem key={profile.id} value={profile.id}>
+                    <div className="flex items-center gap-2">
+                      <span>{profile.full_name || 'Unnamed User'}</span>
+                      <span className="text-xs text-muted-foreground">({profile.email})</span>
                     </div>
-                    
-                    <Button
-                      size="sm"
-                      onClick={() => handleCreateConversation(profile.id, profile.full_name || 'Unknown User')}
-                      disabled={creating}
-                    >
-                      <Plus className="h-4 w-4 mr-1" />
-                      Chat
-                    </Button>
-                  </div>
+                  </SelectItem>
                 ))}
-              </div>
-            )}
-          </ScrollArea>
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-2 justify-end">
+            <Button variant="outline" onClick={() => setOpen(false)}>
+              Cancel
+            </Button>
+            <Button 
+              onClick={handleCreateConversation}
+              disabled={!selectedUser || creating}
+              className="bg-tennis-green-dark hover:bg-tennis-green-medium"
+            >
+              {creating ? 'Creating...' : 'Start Conversation'}
+            </Button>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
