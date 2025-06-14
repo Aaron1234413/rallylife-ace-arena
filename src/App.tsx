@@ -1,4 +1,3 @@
-
 import {
   QueryClient,
   QueryClientProvider,
@@ -25,23 +24,21 @@ function App() {
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
         <AppLayout>
-          <div className="min-h-screen bg-background">
-            <Toaster />
-            <Routes>
-              <Route path="/auth" element={<Auth />} />
-              <Route path="/auth/login" element={<Auth />} />
-              <Route path="/auth/signup" element={<Auth />} />
-              <Route path="/auth/forgot-password" element={<Auth />} />
-              <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-              <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
-              <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
-              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-              <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
-              <Route path="/leaderboards" element={<ProtectedRoute><Leaderboards /></ProtectedRoute>} />
-              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-              <Route path="*" element={<NotFound />} />
-            </Routes>
-          </div>
+          <Toaster />
+          <Routes>
+            <Route path="/auth" element={<Auth />} />
+            <Route path="/auth/login" element={<Auth />} />
+            <Route path="/auth/signup" element={<Auth />} />
+            <Route path="/auth/forgot-password" element={<Auth />} />
+            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
+            <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
+            <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+            <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+            <Route path="/leaderboards" element={<ProtectedRoute><Leaderboards /></ProtectedRoute>} />
+            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+            <Route path="*" element={<NotFound />} />
+          </Routes>
         </AppLayout>
       </BrowserRouter>
     </QueryClientProvider>
