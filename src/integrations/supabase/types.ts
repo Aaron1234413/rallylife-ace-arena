@@ -645,6 +645,59 @@ export type Database = {
           },
         ]
       }
+      coach_leaderboards: {
+        Row: {
+          calculated_at: string
+          coach_id: string
+          created_at: string
+          id: string
+          leaderboard_type: string
+          metadata: Json | null
+          period_end: string | null
+          period_start: string | null
+          period_type: string
+          rank_position: number
+          score_value: number
+          updated_at: string
+        }
+        Insert: {
+          calculated_at?: string
+          coach_id: string
+          created_at?: string
+          id?: string
+          leaderboard_type: string
+          metadata?: Json | null
+          period_end?: string | null
+          period_start?: string | null
+          period_type?: string
+          rank_position: number
+          score_value: number
+          updated_at?: string
+        }
+        Update: {
+          calculated_at?: string
+          coach_id?: string
+          created_at?: string
+          id?: string
+          leaderboard_type?: string
+          metadata?: Json | null
+          period_end?: string | null
+          period_start?: string | null
+          period_type?: string
+          rank_position?: number
+          score_value?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_leaderboards_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_profiles: {
         Row: {
           bio: string | null
@@ -1437,6 +1490,10 @@ export type Database = {
         }
         Returns: Json
       }
+      calculate_coach_leaderboards: {
+        Args: { leaderboard_type?: string; period_type?: string }
+        Returns: Json
+      }
       calculate_cxp_for_level: {
         Args: { level: number }
         Returns: number
@@ -1518,6 +1575,23 @@ export type Database = {
       get_activity_stats: {
         Args: { user_id: string; days_back?: number }
         Returns: Json
+      }
+      get_coach_leaderboard: {
+        Args: {
+          leaderboard_type?: string
+          period_type?: string
+          limit_count?: number
+          offset_count?: number
+        }
+        Returns: {
+          rank_position: number
+          coach_id: string
+          coach_name: string
+          coach_avatar_url: string
+          score_value: number
+          metadata: Json
+          calculated_at: string
+        }[]
       }
       initialize_coach_avatar: {
         Args: { user_id: string }
