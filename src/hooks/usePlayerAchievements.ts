@@ -233,7 +233,6 @@ export function usePlayerAchievements() {
     }
   };
 
-  // Load initial data
   useEffect(() => {
     const loadData = async () => {
       setLoading(true);
@@ -246,62 +245,54 @@ export function usePlayerAchievements() {
     };
 
     loadData();
-  }, [user?.id]); // Only depend on user ID to prevent unnecessary reruns
 
-  // Set up real-time subscription - separate effect to avoid subscription conflicts
+    // Set up real-time subscription for achievement changes
+    if (user) {
+      const channel = supabase
+        .channel(`achievement-changes-${user.id}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'player_achievements',
+            filter: `player_id=eq.${user.id}`
+          },
+          () => {
+            fetchPlayerAchievements();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'achievement_progress',
+            filter: `player_id=eq.${user.id}`
+          },
+          () => {
+            fetchAchievementProgress();
+          }
+        )
+        .subscribe();
+
+      return () => {
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [user]);
+
+  // Check achievements when user data changes (XP, tokens, etc.)
   useEffect(() => {
-    if (!user?.id) return;
+    if (user && achievements.length > 0 && playerAchievements.length >= 0) {
+      // Small delay to ensure other systems have updated
+      const timer = setTimeout(() => {
+        checkAllAchievements();
+      }, 1000);
 
-    // Create a unique channel name with timestamp to prevent conflicts
-    const channelName = `achievement-changes-${user.id}-${Date.now()}`;
-    
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'player_achievements',
-          filter: `player_id=eq.${user.id}`
-        },
-        () => {
-          fetchPlayerAchievements();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'achievement_progress',
-          filter: `player_id=eq.${user.id}`
-        },
-        () => {
-          fetchAchievementProgress();
-        }
-      );
-
-    // Subscribe to the channel
-    channel.subscribe();
-
-    // Cleanup function
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user?.id]); // Only depend on user ID
-
-  // Check achievements when data changes - separate effect with debouncing
-  useEffect(() => {
-    if (!user?.id || achievements.length === 0 || playerAchievements.length < 0) return;
-
-    // Small delay to ensure other systems have updated and prevent excessive calls
-    const timer = setTimeout(() => {
-      checkAllAchievements();
-    }, 2000);
-
-    return () => clearTimeout(timer);
-  }, [user?.id, achievements.length]); // Minimal dependencies to prevent excessive checking
+      return () => clearTimeout(timer);
+    }
+  }, [user, achievements.length]);
 
   return {
     achievements,
