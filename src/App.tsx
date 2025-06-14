@@ -11,6 +11,7 @@ import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
 import NotFound from "@/pages/NotFound";
 import Onboarding from "@/pages/Onboarding";
+import Search from "@/pages/Search";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Achievements from "@/pages/Achievements";
 import Activities from "@/pages/Activities";
@@ -34,6 +35,7 @@ function App() {
             <Route path="/auth/signup" element={<Auth />} />
             <Route path="/auth/forgot-password" element={<Auth />} />
             <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+            <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
             <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
             <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />

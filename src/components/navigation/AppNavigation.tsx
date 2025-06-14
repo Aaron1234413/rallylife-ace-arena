@@ -11,7 +11,8 @@ import {
   LogOut,
   Users,
   Calendar,
-  MapPin
+  MapPin,
+  Search
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -22,6 +23,7 @@ export function AppNavigation() {
   // Basic navigation items available to all users
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
+    { path: '/search', label: 'Search', icon: Search },
     { path: '/activities', label: 'Activities', icon: Activity },
     { path: '/achievements', label: 'Achievements', icon: Trophy },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
