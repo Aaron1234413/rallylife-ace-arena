@@ -63,7 +63,7 @@ export function useCoachLeaderboards() {
         period_type: periodType
       });
       if (error) throw error;
-      return data as LeaderboardCalculationResult;
+      return data as unknown as LeaderboardCalculationResult;
     },
     onSuccess: (data) => {
       toast({
