@@ -1,8 +1,7 @@
 
-import { useState, useEffect } from 'react';
-import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export interface CoachCXP {
   id: string;
@@ -24,190 +23,116 @@ export interface CXPActivity {
   coach_id: string;
   activity_type: string;
   cxp_earned: number;
-  description: string | null;
-  source_player_id: string | null;
-  metadata: any;
+  description: string;
+  source_player_id?: string;
+  metadata?: any;
   created_at: string;
-}
-
-interface CXPResult {
-  cxp_earned: number;
-  total_cxp: number;
-  current_level: number;
-  level_up: boolean;
-  levels_gained: number;
-  current_cxp_in_level: number;
-  cxp_to_next_level: number;
-  coaching_tier: string;
-  commission_rate: number;
-  tools_unlocked: string[];
-  certifications_unlocked: string[];
 }
 
 export function useCoachCXP() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  const { data: cxpData, isLoading: cxpLoading, error: cxpError } = useQuery({
-    queryKey: ['coach-cxp'],
+  // Get current CXP data
+  const { data: cxpData, isLoading: cxpLoading } = useQuery({
+    queryKey: ["coach_cxp"],
     queryFn: async () => {
-      console.log('Fetching coach CXP data...');
       const { data, error } = await supabase
-        .from('coach_cxp')
-        .select('*')
+        .from("coach_cxp")
+        .select("*")
         .single();
-
-      if (error) {
-        console.error('Error fetching coach CXP:', error);
-        
-        // If no record found (PGRST116), that's expected for new coaches
-        if (error.code === 'PGRST116') {
-          console.log('No CXP record found, will need to initialize');
-          return null;
-        }
-        
-        throw error;
-      }
-
-      console.log('Coach CXP data loaded:', data);
+      if (error) throw error;
       return data as CoachCXP;
     },
   });
 
+  // Get CXP activities
   const { data: activities = [], isLoading: activitiesLoading } = useQuery({
-    queryKey: ['cxp-activities'],
+    queryKey: ["cxp_activities"],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from('cxp_activities')
-        .select('*')
-        .order('created_at', { ascending: false })
+        .from("cxp_activities")
+        .select("*")
+        .order("created_at", { ascending: false })
         .limit(20);
-
-      if (error) {
-        console.error('Error fetching CXP activities:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       return data as CXPActivity[];
     },
   });
 
-  const addCXPMutation = useMutation({
+  // Initialize CXP for new coaches
+  const initializeCXP = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc("initialize_coach_cxp");
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["coach_cxp"] });
+    },
+  });
+
+  // Add CXP
+  const addCXP = useMutation({
     mutationFn: async ({
-      cxpAmount,
+      amount,
       activityType,
       description,
       sourcePlayerId,
-      metadata
+      metadata,
     }: {
-      cxpAmount: number;
+      amount: number;
       activityType: string;
       description?: string;
       sourcePlayerId?: string;
       metadata?: any;
     }) => {
-      const { data, error } = await supabase.rpc('add_cxp', {
+      const { data, error } = await supabase.rpc("add_cxp", {
         user_id: (await supabase.auth.getUser()).data.user?.id,
-        cxp_amount: cxpAmount,
+        cxp_amount: amount,
         activity_type: activityType,
         description,
         source_player_id: sourcePlayerId,
-        metadata
+        metadata,
       });
-
-      if (error) {
-        console.error('Error adding CXP:', error);
-        throw error;
-      }
-
-      // Safely cast the JSON result to CXPResult
-      const result = data as unknown;
-      
-      // Validate it's the expected object structure
-      if (result && typeof result === 'object' && !Array.isArray(result)) {
-        return result as CXPResult;
-      }
-      
-      throw new Error('Invalid response format from add_cxp function');
-    },
-    onSuccess: (result) => {
-      queryClient.invalidateQueries({ queryKey: ['coach-cxp'] });
-      queryClient.invalidateQueries({ queryKey: ['cxp-activities'] });
-      
-      if (result.level_up) {
-        toast({
-          title: "Level Up! 🎉",
-          description: `Congratulations! You've reached level ${result.current_level} (${result.coaching_tier})`,
-        });
-      } else {
-        toast({
-          title: "CXP Earned",
-          description: `+${result.cxp_earned} CXP earned!`,
-        });
-      }
-    },
-    onError: (error) => {
-      console.error('Failed to add CXP:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add CXP. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const initializeCXPMutation = useMutation({
-    mutationFn: async () => {
-      console.log('Initializing coach CXP...');
-      const { data, error } = await supabase.rpc('initialize_coach_cxp', {
-        user_id: (await supabase.auth.getUser()).data.user?.id
-      });
-
-      if (error) {
-        console.error('Error initializing coach CXP:', error);
-        throw error;
-      }
-
+      if (error) throw error;
       return data;
     },
-    onSuccess: () => {
-      console.log('Coach CXP initialized successfully');
-      queryClient.invalidateQueries({ queryKey: ['coach-cxp'] });
-      toast({
-        title: "CXP Initialized",
-        description: "Your coaching experience system is now active!",
-      });
+    onSuccess: (data) => {
+      if (data.level_up) {
+        toast({
+          title: "Level Up!",
+          description: `Congratulations! You've reached CXP level ${data.current_level}!`,
+        });
+      }
+      
+      // Check for new achievements after CXP gain
+      queryClient.invalidateQueries({ queryKey: ["coach_cxp"] });
+      queryClient.invalidateQueries({ queryKey: ["cxp_activities"] });
+      
+      // Trigger achievement check
+      setTimeout(() => {
+        supabase.rpc("check_all_coach_achievements").then(() => {
+          queryClient.invalidateQueries({ queryKey: ["coach_achievements_unlocked"] });
+          queryClient.invalidateQueries({ queryKey: ["coach_achievement_progress"] });
+        });
+      }, 1000);
     },
-    onError: (error) => {
-      console.error('Failed to initialize CXP:', error);
+    onError: (error: any) => {
       toast({
-        title: "Initialization Error",
-        description: "Failed to initialize CXP system. Please try again.",
+        title: "Error",
+        description: error.message || "Failed to add CXP",
         variant: "destructive",
       });
     },
   });
-
-  const initializeCXP = () => {
-    initializeCXPMutation.mutate();
-  };
-
-  // Auto-initialize CXP if no data exists and not currently loading
-  useEffect(() => {
-    if (!cxpLoading && !cxpData && !cxpError && !initializeCXPMutation.isPending) {
-      console.log('Auto-initializing CXP for coach...');
-      initializeCXP();
-    }
-  }, [cxpLoading, cxpData, cxpError, initializeCXPMutation.isPending]);
 
   return {
     cxpData,
     activities,
     loading: cxpLoading || activitiesLoading,
-    addCXP: addCXPMutation.mutate,
-    addCXPLoading: addCXPMutation.isPending,
-    initializeCXP,
-    initializingCXP: initializeCXPMutation.isPending,
-    error: cxpError
+    addCXP: addCXP.mutate,
+    initializeCXP: initializeCXP.mutate,
+    isAddingCXP: addCXP.isPending,
   };
 }

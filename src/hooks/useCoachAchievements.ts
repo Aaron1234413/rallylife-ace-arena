@@ -1,6 +1,7 @@
 
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
+import { useToast } from "@/hooks/use-toast";
 
 export interface CoachAchievement {
   id: string;
@@ -36,6 +37,9 @@ export interface CoachAchievementProgress {
 }
 
 export function useCoachAchievements() {
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
   // All possible coach achievements
   const { data: achievements = [], isLoading: achievementsLoading } = useQuery({
     queryKey: ["coach_achievements"],
@@ -77,10 +81,63 @@ export function useCoachAchievements() {
     },
   });
 
+  // Check all achievements for progress updates
+  const checkAllAchievements = useMutation({
+    mutationFn: async () => {
+      const { data, error } = await supabase.rpc("check_all_coach_achievements");
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data) => {
+      if (data.newly_unlocked > 0) {
+        toast({
+          title: "New Achievement Unlocked!",
+          description: `You've unlocked ${data.newly_unlocked} new achievement${data.newly_unlocked > 1 ? 's' : ''}!`,
+        });
+      }
+      // Refetch achievement data
+      queryClient.invalidateQueries({ queryKey: ["coach_achievements_unlocked"] });
+      queryClient.invalidateQueries({ queryKey: ["coach_achievement_progress"] });
+    },
+  });
+
+  // Claim achievement reward
+  const claimReward = useMutation({
+    mutationFn: async (achievementId: string) => {
+      const { data, error } = await supabase.rpc("claim_coach_achievement_reward", {
+        user_id: (await supabase.auth.getUser()).data.user?.id,
+        achievement_id: achievementId,
+      });
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: (data, achievementId) => {
+      toast({
+        title: "Reward Claimed!",
+        description: `You received ${data.cxp_earned} CXP and ${data.tokens_earned} CTK for ${data.achievement_name}`,
+      });
+      // Refetch achievement data and other stats
+      queryClient.invalidateQueries({ queryKey: ["coach_achievements_unlocked"] });
+      queryClient.invalidateQueries({ queryKey: ["coach_cxp"] });
+      queryClient.invalidateQueries({ queryKey: ["coach_tokens"] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: "Error",
+        description: error.message || "Failed to claim reward",
+        variant: "destructive",
+      });
+    },
+  });
+
   return {
     achievements,
     unlocked,
     progress,
     loading: achievementsLoading || unlockedLoading || progressLoading,
+    checkAllAchievements: checkAllAchievements.mutate,
+    claimReward: claimReward.mutate,
+    isCheckingAchievements: checkAllAchievements.isPending,
+    isClaimingReward: claimReward.isPending,
   };
 }
