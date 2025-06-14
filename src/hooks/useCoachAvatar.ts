@@ -48,6 +48,7 @@ type CoachAvatarResponse = {
 export function useCoachAvatar() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
+  const [initializationAttempted, setInitializationAttempted] = useState(false);
 
   // Fetch all available avatar items
   const { data: availableItems = [], isLoading: itemsLoading } = useQuery({
@@ -225,6 +226,7 @@ export function useCoachAvatar() {
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['coach-avatar-owned'] });
       queryClient.invalidateQueries({ queryKey: ['coach-avatar-equipped'] });
+      setInitializationAttempted(true);
       toast({
         title: "Avatar Initialized",
         description: "Your coaching avatar is now ready!",
@@ -232,6 +234,7 @@ export function useCoachAvatar() {
     },
     onError: (error) => {
       console.error('Failed to initialize avatar:', error);
+      setInitializationAttempted(true);
       toast({
         title: "Error",
         description: "Failed to initialize avatar. Please try again.",
@@ -240,13 +243,25 @@ export function useCoachAvatar() {
     },
   });
 
-  // Auto-initialize if no equipped items exist
+  // Auto-initialize only once when needed
   useEffect(() => {
-    if (!equippedLoading && equippedItems.length === 0 && !initializeAvatarMutation.isPending) {
+    // Only attempt initialization if:
+    // 1. Data has loaded
+    // 2. No equipped items exist
+    // 3. Haven't attempted initialization yet
+    // 4. Not currently initializing
+    if (!equippedLoading && 
+        !ownedLoading && 
+        equippedItems.length === 0 && 
+        ownedItems.length === 0 && 
+        !initializationAttempted &&
+        !initializeAvatarMutation.isPending) {
+      
       console.log('Auto-initializing coach avatar...');
+      setInitializationAttempted(true);
       initializeAvatarMutation.mutate();
     }
-  }, [equippedLoading, equippedItems.length, initializeAvatarMutation.isPending]);
+  }, [equippedLoading, ownedLoading, equippedItems.length, ownedItems.length, initializationAttempted, initializeAvatarMutation.isPending]);
 
   // Check if an item is owned
   const isItemOwned = (itemId: string) => {
@@ -270,7 +285,10 @@ export function useCoachAvatar() {
     equipItemLoading: equipItemMutation.isPending,
     purchaseItem: purchaseItemMutation.mutate,
     purchaseItemLoading: purchaseItemMutation.isPending,
-    initializeAvatar: initializeAvatarMutation.mutate,
+    initializeAvatar: () => {
+      setInitializationAttempted(false);
+      initializeAvatarMutation.mutate();
+    },
     initializingAvatar: initializeAvatarMutation.isPending,
     isItemOwned,
     canUnlockItem,
