@@ -87,7 +87,8 @@ export function useCoachAchievements() {
       const user = await supabase.auth.getUser();
       if (!user.data.user) throw new Error("Not authenticated");
       
-      const { data, error } = await supabase.rpc("check_all_coach_achievements", {
+      // Use generic rpc call
+      const { data, error } = await supabase.rpc('check_all_coach_achievements' as any, {
         user_id: user.data.user.id
       });
       if (error) throw error;
@@ -112,7 +113,8 @@ export function useCoachAchievements() {
       const user = await supabase.auth.getUser();
       if (!user.data.user) throw new Error("Not authenticated");
       
-      const { data, error } = await supabase.rpc("claim_coach_achievement_reward", {
+      // Use generic rpc call
+      const { data, error } = await supabase.rpc('claim_coach_achievement_reward' as any, {
         user_id: user.data.user.id,
         achievement_id: achievementId,
       });
