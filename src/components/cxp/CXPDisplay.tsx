@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
@@ -26,9 +25,9 @@ const tierIcons = {
 };
 
 export function CXPDisplay() {
-  const { cxpData, loading, error, initializeCXP, initializingCXP } = useCoachCXP();
+  const { cxpData, loading, error, initializeCXP, isInitializingCXP } = useCoachCXP();
 
-  if (loading || initializingCXP) {
+  if (loading || isInitializingCXP) {
     return (
       <Card className="border-tennis-green-light">
         <CardHeader>
@@ -41,7 +40,7 @@ export function CXPDisplay() {
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
             <p className="text-tennis-green-medium">
-              {initializingCXP ? 'Setting up your CXP system...' : 'Loading CXP data...'}
+              {isInitializingCXP ? 'Setting up your CXP system...' : 'Loading CXP data...'}
             </p>
           </div>
         </CardContent>
@@ -61,8 +60,8 @@ export function CXPDisplay() {
         <CardContent>
           <div className="space-y-3">
             <p className="text-red-600">Unable to load CXP data</p>
-            <Button onClick={() => initializeCXP()} disabled={initializingCXP}>
-              {initializingCXP ? (
+            <Button onClick={() => initializeCXP()} disabled={isInitializingCXP}>
+              {isInitializingCXP ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Initializing...
@@ -89,8 +88,8 @@ export function CXPDisplay() {
         <CardContent>
           <div className="space-y-3">
             <p className="text-tennis-green-medium">CXP system not initialized yet</p>
-            <Button onClick={() => initializeCXP()} disabled={initializingCXP}>
-              {initializingCXP ? (
+            <Button onClick={() => initializeCXP()} disabled={isInitializingCXP}>
+              {isInitializingCXP ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                   Initializing...

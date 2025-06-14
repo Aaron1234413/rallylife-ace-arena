@@ -61,7 +61,7 @@ export function useCoachCXP() {
   });
 
   // Initialize CXP for new coaches
-  const initializeCXP = useMutation({
+  const { mutate: initializeCXP, isPending: isInitializingCXP } = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.rpc("initialize_coach_cxp");
       if (error) throw error;
@@ -136,8 +136,8 @@ export function useCoachCXP() {
     loading: cxpLoading || activitiesLoading,
     error,
     addCXP: addCXP.mutate,
-    initializeCXP: initializeCXP.mutate,
+    initializeCXP,
     isAddingCXP: addCXP.isPending,
-    isInitializingCXP: initializeCXP.isPending,
+    isInitializingCXP,
   };
 }
