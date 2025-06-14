@@ -14,7 +14,9 @@ interface MapViewProps {
 export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const [mapboxToken] = useState('pk.eyJ1IjoibG92YWJsZS1haS1kZW1vIiwiYSI6ImNsc3N1aHdwczAwODcyaW1sNXRnbXBnMDkifQ.olTbOIEj7OSgniW1JwF6oQ');
+  const markersRef = useRef<mapboxgl.Marker[]>([]);
+  const [isMapLoaded, setIsMapLoaded] = useState(false);
+  const [mapboxToken] = useState('pk.eyJ1IjoiYWFyb24yMWNhbXBvcyIsImEiOiJjbWJ3ajIyMWoxMXB1MmtwdXQwcTd4eHNqIn0.K6MA2bvtxRxTyH9y9me--w');
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -38,6 +40,11 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
       });
     }
 
+    // Set map as loaded when it's ready
+    map.current.on('load', () => {
+      setIsMapLoaded(true);
+    });
+
     return () => {
       map.current?.remove();
     };
@@ -45,17 +52,19 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
 
   // Update markers when nearby users change
   useEffect(() => {
-    if (!map.current) return;
+    if (!map.current || !isMapLoaded) return;
 
     // Clear existing markers
-    const existingMarkers = document.querySelectorAll('.user-marker');
-    existingMarkers.forEach(marker => marker.remove());
+    markersRef.current.forEach(marker => marker.remove());
+    markersRef.current = [];
 
     // Add current user marker
     const currentUserMarker = new mapboxgl.Marker({ color: '#10b981' })
       .setLngLat([center.lng, center.lat])
       .setPopup(new mapboxgl.Popup().setHTML('<div>Your Location</div>'))
       .addTo(map.current);
+
+    markersRef.current.push(currentUserMarker);
 
     // Add nearby users markers
     nearbyUsers.forEach(user => {
@@ -79,7 +88,7 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
         onUserClick?.(user);
       });
       
-      marker.getElement().classList.add('user-marker');
+      markersRef.current.push(marker);
     });
 
     // Fit bounds to show all markers
@@ -91,7 +100,7 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
       });
       map.current.fitBounds(bounds, { padding: 50 });
     }
-  }, [nearbyUsers, center, onUserClick]);
+  }, [nearbyUsers, center, onUserClick, isMapLoaded]);
 
   return (
     <div className="relative w-full h-full">
