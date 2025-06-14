@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
@@ -10,10 +9,11 @@ import Achievements from './pages/Achievements';
 import Leaderboards from './pages/Leaderboards';
 import Messages from './pages/Messages';
 import NotFound from './pages/NotFound';
-import { AppLayout } from './components/layout/AppLayout';
-import ProtectedRoute from './components/ProtectedRoute';
+import AppLayout from './components/layout/AppLayout';
+import ProtectedRoute from './components/auth/ProtectedRoute';
 import Onboarding from './pages/Onboarding';
 import Feed from './pages/Feed';
+
 import Scheduling from './pages/Scheduling';
 
 const queryClient = new QueryClient({
