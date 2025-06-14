@@ -176,7 +176,7 @@ const Index = () => {
           {/* Activity Logs */}
           <PlayerActivityLogs
             hpActivities={hpActivities}
-            xpActivities={transactions}
+            xpActivities={xpActivities}
             transactions={transactions}
             hpLoading={hpLoading}
             xpLoading={xpLoading}

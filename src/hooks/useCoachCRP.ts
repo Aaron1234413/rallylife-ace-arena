@@ -50,6 +50,30 @@ export function useCoachCRP(coachId?: string) {
     enabled: !!(coachId || user?.id)
   });
 
+  const initializeCRP = useMutation({
+    mutationFn: async () => {
+      const id = user?.id;
+      if (!id) throw new Error('No user ID provided');
+
+      const { data, error } = await supabase
+        .from('coach_crp')
+        .insert({
+          coach_id: id,
+          current_crp: 100,
+          total_crp_earned: 100
+        })
+        .select()
+        .single();
+
+      if (error) throw error;
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['coach-crp'] });
+      queryClient.invalidateQueries({ queryKey: ['crp-activities'] });
+    }
+  });
+
   const submitFeedbackMutation = useMutation({
     mutationFn: async ({ 
       coachId, 
@@ -83,6 +107,7 @@ export function useCoachCRP(coachId?: string) {
     crpActivities,
     isLoading,
     activitiesLoading,
+    initializeCRP: initializeCRP.mutateAsync,
     submitFeedback: submitFeedbackMutation.mutate,
     isSubmittingFeedback: submitFeedbackMutation.isPending
   };
