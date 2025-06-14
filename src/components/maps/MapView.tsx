@@ -16,7 +16,7 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [mapboxToken] = useState('pk.eyJ1IjoiYWFyb24yMWNhbXBvcyIsImEiOiJjbWJ3ajIyMWoxMXB1MmtwdXQwcTd4eHNqIn0.K6MA2bvtxRxTyH9y9me--w');
+  const [mapboxToken] = useState(import.meta.env.VITE_MAPBOX_TOKEN || '');
 
   useEffect(() => {
     console.log('MapView: Initializing with token:', mapboxToken);
@@ -24,6 +24,11 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
     console.log('MapView: Map container ref:', mapContainer.current);
     
     if (!mapContainer.current || map.current) return;
+
+    if (!mapboxToken) {
+      console.error('MapView: No Mapbox token found in environment variables');
+      return;
+    }
 
     try {
       mapboxgl.accessToken = mapboxToken;
@@ -124,6 +129,19 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
       map.current.fitBounds(bounds, { padding: 50 });
     }
   }, [nearbyUsers, center, onUserClick, isMapLoaded]);
+
+  if (!mapboxToken) {
+    return (
+      <div className="flex items-center justify-center h-full bg-gray-100 rounded-lg">
+        <div className="text-center p-4">
+          <p className="text-red-600 font-medium">Mapbox Token Missing</p>
+          <p className="text-sm text-gray-600 mt-1">
+            Please add VITE_MAPBOX_TOKEN to your .env.local file
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="relative w-full h-full">
