@@ -15,38 +15,55 @@ export interface PlaceResult {
   types: string[];
   rating?: number;
   photos?: any[];
+  price_level?: number;
+  opening_hours?: {
+    open_now: boolean;
+  };
 }
 
 export function useGooglePlaces() {
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<PlaceResult[]>([]);
 
-  const searchPlaces = async (query: string, location?: { lat: number; lng: number }, type: string = 'tennis') => {
+  const searchPlaces = async (query: string, location?: { lat: number; lng: number }, radius: number = 5000) => {
     setIsSearching(true);
     try {
-      // This will be implemented with Google Places API
-      // For now, return mock data
-      const mockResults: PlaceResult[] = [
-        {
-          place_id: 'mock_1',
-          name: 'Central Tennis Club',
-          formatted_address: '123 Tennis St, City, State',
-          geometry: {
-            location: {
-              lat: location?.lat || 40.7128,
-              lng: location?.lng || -74.0060
-            }
-          },
-          types: ['establishment', 'point_of_interest'],
-          rating: 4.5
-        }
-      ];
+      console.log('Searching for places:', { query, location, radius });
       
-      setSearchResults(mockResults);
-      toast.success(`Found ${mockResults.length} tennis facilities`);
+      // Call our edge function that will handle the Google Places API request
+      const response = await fetch('/api/google-places-search', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          query,
+          location,
+          radius,
+          type: 'establishment' // You can make this configurable
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      const results = data.results || [];
+      setSearchResults(results);
+      toast.success(`Found ${results.length} places`);
+      
+      return results;
     } catch (error) {
       console.error('Places search error:', error);
-      toast.error('Failed to search for places');
+      toast.error('Failed to search for places. Please try again.');
+      setSearchResults([]);
+      return [];
     } finally {
       setIsSearching(false);
     }
@@ -54,21 +71,29 @@ export function useGooglePlaces() {
 
   const getPlaceDetails = async (placeId: string) => {
     try {
-      // This will be implemented with Google Places API
-      // For now, return mock data
-      return {
-        place_id: placeId,
-        name: 'Tennis Court Details',
-        formatted_address: '123 Tennis St, City, State',
-        geometry: { location: { lat: 40.7128, lng: -74.0060 } },
-        types: ['establishment'],
-        rating: 4.5,
-        opening_hours: {
-          open_now: true,
-          weekday_text: ['Monday: 6:00 AM – 10:00 PM']
+      console.log('Getting place details for:', placeId);
+      
+      const response = await fetch('/api/google-place-details', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
         },
-        formatted_phone_number: '(555) 123-4567'
-      };
+        body: JSON.stringify({
+          place_id: placeId
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const data = await response.json();
+      
+      if (data.error) {
+        throw new Error(data.error);
+      }
+
+      return data.result;
     } catch (error) {
       console.error('Place details error:', error);
       toast.error('Failed to get place details');
@@ -76,10 +101,15 @@ export function useGooglePlaces() {
     }
   };
 
+  const clearResults = () => {
+    setSearchResults([]);
+  };
+
   return {
     searchResults,
     isSearching,
     searchPlaces,
     getPlaceDetails,
+    clearResults,
   };
 }

@@ -1,19 +1,22 @@
 
 import React, { useState } from 'react';
 import { useUserLocation } from '@/hooks/useUserLocation';
-import { useGooglePlaces } from '@/hooks/useGooglePlaces';
+import { useGooglePlaces, PlaceResult } from '@/hooks/useGooglePlaces';
 import { MapView } from '@/components/maps/MapView';
 import { UserLocationCard } from '@/components/maps/UserLocationCard';
 import { LocationControls } from '@/components/maps/LocationControls';
+import { PlacesList } from '@/components/maps/PlacesList';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { MapPin, Loader2 } from 'lucide-react';
 
 export default function Maps() {
   const [isLocationSharing, setIsLocationSharing] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedUser, setSelectedUser] = useState(null);
+  const [selectedPlace, setSelectedPlace] = useState<PlaceResult | null>(null);
 
   const {
     currentLocation,
@@ -24,7 +27,7 @@ export default function Maps() {
     isUpdatingLocation,
   } = useUserLocation();
 
-  const { searchPlaces, isSearching } = useGooglePlaces();
+  const { searchResults, isSearching, searchPlaces, getPlaceDetails, clearResults } = useGooglePlaces();
 
   const handleToggleSharing = (enabled: boolean) => {
     setIsLocationSharing(enabled);
@@ -45,6 +48,10 @@ export default function Maps() {
 
   const handleUserClick = (user: any) => {
     setSelectedUser(user);
+  };
+
+  const handlePlaceClick = (place: PlaceResult) => {
+    setSelectedPlace(place);
   };
 
   const coachCount = nearbyUsers.filter(user => user.role === 'coach').length;
@@ -101,46 +108,65 @@ export default function Maps() {
             nearbyCount={nearbyUsers.length}
             coachCount={coachCount}
             playerCount={playerCount}
+            isSearching={isSearching}
           />
 
-          {/* Nearby Users List */}
+          {/* Results Tabs */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <MapPin className="h-5 w-5" />
-                Nearby Users
+                Results
               </CardTitle>
             </CardHeader>
             <CardContent className="p-0">
-              <ScrollArea className="h-[400px]">
-                <div className="space-y-3 p-4">
-                  {isLoadingNearby ? (
-                    <div className="text-center py-8">
-                      <Loader2 className="h-6 w-6 mx-auto animate-spin" />
-                      <p className="text-sm text-muted-foreground mt-2">
-                        Finding nearby users...
-                      </p>
+              <Tabs defaultValue="users" className="w-full">
+                <TabsList className="grid w-full grid-cols-2">
+                  <TabsTrigger value="users">Users ({nearbyUsers.length})</TabsTrigger>
+                  <TabsTrigger value="places">Places ({searchResults.length})</TabsTrigger>
+                </TabsList>
+                
+                <TabsContent value="users" className="mt-0">
+                  <ScrollArea className="h-[400px]">
+                    <div className="space-y-3 p-4">
+                      {isLoadingNearby ? (
+                        <div className="text-center py-8">
+                          <Loader2 className="h-6 w-6 mx-auto animate-spin" />
+                          <p className="text-sm text-muted-foreground mt-2">
+                            Finding nearby users...
+                          </p>
+                        </div>
+                      ) : nearbyUsers.length === 0 ? (
+                        <div className="text-center py-8">
+                          <p className="text-sm text-muted-foreground">
+                            No users found nearby. Try enabling location sharing to see others!
+                          </p>
+                        </div>
+                      ) : (
+                        nearbyUsers.map((user) => (
+                          <div key={user.user_id}>
+                            <UserLocationCard
+                              user={user}
+                              onMessage={() => console.log('Message', user.full_name)}
+                              onSchedule={() => console.log('Schedule', user.full_name)}
+                            />
+                            <Separator className="mt-3" />
+                          </div>
+                        ))
+                      )}
                     </div>
-                  ) : nearbyUsers.length === 0 ? (
-                    <div className="text-center py-8">
-                      <p className="text-sm text-muted-foreground">
-                        No users found nearby. Try enabling location sharing to see others!
-                      </p>
-                    </div>
-                  ) : (
-                    nearbyUsers.map((user) => (
-                      <div key={user.user_id}>
-                        <UserLocationCard
-                          user={user}
-                          onMessage={() => console.log('Message', user.full_name)}
-                          onSchedule={() => console.log('Schedule', user.full_name)}
-                        />
-                        <Separator className="mt-3" />
-                      </div>
-                    ))
-                  )}
-                </div>
-              </ScrollArea>
+                  </ScrollArea>
+                </TabsContent>
+                
+                <TabsContent value="places" className="mt-0">
+                  <PlacesList 
+                    places={searchResults}
+                    onPlaceClick={handlePlaceClick}
+                    selectedPlace={selectedPlace}
+                    isLoading={isSearching}
+                  />
+                </TabsContent>
+              </Tabs>
             </CardContent>
           </Card>
         </div>
@@ -152,7 +178,10 @@ export default function Maps() {
               <MapView
                 center={currentLocation}
                 nearbyUsers={nearbyUsers}
+                places={searchResults}
+                selectedPlace={selectedPlace}
                 onUserClick={handleUserClick}
+                onPlaceClick={handlePlaceClick}
                 onMapClick={(lat, lng) => console.log('Map clicked:', lat, lng)}
               />
             </CardContent>

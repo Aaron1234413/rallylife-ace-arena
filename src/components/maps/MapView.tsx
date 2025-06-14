@@ -3,29 +3,45 @@ import React, { useEffect, useRef, useState } from 'react';
 import mapboxgl from 'mapbox-gl';
 import 'mapbox-gl/dist/mapbox-gl.css';
 import { UserLocation } from '@/hooks/useUserLocation';
+import { PlaceResult } from '@/hooks/useGooglePlaces';
 
 interface MapViewProps {
   center: { lat: number; lng: number };
   nearbyUsers: UserLocation[];
+  places?: PlaceResult[];
+  selectedPlace?: PlaceResult | null;
   onUserClick?: (user: UserLocation) => void;
+  onPlaceClick?: (place: PlaceResult) => void;
   onMapClick?: (lat: number, lng: number) => void;
 }
 
-export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapViewProps) {
+export function MapView({ 
+  center, 
+  nearbyUsers, 
+  places = [], 
+  selectedPlace,
+  onUserClick, 
+  onPlaceClick,
+  onMapClick 
+}: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
   const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [isMapLoaded, setIsMapLoaded] = useState(false);
-  const [mapboxToken] = useState('pk.eyJ1IjoiYWFyb24yMWNhbXBvcyIsImEiOiJjbWJ3ajIyMWoxMXB1MmtwdXQwcTd4eHNqIn0.K6MA2bvtxRxTyH9y9me--w');
+
+  // Get token from environment variable
+  const mapboxToken = import.meta.env.VITE_MAPBOX_TOKEN as string;
 
   useEffect(() => {
     console.log('MapView: Starting initialization...');
-    console.log('MapView: Token:', mapboxToken);
-    console.log('MapView: Center:', center);
-    console.log('MapView: Container element:', mapContainer.current);
     
     if (!mapContainer.current || map.current) {
       console.log('MapView: Skipping - container missing or map already exists');
+      return;
+    }
+
+    if (!mapboxToken) {
+      console.error('MapView: VITE_MAPBOX_TOKEN not found');
       return;
     }
 
@@ -33,13 +49,6 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
       // Set the access token
       mapboxgl.accessToken = mapboxToken;
       console.log('MapView: Access token set');
-      
-      // Check if WebGL is supported
-      if (!mapboxgl.supported()) {
-        console.error('MapView: WebGL not supported');
-        return;
-      }
-      console.log('MapView: WebGL supported');
       
       console.log('MapView: Creating map instance...');
       map.current = new mapboxgl.Map({
@@ -67,58 +76,17 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
 
       // Map load event
       map.current.on('load', () => {
-        console.log('MapView: Map load event fired');
+        console.log('MapView: Map loaded successfully');
         setIsMapLoaded(true);
-      });
-
-      // Map style load event (more reliable for style loading)
-      map.current.on('style.load', () => {
-        console.log('MapView: Map style loaded');
-      });
-
-      // Map render event
-      map.current.on('render', () => {
-        console.log('MapView: Map render event (tiles loading)');
-      });
-
-      // Map idle event (when map finishes loading/moving)
-      map.current.on('idle', () => {
-        console.log('MapView: Map idle (finished loading)');
       });
 
       // Error events
       map.current.on('error', (e) => {
         console.error('MapView: Map error:', e);
-        console.error('MapView: Error details:', e.error);
-      });
-
-      map.current.on('sourcedataloading', (e) => {
-        console.log('MapView: Source data loading:', e.sourceId);
-      });
-
-      map.current.on('sourcedata', (e) => {
-        console.log('MapView: Source data loaded:', e.sourceId, 'isSourceLoaded:', e.isSourceLoaded);
-      });
-
-      map.current.on('tiledataloading', (e) => {
-        console.log('MapView: Tile data loading');
-      });
-
-      map.current.on('data', (e) => {
-        console.log('MapView: Data event:', e.dataType);
-      });
-
-      // Check map container dimensions
-      const containerRect = mapContainer.current.getBoundingClientRect();
-      console.log('MapView: Container dimensions:', {
-        width: containerRect.width,
-        height: containerRect.height,
-        visible: containerRect.width > 0 && containerRect.height > 0
       });
 
     } catch (error) {
       console.error('MapView: Error during map creation:', error);
-      console.error('MapView: Error stack:', error.stack);
     }
 
     return () => {
@@ -131,40 +99,19 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
     };
   }, [center, mapboxToken, onMapClick]);
 
-  // Update markers when nearby users change
+  // Update markers when users or places change
   useEffect(() => {
-    console.log('MapView: Marker update effect triggered');
-    console.log('MapView: Map exists:', !!map.current);
-    console.log('MapView: Map loaded:', isMapLoaded);
-    console.log('MapView: Nearby users count:', nearbyUsers.length);
-
-    if (!map.current) {
-      console.log('MapView: Skipping marker update - no map instance');
+    if (!map.current || !isMapLoaded) {
       return;
     }
 
-    if (!isMapLoaded) {
-      console.log('MapView: Skipping marker update - map not loaded yet');
-      // Try to force load check
-      if (map.current.loaded()) {
-        console.log('MapView: Map.loaded() returns true, setting isMapLoaded');
-        setIsMapLoaded(true);
-        return;
-      }
-      return;
-    }
-
-    console.log('MapView: Updating markers for', nearbyUsers.length, 'users');
+    console.log('MapView: Updating markers for', nearbyUsers.length, 'users and', places.length, 'places');
 
     // Clear existing markers
-    markersRef.current.forEach(marker => {
-      console.log('MapView: Removing existing marker');
-      marker.remove();
-    });
+    markersRef.current.forEach(marker => marker.remove());
     markersRef.current = [];
 
     // Add current user marker
-    console.log('MapView: Adding current user marker at:', [center.lng, center.lat]);
     const currentUserMarker = new mapboxgl.Marker({ color: '#10b981' })
       .setLngLat([center.lng, center.lat])
       .setPopup(new mapboxgl.Popup().setHTML('<div>Your Location</div>'))
@@ -173,9 +120,8 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
     markersRef.current.push(currentUserMarker);
 
     // Add nearby users markers
-    nearbyUsers.forEach((user, index) => {
+    nearbyUsers.forEach((user) => {
       const markerColor = user.role === 'coach' ? '#3b82f6' : '#f59e0b';
-      console.log(`MapView: Adding marker ${index + 1} for ${user.full_name} at:`, [user.longitude, user.latitude]);
       
       const marker = new mapboxgl.Marker({ color: markerColor })
         .setLngLat([user.longitude, user.latitude])
@@ -192,42 +138,72 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
 
       // Add click handler for user markers
       marker.getElement().addEventListener('click', () => {
-        console.log('MapView: User marker clicked:', user.full_name);
         onUserClick?.(user);
       });
       
       markersRef.current.push(marker);
     });
 
-    // Fit bounds to show all markers
-    if (nearbyUsers.length > 0) {
-      console.log('MapView: Fitting bounds to show all markers');
+    // Add place markers
+    places.forEach((place) => {
+      const isSelected = selectedPlace?.place_id === place.place_id;
+      const markerColor = isSelected ? '#dc2626' : '#8b5cf6';
+      
+      const marker = new mapboxgl.Marker({ color: markerColor })
+        .setLngLat([place.geometry.location.lng, place.geometry.location.lat])
+        .setPopup(
+          new mapboxgl.Popup().setHTML(`
+            <div class="p-3 max-w-xs">
+              <h3 class="font-semibold text-sm">${place.name}</h3>
+              <p class="text-xs text-gray-600 mt-1">${place.formatted_address}</p>
+              ${place.rating ? `
+                <div class="flex items-center gap-1 mt-2 text-xs">
+                  <span class="text-yellow-500">★</span>
+                  <span>${place.rating}</span>
+                </div>
+              ` : ''}
+              ${place.types.length > 0 ? `
+                <div class="mt-2">
+                  <span class="text-xs text-gray-500">${place.types[0].replace(/_/g, ' ')}</span>
+                </div>
+              ` : ''}
+            </div>
+          `)
+        )
+        .addTo(map.current!);
+
+      // Add click handler for place markers
+      marker.getElement().addEventListener('click', () => {
+        onPlaceClick?.(place);
+      });
+      
+      markersRef.current.push(marker);
+    });
+
+    // Fit bounds to show all markers if we have any
+    if (nearbyUsers.length > 0 || places.length > 0) {
       const bounds = new mapboxgl.LngLatBounds();
       bounds.extend([center.lng, center.lat]);
+      
       nearbyUsers.forEach(user => {
         bounds.extend([user.longitude, user.latitude]);
       });
+      
+      places.forEach(place => {
+        bounds.extend([place.geometry.location.lng, place.geometry.location.lat]);
+      });
+      
       map.current.fitBounds(bounds, { padding: 50 });
     }
-  }, [nearbyUsers, center, onUserClick, isMapLoaded]);
+  }, [nearbyUsers, places, selectedPlace, center, onUserClick, onPlaceClick, isMapLoaded]);
 
   return (
     <div className="relative w-full h-full">
       <div 
         ref={mapContainer} 
         className="absolute inset-0 rounded-lg w-full h-full" 
-        style={{ 
-          minHeight: '400px',
-          background: '#f0f0f0' // Temporary background to see if container is visible
-        }} 
+        style={{ minHeight: '400px' }} 
       />
-      
-      {/* Debug info */}
-      <div className="absolute bottom-4 left-4 bg-black/70 text-white p-2 rounded text-xs">
-        <div>Map Loaded: {isMapLoaded ? 'Yes' : 'No'}</div>
-        <div>Map Instance: {map.current ? 'Yes' : 'No'}</div>
-        <div>Users: {nearbyUsers.length}</div>
-      </div>
       
       {/* Map Legend */}
       <div className="absolute top-4 left-4 bg-white p-3 rounded-lg shadow-md">
@@ -244,6 +220,14 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
           <div className="flex items-center gap-2">
             <div className="w-3 h-3 bg-amber-500 rounded-full"></div>
             <span>Players</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-purple-500 rounded-full"></div>
+            <span>Places</span>
+          </div>
+          <div className="flex items-center gap-2">
+            <div className="w-3 h-3 bg-red-600 rounded-full"></div>
+            <span>Selected Place</span>
           </div>
         </div>
       </div>
