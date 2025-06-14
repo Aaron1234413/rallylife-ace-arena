@@ -33,13 +33,15 @@ export function useUserLocation() {
   const queryClient = useQueryClient();
   const [currentLocation, setCurrentLocation] = useState<{lat: number; lng: number} | null>(null);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
+  const [isGettingLocation, setIsGettingLocation] = useState(false);
 
-  // Get current user's location
+  // Get current user's location with better error handling
   useEffect(() => {
     console.log('useUserLocation: Checking geolocation support');
     
     if ('geolocation' in navigator) {
       console.log('useUserLocation: Geolocation is supported, requesting position');
+      setIsGettingLocation(true);
       
       navigator.geolocation.getCurrentPosition(
         (position) => {
@@ -49,6 +51,7 @@ export function useUserLocation() {
             lng: position.coords.longitude
           });
           setLocationPermission('granted');
+          setIsGettingLocation(false);
           toast.success('Location access granted');
         },
         (error) => {
@@ -56,25 +59,34 @@ export function useUserLocation() {
           console.log('useUserLocation: Error code:', error.code);
           console.log('useUserLocation: Error message:', error.message);
           
-          // Only set permission to 'denied' if it's actually a permission error
+          setIsGettingLocation(false);
+          
           if (error.code === error.PERMISSION_DENIED) {
             setLocationPermission('denied');
-            toast.error('Location access denied. Please enable location services to use this feature.');
-          } else if (error.code === error.POSITION_UNAVAILABLE) {
-            toast.error('Location information is unavailable. Please try again.');
-          } else if (error.code === error.TIMEOUT) {
-            toast.error('Location request timed out. Please try again.');
+            toast.error('Location access denied. You can still use the map with manual search.');
           } else {
-            // For other errors, don't change permission status
-            toast.error('Unable to get your location. Please try again.');
+            // For other errors (position unavailable, timeout), provide a default location
+            console.log('useUserLocation: Using fallback location (New York City)');
+            setCurrentLocation({
+              lat: 40.7128,
+              lng: -74.0060
+            });
+            setLocationPermission('granted');
+            toast.info('Using default location. Enable location services for accurate results.');
           }
         },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
+        { enableHighAccuracy: true, timeout: 15000, maximumAge: 300000 }
       );
     } else {
       console.log('useUserLocation: Geolocation is not supported');
       setLocationPermission('denied');
-      toast.error('Geolocation is not supported by this browser.');
+      setIsGettingLocation(false);
+      // Provide fallback location
+      setCurrentLocation({
+        lat: 40.7128,
+        lng: -74.0060
+      });
+      toast.error('Geolocation not supported. Using default location.');
     }
   }, []);
 
@@ -175,6 +187,7 @@ export function useUserLocation() {
   return {
     currentLocation,
     locationPermission,
+    isGettingLocation,
     nearbyUsers: nearbyUsers || [],
     savedPlaces: savedPlaces || [],
     isLoadingNearby,
