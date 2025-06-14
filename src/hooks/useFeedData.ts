@@ -3,6 +3,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
 import { useProfiles } from '@/hooks/useProfiles';
+import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
 interface FeedPost {
@@ -20,6 +21,7 @@ interface FeedPost {
 }
 
 export function useFeedData() {
+  const { user } = useAuth();
   const { activities } = useActivityLogs();
   const { playerAchievements } = usePlayerAchievements();
   const { data: profiles } = useProfiles();
@@ -30,21 +32,25 @@ export function useFeedData() {
   const generateFeedPosts = useMemo(() => {
     const posts: FeedPost[] = [];
     
-    if (activities && profiles) {
-      // Add activity posts
-      activities.forEach(activity => {
-        const userProfile = profiles.find(p => p.id === activity.player_id);
-        if (!userProfile) return;
+    if (activities && profiles && user) {
+      // Get current user profile
+      const currentUserProfile = profiles.find(p => p.id === user.id) || {
+        id: user.id,
+        full_name: user.email?.split('@')[0] || 'Unknown Player',
+        avatar_url: undefined
+      };
 
+      // Add activity posts - these are from the current user
+      activities.forEach(activity => {
         // Check if it's a level up activity (based on XP earned)
         if (activity.xp_earned > 0 && activity.xp_earned >= 100) {
           posts.push({
             id: `levelup-${activity.id}`,
             type: 'level_up',
             user: {
-              id: userProfile.id,
-              full_name: userProfile.full_name || 'Unknown Player',
-              avatar_url: userProfile.avatar_url || undefined,
+              id: currentUserProfile.id,
+              full_name: currentUserProfile.full_name || 'Unknown Player',
+              avatar_url: currentUserProfile.avatar_url || undefined,
             },
             timestamp: activity.logged_at,
             content: {
@@ -61,9 +67,9 @@ export function useFeedData() {
             id: `match-${activity.id}`,
             type: 'match_result',
             user: {
-              id: userProfile.id,
-              full_name: userProfile.full_name || 'Unknown Player',
-              avatar_url: userProfile.avatar_url || undefined,
+              id: currentUserProfile.id,
+              full_name: currentUserProfile.full_name || 'Unknown Player',
+              avatar_url: currentUserProfile.avatar_url || undefined,
             },
             timestamp: activity.logged_at,
             content: {
@@ -80,18 +86,23 @@ export function useFeedData() {
     }
 
     // Add achievement posts
-    if (playerAchievements && profiles) {
+    if (playerAchievements && profiles && user) {
+      const currentUserProfile = profiles.find(p => p.id === user.id) || {
+        id: user.id,
+        full_name: user.email?.split('@')[0] || 'Unknown Player',
+        avatar_url: undefined
+      };
+
       playerAchievements.slice(0, 10).forEach(achievement => {
-        const userProfile = profiles.find(p => p.id === achievement.player_id);
-        if (!userProfile || !achievement.achievement) return;
+        if (!achievement.achievement) return;
 
         posts.push({
           id: `achievement-${achievement.id}`,
           type: 'achievement',
           user: {
-            id: userProfile.id,
-            full_name: userProfile.full_name || 'Unknown Player',
-            avatar_url: userProfile.avatar_url || undefined,
+            id: currentUserProfile.id,
+            full_name: currentUserProfile.full_name || 'Unknown Player',
+            avatar_url: currentUserProfile.avatar_url || undefined,
           },
           timestamp: achievement.unlocked_at,
           content: {
@@ -107,7 +118,7 @@ export function useFeedData() {
 
     // Sort by timestamp (most recent first)
     return posts.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
-  }, [activities, playerAchievements, profiles]);
+  }, [activities, playerAchievements, profiles, user]);
 
   useEffect(() => {
     setFeedPosts(generateFeedPosts);
