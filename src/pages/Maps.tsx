@@ -8,8 +8,7 @@ import { LocationControls } from '@/components/maps/LocationControls';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Separator } from '@/components/ui/separator';
-import { Button } from '@/components/ui/button';
-import { MapPin, Loader2, RefreshCw, AlertCircle } from 'lucide-react';
+import { MapPin, Loader2 } from 'lucide-react';
 
 export default function Maps() {
   const [isLocationSharing, setIsLocationSharing] = useState(false);
@@ -19,7 +18,6 @@ export default function Maps() {
   const {
     currentLocation,
     locationPermission,
-    locationError,
     nearbyUsers,
     isLoadingNearby,
     updateLocation,
@@ -49,36 +47,18 @@ export default function Maps() {
     setSelectedUser(user);
   };
 
-  const handleRetryLocation = () => {
-    window.location.reload();
-  };
-
   const coachCount = nearbyUsers.filter(user => user.role === 'coach').length;
   const playerCount = nearbyUsers.filter(user => user.role === 'player').length;
 
-  if (locationPermission === 'denied' || locationError) {
+  if (locationPermission === 'denied') {
     return (
       <div className="container mx-auto p-6">
-        <div className="text-center space-y-6 max-w-md mx-auto">
-          <AlertCircle className="h-12 w-12 mx-auto text-red-500" />
+        <div className="text-center space-y-4">
+          <MapPin className="h-12 w-12 mx-auto text-muted-foreground" />
           <h1 className="text-2xl font-bold">Location Access Required</h1>
-          <div className="space-y-4">
-            <p className="text-muted-foreground">
-              {locationError || 'To find nearby tennis courts, coaches, and players, please enable location access in your browser settings.'}
-            </p>
-            <div className="space-y-2 text-sm text-muted-foreground text-left bg-muted p-4 rounded-lg">
-              <p className="font-medium">To enable location access:</p>
-              <ul className="space-y-1 ml-4">
-                <li>• Click the location icon in your browser's address bar</li>
-                <li>• Select "Allow" for location permissions</li>
-                <li>• Refresh the page after granting permission</li>
-              </ul>
-            </div>
-            <Button onClick={handleRetryLocation} className="w-full">
-              <RefreshCw className="h-4 w-4 mr-2" />
-              Retry Location Access
-            </Button>
-          </div>
+          <p className="text-muted-foreground max-w-md mx-auto">
+            To find nearby tennis courts, coaches, and players, please enable location access in your browser settings.
+          </p>
         </div>
       </div>
     );
@@ -92,9 +72,6 @@ export default function Maps() {
           <h1 className="text-2xl font-bold">Getting Your Location...</h1>
           <p className="text-muted-foreground">
             Please wait while we determine your current location.
-          </p>
-          <p className="text-sm text-muted-foreground">
-            Make sure you've allowed location access when prompted by your browser.
           </p>
         </div>
       </div>

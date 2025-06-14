@@ -14,9 +14,7 @@ interface MapViewProps {
 export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapViewProps) {
   const mapContainer = useRef<HTMLDivElement>(null);
   const map = useRef<mapboxgl.Map | null>(null);
-  const markersRef = useRef<mapboxgl.Marker[]>([]);
   const [mapboxToken] = useState('pk.eyJ1IjoibG92YWJsZS1haS1kZW1vIiwiYSI6ImNsc3N1aHdwczAwODcyaW1sNXRnbXBnMDkifQ.olTbOIEj7OSgniW1JwF6oQ');
-  const [isMapLoaded, setIsMapLoaded] = useState(false);
 
   useEffect(() => {
     if (!mapContainer.current || map.current) return;
@@ -40,28 +38,18 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
       });
     }
 
-    // Set map as loaded when it's ready
-    map.current.on('load', () => {
-      setIsMapLoaded(true);
-    });
-
     return () => {
-      // Clean up markers
-      markersRef.current.forEach(marker => marker.remove());
-      markersRef.current = [];
       map.current?.remove();
-      map.current = null;
-      setIsMapLoaded(false);
     };
   }, [center, mapboxToken, onMapClick]);
 
-  // Update markers when nearby users change - only after map is loaded
+  // Update markers when nearby users change
   useEffect(() => {
-    if (!map.current || !isMapLoaded) return;
+    if (!map.current) return;
 
     // Clear existing markers
-    markersRef.current.forEach(marker => marker.remove());
-    markersRef.current = [];
+    const existingMarkers = document.querySelectorAll('.user-marker');
+    existingMarkers.forEach(marker => marker.remove());
 
     // Add current user marker
     const currentUserMarker = new mapboxgl.Marker({ color: '#10b981' })
@@ -69,12 +57,8 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
       .setPopup(new mapboxgl.Popup().setHTML('<div>Your Location</div>'))
       .addTo(map.current);
 
-    markersRef.current.push(currentUserMarker);
-
     // Add nearby users markers
     nearbyUsers.forEach(user => {
-      if (!map.current) return;
-      
       const markerColor = user.role === 'coach' ? '#3b82f6' : '#f59e0b';
       
       const marker = new mapboxgl.Marker({ color: markerColor })
@@ -88,18 +72,18 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
             </div>
           `)
         )
-        .addTo(map.current);
+        .addTo(map.current!);
 
       // Add click handler for user markers
       marker.getElement().addEventListener('click', () => {
         onUserClick?.(user);
       });
-
-      markersRef.current.push(marker);
+      
+      marker.getElement().classList.add('user-marker');
     });
 
     // Fit bounds to show all markers
-    if (nearbyUsers.length > 0 && map.current) {
+    if (nearbyUsers.length > 0) {
       const bounds = new mapboxgl.LngLatBounds();
       bounds.extend([center.lng, center.lat]);
       nearbyUsers.forEach(user => {
@@ -107,7 +91,7 @@ export function MapView({ center, nearbyUsers, onUserClick, onMapClick }: MapVie
       });
       map.current.fitBounds(bounds, { padding: 50 });
     }
-  }, [nearbyUsers, center, onUserClick, isMapLoaded]);
+  }, [nearbyUsers, center, onUserClick]);
 
   return (
     <div className="relative w-full h-full">
