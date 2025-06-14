@@ -15,7 +15,7 @@ const CoachDashboard = () => {
   const { user } = useAuth();
   const { cxpData, activities: cxpActivities, loading: cxpLoading } = useCoachCXP();
   const { tokenData, transactions, loading: tokensLoading } = useCoachTokens();
-  const { crpData, loading: crpLoading } = useCoachCRP();
+  const { crpData, isLoading: crpLoading } = useCoachCRP();
 
   return (
     <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-4 sm:space-y-6">
