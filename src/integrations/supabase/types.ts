@@ -800,6 +800,159 @@ export type Database = {
         }
         Relationships: []
       }
+      coaching_challenges: {
+        Row: {
+          assigned_date: string
+          challenge_type: string
+          coach_id: string
+          coach_notes: string | null
+          completed_at: string | null
+          created_at: string
+          current_progress: number | null
+          description: string
+          due_date: string | null
+          id: string
+          metadata: Json | null
+          player_id: string
+          player_notes: string | null
+          reward_tokens: number | null
+          reward_xp: number | null
+          status: string
+          target_value: number | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_date?: string
+          challenge_type: string
+          coach_id: string
+          coach_notes?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number | null
+          description: string
+          due_date?: string | null
+          id?: string
+          metadata?: Json | null
+          player_id: string
+          player_notes?: string | null
+          reward_tokens?: number | null
+          reward_xp?: number | null
+          status?: string
+          target_value?: number | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_date?: string
+          challenge_type?: string
+          coach_id?: string
+          coach_notes?: string | null
+          completed_at?: string | null
+          created_at?: string
+          current_progress?: number | null
+          description?: string
+          due_date?: string | null
+          id?: string
+          metadata?: Json | null
+          player_id?: string
+          player_notes?: string | null
+          reward_tokens?: number | null
+          reward_xp?: number | null
+          status?: string
+          target_value?: number | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_challenges_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_challenges_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coaching_requests: {
+        Row: {
+          budget_range: string | null
+          coach_id: string | null
+          created_at: string
+          description: string
+          id: string
+          metadata: Json | null
+          player_id: string
+          preferred_date: string | null
+          request_type: string
+          responded_at: string | null
+          response_message: string | null
+          skills_focus: string[] | null
+          status: string
+          title: string
+          updated_at: string
+          urgency_level: string
+        }
+        Insert: {
+          budget_range?: string | null
+          coach_id?: string | null
+          created_at?: string
+          description: string
+          id?: string
+          metadata?: Json | null
+          player_id: string
+          preferred_date?: string | null
+          request_type: string
+          responded_at?: string | null
+          response_message?: string | null
+          skills_focus?: string[] | null
+          status?: string
+          title: string
+          updated_at?: string
+          urgency_level?: string
+        }
+        Update: {
+          budget_range?: string | null
+          coach_id?: string | null
+          created_at?: string
+          description?: string
+          id?: string
+          metadata?: Json | null
+          player_id?: string
+          preferred_date?: string | null
+          request_type?: string
+          responded_at?: string | null
+          response_message?: string | null
+          skills_focus?: string[] | null
+          status?: string
+          title?: string
+          updated_at?: string
+          urgency_level?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coaching_requests_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coaching_requests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       conversation_participants: {
         Row: {
           conversation_id: string
@@ -1000,6 +1153,90 @@ export type Database = {
           player_id?: string
         }
         Relationships: []
+      }
+      lesson_sessions: {
+        Row: {
+          coach_id: string
+          coach_notes: string | null
+          completed_at: string | null
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          hourly_rate: number | null
+          id: string
+          lesson_plan: Json | null
+          location: string | null
+          player_feedback: string | null
+          player_id: string
+          rating: number | null
+          scheduled_date: string
+          session_type: string
+          skills_focus: string[] | null
+          status: string
+          title: string
+          total_cost: number | null
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          coach_notes?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          hourly_rate?: number | null
+          id?: string
+          lesson_plan?: Json | null
+          location?: string | null
+          player_feedback?: string | null
+          player_id: string
+          rating?: number | null
+          scheduled_date: string
+          session_type?: string
+          skills_focus?: string[] | null
+          status?: string
+          title: string
+          total_cost?: number | null
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          coach_notes?: string | null
+          completed_at?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          hourly_rate?: number | null
+          id?: string
+          lesson_plan?: Json | null
+          location?: string | null
+          player_feedback?: string | null
+          player_id?: string
+          rating?: number | null
+          scheduled_date?: string
+          session_type?: string
+          skills_focus?: string[] | null
+          status?: string
+          title?: string
+          total_cost?: number | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lesson_sessions_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lesson_sessions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       messages: {
         Row: {
@@ -1261,6 +1498,76 @@ export type Database = {
         }
         Relationships: []
       }
+      player_training_assignments: {
+        Row: {
+          assigned_date: string
+          coach_id: string
+          coach_notes: string | null
+          completed_at: string | null
+          completion_percentage: number | null
+          created_at: string
+          due_date: string | null
+          id: string
+          player_feedback: string | null
+          player_id: string
+          status: string
+          training_plan_id: string
+          updated_at: string
+        }
+        Insert: {
+          assigned_date?: string
+          coach_id: string
+          coach_notes?: string | null
+          completed_at?: string | null
+          completion_percentage?: number | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          player_feedback?: string | null
+          player_id: string
+          status?: string
+          training_plan_id: string
+          updated_at?: string
+        }
+        Update: {
+          assigned_date?: string
+          coach_id?: string
+          coach_notes?: string | null
+          completed_at?: string | null
+          completion_percentage?: number | null
+          created_at?: string
+          due_date?: string | null
+          id?: string
+          player_feedback?: string | null
+          player_id?: string
+          status?: string
+          training_plan_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_training_assignments_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_training_assignments_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_training_assignments_training_plan_id_fkey"
+            columns: ["training_plan_id"]
+            isOneToOne: false
+            referencedRelation: "training_plans"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_xp: {
         Row: {
           created_at: string
@@ -1329,6 +1636,75 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      progress_reports: {
+        Row: {
+          attachments: string[] | null
+          coach_id: string
+          coach_responded_at: string | null
+          coach_response: string | null
+          content: string
+          created_at: string
+          id: string
+          metrics: Json | null
+          player_id: string
+          related_assignment_id: string | null
+          related_challenge_id: string | null
+          related_session_id: string | null
+          report_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          attachments?: string[] | null
+          coach_id: string
+          coach_responded_at?: string | null
+          coach_response?: string | null
+          content: string
+          created_at?: string
+          id?: string
+          metrics?: Json | null
+          player_id: string
+          related_assignment_id?: string | null
+          related_challenge_id?: string | null
+          related_session_id?: string | null
+          report_type: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          attachments?: string[] | null
+          coach_id?: string
+          coach_responded_at?: string | null
+          coach_response?: string | null
+          content?: string
+          created_at?: string
+          id?: string
+          metrics?: Json | null
+          player_id?: string
+          related_assignment_id?: string | null
+          related_challenge_id?: string | null
+          related_session_id?: string | null
+          report_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "progress_reports_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "progress_reports_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       token_balances: {
         Row: {
@@ -1401,6 +1777,62 @@ export type Database = {
           transaction_type?: string
         }
         Relationships: []
+      }
+      training_plans: {
+        Row: {
+          coach_id: string
+          created_at: string
+          description: string | null
+          difficulty_level: string
+          equipment_needed: string[] | null
+          estimated_duration_minutes: number | null
+          id: string
+          instructions: Json | null
+          is_active: boolean | null
+          is_template: boolean | null
+          name: string
+          skills_focus: string[] | null
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          description?: string | null
+          difficulty_level?: string
+          equipment_needed?: string[] | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          instructions?: Json | null
+          is_active?: boolean | null
+          is_template?: boolean | null
+          name: string
+          skills_focus?: string[] | null
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          description?: string | null
+          difficulty_level?: string
+          equipment_needed?: string[] | null
+          estimated_duration_minutes?: number | null
+          id?: string
+          instructions?: Json | null
+          is_active?: boolean | null
+          is_template?: boolean | null
+          name?: string
+          skills_focus?: string[] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "training_plans_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       xp_activities: {
         Row: {
@@ -1490,6 +1922,15 @@ export type Database = {
         }
         Returns: Json
       }
+      assign_training_plan: {
+        Args: {
+          player_user_id: string
+          training_plan_id: string
+          due_date?: string
+          coach_notes?: string
+        }
+        Returns: Json
+      }
       calculate_coach_leaderboards: {
         Args: { leaderboard_type?: string; period_type?: string }
         Returns: Json
@@ -1522,11 +1963,28 @@ export type Database = {
         Args: { user_id: string; achievement_id: string }
         Returns: Json
       }
+      complete_training_assignment: {
+        Args: { assignment_id: string; player_feedback?: string }
+        Returns: Json
+      }
       convert_premium_tokens: {
         Args: {
           user_id: string
           premium_amount: number
           conversion_rate?: number
+        }
+        Returns: Json
+      }
+      create_coaching_challenge: {
+        Args: {
+          player_user_id: string
+          challenge_type: string
+          title: string
+          description: string
+          target_value: number
+          due_date?: string
+          reward_xp?: number
+          reward_tokens?: number
         }
         Returns: Json
       }
@@ -1723,6 +2181,19 @@ export type Database = {
           feedback_text?: string
           session_type?: string
           session_date?: string
+        }
+        Returns: Json
+      }
+      submit_progress_report: {
+        Args: {
+          coach_user_id: string
+          report_type: string
+          title: string
+          content: string
+          related_assignment_id?: string
+          related_challenge_id?: string
+          related_session_id?: string
+          metrics?: Json
         }
         Returns: Json
       }
