@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -6,6 +7,7 @@ import { usePlayerAvatar } from "@/hooks/usePlayerAvatar";
 import { usePlayerAchievements } from "@/hooks/usePlayerAchievements";
 import { usePlayerTokens } from "@/hooks/usePlayerTokens";
 import { supabase } from "@/integrations/supabase/client";
+import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
 import { PlayerStatsCards } from "@/components/dashboard/PlayerStatsCards";
 import { PlayerActionCards } from "@/components/dashboard/PlayerActionCards";
@@ -120,6 +122,9 @@ const Index = () => {
 
   return (
     <div className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4 sm:space-y-6">
+      {/* Welcome Banner */}
+      <WelcomeBanner />
+
       {/* Profile Card */}
       <ProfileCard
         profile={profile}

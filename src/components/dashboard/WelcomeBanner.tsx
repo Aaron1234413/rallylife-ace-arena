@@ -1,7 +1,7 @@
 
 import React from 'react';
 
-interface DashboardHeaderProps {
+interface WelcomeBannerProps {
   profile?: any;
   hpData?: any;
   xpData?: any;
@@ -10,14 +10,14 @@ interface DashboardHeaderProps {
   onSignOut?: () => Promise<void>;
 }
 
-export function DashboardHeader({ 
+export function WelcomeBanner({ 
   profile, 
   hpData, 
   xpData, 
   tokenData, 
   equippedItems, 
   onSignOut 
-}: DashboardHeaderProps) {
+}: WelcomeBannerProps) {
   return (
     <div className="text-center mb-6">
       <h1 className="text-2xl font-bold text-tennis-green-dark">
