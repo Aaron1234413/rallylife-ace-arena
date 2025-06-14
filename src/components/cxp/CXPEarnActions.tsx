@@ -6,11 +6,11 @@ import { Users, Target, BookOpen, MessageSquare, Zap } from 'lucide-react';
 import { useCoachCXP } from '@/hooks/useCoachCXP';
 
 export function CXPEarnActions() {
-  const { addCXP, addCXPLoading } = useCoachCXP();
+  const { addCXP, isAddingCXP } = useCoachCXP();
 
   const handleEarnCXP = (amount: number, type: string, description: string) => {
     addCXP({
-      cxpAmount: amount,
+      amount: amount,
       activityType: type,
       description
     });
@@ -82,7 +82,7 @@ export function CXPEarnActions() {
                 <Button
                   size="sm"
                   variant="outline"
-                  disabled={addCXPLoading}
+                  disabled={isAddingCXP}
                   onClick={() => handleEarnCXP(action.cxp, action.type, action.title)}
                   className="text-xs"
                 >

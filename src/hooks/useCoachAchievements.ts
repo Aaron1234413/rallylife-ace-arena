@@ -84,12 +84,17 @@ export function useCoachAchievements() {
   // Check all achievements for progress updates
   const checkAllAchievements = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.rpc("check_all_coach_achievements");
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error("Not authenticated");
+      
+      const { data, error } = await supabase.rpc("check_all_coach_achievements", {
+        user_id: user.data.user.id
+      });
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      if (data.newly_unlocked > 0) {
+    onSuccess: (data: any) => {
+      if (data?.newly_unlocked > 0) {
         toast({
           title: "New Achievement Unlocked!",
           description: `You've unlocked ${data.newly_unlocked} new achievement${data.newly_unlocked > 1 ? 's' : ''}!`,
@@ -104,17 +109,20 @@ export function useCoachAchievements() {
   // Claim achievement reward
   const claimReward = useMutation({
     mutationFn: async (achievementId: string) => {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error("Not authenticated");
+      
       const { data, error } = await supabase.rpc("claim_coach_achievement_reward", {
-        user_id: (await supabase.auth.getUser()).data.user?.id,
+        user_id: user.data.user.id,
         achievement_id: achievementId,
       });
       if (error) throw error;
       return data;
     },
-    onSuccess: (data, achievementId) => {
+    onSuccess: (data: any, achievementId) => {
       toast({
         title: "Reward Claimed!",
-        description: `You received ${data.cxp_earned} CXP and ${data.tokens_earned} CTK for ${data.achievement_name}`,
+        description: `You received ${data?.cxp_earned || 0} CXP and ${data?.tokens_earned || 0} CTK for ${data?.achievement_name || 'achievement'}`,
       });
       // Refetch achievement data and other stats
       queryClient.invalidateQueries({ queryKey: ["coach_achievements_unlocked"] });

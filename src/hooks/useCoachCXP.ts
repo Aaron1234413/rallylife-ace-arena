@@ -34,7 +34,7 @@ export function useCoachCXP() {
   const queryClient = useQueryClient();
 
   // Get current CXP data
-  const { data: cxpData, isLoading: cxpLoading } = useQuery({
+  const { data: cxpData, isLoading: cxpLoading, error } = useQuery({
     queryKey: ["coach_cxp"],
     queryFn: async () => {
       const { data, error } = await supabase
@@ -98,25 +98,17 @@ export function useCoachCXP() {
       if (error) throw error;
       return data;
     },
-    onSuccess: (data) => {
-      if (data.level_up) {
+    onSuccess: (data: any) => {
+      if (data?.level_up) {
         toast({
           title: "Level Up!",
           description: `Congratulations! You've reached CXP level ${data.current_level}!`,
         });
       }
       
-      // Check for new achievements after CXP gain
+      // Refresh CXP data
       queryClient.invalidateQueries({ queryKey: ["coach_cxp"] });
       queryClient.invalidateQueries({ queryKey: ["cxp_activities"] });
-      
-      // Trigger achievement check
-      setTimeout(() => {
-        supabase.rpc("check_all_coach_achievements").then(() => {
-          queryClient.invalidateQueries({ queryKey: ["coach_achievements_unlocked"] });
-          queryClient.invalidateQueries({ queryKey: ["coach_achievement_progress"] });
-        });
-      }, 1000);
     },
     onError: (error: any) => {
       toast({
@@ -131,8 +123,10 @@ export function useCoachCXP() {
     cxpData,
     activities,
     loading: cxpLoading || activitiesLoading,
+    error,
     addCXP: addCXP.mutate,
     initializeCXP: initializeCXP.mutate,
     isAddingCXP: addCXP.isPending,
+    initializingCXP: initializeCXP.isPending,
   };
 }

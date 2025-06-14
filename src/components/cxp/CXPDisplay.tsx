@@ -61,7 +61,7 @@ export function CXPDisplay() {
         <CardContent>
           <div className="space-y-3">
             <p className="text-red-600">Unable to load CXP data</p>
-            <Button onClick={initializeCXP} disabled={initializingCXP}>
+            <Button onClick={() => initializeCXP()} disabled={initializingCXP}>
               {initializingCXP ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -89,7 +89,7 @@ export function CXPDisplay() {
         <CardContent>
           <div className="space-y-3">
             <p className="text-tennis-green-medium">CXP system not initialized yet</p>
-            <Button onClick={initializeCXP} disabled={initializingCXP}>
+            <Button onClick={() => initializeCXP()} disabled={initializingCXP}>
               {initializingCXP ? (
                 <>
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
