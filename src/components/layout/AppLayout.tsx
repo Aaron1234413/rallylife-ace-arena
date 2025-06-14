@@ -16,7 +16,7 @@ export function AppLayout({ children }: AppLayoutProps) {
   return (
     <div className="min-h-screen bg-tennis-green-bg">
       {!hideNavigation && <AppNavigation />}
-      <main className="min-h-[calc(100vh-4rem)]">
+      <main className={hideNavigation ? "min-h-screen" : "min-h-[calc(100vh-4rem)]"}>
         {children}
       </main>
     </div>
