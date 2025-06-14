@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -23,6 +24,11 @@ import { CTKEarnActions } from "@/components/ctk/CTKEarnActions";
 import { CTKStore } from "@/components/ctk/CTKStore";
 import { CTKTransactionHistory } from "@/components/ctk/CTKTransactionHistory";
 import { CoachAchievementsDisplay } from "@/components/achievements/CoachAchievementsDisplay";
+import { CoachOverviewCards } from "@/components/coach/dashboard/CoachOverviewCards";
+import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickActions";
+import { useCoachCXP } from "@/hooks/useCoachCXP";
+import { useCoachTokens } from "@/hooks/useCoachTokens";
+import { useCoachCRP } from "@/hooks/useCoachCRP";
 
 const Index = () => {
   const { user } = useAuth();
@@ -31,6 +37,12 @@ const Index = () => {
   const { tokenData, transactions, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
   const { equippedItems, loading: avatarLoading, initializeAvatar, checkLevelUnlocks } = usePlayerAvatar();
   const { checkAllAchievements } = usePlayerAchievements();
+  
+  // Coach-specific hooks
+  const { cxpData, loading: cxpLoading, addCXP, initializeCXP } = useCoachCXP();
+  const { tokenData: coachTokenData, loading: coachTokensLoading, addTokens: addCoachTokens, initializeTokens: initializeCoachTokens } = useCoachTokens();
+  const { crpData, isLoading: crpLoading, initializeCRP } = useCoachCRP();
+  
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
@@ -41,20 +53,18 @@ const Index = () => {
   }, [user]);
 
   useEffect(() => {
-    // Initialize HP, XP, Tokens, and Avatar for existing users who don't have data yet
-    if (user && !hpLoading && !hpData && profile?.role === 'player') {
-      initializeHP();
+    // Initialize data based on user role
+    if (user && profile?.role === 'player') {
+      if (!hpLoading && !hpData) initializeHP();
+      if (!xpLoading && !xpData) initializeXP();
+      if (!tokensLoading && !tokenData) initializeTokens();
+      if (!avatarLoading && equippedItems.length === 0) initializeAvatar();
+    } else if (user && profile?.role === 'coach') {
+      if (!cxpLoading && !cxpData) initializeCXP();
+      if (!coachTokensLoading && !coachTokenData) initializeCoachTokens();
+      if (!crpLoading && !crpData) initializeCRP();
     }
-    if (user && !xpLoading && !xpData && profile?.role === 'player') {
-      initializeXP();
-    }
-    if (user && !tokensLoading && !tokenData && profile?.role === 'player') {
-      initializeTokens();
-    }
-    if (user && !avatarLoading && equippedItems.length === 0 && profile?.role === 'player') {
-      initializeAvatar();
-    }
-  }, [user, hpLoading, hpData, xpLoading, xpData, tokensLoading, tokenData, avatarLoading, equippedItems, profile, initializeHP, initializeXP, initializeTokens, initializeAvatar]);
+  }, [user, profile, hpLoading, hpData, xpLoading, xpData, tokensLoading, tokenData, avatarLoading, equippedItems, cxpLoading, cxpData, coachTokensLoading, coachTokenData, crpLoading, crpData]);
 
   const fetchProfile = async () => {
     try {
@@ -108,6 +118,7 @@ const Index = () => {
   };
 
   const isPlayer = profile?.role === 'player';
+  const isCoach = profile?.role === 'coach';
 
   return (
     <div className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4 sm:space-y-6">
@@ -176,8 +187,21 @@ const Index = () => {
       )}
 
       {/* Coach-specific content */}
-      {!isPlayer && !profileLoading && (
+      {isCoach && (
         <>
+          {/* Coach Overview Cards */}
+          <CoachOverviewCards
+            cxpData={cxpData}
+            tokenData={coachTokenData}
+            crpData={crpData}
+            cxpLoading={cxpLoading}
+            tokensLoading={coachTokensLoading}
+            crpLoading={crpLoading}
+          />
+
+          {/* Coach Quick Actions */}
+          <CoachQuickActions />
+
           {/* Coach Avatar Customization */}
           <CoachAvatarCustomization />
 
