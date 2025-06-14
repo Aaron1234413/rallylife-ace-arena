@@ -30,8 +30,8 @@ export function useGooglePlaces() {
     try {
       console.log('Searching for places:', { query, location, radius });
       
-      // Call our edge function that will handle the Google Places API request
-      const response = await fetch('/api/google-places-search', {
+      // Call our Supabase edge function
+      const response = await fetch('/functions/v1/google-places-search', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -40,7 +40,7 @@ export function useGooglePlaces() {
           query,
           location,
           radius,
-          type: 'establishment' // You can make this configurable
+          type: 'establishment'
         }),
       });
 
@@ -73,7 +73,7 @@ export function useGooglePlaces() {
     try {
       console.log('Getting place details for:', placeId);
       
-      const response = await fetch('/api/google-place-details', {
+      const response = await fetch('/functions/v1/google-place-details', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
