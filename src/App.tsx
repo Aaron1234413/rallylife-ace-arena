@@ -15,6 +15,7 @@ import ProtectedRoute from "@/components/ProtectedRoute";
 import Achievements from "@/pages/Achievements";
 import Activities from "@/pages/Activities";
 import Messages from "@/pages/Messages";
+import Scheduling from "@/pages/Scheduling";
 import Feed from "@/pages/Feed";
 import Leaderboards from "@/pages/Leaderboards";
 
@@ -35,6 +36,7 @@ function App() {
             <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
             <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+            <Route path="/scheduling" element={<ProtectedRoute><Scheduling /></ProtectedRoute>} />
             <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
             <Route path="/leaderboards" element={<ProtectedRoute><Leaderboards /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />

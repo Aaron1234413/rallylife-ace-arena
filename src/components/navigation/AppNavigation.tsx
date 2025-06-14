@@ -9,7 +9,8 @@ import {
   MessageSquare, 
   Rss,
   LogOut,
-  Users
+  Users,
+  Calendar
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -23,6 +24,7 @@ export function AppNavigation() {
     { path: '/activities', label: 'Activities', icon: Activity },
     { path: '/achievements', label: 'Achievements', icon: Trophy },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
+    { path: '/scheduling', label: 'Scheduling', icon: Calendar },
     { path: '/feed', label: 'Feed', icon: Rss },
     { path: '/leaderboards', label: 'Leaderboards', icon: Users },
   ];

@@ -211,6 +211,172 @@ export type Database = {
         }
         Relationships: []
       }
+      appointment_requests: {
+        Row: {
+          appointment_type: string
+          coach_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          message: string | null
+          player_id: string
+          requested_date: string
+          requested_end_time: string
+          requested_start_time: string
+          responded_at: string | null
+          response_message: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_type?: string
+          coach_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          message?: string | null
+          player_id: string
+          requested_date: string
+          requested_end_time: string
+          requested_start_time: string
+          responded_at?: string | null
+          response_message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_type?: string
+          coach_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          message?: string | null
+          player_id?: string
+          requested_date?: string
+          requested_end_time?: string
+          requested_start_time?: string
+          responded_at?: string | null
+          response_message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointment_requests_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointment_requests_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      appointments: {
+        Row: {
+          appointment_type: string
+          cancellation_reason: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          coach_id: string
+          completed_at: string | null
+          confirmed_at: string | null
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          end_time: string
+          id: string
+          location: string | null
+          metadata: Json | null
+          notes: string | null
+          payment_status: string | null
+          player_id: string
+          price_amount: number | null
+          scheduled_date: string
+          start_time: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_type?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          coach_id: string
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          end_time: string
+          id?: string
+          location?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          payment_status?: string | null
+          player_id: string
+          price_amount?: number | null
+          scheduled_date: string
+          start_time: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_type?: string
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          coach_id?: string
+          completed_at?: string | null
+          confirmed_at?: string | null
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          end_time?: string
+          id?: string
+          location?: string | null
+          metadata?: Json | null
+          notes?: string | null
+          payment_status?: string | null
+          player_id?: string
+          price_amount?: number | null
+          scheduled_date?: string
+          start_time?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "appointments_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "appointments_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       avatar_items: {
         Row: {
           category: string
@@ -432,6 +598,47 @@ export type Database = {
             columns: ["achievement_id"]
             isOneToOne: false
             referencedRelation: "coach_achievements"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      coach_availability: {
+        Row: {
+          coach_id: string
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_active: boolean
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_active?: boolean
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_active?: boolean
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_availability_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -1706,6 +1913,78 @@ export type Database = {
           },
         ]
       }
+      recurring_schedules: {
+        Row: {
+          appointment_type: string
+          coach_id: string
+          created_at: string
+          day_of_week: number | null
+          duration_minutes: number
+          end_date: string | null
+          id: string
+          is_active: boolean
+          location: string | null
+          player_id: string
+          price_amount: number | null
+          recurrence_pattern: string
+          start_date: string
+          start_time: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          appointment_type?: string
+          coach_id: string
+          created_at?: string
+          day_of_week?: number | null
+          duration_minutes?: number
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          player_id: string
+          price_amount?: number | null
+          recurrence_pattern: string
+          start_date: string
+          start_time: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          appointment_type?: string
+          coach_id?: string
+          created_at?: string
+          day_of_week?: number | null
+          duration_minutes?: number
+          end_date?: string | null
+          id?: string
+          is_active?: boolean
+          location?: string | null
+          player_id?: string
+          price_amount?: number | null
+          recurrence_pattern?: string
+          start_date?: string
+          start_time?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_schedules_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_schedules_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       token_balances: {
         Row: {
           created_at: string
@@ -1922,6 +2201,15 @@ export type Database = {
         }
         Returns: Json
       }
+      approve_appointment_request: {
+        Args: {
+          request_id: string
+          response_message_param?: string
+          price_amount_param?: number
+          location_param?: string
+        }
+        Returns: Json
+      }
       assign_training_plan: {
         Args: {
           player_user_id: string
@@ -1959,6 +2247,15 @@ export type Database = {
         Args: { user_id: string; achievement_id: string }
         Returns: Json
       }
+      check_coach_availability: {
+        Args: {
+          coach_user_id: string
+          check_date: string
+          start_time_param: string
+          end_time_param: string
+        }
+        Returns: boolean
+      }
       claim_achievement_reward: {
         Args: { user_id: string; achievement_id: string }
         Returns: Json
@@ -1972,6 +2269,17 @@ export type Database = {
           user_id: string
           premium_amount: number
           conversion_rate?: number
+        }
+        Returns: Json
+      }
+      create_appointment_request: {
+        Args: {
+          coach_user_id: string
+          requested_date_param: string
+          requested_start_time_param: string
+          requested_end_time_param: string
+          appointment_type_param?: string
+          message_param?: string
         }
         Returns: Json
       }
@@ -2049,6 +2357,26 @@ export type Database = {
           score_value: number
           metadata: Json
           calculated_at: string
+        }[]
+      }
+      get_upcoming_appointments: {
+        Args: { user_id?: string; days_ahead?: number }
+        Returns: {
+          id: string
+          coach_id: string
+          player_id: string
+          coach_name: string
+          player_name: string
+          title: string
+          appointment_type: string
+          scheduled_date: string
+          start_time: string
+          end_time: string
+          duration_minutes: number
+          status: string
+          location: string
+          price_amount: number
+          created_at: string
         }[]
       }
       initialize_coach_avatar: {
