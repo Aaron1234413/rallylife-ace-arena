@@ -36,30 +36,43 @@ export function useUserLocation() {
 
   // Get current user's location
   useEffect(() => {
+    console.log('useUserLocation: Checking geolocation support');
+    
     if ('geolocation' in navigator) {
+      console.log('useUserLocation: Geolocation is supported, requesting position');
+      
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          console.log('useUserLocation: Position obtained:', position.coords);
           setCurrentLocation({
             lat: position.coords.latitude,
             lng: position.coords.longitude
           });
           setLocationPermission('granted');
+          toast.success('Location access granted');
         },
         (error) => {
-          console.error('Location error:', error);
+          console.error('useUserLocation: Location error:', error);
+          console.log('useUserLocation: Error code:', error.code);
+          console.log('useUserLocation: Error message:', error.message);
+          
           // Only set permission to 'denied' if it's actually a permission error
           if (error.code === error.PERMISSION_DENIED) {
             setLocationPermission('denied');
             toast.error('Location access denied. Please enable location services to use this feature.');
+          } else if (error.code === error.POSITION_UNAVAILABLE) {
+            toast.error('Location information is unavailable. Please try again.');
+          } else if (error.code === error.TIMEOUT) {
+            toast.error('Location request timed out. Please try again.');
           } else {
-            // For other errors (timeout, unavailable), don't change permission status
-            // but still show an error message
+            // For other errors, don't change permission status
             toast.error('Unable to get your location. Please try again.');
           }
         },
         { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
       );
     } else {
+      console.log('useUserLocation: Geolocation is not supported');
       setLocationPermission('denied');
       toast.error('Geolocation is not supported by this browser.');
     }
