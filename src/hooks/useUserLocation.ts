@@ -33,31 +33,85 @@ export function useUserLocation() {
   const queryClient = useQueryClient();
   const [currentLocation, setCurrentLocation] = useState<{lat: number; lng: number} | null>(null);
   const [locationPermission, setLocationPermission] = useState<'granted' | 'denied' | 'prompt'>('prompt');
+  const [locationError, setLocationError] = useState<string | null>(null);
 
-  // Get current user's location
+  // Get current user's location with better error handling
   useEffect(() => {
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (position) => {
-          setCurrentLocation({
-            lat: position.coords.latitude,
-            lng: position.coords.longitude
-          });
-          setLocationPermission('granted');
-        },
-        (error) => {
-          console.error('Location error:', error);
-          setLocationPermission('denied');
-          toast.error('Unable to get your location. Please enable location services.');
-        },
-        { enableHighAccuracy: true, timeout: 10000, maximumAge: 300000 }
-      );
+    console.log('Checking geolocation availability...');
+    
+    if (!('geolocation' in navigator)) {
+      console.error('Geolocation is not supported by this browser');
+      setLocationPermission('denied');
+      setLocationError('Geolocation is not supported by this browser');
+      toast.error('Geolocation is not supported by this browser');
+      return;
     }
+
+    console.log('Requesting location permission...');
+
+    // Check permission state first if available
+    if ('permissions' in navigator) {
+      navigator.permissions.query({ name: 'geolocation' }).then((result) => {
+        console.log('Permission state:', result.state);
+        if (result.state === 'denied') {
+          setLocationPermission('denied');
+          setLocationError('Location permission denied. Please enable location access in your browser settings.');
+          toast.error('Location permission denied. Please enable location access in your browser settings.');
+          return;
+        }
+      }).catch((error) => {
+        console.log('Permission query failed:', error);
+      });
+    }
+
+    const options = {
+      enableHighAccuracy: true,
+      timeout: 15000, // Increased timeout
+      maximumAge: 300000 // 5 minutes
+    };
+
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        console.log('Location obtained:', position.coords);
+        setCurrentLocation({
+          lat: position.coords.latitude,
+          lng: position.coords.longitude
+        });
+        setLocationPermission('granted');
+        setLocationError(null);
+        toast.success('Location obtained successfully');
+      },
+      (error) => {
+        console.error('Location error:', error);
+        setLocationPermission('denied');
+        
+        let errorMessage = 'Unable to get your location. ';
+        switch (error.code) {
+          case error.PERMISSION_DENIED:
+            errorMessage += 'Location permission denied. Please enable location access in your browser settings.';
+            break;
+          case error.POSITION_UNAVAILABLE:
+            errorMessage += 'Location information is unavailable.';
+            break;
+          case error.TIMEOUT:
+            errorMessage += 'Location request timed out. Please try again.';
+            break;
+          default:
+            errorMessage += 'An unknown error occurred while retrieving location.';
+            break;
+        }
+        
+        setLocationError(errorMessage);
+        toast.error(errorMessage);
+      },
+      options
+    );
   }, []);
 
   // Update user location in database
   const updateLocationMutation = useMutation({
     mutationFn: async ({ lat, lng, isSharing = false }: { lat: number; lng: number; isSharing?: boolean }) => {
+      console.log('Updating location in database:', { lat, lng, isSharing });
       const { data, error } = await supabase.rpc('update_user_location', {
         latitude: lat,
         longitude: lng,
@@ -82,6 +136,7 @@ export function useUserLocation() {
     queryFn: async () => {
       if (!currentLocation) return [];
       
+      console.log('Fetching nearby users for location:', currentLocation);
       const { data, error } = await supabase.rpc('find_nearby_users', {
         search_latitude: currentLocation.lat,
         search_longitude: currentLocation.lng,
@@ -90,6 +145,7 @@ export function useUserLocation() {
       });
       
       if (error) throw error;
+      console.log('Found nearby users:', data);
       return data as UserLocation[];
     },
     enabled: !!currentLocation,
@@ -152,6 +208,7 @@ export function useUserLocation() {
   return {
     currentLocation,
     locationPermission,
+    locationError,
     nearbyUsers: nearbyUsers || [],
     savedPlaces: savedPlaces || [],
     isLoadingNearby,
