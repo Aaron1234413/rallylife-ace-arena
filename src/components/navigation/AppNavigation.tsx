@@ -10,7 +10,8 @@ import {
   Rss,
   LogOut,
   Users,
-  Calendar
+  Calendar,
+  MapPin
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -25,6 +26,7 @@ export function AppNavigation() {
     { path: '/achievements', label: 'Achievements', icon: Trophy },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
     { path: '/scheduling', label: 'Scheduling', icon: Calendar },
+    { path: '/maps', label: 'Maps', icon: MapPin },
     { path: '/feed', label: 'Feed', icon: Rss },
     { path: '/leaderboards', label: 'Leaderboards', icon: Users },
   ];

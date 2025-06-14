@@ -18,6 +18,7 @@ import Messages from "@/pages/Messages";
 import Scheduling from "@/pages/Scheduling";
 import Feed from "@/pages/Feed";
 import Leaderboards from "@/pages/Leaderboards";
+import Maps from "@/pages/Maps";
 
 const queryClient = new QueryClient();
 
@@ -39,6 +40,7 @@ function App() {
             <Route path="/scheduling" element={<ProtectedRoute><Scheduling /></ProtectedRoute>} />
             <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
             <Route path="/leaderboards" element={<ProtectedRoute><Leaderboards /></ProtectedRoute>} />
+            <Route path="/maps" element={<ProtectedRoute><Maps /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
