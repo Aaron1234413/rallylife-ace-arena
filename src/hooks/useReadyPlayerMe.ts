@@ -7,13 +7,13 @@ import { useToast } from './use-toast';
 export function useReadyPlayerMe() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const [avatarUrl, setAvatarUrl] = useState<string>('');
+  const [avatarId, setAvatarId] = useState<string>('');
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
 
-  // Fetch current avatar URL
+  // Fetch current avatar ID from the stored URL
   useEffect(() => {
-    const fetchAvatarUrl = async () => {
+    const fetchAvatarId = async () => {
       if (!user?.id) {
         setLoading(false);
         return;
@@ -28,8 +28,11 @@ export function useReadyPlayerMe() {
 
         if (error) {
           console.error('Error fetching Ready Player Me avatar:', error);
-        } else {
-          setAvatarUrl(profile?.ready_player_me_url || '');
+        } else if (profile?.ready_player_me_url) {
+          // Extract avatar ID from full URL
+          const url = profile.ready_player_me_url;
+          const avatarId = url.split('/').pop()?.replace('.glb', '') || '';
+          setAvatarId(avatarId);
         }
       } catch (error) {
         console.error('Error fetching Ready Player Me avatar:', error);
@@ -38,11 +41,11 @@ export function useReadyPlayerMe() {
       }
     };
 
-    fetchAvatarUrl();
+    fetchAvatarId();
   }, [user?.id]);
 
-  // Save new avatar URL
-  const saveAvatarUrl = async (newAvatarUrl: string) => {
+  // Save new avatar ID (converts to full URL for storage)
+  const saveAvatarId = async (newAvatarId: string) => {
     if (!user?.id) {
       toast({
         title: "Error",
@@ -54,9 +57,12 @@ export function useReadyPlayerMe() {
 
     setSaving(true);
     try {
-      const { data, error } = await supabase
+      // Convert avatar ID to full URL for storage
+      const fullUrl = `https://models.readyplayer.me/${newAvatarId}.glb`;
+      
+      const { error } = await supabase
         .from('profiles')
-        .update({ ready_player_me_url: newAvatarUrl })
+        .update({ ready_player_me_url: fullUrl })
         .eq('id', user.id);
 
       if (error) {
@@ -69,7 +75,7 @@ export function useReadyPlayerMe() {
         return false;
       }
 
-      setAvatarUrl(newAvatarUrl);
+      setAvatarId(newAvatarId);
       toast({
         title: "Success",
         description: "Avatar saved successfully!",
@@ -89,9 +95,9 @@ export function useReadyPlayerMe() {
   };
 
   return {
-    avatarUrl,
+    avatarId,
     loading,
     saving,
-    saveAvatarUrl,
+    saveAvatarId,
   };
 }

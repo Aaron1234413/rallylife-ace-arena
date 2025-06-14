@@ -5,7 +5,7 @@ import { User } from 'lucide-react';
 import { CRPDisplay } from '@/components/crp/CRPDisplay';
 import { CXPDisplay } from '@/components/cxp/CXPDisplay';
 import { CTKDisplay } from '@/components/ctk/CTKDisplay';
-import { CoachAvatarDisplay } from '@/components/avatar/CoachAvatarDisplay';
+import { RPMProfileDisplay } from '@/components/readyplayerme/RPMProfileDisplay';
 import { PlayerAvatarDisplay } from '@/components/avatar/PlayerAvatarDisplay';
 
 interface ProfileCardProps {
@@ -33,12 +33,21 @@ export function ProfileCard({ profile, user, profileLoading, isPlayer }: Profile
             <p className="text-tennis-green-medium">Loading profile...</p>
           ) : (
             <div className="space-y-4">
-              {/* Avatar Display for both players and coaches */}
-              <div className="flex justify-center">
-                {isPlayer ? (
-                  <PlayerAvatarDisplay size="md" />
-                ) : (
-                  <CoachAvatarDisplay size="md" showItems={true} />
+              {/* Avatar Display with both 3D and game items */}
+              <div className="flex justify-center items-center gap-4">
+                <div className="text-center">
+                  <p className="text-xs text-gray-600 mb-2">3D Avatar</p>
+                  <RPMProfileDisplay 
+                    size="md" 
+                    userType={isPlayer ? 'player' : 'coach'} 
+                  />
+                </div>
+                
+                {isPlayer && (
+                  <div className="text-center">
+                    <p className="text-xs text-gray-600 mb-2">Game Avatar</p>
+                    <PlayerAvatarDisplay size="md" />
+                  </div>
                 )}
               </div>
               
@@ -47,8 +56,8 @@ export function ProfileCard({ profile, user, profileLoading, isPlayer }: Profile
                 <p><strong className="text-tennis-green-dark">Full Name:</strong> {profile?.full_name}</p>
                 <p><strong className="text-tennis-green-dark">Role:</strong> {profile?.role}</p>
                 <p className="text-tennis-green-medium text-xs mt-3">
-                  🎾 Phase 2.5 (Achievement System) is now live! 
-                  {isPlayer ? ' Earn achievements by playing, training, and progressing in the game!' : ' Monitor your players\' achievement progress and unlocks.'}
+                  🎾 Phase 2.5 (Ready Player Me Integration) is now live! 
+                  {isPlayer ? ' Create your 3D avatar and customize your game items!' : ' Create your professional 3D avatar for coaching!'}
                 </p>
               </div>
             </div>
