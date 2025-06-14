@@ -1,3 +1,4 @@
+
 import {
   QueryClient,
   QueryClientProvider,
@@ -14,8 +15,6 @@ import Achievements from "@/pages/Achievements";
 import Activities from "@/pages/Activities";
 import Messages from "@/pages/Messages";
 import Feed from "@/pages/Feed";
-import Leaderboards from "@/pages/Leaderboards";
-import { AppLayout } from "@/components/layout/AppLayout";
 
 const queryClient = new QueryClient();
 
@@ -23,7 +22,7 @@ function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <BrowserRouter>
-        <AppLayout>
+        <div className="min-h-screen bg-background">
           <Toaster />
           <Routes>
             <Route path="/auth" element={<Auth />} />
@@ -35,11 +34,10 @@ function App() {
             <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
-            <Route path="/leaderboards" element={<ProtectedRoute><Leaderboards /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />
           </Routes>
-        </AppLayout>
+        </div>
       </BrowserRouter>
     </QueryClientProvider>
   );

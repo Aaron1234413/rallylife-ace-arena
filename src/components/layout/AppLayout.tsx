@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { useLocation } from 'react-router-dom';
 import { AppNavigation } from '@/components/navigation/AppNavigation';
 
 interface AppLayoutProps {
@@ -8,15 +7,10 @@ interface AppLayoutProps {
 }
 
 export function AppLayout({ children }: AppLayoutProps) {
-  const location = useLocation();
-  
-  // Don't show navigation on auth pages
-  const hideNavigation = location.pathname.startsWith('/auth');
-
   return (
     <div className="min-h-screen bg-tennis-green-bg">
-      {!hideNavigation && <AppNavigation />}
-      <main className={hideNavigation ? "min-h-screen" : "min-h-[calc(100vh-4rem)]"}>
+      <AppNavigation />
+      <main className="min-h-[calc(100vh-4rem)]">
         {children}
       </main>
     </div>

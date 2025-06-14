@@ -4,7 +4,7 @@ import { CoachLeaderboard } from '@/components/leaderboards/CoachLeaderboard';
 
 export default function Leaderboards() {
   return (
-    <div className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4 sm:space-y-6">
+    <div className="container mx-auto px-4 py-6 space-y-6">
       <div className="text-center mb-8">
         <h1 className="text-3xl font-bold text-tennis-green-dark mb-2">
           Coach Leaderboards

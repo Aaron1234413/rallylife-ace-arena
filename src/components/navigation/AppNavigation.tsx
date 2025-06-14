@@ -8,8 +8,7 @@ import {
   Activity, 
   MessageSquare, 
   Rss,
-  LogOut,
-  Crown
+  LogOut 
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -21,7 +20,6 @@ export function AppNavigation() {
     { path: '/', label: 'Dashboard', icon: Home },
     { path: '/activities', label: 'Activities', icon: Activity },
     { path: '/achievements', label: 'Achievements', icon: Trophy },
-    { path: '/leaderboards', label: 'Leaderboards', icon: Crown },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
     { path: '/feed', label: 'Feed', icon: Rss },
   ];
