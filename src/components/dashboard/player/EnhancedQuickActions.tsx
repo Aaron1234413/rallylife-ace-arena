@@ -43,7 +43,7 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-blue-500 to-blue-600',
       textColor: 'text-blue-700',
       bgColor: 'bg-blue-50',
-      rewards: { hp: -5, xp: 50, tokens: 0 }, // Matches database calculation for competitive match
+      rewards: { hp: -5, xp: 50, tokens: 25 }, // High intensity competitive match
       recommended: hpPercentage > 40,
       estimatedDuration: 90,
       difficulty: 'high' as const,
@@ -65,7 +65,7 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-green-500 to-green-600',
       textColor: 'text-green-700',
       bgColor: 'bg-green-50',
-      rewards: { hp: -5, xp: 30, tokens: 0 }, // Matches database calculation for medium intensity training
+      rewards: { hp: -5, xp: 30, tokens: 15 }, // Medium intensity training
       recommended: hpPercentage > 30,
       estimatedDuration: 60,
       difficulty: 'medium' as const,
@@ -86,7 +86,7 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-purple-500 to-purple-600',
       textColor: 'text-purple-700',
       bgColor: 'bg-purple-50',
-      rewards: { hp: 5, xp: 15, tokens: 0 }, // Matches database calculation for social activities
+      rewards: { hp: 5, xp: 15, tokens: 12 }, // Low intensity social activity
       recommended: hpPercentage > 20,
       estimatedDuration: 45,
       difficulty: 'low' as const,
@@ -107,7 +107,7 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-red-500 to-pink-500',
       textColor: 'text-red-700',
       bgColor: 'bg-red-50',
-      rewards: { hp: 0, xp: 10, tokens: 0 }, // Will be handled by database logic - no hardcoded HP gain
+      rewards: { hp: 0, xp: 10, tokens: 10 }, // Recovery activity with token reward
       recommended: hpPercentage < 40,
       estimatedDuration: 30,
       difficulty: 'low' as const,
