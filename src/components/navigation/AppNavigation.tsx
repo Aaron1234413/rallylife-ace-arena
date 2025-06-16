@@ -12,7 +12,8 @@ import {
   Users,
   Calendar,
   MapPin,
-  Search
+  Search,
+  User
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -31,6 +32,7 @@ export function AppNavigation() {
     { path: '/maps', label: 'Maps', icon: MapPin },
     { path: '/feed', label: 'Feed', icon: Rss },
     { path: '/leaderboards', label: 'Leaderboards', icon: Users },
+    { path: '/profile', label: 'Profile', icon: User },
   ];
 
   const isActive = (path: string) => location.pathname === path;
