@@ -144,7 +144,7 @@ export function usePlayerHP() {
 
       // Clean up any existing channel
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        channelRef.current.unsubscribe();
         channelRef.current = null;
       }
 
@@ -182,11 +182,16 @@ export function usePlayerHP() {
 
       return () => {
         if (channelRef.current) {
-          supabase.removeChannel(channelRef.current);
+          channelRef.current.unsubscribe();
           channelRef.current = null;
         }
       };
     } else {
+      // Clean up when no user
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
+      }
       setHpData(null);
       setActivities([]);
       setLoading(false);

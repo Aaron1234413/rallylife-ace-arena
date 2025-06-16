@@ -251,7 +251,7 @@ export function usePlayerAchievements() {
     if (user) {
       // Clean up any existing channel
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        channelRef.current.unsubscribe();
         channelRef.current = null;
       }
 
@@ -288,10 +288,16 @@ export function usePlayerAchievements() {
 
       return () => {
         if (channelRef.current) {
-          supabase.removeChannel(channelRef.current);
+          channelRef.current.unsubscribe();
           channelRef.current = null;
         }
       };
+    } else {
+      // Clean up when no user
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
+      }
     }
   }, [user]);
 

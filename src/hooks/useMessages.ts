@@ -31,11 +31,18 @@ export function useMessages(conversationId: string | null) {
 
   // Set up real-time subscription for new messages
   useEffect(() => {
-    if (!conversationId || !user) return;
+    if (!conversationId || !user) {
+      // Clean up if no conversation or user
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
+      }
+      return;
+    }
 
     // Clean up any existing channel
     if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
+      channelRef.current.unsubscribe();
       channelRef.current = null;
     }
 
@@ -63,7 +70,7 @@ export function useMessages(conversationId: string | null) {
 
     return () => {
       if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
+        channelRef.current.unsubscribe();
         channelRef.current = null;
       }
     };
