@@ -16,12 +16,9 @@ import Store from "@/pages/Store";
 import Profile from "@/pages/Profile";
 import Pulse from "@/pages/Pulse";
 import ProtectedRoute from "@/components/ProtectedRoute";
-import Achievements from "@/pages/Achievements";
-import Activities from "@/pages/Activities";
 import Messages from "@/pages/Messages";
 import Scheduling from "@/pages/Scheduling";
 import Feed from "@/pages/Feed";
-import Leaderboards from "@/pages/Leaderboards";
 import Maps from "@/pages/Maps";
 
 const queryClient = new QueryClient();
@@ -42,12 +39,9 @@ function App() {
             <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
             <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
             <Route path="/pulse" element={<ProtectedRoute><Pulse /></ProtectedRoute>} />
-            <Route path="/achievements" element={<ProtectedRoute><Achievements /></ProtectedRoute>} />
-            <Route path="/activities" element={<ProtectedRoute><Activities /></ProtectedRoute>} />
             <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
             <Route path="/scheduling" element={<ProtectedRoute><Scheduling /></ProtectedRoute>} />
             <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
-            <Route path="/leaderboards" element={<ProtectedRoute><Leaderboards /></ProtectedRoute>} />
             <Route path="/maps" element={<ProtectedRoute><Maps /></ProtectedRoute>} />
             <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
             <Route path="*" element={<NotFound />} />

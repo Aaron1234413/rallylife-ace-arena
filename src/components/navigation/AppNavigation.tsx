@@ -4,12 +4,9 @@ import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
 import { 
   Home, 
-  Trophy, 
-  Activity, 
   MessageSquare, 
   Rss,
   LogOut,
-  Users,
   Calendar,
   MapPin,
   Search,
@@ -27,13 +24,10 @@ export function AppNavigation() {
     { path: '/', label: 'Dashboard', icon: Home },
     { path: '/pulse', label: 'Pulse', icon: Bolt },
     { path: '/search', label: 'Search', icon: Search },
-    { path: '/activities', label: 'Activities', icon: Activity },
-    { path: '/achievements', label: 'Achievements', icon: Trophy },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
     { path: '/scheduling', label: 'Scheduling', icon: Calendar },
     { path: '/maps', label: 'Maps', icon: MapPin },
     { path: '/feed', label: 'Feed', icon: Rss },
-    { path: '/leaderboards', label: 'Leaderboards', icon: Users },
     { path: '/profile', label: 'Profile', icon: User },
   ];
 
