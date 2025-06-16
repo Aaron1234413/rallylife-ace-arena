@@ -18,7 +18,11 @@ interface ActivityOverviewProps {
 }
 
 export function ActivityOverview({ className }: ActivityOverviewProps) {
-  const { activities, stats, loading } = useActivityLogs();
+  const { activities, stats, loading, refreshData } = useActivityLogs();
+
+  console.log('ActivityOverview - activities:', activities);
+  console.log('ActivityOverview - stats:', stats);
+  console.log('ActivityOverview - loading:', loading);
 
   // Calculate weekly stats from real data
   const weeklyStats = {
@@ -29,19 +33,7 @@ export function ActivityOverview({ className }: ActivityOverviewProps) {
   };
 
   // Get recent activities (limit to 3 for overview)
-  const recentActivities = activities.slice(0, 3).map(activity => ({
-    id: activity.id,
-    type: activity.activity_type,
-    title: activity.title,
-    time: new Date(activity.created_at).toLocaleString(),
-    result: activity.description || activity.result || 'Activity completed',
-    rewards: { 
-      hp: activity.hp_impact || 0, 
-      xp: activity.xp_earned || 0, 
-      tokens: Math.floor((activity.xp_earned || 0) / 2) // Approximate tokens from XP
-    },
-    status: 'completed'
-  }));
+  const recentActivities = activities?.slice(0, 3) || [];
 
   if (loading) {
     return (
@@ -116,10 +108,15 @@ export function ActivityOverview({ className }: ActivityOverviewProps) {
             <Activity className="h-5 w-5" />
             Recent Activities
           </CardTitle>
-          <Button variant="outline" size="sm">
-            View All
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" size="sm" onClick={refreshData}>
+              Refresh
+            </Button>
+            <Button variant="outline" size="sm">
+              View All
+              <ChevronRight className="h-4 w-4 ml-1" />
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           {recentActivities.length === 0 ? (
@@ -127,6 +124,17 @@ export function ActivityOverview({ className }: ActivityOverviewProps) {
               <Activity className="h-12 w-12 mx-auto mb-4 text-gray-300" />
               <p>No recent activities found.</p>
               <p className="text-sm">Start logging your tennis activities to see them here!</p>
+              <p className="text-xs mt-2 text-gray-400">
+                Total activities in database: {weeklyStats.totalActivities}
+              </p>
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="mt-2"
+                onClick={refreshData}
+              >
+                Refresh Data
+              </Button>
             </div>
           ) : (
             <div className="space-y-4">
@@ -135,26 +143,27 @@ export function ActivityOverview({ className }: ActivityOverviewProps) {
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
                       <Badge variant="outline" className="text-xs capitalize">
-                        {activity.type}
+                        {activity.activity_type}
                       </Badge>
-                      <span className="text-sm text-gray-500">{activity.time}</span>
+                      <span className="text-sm text-gray-500">
+                        {new Date(activity.created_at).toLocaleString()}
+                      </span>
                     </div>
                     <h4 className="font-medium text-gray-900 mb-1">{activity.title}</h4>
-                    <p className="text-sm text-gray-600">{activity.result}</p>
+                    {activity.description && (
+                      <p className="text-sm text-gray-600">{activity.description}</p>
+                    )}
                   </div>
                   
                   <div className="text-right">
                     <div className="flex items-center gap-2 text-xs mb-1">
-                      {activity.rewards.hp !== 0 && (
-                        <span className={activity.rewards.hp > 0 ? 'text-green-600' : 'text-red-600'}>
-                          {activity.rewards.hp > 0 ? '+' : ''}{activity.rewards.hp} HP
+                      {activity.hp_impact !== 0 && (
+                        <span className={activity.hp_impact > 0 ? 'text-green-600' : 'text-red-600'}>
+                          {activity.hp_impact > 0 ? '+' : ''}{activity.hp_impact} HP
                         </span>
                       )}
-                      {activity.rewards.xp > 0 && (
-                        <span className="text-yellow-600">+{activity.rewards.xp} XP</span>
-                      )}
-                      {activity.rewards.tokens > 0 && (
-                        <span className="text-blue-600">+{activity.rewards.tokens} Tokens</span>
+                      {activity.xp_earned > 0 && (
+                        <span className="text-yellow-600">+{activity.xp_earned} XP</span>
                       )}
                     </div>
                     <Badge variant="secondary" className="text-xs">

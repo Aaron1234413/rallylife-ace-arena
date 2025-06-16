@@ -15,6 +15,7 @@ import {
   ChevronRight 
 } from 'lucide-react';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
+import { toast } from 'sonner';
 
 interface EnhancedQuickActionsProps {
   hpData: any;
@@ -31,7 +32,7 @@ export function EnhancedQuickActions({
   onRestoreHP, 
   onAddTokens 
 }: EnhancedQuickActionsProps) {
-  const { logActivity } = useActivityLogs();
+  const { logActivity, refreshData } = useActivityLogs();
   const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
   
   const quickActions = [
@@ -139,25 +140,22 @@ export function EnhancedQuickActions({
 
   const handleQuickAction = async (action: typeof quickActions[0]) => {
     try {
-      // Log the activity in the database
-      await logActivity(action.activityData);
+      console.log('Logging activity:', action.activityData);
       
-      // Apply HP changes
-      if (action.rewards.hp > 0) {
-        await onRestoreHP(action.rewards.hp, action.id, action.description);
-      }
+      // Log the activity in the database - this should handle HP/XP/Token changes automatically
+      const result = await logActivity(action.activityData);
       
-      // Apply XP changes
-      if (action.rewards.xp > 0) {
-        await onAddXP(action.rewards.xp, action.id, action.description);
-      }
+      console.log('Activity logged successfully:', result);
       
-      // Apply Token changes
-      if (action.rewards.tokens > 0) {
-        await onAddTokens(action.rewards.tokens, 'regular', action.id, action.description);
-      }
+      // Show success message
+      toast.success(`${action.title} logged successfully!`);
+      
+      // Refresh the activity data to update the UI
+      await refreshData();
+      
     } catch (error) {
       console.error('Error logging activity:', error);
+      toast.error('Failed to log activity. Please try again.');
     }
   };
 
