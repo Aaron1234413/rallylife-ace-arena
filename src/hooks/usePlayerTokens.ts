@@ -1,12 +1,24 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 export interface CoachTokens {
   id: string;
   coach_id: string;
   current_tokens: number;
+  lifetime_earned: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface PlayerTokens {
+  id: string;
+  player_id: string;
+  regular_tokens: number;
+  premium_tokens: number;
   lifetime_earned: number;
   created_at: string;
   updated_at: string;
@@ -25,6 +37,20 @@ export interface CoachTokenTransaction {
   created_at: string;
 }
 
+export interface TokenTransaction {
+  id: string;
+  player_id: string;
+  transaction_type: string;
+  token_type: string;
+  amount: number;
+  source: string;
+  description: string | null;
+  balance_before: number;
+  balance_after: number;
+  metadata: any;
+  created_at: string;
+}
+
 interface TokenResult {
   tokens_added?: number;
   tokens_spent?: number;
@@ -32,6 +58,7 @@ interface TokenResult {
   lifetime_earned?: number;
   success?: boolean;
   error?: string;
+  tokens_earned?: number;
 }
 
 export function usePlayerTokens() {
@@ -199,7 +226,7 @@ export function usePlayerTokens() {
         return false;
       }
 
-      toast.success(`💎 Converted ${premiumAmount} Rally Points to 🪙 ${result.regular_earned} Tokens!`);
+      toast.success(`💎 Converted ${premiumAmount} Rally Points to 🪙 ${result.tokens_earned} Tokens!`);
 
       await fetchTokens();
       await fetchTransactions();
