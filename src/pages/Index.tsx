@@ -1,4 +1,5 @@
 
+import React from 'react';
 import { DashboardLayout } from '@/components/dashboard/DashboardLayout';
 import { useAuth } from '@/hooks/useAuth';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
@@ -10,11 +11,21 @@ import { supabase } from '@/integrations/supabase/client';
 export default function DashboardPage() {
   const { user } = useAuth();
   
-  // Fetch real user profile data
+  // Fetch real HP data
+  const { hpData, loading: hpLoading, restoreHP } = usePlayerHP();
+  
+  // Fetch real XP data
+  const { xpData, loading: xpLoading, addXP } = usePlayerXP();
+  
+  // Fetch real token data
+  const { tokenData, loading: tokensLoading, addTokens } = usePlayerTokens();
+  
+  // Fetch real profile data
   const { data: profile, isLoading: profileLoading } = useQuery({
     queryKey: ['profile', user?.id],
     queryFn: async () => {
       if (!user) return null;
+      
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -27,13 +38,21 @@ export default function DashboardPage() {
     enabled: !!user
   });
 
-  // Use real player data hooks
-  const { hpData, loading: hpLoading, restoreHP } = usePlayerHP();
-  const { xpData, loading: xpLoading, addXP } = usePlayerXP();
-  const { tokenData, loading: tokensLoading, addTokens } = usePlayerTokens();
-
   // Determine if user is a player
   const isPlayer = profile?.role === 'player';
+
+  // Action handlers
+  const handleRestoreHP = async (amount: number, activityType: string, description?: string) => {
+    await restoreHP(amount, activityType, description);
+  };
+
+  const handleAddXP = async (amount: number, activityType: string, description?: string) => {
+    return await addXP(amount, activityType, description);
+  };
+
+  const handleAddTokens = async (amount: number, tokenType?: string, source?: string, description?: string) => {
+    await addTokens(amount, tokenType, source, description);
+  };
 
   return (
     <DashboardLayout
@@ -47,9 +66,9 @@ export default function DashboardPage() {
       user={user}
       profileLoading={profileLoading}
       isPlayer={isPlayer}
-      onRestoreHP={restoreHP}
-      onAddXP={addXP}
-      onAddTokens={addTokens}
+      onRestoreHP={handleRestoreHP}
+      onAddXP={handleAddXP}
+      onAddTokens={handleAddTokens}
     />
   );
 }
