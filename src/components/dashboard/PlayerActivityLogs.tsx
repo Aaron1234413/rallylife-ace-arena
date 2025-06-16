@@ -6,40 +6,22 @@ import { TokenTransactionHistory } from '@/components/tokens/TokenTransactionHis
 import { AchievementDisplay } from '@/components/achievements/AchievementDisplay';
 
 interface PlayerActivityLogsProps {
-  hpActivities: any[];
-  xpActivities: any[];
-  transactions: any[];
-  hpLoading: boolean;
-  xpLoading: boolean;
-  tokensLoading: boolean;
+  activities: any[];
+  loading: boolean;
 }
 
-export function PlayerActivityLogs({
-  hpActivities,
-  xpActivities,
-  transactions,
-  hpLoading,
-  xpLoading,
-  tokensLoading
-}: PlayerActivityLogsProps) {
+export function PlayerActivityLogs({ activities, loading }: PlayerActivityLogsProps) {
+  // Filter different types of activities
+  const hpLogs = activities.filter(a => a.hp_impact !== undefined && a.hp_impact !== 0);
+  const xpLogs = activities.filter(a => a.xp_earned > 0);
+  const tokenLogs: any[] = []; // Token transactions are handled separately, not in activity logs
+
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-      <HPActivityLog
-        activities={hpActivities}
-        loading={hpLoading}
-      />
-      <XPActivityLog
-        activities={xpActivities}
-        loading={xpLoading}
-      />
-      <TokenTransactionHistory
-        transactions={transactions}
-        loading={tokensLoading}
-      />
-      <AchievementDisplay 
-        showRecent={true}
-        maxItems={3}
-      />
+      <HPActivityLog activities={hpLogs} loading={loading} />
+      <XPActivityLog activities={xpLogs} loading={loading} />
+      <TokenTransactionHistory transactions={tokenLogs} loading={loading} />
+      <AchievementDisplay showRecent={true} maxItems={3} />
     </div>
   );
 }

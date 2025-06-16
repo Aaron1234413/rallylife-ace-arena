@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -5,6 +6,7 @@ import { usePlayerXP } from "@/hooks/usePlayerXP";
 import { usePlayerAvatar } from "@/hooks/usePlayerAvatar";
 import { usePlayerAchievements } from "@/hooks/usePlayerAchievements";
 import { usePlayerTokens } from "@/hooks/usePlayerTokens";
+import { useActivityLogs } from "@/hooks/useActivityLogs";
 import { supabase } from "@/integrations/supabase/client";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
@@ -44,6 +46,7 @@ const Index = () => {
   const { tokenData, transactions, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
   const { equippedItems, loading: avatarLoading, initializeAvatar, checkLevelUnlocks } = usePlayerAvatar();
   const { checkAllAchievements } = usePlayerAchievements();
+  const { activities, loading: activityLoading } = useActivityLogs();
   
   // Coach-specific hooks
   const { cxpData, loading: cxpLoading, addCXP, initializeCXP } = useCoachCXP();
@@ -245,12 +248,8 @@ const Index = () => {
             defaultCollapsed={true}
           >
             <PlayerActivityLogs
-              hpActivities={hpActivities}
-              xpActivities={xpActivities}
-              transactions={transactions}
-              hpLoading={hpLoading}
-              xpLoading={xpLoading}
-              tokensLoading={tokensLoading}
+              activities={activities || []}
+              loading={activityLoading}
             />
           </CollapsibleSection>
 
