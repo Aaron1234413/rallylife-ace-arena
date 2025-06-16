@@ -11,48 +11,56 @@ import {
   ChevronRight,
   Zap
 } from 'lucide-react';
+import { useActivityLogs } from '@/hooks/useActivityLogs';
 
 interface ActivityOverviewProps {
   className?: string;
 }
 
 export function ActivityOverview({ className }: ActivityOverviewProps) {
-  const recentActivities = [
-    {
-      id: 1,
-      type: 'Match',
-      title: 'Singles Match vs Sarah',
-      time: '2 hours ago',
-      result: 'Won 6-4, 6-2',
-      rewards: { hp: 15, xp: 50, tokens: 25 },
-      status: 'completed'
-    },
-    {
-      id: 2,
-      type: 'Training',
-      title: 'Backhand Practice',
-      time: '1 day ago',
-      result: '45 minutes focused training',
-      rewards: { hp: 10, xp: 30, tokens: 15 },
-      status: 'completed'
-    },
-    {
-      id: 3,
-      type: 'Social',
-      title: 'Doubles with Club Members',
-      time: '2 days ago',
-      result: 'Fun casual games',
-      rewards: { hp: 8, xp: 20, tokens: 10 },
-      status: 'completed'
-    }
-  ];
+  const { activities, stats, loading } = useActivityLogs();
 
+  // Calculate weekly stats from real data
   const weeklyStats = {
-    totalActivities: 8,
-    totalHours: 12.5,
-    averageIntensity: 'Medium',
-    streak: 7
+    totalActivities: stats?.total_activities || 0,
+    totalHours: stats?.total_duration_minutes ? (stats.total_duration_minutes / 60).toFixed(1) : '0',
+    averageIntensity: 'Medium', // Could be calculated from activity data
+    streak: 0 // Would need to be calculated from consecutive days
   };
+
+  // Get recent activities (limit to 3 for overview)
+  const recentActivities = activities.slice(0, 3).map(activity => ({
+    id: activity.id,
+    type: activity.activity_type,
+    title: activity.title,
+    time: new Date(activity.created_at).toLocaleString(),
+    result: activity.description || activity.result || 'Activity completed',
+    rewards: { 
+      hp: activity.hp_impact || 0, 
+      xp: activity.xp_earned || 0, 
+      tokens: Math.floor((activity.xp_earned || 0) / 2) // Approximate tokens from XP
+    },
+    status: 'completed'
+  }));
+
+  if (loading) {
+    return (
+      <div className={`space-y-6 ${className}`}>
+        <Card>
+          <CardContent className="p-6">
+            <div className="animate-pulse">
+              <div className="h-6 bg-gray-200 rounded w-1/3 mb-4"></div>
+              <div className="grid grid-cols-4 gap-4">
+                {[1, 2, 3, 4].map((i) => (
+                  <div key={i} className="h-16 bg-gray-200 rounded"></div>
+                ))}
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
 
   return (
     <div className={`space-y-6 ${className}`}>
@@ -114,33 +122,49 @@ export function ActivityOverview({ className }: ActivityOverviewProps) {
           </Button>
         </CardHeader>
         <CardContent>
-          <div className="space-y-4">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <Badge variant="outline" className="text-xs">
-                      {activity.type}
+          {recentActivities.length === 0 ? (
+            <div className="text-center py-8 text-gray-500">
+              <Activity className="h-12 w-12 mx-auto mb-4 text-gray-300" />
+              <p>No recent activities found.</p>
+              <p className="text-sm">Start logging your tennis activities to see them here!</p>
+            </div>
+          ) : (
+            <div className="space-y-4">
+              {recentActivities.map((activity) => (
+                <div key={activity.id} className="flex items-center gap-4 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-2 mb-1">
+                      <Badge variant="outline" className="text-xs capitalize">
+                        {activity.type}
+                      </Badge>
+                      <span className="text-sm text-gray-500">{activity.time}</span>
+                    </div>
+                    <h4 className="font-medium text-gray-900 mb-1">{activity.title}</h4>
+                    <p className="text-sm text-gray-600">{activity.result}</p>
+                  </div>
+                  
+                  <div className="text-right">
+                    <div className="flex items-center gap-2 text-xs mb-1">
+                      {activity.rewards.hp !== 0 && (
+                        <span className={activity.rewards.hp > 0 ? 'text-green-600' : 'text-red-600'}>
+                          {activity.rewards.hp > 0 ? '+' : ''}{activity.rewards.hp} HP
+                        </span>
+                      )}
+                      {activity.rewards.xp > 0 && (
+                        <span className="text-yellow-600">+{activity.rewards.xp} XP</span>
+                      )}
+                      {activity.rewards.tokens > 0 && (
+                        <span className="text-blue-600">+{activity.rewards.tokens} Tokens</span>
+                      )}
+                    </div>
+                    <Badge variant="secondary" className="text-xs">
+                      Completed
                     </Badge>
-                    <span className="text-sm text-gray-500">{activity.time}</span>
                   </div>
-                  <h4 className="font-medium text-gray-900 mb-1">{activity.title}</h4>
-                  <p className="text-sm text-gray-600">{activity.result}</p>
                 </div>
-                
-                <div className="text-right">
-                  <div className="flex items-center gap-2 text-xs mb-1">
-                    <span className="text-red-600">+{activity.rewards.hp} HP</span>
-                    <span className="text-yellow-600">+{activity.rewards.xp} XP</span>
-                    <span className="text-green-600">+{activity.rewards.tokens} Tokens</span>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    Completed
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>

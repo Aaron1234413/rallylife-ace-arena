@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -120,11 +119,6 @@ const Index = () => {
     await checkAllAchievements();
   };
 
-  const handleLogActivity = () => {
-    // Placeholder for activity logging - will be enhanced in later phases
-    console.log('Log activity clicked');
-  };
-
   const vitalsLoading = hpLoading || xpLoading || tokensLoading;
 
   return (
@@ -149,7 +143,9 @@ const Index = () => {
           <EnhancedQuickActions
             hpData={hpData}
             xpData={xpData}
-            onLogActivity={handleLogActivity}
+            onAddXP={handleAddXP}
+            onRestoreHP={handleRestoreHP}
+            onAddTokens={handleAddTokens}
           />
 
           {/* 3. Activity Overview - Recent Performance */}

@@ -14,14 +14,24 @@ import {
   Plus,
   ChevronRight 
 } from 'lucide-react';
+import { useActivityLogs } from '@/hooks/useActivityLogs';
 
 interface EnhancedQuickActionsProps {
   hpData: any;
   xpData: any;
-  onLogActivity: () => void;
+  onAddXP: (amount: number, activityType: string, description?: string) => Promise<any>;
+  onRestoreHP: (amount: number, activityType: string, description?: string) => Promise<void>;
+  onAddTokens: (amount: number, tokenType?: string, source?: string, description?: string) => Promise<void>;
 }
 
-export function EnhancedQuickActions({ hpData, xpData, onLogActivity }: EnhancedQuickActionsProps) {
+export function EnhancedQuickActions({ 
+  hpData, 
+  xpData, 
+  onAddXP, 
+  onRestoreHP, 
+  onAddTokens 
+}: EnhancedQuickActionsProps) {
+  const { logActivity } = useActivityLogs();
   const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
   
   const quickActions = [
@@ -33,8 +43,15 @@ export function EnhancedQuickActions({ hpData, xpData, onLogActivity }: Enhanced
       color: 'bg-blue-500',
       textColor: 'text-blue-700',
       bgColor: 'bg-blue-50',
-      rewards: { hp: '+15', xp: '+50', tokens: '+25' },
-      recommended: true
+      rewards: { hp: -10, xp: 50, tokens: 25 },
+      recommended: hpPercentage > 40,
+      activityData: {
+        activity_type: 'match',
+        activity_category: 'on_court',
+        title: 'Tennis Match',
+        duration_minutes: 90,
+        intensity_level: 'high'
+      }
     },
     {
       id: 'training',
@@ -44,8 +61,15 @@ export function EnhancedQuickActions({ hpData, xpData, onLogActivity }: Enhanced
       color: 'bg-green-500',
       textColor: 'text-green-700',
       bgColor: 'bg-green-50',
-      rewards: { hp: '+10', xp: '+30', tokens: '+15' },
-      recommended: hpPercentage > 60
+      rewards: { hp: -5, xp: 30, tokens: 15 },
+      recommended: hpPercentage > 30,
+      activityData: {
+        activity_type: 'training',
+        activity_category: 'on_court',
+        title: 'Training Session',
+        duration_minutes: 60,
+        intensity_level: 'medium'
+      }
     },
     {
       id: 'social',
@@ -55,19 +79,33 @@ export function EnhancedQuickActions({ hpData, xpData, onLogActivity }: Enhanced
       color: 'bg-purple-500',
       textColor: 'text-purple-700',
       bgColor: 'bg-purple-50',
-      rewards: { hp: '+8', xp: '+20', tokens: '+10' },
-      recommended: false
+      rewards: { hp: -3, xp: 20, tokens: 10 },
+      recommended: hpPercentage > 20,
+      activityData: {
+        activity_type: 'social',
+        activity_category: 'social',
+        title: 'Social Play',
+        duration_minutes: 45,
+        intensity_level: 'low'
+      }
     },
     {
-      id: 'tournament',
-      title: 'Tournament',
-      description: 'Competitive tournament play',
-      icon: Trophy,
-      color: 'bg-yellow-500',
-      textColor: 'text-yellow-700',
-      bgColor: 'bg-yellow-50',
-      rewards: { hp: '+20', xp: '+100', tokens: '+50' },
-      recommended: false
+      id: 'rest',
+      title: 'Rest & Recovery',
+      description: 'Restore your energy',
+      icon: Heart,
+      color: 'bg-red-500',
+      textColor: 'text-red-700',
+      bgColor: 'bg-red-50',
+      rewards: { hp: 15, xp: 0, tokens: 0 },
+      recommended: hpPercentage < 40,
+      activityData: {
+        activity_type: 'rest',
+        activity_category: 'recovery',
+        title: 'Rest & Recovery',
+        duration_minutes: 30,
+        intensity_level: 'low'
+      }
     }
   ];
 
@@ -76,7 +114,7 @@ export function EnhancedQuickActions({ hpData, xpData, onLogActivity }: Enhanced
       return {
         title: "Rest Recommended",
         description: "Your HP is low. Consider resting or light activities.",
-        action: "View Recovery Options",
+        action: "Rest & Recover",
         color: "text-orange-600",
         bgColor: "bg-orange-50"
       };
@@ -99,6 +137,30 @@ export function EnhancedQuickActions({ hpData, xpData, onLogActivity }: Enhanced
     };
   };
 
+  const handleQuickAction = async (action: typeof quickActions[0]) => {
+    try {
+      // Log the activity in the database
+      await logActivity(action.activityData);
+      
+      // Apply HP changes
+      if (action.rewards.hp > 0) {
+        await onRestoreHP(action.rewards.hp, action.id, action.description);
+      }
+      
+      // Apply XP changes
+      if (action.rewards.xp > 0) {
+        await onAddXP(action.rewards.xp, action.id, action.description);
+      }
+      
+      // Apply Token changes
+      if (action.rewards.tokens > 0) {
+        await onAddTokens(action.rewards.tokens, 'regular', action.id, action.description);
+      }
+    } catch (error) {
+      console.error('Error logging activity:', error);
+    }
+  };
+
   const recommendation = getRecommendation();
 
   return (
@@ -114,16 +176,12 @@ export function EnhancedQuickActions({ hpData, xpData, onLogActivity }: Enhanced
               <p className="text-sm text-gray-600 mb-2">
                 {recommendation.description}
               </p>
+              {hpData && (
+                <p className="text-xs text-gray-500">
+                  Current HP: {hpData.current_hp}/{hpData.max_hp} ({hpPercentage.toFixed(0)}%)
+                </p>
+              )}
             </div>
-            <Button 
-              variant="outline" 
-              size="sm"
-              className={`${recommendation.color} border-current hover:bg-current hover:text-white`}
-              onClick={onLogActivity}
-            >
-              {recommendation.action}
-              <ChevronRight className="h-4 w-4 ml-1" />
-            </Button>
           </div>
         </CardContent>
       </Card>
@@ -138,51 +196,63 @@ export function EnhancedQuickActions({ hpData, xpData, onLogActivity }: Enhanced
         </CardHeader>
         <CardContent>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {quickActions.map((action) => (
-              <Card 
-                key={action.id}
-                className={`cursor-pointer transition-all duration-200 hover:shadow-md border-l-4 ${action.bgColor} hover:scale-[1.02]`}
-                onClick={onLogActivity}
-              >
-                <CardContent className="p-4">
-                  <div className="flex items-start gap-3">
-                    <div className={`p-2 rounded-lg ${action.color}`}>
-                      <action.icon className="h-5 w-5 text-white" />
-                    </div>
-                    
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <h3 className="font-semibold text-gray-900">{action.title}</h3>
-                        {action.recommended && (
-                          <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
-                            Recommended
-                          </Badge>
-                        )}
+            {quickActions.map((action) => {
+              const Icon = action.icon;
+              
+              return (
+                <Card 
+                  key={action.id}
+                  className={`cursor-pointer transition-all duration-200 hover:shadow-md border-l-4 ${action.bgColor} hover:scale-[1.02]`}
+                  onClick={() => handleQuickAction(action)}
+                >
+                  <CardContent className="p-4">
+                    <div className="flex items-start gap-3">
+                      <div className={`p-2 rounded-lg ${action.color}`}>
+                        <Icon className="h-5 w-5 text-white" />
                       </div>
-                      <p className="text-sm text-gray-600 mb-3">
-                        {action.description}
-                      </p>
                       
-                      {/* Rewards Preview */}
-                      <div className="flex items-center gap-3 text-xs">
-                        <div className="flex items-center gap-1">
-                          <Heart className="h-3 w-3 text-red-500" />
-                          <span className="font-medium text-red-600">{action.rewards.hp}</span>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center gap-2 mb-1">
+                          <h3 className="font-semibold text-gray-900">{action.title}</h3>
+                          {action.recommended && (
+                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-700">
+                              Recommended
+                            </Badge>
+                          )}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Star className="h-3 w-3 text-yellow-500" />
-                          <span className="font-medium text-yellow-600">{action.rewards.xp}</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                          <Coins className="h-3 w-3 text-yellow-500" />
-                          <span className="font-medium text-yellow-600">{action.rewards.tokens}</span>
+                        <p className="text-sm text-gray-600 mb-3">
+                          {action.description}
+                        </p>
+                        
+                        {/* Rewards Preview */}
+                        <div className="flex items-center gap-3 text-xs">
+                          {action.rewards.hp !== 0 && (
+                            <div className="flex items-center gap-1">
+                              <Heart className="h-3 w-3 text-red-500" />
+                              <span className={`font-medium ${action.rewards.hp > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                                {action.rewards.hp > 0 ? '+' : ''}{action.rewards.hp}
+                              </span>
+                            </div>
+                          )}
+                          {action.rewards.xp > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Star className="h-3 w-3 text-yellow-500" />
+                              <span className="font-medium text-yellow-600">+{action.rewards.xp}</span>
+                            </div>
+                          )}
+                          {action.rewards.tokens > 0 && (
+                            <div className="flex items-center gap-1">
+                              <Coins className="h-3 w-3 text-yellow-500" />
+                              <span className="font-medium text-yellow-600">+{action.rewards.tokens}</span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
+                  </CardContent>
+                </Card>
+              );
+            })}
           </div>
         </CardContent>
       </Card>
