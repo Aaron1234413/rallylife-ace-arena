@@ -8,11 +8,10 @@ import { usePlayerTokens } from "@/hooks/usePlayerTokens";
 import { supabase } from "@/integrations/supabase/client";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
-import { PlayerStatsCards } from "@/components/dashboard/PlayerStatsCards";
+import { PlayerVitalsHero, EnhancedQuickActions, ActivityOverview } from "@/components/dashboard/player";
 import { PlayerActionCards } from "@/components/dashboard/PlayerActionCards";
 import { PlayerActivityLogs } from "@/components/dashboard/PlayerActivityLogs";
 import { TokenEconomy } from "@/components/dashboard/TokenEconomy";
-import { QuickActionButtons } from "@/components/activities/QuickActionButtons";
 import { ActivityFeed } from "@/components/activities/ActivityFeed";
 import { ActivityStats } from "@/components/activities/ActivityStats";
 import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
@@ -116,48 +115,61 @@ const Index = () => {
     await checkAllAchievements();
   };
 
-  const isPlayer = profile?.role === 'player';
-  const isCoach = profile?.role === 'coach';
+  const handleLogActivity = () => {
+    // Placeholder for activity logging - will be enhanced in later phases
+    console.log('Log activity clicked');
+  };
+
+  const vitalsLoading = hpLoading || xpLoading || tokensLoading;
 
   return (
-    <div className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4 sm:space-y-6">
+    <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
       {/* Welcome Banner */}
       <WelcomeBanner />
-
-      {/* Profile Card */}
-      <ProfileCard
-        profile={profile}
-        user={user}
-        profileLoading={profileLoading}
-        isPlayer={isPlayer}
-      />
 
       {/* Player-specific content */}
       {isPlayer && (
         <>
-          {/* Quick Actions */}
-          <QuickActionButtons />
-
-          {/* Status Cards */}
-          <PlayerStatsCards
+          {/* Phase 1: Enhanced Information Hierarchy */}
+          
+          {/* 1. Player Vitals Hero Section - Most Prominent */}
+          <PlayerVitalsHero
             hpData={hpData}
             xpData={xpData}
             tokenData={tokenData}
-            hpLoading={hpLoading}
-            xpLoading={xpLoading}
-            tokensLoading={tokensLoading}
+            loading={vitalsLoading}
           />
 
-          {/* Activity Overview */}
-          <div className="grid gap-4 lg:grid-cols-2">
-            <ActivityFeed limit={5} showFilters={false} />
-            <ActivityStats />
+          {/* 2. Enhanced Quick Actions - Contextual and Smart */}
+          <EnhancedQuickActions
+            hpData={hpData}
+            xpData={xpData}
+            onLogActivity={handleLogActivity}
+          />
+
+          {/* 3. Activity Overview - Recent Performance */}
+          <ActivityOverview />
+
+          {/* 4. Detailed Sections - Secondary Information */}
+          <div className="grid gap-6 lg:grid-cols-2">
+            {/* Left Column - Social & Community */}
+            <div className="space-y-6">
+              <ActivityFeed limit={5} showFilters={false} />
+              <AvatarCustomization />
+            </div>
+
+            {/* Right Column - Personal Progress */}
+            <div className="space-y-6">
+              <ActivityStats />
+              <TokenEconomy
+                tokenData={tokenData}
+                onSpendTokens={spendTokens}
+                onConvertTokens={convertPremiumTokens}
+              />
+            </div>
           </div>
 
-          {/* Avatar Customization */}
-          <AvatarCustomization />
-
-          {/* Action Cards */}
+          {/* 5. Additional Action Cards - Tertiary Actions */}
           <PlayerActionCards
             hpData={hpData}
             xpData={xpData}
@@ -167,14 +179,7 @@ const Index = () => {
             onAddTokens={handleAddTokens}
           />
 
-          {/* Token Economy */}
-          <TokenEconomy
-            tokenData={tokenData}
-            onSpendTokens={spendTokens}
-            onConvertTokens={convertPremiumTokens}
-          />
-
-          {/* Activity Logs */}
+          {/* 6. Detailed Activity Logs - Historical Data */}
           <PlayerActivityLogs
             hpActivities={hpActivities}
             xpActivities={xpActivities}
@@ -189,6 +194,14 @@ const Index = () => {
       {/* Coach-specific content */}
       {isCoach && (
         <>
+          {/* Profile Card for Coaches */}
+          <ProfileCard
+            profile={profile}
+            user={user}
+            profileLoading={profileLoading}
+            isPlayer={isPlayer}
+          />
+
           {/* Coach Overview Cards */}
           <CoachOverviewCards
             cxpData={cxpData}
