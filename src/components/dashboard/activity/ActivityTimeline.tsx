@@ -1,98 +1,63 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
-  Heart, 
-  Star, 
-  Coins,
-  Clock,
-  MapPin,
-  Users,
+  Clock, 
+  MapPin, 
   Trophy,
-  Dumbbell,
+  Heart,
+  Star,
   Activity
 } from 'lucide-react';
-import { format, isToday, isThisWeek, isThisMonth } from 'date-fns';
+import { format } from 'date-fns';
 
 interface ActivityTimelineProps {
   activities: any[];
-  feedPosts: any[];
-  timeFilter: 'today' | 'week' | 'month' | 'all';
+  timeFilter: string;
   activityFilter: string;
   loading: boolean;
 }
 
-const activityIcons = {
-  match: Trophy,
-  training: Dumbbell,
-  lesson: Users,
-  social: Heart,
-  tournament: Trophy,
-  practice: Trophy,
-  default: Activity
-};
-
 export function ActivityTimeline({ 
   activities, 
-  feedPosts, 
   timeFilter, 
   activityFilter, 
   loading 
 }: ActivityTimelineProps) {
-  // Filter activities based on time and type using REAL data only
-  const filteredActivities = (activities || []).filter(activity => {
-    const activityDate = new Date(activity.logged_at);
-    
-    // Time filter
-    let passesTimeFilter = true;
-    switch (timeFilter) {
-      case 'today':
-        passesTimeFilter = isToday(activityDate);
-        break;
-      case 'week':
-        passesTimeFilter = isThisWeek(activityDate);
-        break;
-      case 'month':
-        passesTimeFilter = isThisMonth(activityDate);
-        break;
-      case 'all':
-        passesTimeFilter = true;
-        break;
+  // Filter activities based on filters
+  const filteredActivities = activities.filter(activity => {
+    if (activityFilter !== 'all' && activity.activity_type !== activityFilter) {
+      return false;
     }
     
-    // Activity type filter
-    const passesActivityFilter = activityFilter === 'all' || activity.activity_type === activityFilter;
+    const activityDate = new Date(activity.logged_at || activity.created_at);
+    const now = new Date();
     
-    return passesTimeFilter && passesActivityFilter;
+    switch (timeFilter) {
+      case 'today':
+        return activityDate.toDateString() === now.toDateString();
+      case 'week':
+        const weekAgo = new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000);
+        return activityDate >= weekAgo;
+      case 'month':
+        const monthAgo = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
+        return activityDate >= monthAgo;
+      default:
+        return true;
+    }
   });
 
   if (loading) {
     return (
       <Card>
         <CardContent className="p-6">
-          <div className="text-center">
-            <div className="animate-pulse space-y-4">
-              {[1, 2, 3].map((i) => (
-                <div key={i} className="h-20 bg-gray-200 rounded"></div>
-              ))}
-            </div>
+          <div className="animate-pulse space-y-4">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="h-24 bg-gray-200 rounded"></div>
+            ))}
           </div>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (filteredActivities.length === 0) {
-    return (
-      <Card>
-        <CardContent className="p-8 text-center">
-          <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
-          <h3 className="text-lg font-medium mb-2">No Activities Found</h3>
-          <p className="text-muted-foreground">
-            No activities match your current filters. Try adjusting the time period or activity type, or log some activities to see them here.
-          </p>
         </CardContent>
       </Card>
     );
@@ -100,111 +65,106 @@ export function ActivityTimeline({
 
   return (
     <Card>
-      <CardContent className="p-0">
-        <ScrollArea className="h-96 sm:h-[500px]">
-          <div className="p-4 space-y-4">
-            {filteredActivities.map((activity, index) => {
-              const Icon = activityIcons[activity.activity_type as keyof typeof activityIcons] || activityIcons.default;
-              const isRecent = index < 3;
-              
-              return (
-                <div 
-                  key={activity.id} 
-                  className={`relative pl-8 pb-4 ${index !== filteredActivities.length - 1 ? 'border-l-2 border-muted' : ''}`}
-                >
-                  {/* Timeline dot */}
-                  <div className={`absolute left-0 top-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
-                    isRecent ? 'bg-primary border-primary' : 'bg-muted border-muted-foreground'
-                  }`}>
-                    <Icon className={`h-3 w-3 ${isRecent ? 'text-primary-foreground' : 'text-muted-foreground'}`} />
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <Clock className="h-5 w-5" />
+          Activity Timeline
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        {filteredActivities.length === 0 ? (
+          <div className="text-center py-8">
+            <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+            <h3 className="text-lg font-medium mb-2">No Activities Found</h3>
+            <p className="text-muted-foreground">
+              {activityFilter === 'all' 
+                ? 'No activities logged yet. Start playing to see your timeline!'
+                : `No ${activityFilter} activities found for the selected time period.`
+              }
+            </p>
+          </div>
+        ) : (
+          <ScrollArea className="h-96">
+            <div className="space-y-4">
+              {filteredActivities.map((activity) => (
+                <div key={activity.id} className="border rounded-lg p-4 hover:bg-muted/30 transition-colors">
+                  <div className="flex items-start justify-between mb-2">
+                    <div className="flex items-center gap-2">
+                      <h4 className="font-medium">{activity.title}</h4>
+                      <Badge variant="outline" className="text-xs capitalize">
+                        {activity.activity_type}
+                      </Badge>
+                    </div>
+                    {activity.intensity_level && (
+                      <Badge 
+                        variant="secondary"
+                        className={`text-xs ${
+                          activity.intensity_level === 'high' ? 'bg-red-100 text-red-700' :
+                          activity.intensity_level === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-green-100 text-green-700'
+                        }`}
+                      >
+                        {activity.intensity_level}
+                      </Badge>
+                    )}
                   </div>
                   
-                  {/* Activity card */}
-                  <Card className={`ml-4 ${isRecent ? 'ring-2 ring-primary/20' : ''}`}>
-                    <CardContent className="p-4">
-                      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 mb-2">
-                            <h4 className="font-semibold text-sm sm:text-base truncate">{activity.title}</h4>
-                            <Badge variant="outline" className="text-xs capitalize">
-                              {activity.activity_type}
-                            </Badge>
-                            {activity.is_competitive && (
-                              <Badge className="bg-red-100 text-red-800 text-xs">
-                                Competitive
-                              </Badge>
-                            )}
-                          </div>
-                          
-                          {activity.description && (
-                            <p className="text-sm text-muted-foreground mb-2 line-clamp-2">
-                              {activity.description}
-                            </p>
-                          )}
-                          
-                          {/* Activity details */}
-                          <div className="flex flex-wrap items-center gap-3 text-xs text-muted-foreground mb-3">
-                            <div className="flex items-center gap-1">
-                              <Clock className="h-3 w-3" />
-                              <span>{format(new Date(activity.logged_at), 'MMM d, HH:mm')}</span>
-                            </div>
-                            
-                            {activity.duration_minutes && (
-                              <div className="flex items-center gap-1">
-                                <Clock className="h-3 w-3" />
-                                <span>{activity.duration_minutes} min</span>
-                              </div>
-                            )}
-                            
-                            {activity.location && (
-                              <div className="flex items-center gap-1">
-                                <MapPin className="h-3 w-3" />
-                                <span className="truncate max-w-24">{activity.location}</span>
-                              </div>
-                            )}
-                          </div>
-                          
-                          {/* Real impact visualization */}
-                          <div className="flex flex-wrap gap-2">
-                            {activity.hp_impact !== 0 && (
-                              <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
-                                activity.hp_impact > 0 
-                                  ? 'bg-green-100 text-green-700' 
-                                  : 'bg-red-100 text-red-700'
-                              }`}>
-                                <Heart className="h-3 w-3" />
-                                <span>{activity.hp_impact > 0 ? '+' : ''}{activity.hp_impact} HP</span>
-                              </div>
-                            )}
-                            
-                            {activity.xp_earned > 0 && (
-                              <div className="flex items-center gap-1 px-2 py-1 rounded-full bg-yellow-100 text-yellow-700 text-xs font-medium">
-                                <Star className="h-3 w-3" />
-                                <span>+{activity.xp_earned} XP</span>
-                              </div>
-                            )}
-                          </div>
-                        </div>
-                        
-                        {/* Intensity badge */}
-                        <Badge 
-                          variant="secondary" 
-                          className={`text-xs ${
-                            activity.intensity_level === 'high' ? 'bg-red-100 text-red-700' :
-                            activity.intensity_level === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-green-100 text-green-700'
-                          }`}
-                        >
-                          {activity.intensity_level}
-                        </Badge>
+                  {activity.description && (
+                    <p className="text-sm text-muted-foreground mb-3">
+                      {activity.description}
+                    </p>
+                  )}
+                  
+                  <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground mb-3">
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      <span>{format(new Date(activity.logged_at || activity.created_at), 'MMM d, HH:mm')}</span>
+                    </div>
+                    
+                    {activity.duration_minutes && (
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{activity.duration_minutes} min</span>
                       </div>
-                    </CardContent>
-                  </Card>
+                    )}
+                    
+                    {activity.location && (
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>{activity.location}</span>
+                      </div>
+                    )}
+                  </div>
+                  
+                  <div className="flex items-center gap-3">
+                    {activity.hp_impact !== undefined && activity.hp_impact !== 0 && (
+                      <div className={`flex items-center gap-1 text-xs ${
+                        activity.hp_impact > 0 ? 'text-green-600' : 'text-red-600'
+                      }`}>
+                        <Heart className="h-3 w-3" />
+                        <span>{activity.hp_impact > 0 ? '+' : ''}{activity.hp_impact} HP</span>
+                      </div>
+                    )}
+                    
+                    {activity.xp_earned > 0 && (
+                      <div className="flex items-center gap-1 text-xs text-yellow-600">
+                        <Star className="h-3 w-3" />
+                        <span>+{activity.xp_earned} XP</span>
+                      </div>
+                    )}
+                    
+                    {activity.is_competitive && (
+                      <div className="flex items-center gap-1 text-xs text-purple-600">
+                        <Trophy className="h-3 w-3" />
+                        <span>Competitive</span>
+                      </div>
+                    )}
+                  </div>
                 </div>
-              );
-            })}
-          </div>
-        </ScrollArea>
+              ))}
+            </div>
+          </ScrollArea>
+        )}
       </CardContent>
     </Card>
   );

@@ -12,8 +12,7 @@ import {
   Trophy,
   Heart,
   Star,
-  RefreshCw,
-  Filter
+  RefreshCw
 } from 'lucide-react';
 import { format } from 'date-fns';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
@@ -108,16 +107,18 @@ export function ActivityFeed({ limit = 10, showFilters = true, className }: Acti
                         {activity.activity_type}
                       </Badge>
                     </div>
-                    <Badge 
-                      variant="secondary"
-                      className={`text-xs ${
-                        activity.intensity_level === 'high' ? 'bg-red-100 text-red-700' :
-                        activity.intensity_level === 'medium' ? 'bg-yellow-100 text-yellow-700' :
-                        'bg-green-100 text-green-700'
-                      }`}
-                    >
-                      {activity.intensity_level}
-                    </Badge>
+                    {activity.intensity_level && (
+                      <Badge 
+                        variant="secondary"
+                        className={`text-xs ${
+                          activity.intensity_level === 'high' ? 'bg-red-100 text-red-700' :
+                          activity.intensity_level === 'medium' ? 'bg-yellow-100 text-yellow-700' :
+                          'bg-green-100 text-green-700'
+                        }`}
+                      >
+                        {activity.intensity_level}
+                      </Badge>
+                    )}
                   </div>
                   
                   {activity.description && (
@@ -129,7 +130,7 @@ export function ActivityFeed({ limit = 10, showFilters = true, className }: Acti
                   <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground mb-3">
                     <div className="flex items-center gap-1">
                       <Clock className="h-3 w-3" />
-                      <span>{format(new Date(activity.logged_at), 'MMM d, HH:mm')}</span>
+                      <span>{format(new Date(activity.logged_at || activity.created_at), 'MMM d, HH:mm')}</span>
                     </div>
                     
                     {activity.duration_minutes && (
@@ -148,7 +149,7 @@ export function ActivityFeed({ limit = 10, showFilters = true, className }: Acti
                   </div>
                   
                   <div className="flex items-center gap-3">
-                    {activity.hp_impact !== 0 && (
+                    {activity.hp_impact !== undefined && activity.hp_impact !== 0 && (
                       <div className={`flex items-center gap-1 text-xs ${
                         activity.hp_impact > 0 ? 'text-green-600' : 'text-red-600'
                       }`}>

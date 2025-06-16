@@ -39,9 +39,9 @@ export function useFeedData() {
         avatar_url: undefined
       };
 
-      // Add activity posts - these are from the current user
+      // Add activity posts - only from real logged activities
       activities.forEach(activity => {
-        // Check if it's a level up activity (based on XP earned)
+        // Only add posts for activities with significant XP or match results
         if (activity.xp_earned > 0 && activity.xp_earned >= 100) {
           posts.push({
             id: `levelup-${activity.id}`,
@@ -51,17 +51,17 @@ export function useFeedData() {
               full_name: currentUserProfile.full_name || 'Unknown Player',
               avatar_url: currentUserProfile.avatar_url || undefined,
             },
-            timestamp: activity.logged_at,
+            timestamp: activity.logged_at || activity.created_at,
             content: {
-              level: Math.floor(activity.xp_earned / 100) + 1, // Rough level calculation
+              level: Math.floor(activity.xp_earned / 100) + 1,
             },
             likes: 0,
             comments: 0,
           });
         }
 
-        // Add match results
-        if (activity.activity_type === 'match' && activity.score) {
+        // Add match results for competitive activities
+        if (activity.activity_type === 'match' && activity.is_competitive) {
           posts.push({
             id: `match-${activity.id}`,
             type: 'match_result',
@@ -70,10 +70,10 @@ export function useFeedData() {
               full_name: currentUserProfile.full_name || 'Unknown Player',
               avatar_url: currentUserProfile.avatar_url || undefined,
             },
-            timestamp: activity.logged_at,
+            timestamp: activity.logged_at || activity.created_at,
             content: {
-              score: activity.score,
-              result: activity.result,
+              activity: activity.title,
+              xp_earned: activity.xp_earned,
             },
             likes: 0,
             comments: 0,
@@ -82,7 +82,7 @@ export function useFeedData() {
       });
     }
 
-    // Add achievement posts
+    // Add achievement posts - only from real unlocked achievements
     if (playerAchievements && profiles && user) {
       const currentUserProfile = profiles.find(p => p.id === user.id) || {
         id: user.id,
@@ -129,9 +129,6 @@ export function useFeedData() {
         ? { ...post, likes: post.likes + 1 }
         : post
     ));
-    
-    // Here you would typically make an API call to update likes in the database
-    // For now, we're just updating the local state
   };
 
   const handleComment = async (postId: string) => {

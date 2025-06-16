@@ -33,6 +33,7 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading }: PlayerV
     );
   }
 
+  // Use actual data - no fallbacks to mock values
   const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
   const xpPercentage = xpData ? (xpData.current_xp / (xpData.current_xp + xpData.xp_to_next_level)) * 100 : 0;
   

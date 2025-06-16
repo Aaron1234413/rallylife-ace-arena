@@ -1,13 +1,10 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { ScrollArea } from '@/components/ui/scroll-area';
 import { 
   Activity, 
-  Filter,
   Calendar,
   TrendingUp,
   ChevronDown,
@@ -16,7 +13,6 @@ import {
 import { ActivityTimeline } from './ActivityTimeline';
 import { ActivityAnalytics } from './ActivityAnalytics';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
-import { useFeedData } from '@/hooks/useFeedData';
 
 interface UnifiedActivityDashboardProps {
   className?: string;
@@ -28,8 +24,7 @@ export function UnifiedActivityDashboard({ className }: UnifiedActivityDashboard
   const [activityFilter, setActivityFilter] = useState<string>('all');
   const [isCollapsed, setIsCollapsed] = useState(false);
   
-  const { activities, stats, loading: activitiesLoading, refreshData } = useActivityLogs();
-  const { feedPosts, loading: feedLoading } = useFeedData();
+  const { activities, stats, loading, refreshData } = useActivityLogs();
 
   const handleRefresh = async () => {
     await refreshData();
@@ -105,10 +100,10 @@ export function UnifiedActivityDashboard({ className }: UnifiedActivityDashboard
                 variant="outline"
                 size="sm"
                 onClick={handleRefresh}
-                disabled={activitiesLoading}
+                disabled={loading}
                 className="w-full sm:w-auto"
               >
-                <RefreshCw className={`h-4 w-4 mr-1 ${activitiesLoading ? 'animate-spin' : ''}`} />
+                <RefreshCw className={`h-4 w-4 mr-1 ${loading ? 'animate-spin' : ''}`} />
                 Refresh
               </Button>
             </div>
@@ -119,18 +114,17 @@ export function UnifiedActivityDashboard({ className }: UnifiedActivityDashboard
       {/* Content */}
       {activeTab === 'timeline' ? (
         <ActivityTimeline
-          activities={activities}
-          feedPosts={feedPosts}
+          activities={activities || []}
           timeFilter={timeFilter}
           activityFilter={activityFilter}
-          loading={activitiesLoading || feedLoading}
+          loading={loading}
         />
       ) : (
         <ActivityAnalytics
-          activities={activities}
+          activities={activities || []}
           stats={stats}
           timeFilter={timeFilter}
-          loading={activitiesLoading}
+          loading={loading}
         />
       )}
     </div>
