@@ -13,7 +13,8 @@ import {
   Calendar,
   MapPin,
   Search,
-  User
+  User,
+  Bolt
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -24,6 +25,7 @@ export function AppNavigation() {
   // Basic navigation items available to all users
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
+    { path: '/pulse', label: 'Pulse', icon: Bolt },
     { path: '/search', label: 'Search', icon: Search },
     { path: '/activities', label: 'Activities', icon: Activity },
     { path: '/achievements', label: 'Achievements', icon: Trophy },
