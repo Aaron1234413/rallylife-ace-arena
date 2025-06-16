@@ -19,18 +19,6 @@ const Pulse = () => {
   // Fetch achievements data
   const { playerAchievements, loading: achievementsLoading } = usePlayerAchievements();
 
-  // Mock leaderboard data for now
-  const getLeaderboardData = async () => {
-    // This would be replaced with actual Supabase query
-    return [
-      { id: '1', name: 'Alex Chen', xp: 2450, matches_won: 18, avatar_url: null },
-      { id: '2', name: 'Sarah Johnson', xp: 2380, matches_won: 16, avatar_url: null },
-      { id: '3', name: 'Mike Rodriguez', xp: 2290, matches_won: 15, avatar_url: null },
-      { id: '4', name: 'Emma Wilson', xp: 2180, matches_won: 14, avatar_url: null },
-      { id: '5', name: 'David Park', xp: 2050, matches_won: 12, avatar_url: null }
-    ];
-  };
-
   return (
     <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
       {/* Header Section */}
@@ -102,9 +90,8 @@ const Pulse = () => {
             </CardHeader>
             <CardContent>
               <AchievementDisplay
-                achievements={playerAchievements.slice(0, 3)}
-                loading={achievementsLoading}
-                variant="compact"
+                showRecent={true}
+                maxItems={3}
               />
               {playerAchievements.length > 3 && (
                 <div className="mt-4 text-center">
@@ -126,11 +113,11 @@ const Pulse = () => {
             </CardHeader>
             <CardContent>
               <LeaderboardWidget
-                getData={getLeaderboardData}
                 title="XP Leaders"
-                metric="xp"
-                showRank={true}
-                limit={5}
+                leaderboardType="overall"
+                periodType="all_time"
+                maxEntries={5}
+                showViewAll={false}
               />
             </CardContent>
           </Card>
