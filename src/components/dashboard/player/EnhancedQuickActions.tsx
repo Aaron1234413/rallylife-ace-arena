@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Racket, 
+  Zap, 
   Users, 
   BookOpen, 
   Trophy, 
@@ -29,7 +29,7 @@ export function EnhancedQuickActions({ hpData, xpData, onLogActivity }: Enhanced
       id: 'match',
       title: 'Log Match',
       description: 'Record a tennis match',
-      icon: Racket,
+      icon: Zap,
       color: 'bg-blue-500',
       textColor: 'text-blue-700',
       bgColor: 'bg-blue-50',

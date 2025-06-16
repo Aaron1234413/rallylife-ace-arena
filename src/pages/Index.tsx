@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -43,6 +44,10 @@ const Index = () => {
   
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+
+  // Derive user role flags from profile
+  const isPlayer = profile?.role === 'player';
+  const isCoach = profile?.role === 'coach';
 
   useEffect(() => {
     if (user) {
