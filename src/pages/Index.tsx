@@ -8,7 +8,7 @@ import { usePlayerTokens } from "@/hooks/usePlayerTokens";
 import { supabase } from "@/integrations/supabase/client";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
-import { PlayerVitalsHero, EnhancedQuickActions, ActivityOverview } from "@/components/dashboard/player";
+import { PlayerVitalsHero, EnhancedQuickActions } from "@/components/dashboard/player";
 import { PlayerActionCards } from "@/components/dashboard/PlayerActionCards";
 import { PlayerActivityLogs } from "@/components/dashboard/PlayerActivityLogs";
 import { TokenEconomy } from "@/components/dashboard/TokenEconomy";
@@ -24,9 +24,18 @@ import { CTKTransactionHistory } from "@/components/ctk/CTKTransactionHistory";
 import { CoachAchievementsDisplay } from "@/components/achievements/CoachAchievementsDisplay";
 import { CoachOverviewCards } from "@/components/coach/dashboard/CoachOverviewCards";
 import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickActions";
+import { UnifiedActivityDashboard } from "@/components/dashboard/activity";
+import { CollapsibleSection, MobileActionPanel } from "@/components/dashboard/mobile";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
+import { 
+  Activity, 
+  Users, 
+  TrendingUp, 
+  Coins, 
+  Clock 
+} from 'lucide-react';
 
 const Index = () => {
   const { user } = useAuth();
@@ -121,8 +130,26 @@ const Index = () => {
 
   const vitalsLoading = hpLoading || xpLoading || tokensLoading;
 
+  // Refresh function for pull-to-refresh
+  const handleRefresh = async () => {
+    if (isPlayer) {
+      await Promise.all([
+        initializeHP(),
+        initializeXP(),
+        initializeTokens(),
+        checkAllAchievements()
+      ]);
+    } else if (isCoach) {
+      await Promise.all([
+        initializeCXP(),
+        initializeCoachTokens(),
+        initializeCRP()
+      ]);
+    }
+  };
+
   return (
-    <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
+    <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6 pb-24 sm:pb-6">
       {/* Welcome Banner */}
       <WelcomeBanner />
 
@@ -139,55 +166,101 @@ const Index = () => {
             loading={vitalsLoading}
           />
 
-          {/* 2. Enhanced Quick Actions - Contextual and Smart */}
-          <EnhancedQuickActions
-            hpData={hpData}
-            xpData={xpData}
-            onAddXP={handleAddXP}
-            onRestoreHP={handleRestoreHP}
-            onAddTokens={handleAddTokens}
-          />
+          {/* 2. Enhanced Quick Actions - Contextual and Smart (Desktop) */}
+          <div className="hidden sm:block">
+            <EnhancedQuickActions
+              hpData={hpData}
+              xpData={xpData}
+              onAddXP={handleAddXP}
+              onRestoreHP={handleRestoreHP}
+              onAddTokens={handleAddTokens}
+            />
+          </div>
 
-          {/* 3. Activity Overview - Recent Performance */}
-          <ActivityOverview />
+          {/* Phase 4: Unified Activity Dashboard */}
+          <UnifiedActivityDashboard />
 
           {/* 4. Detailed Sections - Secondary Information */}
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Left Column - Social & Community */}
             <div className="space-y-6">
-              <ActivityFeed limit={5} showFilters={false} />
-              <AvatarCustomization />
+              <CollapsibleSection 
+                title="Activity Feed" 
+                icon={<Activity className="h-5 w-5" />}
+                defaultCollapsed={false}
+              >
+                <ActivityFeed limit={5} showFilters={false} />
+              </CollapsibleSection>
+              
+              <CollapsibleSection 
+                title="Avatar Customization" 
+                icon={<Users className="h-5 w-5" />}
+                defaultCollapsed={true}
+                className="sm:block"
+              >
+                <AvatarCustomization />
+              </CollapsibleSection>
             </div>
 
             {/* Right Column - Personal Progress */}
             <div className="space-y-6">
-              <ActivityStats />
-              <TokenEconomy
-                tokenData={tokenData}
-                onSpendTokens={spendTokens}
-                onConvertTokens={convertPremiumTokens}
-              />
+              <CollapsibleSection 
+                title="Activity Statistics" 
+                icon={<TrendingUp className="h-5 w-5" />}
+                defaultCollapsed={false}
+              >
+                <ActivityStats />
+              </CollapsibleSection>
+              
+              <CollapsibleSection 
+                title="Token Economy" 
+                icon={<Coins className="h-5 w-5" />}
+                defaultCollapsed={true}
+              >
+                <TokenEconomy
+                  tokenData={tokenData}
+                  onSpendTokens={spendTokens}
+                  onConvertTokens={convertPremiumTokens}
+                />
+              </CollapsibleSection>
             </div>
           </div>
 
-          {/* 5. Additional Action Cards - Tertiary Actions */}
-          <PlayerActionCards
-            hpData={hpData}
-            xpData={xpData}
-            tokenData={tokenData}
-            onRestoreHP={handleRestoreHP}
-            onAddXP={handleAddXP}
-            onAddTokens={handleAddTokens}
-          />
+          {/* 5. Additional Action Cards - Tertiary Actions (Desktop) */}
+          <div className="hidden lg:block">
+            <PlayerActionCards
+              hpData={hpData}
+              xpData={xpData}
+              tokenData={tokenData}
+              onRestoreHP={handleRestoreHP}
+              onAddXP={handleAddXP}
+              onAddTokens={handleAddTokens}
+            />
+          </div>
 
           {/* 6. Detailed Activity Logs - Historical Data */}
-          <PlayerActivityLogs
-            hpActivities={hpActivities}
-            xpActivities={xpActivities}
-            transactions={transactions}
-            hpLoading={hpLoading}
-            xpLoading={xpLoading}
-            tokensLoading={tokensLoading}
+          <CollapsibleSection 
+            title="Activity History" 
+            icon={<Clock className="h-5 w-5" />}
+            defaultCollapsed={true}
+          >
+            <PlayerActivityLogs
+              hpActivities={hpActivities}
+              xpActivities={xpActivities}
+              transactions={transactions}
+              hpLoading={hpLoading}
+              xpLoading={xpLoading}
+              tokensLoading={tokensLoading}
+            />
+          </CollapsibleSection>
+
+          {/* Mobile Action Panel */}
+          <MobileActionPanel
+            hpData={hpData}
+            xpData={xpData}
+            onAddXP={handleAddXP}
+            onRestoreHP={handleRestoreHP}
+            onAddTokens={handleAddTokens}
           />
         </>
       )}
