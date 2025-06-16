@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -114,7 +115,7 @@ const Index = () => {
 
   return (
     <>
-      {/* Player Dashboard with New Layout */}
+      {/* Player Dashboard with New Pod Layout */}
       {isPlayer && (
         <DashboardLayout
           hpData={hpData}
