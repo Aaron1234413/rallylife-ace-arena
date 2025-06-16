@@ -14,6 +14,8 @@ export function PlayerInteractionPanel() {
 
   const activeAssignments = assignments?.filter(a => a.status !== 'completed').length || 0;
   const activeChallenges = challenges?.filter(c => c.status === 'active').length || 0;
+  
+  // Calculate completed assignments this week from real data
   const completedThisWeek = assignments?.filter(a => {
     if (!a.completed_at) return false;
     const completedDate = new Date(a.completed_at);

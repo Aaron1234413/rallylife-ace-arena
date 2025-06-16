@@ -28,8 +28,7 @@ export function ActivityOverview({ className }: ActivityOverviewProps) {
   const weeklyStats = {
     totalActivities: stats?.total_activities || 0,
     totalHours: stats?.total_duration_minutes ? (stats.total_duration_minutes / 60).toFixed(1) : '0',
-    averageIntensity: 'Medium', // Could be calculated from activity data
-    streak: 0 // Would need to be calculated from consecutive days
+    averageIntensity: stats?.avg_intensity_level || 'N/A',
   };
 
   // Get recent activities (limit to 3 for overview)
@@ -65,7 +64,7 @@ export function ActivityOverview({ className }: ActivityOverviewProps) {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
             <div className="text-center p-3 bg-blue-50 rounded-lg">
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Activity className="h-4 w-4 text-blue-500" />
@@ -88,14 +87,6 @@ export function ActivityOverview({ className }: ActivityOverviewProps) {
               </div>
               <div className="text-2xl font-bold text-orange-600">{weeklyStats.averageIntensity}</div>
               <div className="text-sm text-gray-600">Avg Intensity</div>
-            </div>
-            
-            <div className="text-center p-3 bg-purple-50 rounded-lg">
-              <div className="flex items-center justify-center gap-1 mb-1">
-                <Calendar className="h-4 w-4 text-purple-500" />
-              </div>
-              <div className="text-2xl font-bold text-purple-600">{weeklyStats.streak}</div>
-              <div className="text-sm text-gray-600">Day Streak</div>
             </div>
           </div>
         </CardContent>

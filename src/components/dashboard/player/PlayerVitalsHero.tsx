@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
-import { Heart, Star, Coins, TrendingUp, Calendar, Zap } from 'lucide-react';
+import { Heart, Star, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface PlayerVitalsHeroProps {
@@ -56,7 +56,7 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading }: PlayerV
         </div>
 
         {/* Main Vitals Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {/* HP Section */}
           <div className="text-center space-y-3">
             <div className="flex items-center justify-center gap-2 mb-2">
@@ -139,45 +139,6 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading }: PlayerV
                 {tokenData?.lifetime_earned || 0} Total Earned
               </Badge>
             </div>
-          </div>
-        </div>
-
-        {/* Quick Stats Row */}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-4 pt-4 border-t border-gray-200">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Calendar className="h-4 w-4 text-blue-500" />
-              <span className="text-sm font-medium">Today</span>
-            </div>
-            <div className="text-lg font-bold text-blue-600">3</div>
-            <div className="text-xs text-gray-600">Activities</div>
-          </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Zap className="h-4 w-4 text-orange-500" />
-              <span className="text-sm font-medium">Streak</span>
-            </div>
-            <div className="text-lg font-bold text-orange-600">7</div>
-            <div className="text-xs text-gray-600">Days</div>
-          </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <TrendingUp className="h-4 w-4 text-green-500" />
-              <span className="text-sm font-medium">Rank</span>
-            </div>
-            <div className="text-lg font-bold text-green-600">#42</div>
-            <div className="text-xs text-gray-600">This Week</div>
-          </div>
-          
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Star className="h-4 w-4 text-purple-500" />
-              <span className="text-sm font-medium">Goal</span>
-            </div>
-            <div className="text-lg font-bold text-purple-600">75%</div>
-            <div className="text-xs text-gray-600">Complete</div>
           </div>
         </div>
       </CardContent>

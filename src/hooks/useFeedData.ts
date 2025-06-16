@@ -4,7 +4,6 @@ import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
 import { useProfiles } from '@/hooks/useProfiles';
 import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 
 interface FeedPost {
   id: string;
@@ -56,8 +55,8 @@ export function useFeedData() {
             content: {
               level: Math.floor(activity.xp_earned / 100) + 1, // Rough level calculation
             },
-            likes: Math.floor(Math.random() * 20) + 5, // Mock likes for demo
-            comments: Math.floor(Math.random() * 10) + 1, // Mock comments for demo
+            likes: 0,
+            comments: 0,
           });
         }
 
@@ -75,11 +74,9 @@ export function useFeedData() {
             content: {
               score: activity.score,
               result: activity.result,
-              aces: Math.floor(Math.random() * 5) + 1, // Mock data
-              winners: Math.floor(Math.random() * 10) + 3, // Mock data
             },
-            likes: Math.floor(Math.random() * 15) + 3,
-            comments: Math.floor(Math.random() * 8) + 1,
+            likes: 0,
+            comments: 0,
           });
         }
       });
@@ -110,8 +107,8 @@ export function useFeedData() {
             description: achievement.achievement.description,
             tier: achievement.achievement.tier,
           },
-          likes: Math.floor(Math.random() * 25) + 8,
-          comments: Math.floor(Math.random() * 12) + 2,
+          likes: 0,
+          comments: 0,
         });
       });
     }
