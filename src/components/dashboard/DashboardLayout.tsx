@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { StatusPod } from './StatusPod';
 import { ActionsPod } from './ActionsPod';
@@ -42,6 +41,8 @@ export function DashboardLayout({
   onAddXP,
   onAddTokens
 }: DashboardLayoutProps) {
+  console.log('[DashboardLayout] mounted');
+  
   return (
     <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
       {/* Welcome Banner */}

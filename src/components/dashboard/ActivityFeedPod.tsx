@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { ActivityFeed } from '@/components/activities/ActivityFeed';
@@ -7,6 +6,8 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Activity, BarChart3 } from 'lucide-react';
 
 export function ActivityFeedPod() {
+  console.log('[ActivityFeedPod] mounted');
+  
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (
