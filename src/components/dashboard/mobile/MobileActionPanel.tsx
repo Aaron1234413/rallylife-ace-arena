@@ -38,6 +38,69 @@ export function MobileActionPanel({
   const currentXP = xpData?.current_xp || 0;
   const xpToNext = xpData?.xp_to_next_level || 100;
 
+  // Create action objects that match the ActionButton interface
+  const quickActions = [
+    {
+      id: 'restore-hp',
+      title: 'Restore HP',
+      description: 'Quick health boost',
+      icon: Heart,
+      color: 'bg-red-500',
+      textColor: 'text-red-700',
+      bgColor: 'border-red-200',
+      rewards: { hp: 10, xp: 0, tokens: 0 },
+      recommended: false,
+      estimatedDuration: 5,
+      difficulty: 'low' as const,
+      onClick: () => onRestoreHP(10, 'rest', 'Quick mobile HP restore')
+    },
+    {
+      id: 'add-xp',
+      title: 'Add XP',
+      description: 'Log quick activity',
+      icon: Star,
+      color: 'bg-yellow-500',
+      textColor: 'text-yellow-700',
+      bgColor: 'border-yellow-200',
+      rewards: { hp: 0, xp: 25, tokens: 0 },
+      recommended: false,
+      estimatedDuration: 10,
+      difficulty: 'low' as const,
+      onClick: () => onAddXP(25, 'training', 'Quick mobile XP gain')
+    },
+    {
+      id: 'earn-tokens',
+      title: 'Earn Tokens',
+      description: 'Daily bonus',
+      icon: Coins,
+      color: 'bg-blue-500',
+      textColor: 'text-blue-700',
+      bgColor: 'border-blue-200',
+      rewards: { hp: 0, xp: 0, tokens: 5 },
+      recommended: false,
+      estimatedDuration: 1,
+      difficulty: 'low' as const,
+      onClick: () => onAddTokens(5, 'regular', 'daily_bonus', 'Daily mobile bonus')
+    },
+    {
+      id: 'quick-session',
+      title: 'Quick Session',
+      description: 'Log practice',
+      icon: Zap,
+      color: 'bg-purple-500',
+      textColor: 'text-purple-700',
+      bgColor: 'border-purple-200',
+      rewards: { hp: 5, xp: 50, tokens: 0 },
+      recommended: true,
+      estimatedDuration: 15,
+      difficulty: 'medium' as const,
+      onClick: () => {
+        onAddXP(50, 'practice', 'Quick practice session');
+        onRestoreHP(5, 'practice', 'Practice session health boost');
+      }
+    }
+  ];
+
   return (
     <div className={`fixed bottom-0 left-0 right-0 z-50 sm:hidden ${className}`}>
       {/* Quick Stats Bar */}
@@ -102,42 +165,22 @@ export function MobileActionPanel({
       {activePanel === 'actions' && (
         <Card className="rounded-none border-b-0 border-x-0">
           <CardContent className="p-4">
-            <div className="grid grid-cols-2 gap-3">
-              <ActionButton
-                icon={Heart}
-                label="Restore HP"
-                description="Quick health boost"
-                onClick={() => onRestoreHP(10, 'rest', 'Quick mobile HP restore')}
-                variant="secondary"
-                size="sm"
-              />
-              <ActionButton
-                icon={Star}
-                label="Add XP"
-                description="Log quick activity"
-                onClick={() => onAddXP(25, 'training', 'Quick mobile XP gain')}
-                variant="secondary"
-                size="sm"
-              />
-              <ActionButton
-                icon={Coins}
-                label="Earn Tokens"
-                description="Daily bonus"
-                onClick={() => onAddTokens(5, 'regular', 'daily_bonus', 'Daily mobile bonus')}
-                variant="secondary"
-                size="sm"
-              />
-              <ActionButton
-                icon={Zap}
-                label="Quick Session"
-                description="Log practice"
-                onClick={() => {
-                  onAddXP(50, 'practice', 'Quick practice session');
-                  onRestoreHP(5, 'practice', 'Practice session health boost');
-                }}
-                variant="secondary"
-                size="sm"
-              />
+            <div className="grid grid-cols-1 gap-3">
+              {quickActions.map((action) => (
+                <Button
+                  key={action.id}
+                  variant="outline"
+                  size="sm"
+                  className="flex items-center justify-start gap-2 h-auto p-3"
+                  onClick={action.onClick}
+                >
+                  <action.icon className="h-4 w-4" />
+                  <div className="text-left">
+                    <div className="font-medium">{action.title}</div>
+                    <div className="text-xs text-muted-foreground">{action.description}</div>
+                  </div>
+                </Button>
+              ))}
             </div>
           </CardContent>
         </Card>
