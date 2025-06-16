@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -28,6 +28,7 @@ export function usePlayerHP() {
   const [hpData, setHpData] = useState<PlayerHP | null>(null);
   const [activities, setActivities] = useState<HPActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const channelRef = useRef<any>(null);
 
   const fetchHP = async () => {
     if (!user) return;
@@ -141,8 +142,14 @@ export function usePlayerHP() {
 
       loadData();
 
+      // Clean up any existing channel
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+
       // Set up real-time subscription for HP changes with unique channel name
-      const channelName = `hp-${user.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const channelName = `hp-${user.id}-${Date.now()}`;
       const channel = supabase
         .channel(channelName)
         .on(
@@ -171,8 +178,13 @@ export function usePlayerHP() {
         )
         .subscribe();
 
+      channelRef.current = channel;
+
       return () => {
-        channel.unsubscribe();
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
       };
     } else {
       setHpData(null);

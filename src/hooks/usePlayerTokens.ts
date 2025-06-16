@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -43,6 +43,7 @@ export function usePlayerTokens() {
   const [tokenData, setTokenData] = useState<PlayerTokens | null>(null);
   const [transactions, setTransactions] = useState<TokenTransaction[]>([]);
   const [loading, setLoading] = useState(true);
+  const channelRef = useRef<any>(null);
 
   const fetchTokens = async () => {
     if (!user) return;
@@ -242,8 +243,14 @@ export function usePlayerTokens() {
 
       loadData();
 
+      // Clean up any existing channel
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+
       // Set up real-time subscription for token changes with unique channel name
-      const channelName = `tokens-${user.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const channelName = `tokens-${user.id}-${Date.now()}`;
       const channel = supabase
         .channel(channelName)
         .on(
@@ -272,8 +279,13 @@ export function usePlayerTokens() {
         )
         .subscribe();
 
+      channelRef.current = channel;
+
       return () => {
-        channel.unsubscribe();
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
       };
     } else {
       setTokenData(null);

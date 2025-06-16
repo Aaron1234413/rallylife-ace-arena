@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -39,6 +39,7 @@ export function usePlayerXP() {
   const [xpData, setXpData] = useState<PlayerXP | null>(null);
   const [activities, setActivities] = useState<XPActivity[]>([]);
   const [loading, setLoading] = useState(true);
+  const channelRef = useRef<any>(null);
 
   const fetchXP = async () => {
     if (!user) return;
@@ -152,8 +153,14 @@ export function usePlayerXP() {
 
       loadData();
 
+      // Clean up any existing channel
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+
       // Set up real-time subscription for XP changes with unique channel name
-      const channelName = `xp-${user.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const channelName = `xp-${user.id}-${Date.now()}`;
       const channel = supabase
         .channel(channelName)
         .on(
@@ -182,8 +189,13 @@ export function usePlayerXP() {
         )
         .subscribe();
 
+      channelRef.current = channel;
+
       return () => {
-        channel.unsubscribe();
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
       };
     } else {
       setXpData(null);

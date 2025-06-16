@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -70,6 +70,7 @@ export function usePlayerAchievements() {
   const [playerAchievements, setPlayerAchievements] = useState<PlayerAchievement[]>([]);
   const [achievementProgress, setAchievementProgress] = useState<AchievementProgress[]>([]);
   const [loading, setLoading] = useState(true);
+  const channelRef = useRef<any>(null);
 
   const fetchAchievements = async () => {
     try {
@@ -248,8 +249,15 @@ export function usePlayerAchievements() {
 
     // Set up real-time subscription for achievement changes
     if (user) {
+      // Clean up any existing channel
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+
+      const channelName = `achievement-changes-${user.id}-${Date.now()}`;
       const channel = supabase
-        .channel(`achievement-changes-${user.id}`)
+        .channel(channelName)
         .on(
           'postgres_changes',
           {
@@ -276,8 +284,13 @@ export function usePlayerAchievements() {
         )
         .subscribe();
 
+      channelRef.current = channel;
+
       return () => {
-        supabase.removeChannel(channel);
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
       };
     }
   }, [user]);

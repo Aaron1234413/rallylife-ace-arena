@@ -1,5 +1,5 @@
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -80,6 +80,7 @@ export function useActivityLogs() {
   const [activities, setActivities] = useState<ActivityLog[]>([]);
   const [stats, setStats] = useState<ActivityStats | null>(null);
   const [loading, setLoading] = useState(true);
+  const channelRef = useRef<any>(null);
 
   const fetchActivities = async (
     limit = 20,
@@ -197,8 +198,14 @@ export function useActivityLogs() {
 
       loadData();
 
+      // Clean up any existing channel
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+      }
+
       // Set up real-time subscription for activity changes with unique channel name
-      const channelName = `activities-${user.id}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const channelName = `activities-${user.id}-${Date.now()}`;
       const channel = supabase
         .channel(channelName)
         .on(
@@ -216,8 +223,13 @@ export function useActivityLogs() {
         )
         .subscribe();
 
+      channelRef.current = channel;
+
       return () => {
-        channel.unsubscribe();
+        if (channelRef.current) {
+          supabase.removeChannel(channelRef.current);
+          channelRef.current = null;
+        }
       };
     } else {
       setActivities([]);

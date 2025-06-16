@@ -31,7 +31,7 @@ export function useMessages(conversationId: string | null) {
 
   // Set up real-time subscription for new messages
   useEffect(() => {
-    if (!conversationId) return;
+    if (!conversationId || !user) return;
 
     // Clean up any existing channel
     if (channelRef.current) {
@@ -40,7 +40,7 @@ export function useMessages(conversationId: string | null) {
     }
 
     // Create new channel with unique name
-    const channelName = `messages:${conversationId}:${Date.now()}`;
+    const channelName = `messages:${conversationId}:${user.id}:${Date.now()}`;
     const channel = supabase
       .channel(channelName)
       .on(
@@ -67,7 +67,7 @@ export function useMessages(conversationId: string | null) {
         channelRef.current = null;
       }
     };
-  }, [conversationId, queryClient]);
+  }, [conversationId, user, queryClient]);
 
   const sendMessageMutation = useMutation({
     mutationFn: async ({ content, messageType = 'text', metadata }: {
