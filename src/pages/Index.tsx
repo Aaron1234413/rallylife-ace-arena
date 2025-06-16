@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -12,8 +11,6 @@ import { ProfileCard } from "@/components/dashboard/ProfileCard";
 import { PlayerVitalsHero, EnhancedQuickActions } from "@/components/dashboard/player";
 import { PlayerActionCards } from "@/components/dashboard/PlayerActionCards";
 import { TokenEconomy } from "@/components/dashboard/TokenEconomy";
-import { ActivityFeed } from "@/components/activities/ActivityFeed";
-import { ActivityStats } from "@/components/activities/ActivityStats";
 import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
 import { CoachAvatarCustomization } from "@/components/avatar/CoachAvatarCustomization";
 import { CXPActivityLog } from "@/components/cxp/CXPActivityLog";
@@ -30,7 +27,6 @@ import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
 import { 
   Users, 
-  TrendingUp, 
   Coins
 } from 'lucide-react';
 
@@ -179,14 +175,6 @@ const Index = () => {
             {/* Left Column - Social & Community */}
             <div className="space-y-6">
               <CollapsibleSection 
-                title="Activity Feed" 
-                icon={<Users className="h-5 w-5" />}
-                defaultCollapsed={false}
-              >
-                <ActivityFeed limit={5} showFilters={false} />
-              </CollapsibleSection>
-              
-              <CollapsibleSection 
                 title="Avatar Customization" 
                 icon={<Users className="h-5 w-5" />}
                 defaultCollapsed={true}
@@ -198,14 +186,6 @@ const Index = () => {
 
             {/* Right Column - Personal Progress */}
             <div className="space-y-6">
-              <CollapsibleSection 
-                title="Activity Statistics" 
-                icon={<TrendingUp className="h-5 w-5" />}
-                defaultCollapsed={false}
-              >
-                <ActivityStats />
-              </CollapsibleSection>
-              
               <CollapsibleSection 
                 title="Token Economy" 
                 icon={<Coins className="h-5 w-5" />}
