@@ -3,14 +3,19 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { AvatarDisplay } from '@/components/avatar/AvatarDisplay';
 import { CoachAvatarDisplay } from '@/components/avatar/CoachAvatarDisplay';
-import { User, Mail, UserCheck } from 'lucide-react';
+import { AvatarCustomization } from '@/components/avatar/AvatarCustomization';
+import { CoachAvatarCustomization } from '@/components/avatar/CoachAvatarCustomization';
+import { User, Mail, UserCheck, Edit } from 'lucide-react';
 
 const Profile = () => {
   const { user } = useAuth();
   const [profile, setProfile] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [editAvatarOpen, setEditAvatarOpen] = useState(false);
 
   useEffect(() => {
     if (user) {
@@ -62,7 +67,7 @@ const Profile = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Avatar Section */}
-          <div className="flex justify-center">
+          <div className="flex flex-col items-center space-y-4">
             {isCoach ? (
               <CoachAvatarDisplay size="lg" showItems={true} />
             ) : (
@@ -72,6 +77,26 @@ const Profile = () => {
                 showBorder={true}
               />
             )}
+            
+            {/* Edit Avatar Button */}
+            <Dialog open={editAvatarOpen} onOpenChange={setEditAvatarOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline" className="flex items-center gap-2">
+                  <Edit className="h-4 w-4" />
+                  Edit Avatar
+                </Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle>Customize Your Avatar</DialogTitle>
+                </DialogHeader>
+                {isCoach ? (
+                  <CoachAvatarCustomization />
+                ) : (
+                  <AvatarCustomization />
+                )}
+              </DialogContent>
+            </Dialog>
           </div>
 
           {/* Profile Information */}

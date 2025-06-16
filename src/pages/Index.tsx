@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
 import { PlayerVitalsHero, EnhancedQuickActions } from "@/components/dashboard/player";
-import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
 import { CoachAvatarCustomization } from "@/components/avatar/CoachAvatarCustomization";
 import { CXPActivityLog } from "@/components/cxp/CXPActivityLog";
 import { CXPEarnActions } from "@/components/cxp/CXPEarnActions";
@@ -24,7 +23,6 @@ import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
 import { 
-  Users, 
   Activity
 } from 'lucide-react';
 
@@ -166,18 +164,6 @@ const Index = () => {
               onRestoreHP={handleRestoreHP}
               onAddTokens={handleAddTokens}
             />
-          </div>
-
-          {/* 3. Detailed Sections - Secondary Information */}
-          <div className="space-y-6">
-            <CollapsibleSection 
-              title="Avatar Customization" 
-              icon={<Users className="h-5 w-5" />}
-              defaultCollapsed={true}
-              className="sm:block"
-            >
-              <AvatarCustomization />
-            </CollapsibleSection>
           </div>
 
           {/* Mobile Action Panel */}
