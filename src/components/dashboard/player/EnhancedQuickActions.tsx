@@ -51,6 +51,7 @@ export function EnhancedQuickActions({
         activity_type: 'match',
         activity_category: 'on_court',
         title: 'Tennis Match',
+        description: 'Competitive tennis match with detailed scoring',
         duration_minutes: 90,
         intensity_level: 'high'
       }
@@ -71,6 +72,7 @@ export function EnhancedQuickActions({
         activity_type: 'training',
         activity_category: 'on_court',
         title: 'Training Session',
+        description: 'Practice drills, technique work, and skill development',
         duration_minutes: 60,
         intensity_level: 'medium'
       }
@@ -91,6 +93,7 @@ export function EnhancedQuickActions({
         activity_type: 'social',
         activity_category: 'social',
         title: 'Social Play',
+        description: 'Casual games and fun activities with friends',
         duration_minutes: 45,
         intensity_level: 'low'
       }
@@ -111,6 +114,7 @@ export function EnhancedQuickActions({
         activity_type: 'rest',
         activity_category: 'recovery',
         title: 'Rest & Recovery',
+        description: 'Restore your energy with proper rest and recovery',
         duration_minutes: 30,
         intensity_level: 'low'
       }
@@ -120,19 +124,32 @@ export function EnhancedQuickActions({
   const handleQuickAction = async (action: typeof quickActions[0]) => {
     try {
       setLoadingAction(action.id);
-      console.log('Logging activity:', action.activityData);
+      console.log('Logging unified quick action:', action.activityData);
       
       const result = await logActivity(action.activityData);
       
-      console.log('Activity logged successfully:', result);
-      toast.success(`${action.title} logged successfully!`, {
-        description: `${action.rewards.hp !== 0 ? `${action.rewards.hp > 0 ? '+' : ''}${action.rewards.hp} HP ` : ''}${action.rewards.xp > 0 ? `+${action.rewards.xp} XP ` : ''}${action.rewards.tokens > 0 ? `+${action.rewards.tokens} Tokens` : ''}`
+      console.log('Quick action logged successfully:', result);
+      
+      // Show comprehensive success message
+      const rewards = [];
+      if (action.rewards.hp !== 0) {
+        rewards.push(`${action.rewards.hp > 0 ? '+' : ''}${action.rewards.hp} HP`);
+      }
+      if (action.rewards.xp > 0) {
+        rewards.push(`+${action.rewards.xp} XP`);
+      }
+      if (action.rewards.tokens > 0) {
+        rewards.push(`+${action.rewards.tokens} Tokens`);
+      }
+      
+      toast.success(`${action.title} completed!`, {
+        description: rewards.join(' • ')
       });
       
       await refreshData();
       
     } catch (error) {
-      console.error('Error logging activity:', error);
+      console.error('Error logging quick action:', error);
       toast.error('Failed to log activity. Please try again.');
     } finally {
       setLoadingAction(null);
