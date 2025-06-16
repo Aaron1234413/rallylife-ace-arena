@@ -20,7 +20,6 @@ import { CoachAchievementsDisplay } from "@/components/achievements/CoachAchieve
 import { CoachOverviewCards } from "@/components/coach/dashboard/CoachOverviewCards";
 import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickActions";
 import { CollapsibleSection, MobileActionPanel } from "@/components/dashboard/mobile";
-import { UnifiedActivityActions } from "@/components/activities/UnifiedActivityActions";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
@@ -169,12 +168,7 @@ const Index = () => {
             />
           </div>
 
-          {/* 3. Unified Activity Actions - Primary Action Interface */}
-          <UnifiedActivityActions
-            onActivityCompleted={handleRefresh}
-          />
-
-          {/* 4. Detailed Sections - Secondary Information */}
+          {/* 3. Detailed Sections - Secondary Information */}
           <div className="space-y-6">
             <CollapsibleSection 
               title="Avatar Customization" 
