@@ -43,7 +43,7 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-blue-500 to-blue-600',
       textColor: 'text-blue-700',
       bgColor: 'bg-blue-50',
-      rewards: { hp: -10, xp: 50, tokens: 25 },
+      rewards: { hp: -5, xp: 50, tokens: 0 }, // Matches database calculation for competitive match
       recommended: hpPercentage > 40,
       estimatedDuration: 90,
       difficulty: 'high' as const,
@@ -53,7 +53,8 @@ export function EnhancedQuickActions({
         title: 'Tennis Match',
         description: 'Competitive tennis match with detailed scoring',
         duration_minutes: 90,
-        intensity_level: 'high'
+        intensity_level: 'high',
+        is_competitive: true
       }
     },
     {
@@ -64,7 +65,7 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-green-500 to-green-600',
       textColor: 'text-green-700',
       bgColor: 'bg-green-50',
-      rewards: { hp: -5, xp: 30, tokens: 15 },
+      rewards: { hp: -5, xp: 30, tokens: 0 }, // Matches database calculation for medium intensity training
       recommended: hpPercentage > 30,
       estimatedDuration: 60,
       difficulty: 'medium' as const,
@@ -85,7 +86,7 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-purple-500 to-purple-600',
       textColor: 'text-purple-700',
       bgColor: 'bg-purple-50',
-      rewards: { hp: -3, xp: 20, tokens: 10 },
+      rewards: { hp: 5, xp: 15, tokens: 0 }, // Matches database calculation for social activities
       recommended: hpPercentage > 20,
       estimatedDuration: 45,
       difficulty: 'low' as const,
@@ -106,7 +107,7 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-red-500 to-pink-500',
       textColor: 'text-red-700',
       bgColor: 'bg-red-50',
-      rewards: { hp: 15, xp: 0, tokens: 0 },
+      rewards: { hp: 0, xp: 10, tokens: 0 }, // Will be handled by database logic - no hardcoded HP gain
       recommended: hpPercentage < 40,
       estimatedDuration: 30,
       difficulty: 'low' as const,
@@ -130,21 +131,22 @@ export function EnhancedQuickActions({
       
       console.log('Quick action logged successfully:', result);
       
-      // Show comprehensive success message
-      const rewards = [];
-      if (action.rewards.hp !== 0) {
-        rewards.push(`${action.rewards.hp > 0 ? '+' : ''}${action.rewards.hp} HP`);
+      // Show success message with actual results from database
+      if (result) {
+        const rewards = [];
+        if (result.hp_change !== 0) {
+          rewards.push(`${result.hp_change > 0 ? '+' : ''}${result.hp_change} HP`);
+        }
+        if (result.xp_earned > 0) {
+          rewards.push(`+${result.xp_earned} XP`);
+        }
+        
+        toast.success(`${action.title} completed!`, {
+          description: rewards.join(' • ')
+        });
+      } else {
+        toast.success(`${action.title} completed!`);
       }
-      if (action.rewards.xp > 0) {
-        rewards.push(`+${action.rewards.xp} XP`);
-      }
-      if (action.rewards.tokens > 0) {
-        rewards.push(`+${action.rewards.tokens} Tokens`);
-      }
-      
-      toast.success(`${action.title} completed!`, {
-        description: rewards.join(' • ')
-      });
       
       await refreshData();
       
