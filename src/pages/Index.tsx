@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
 import { PlayerVitalsHero, EnhancedQuickActions } from "@/components/dashboard/player";
-import { TokenEconomy } from "@/components/dashboard/TokenEconomy";
 import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
 import { CoachAvatarCustomization } from "@/components/avatar/CoachAvatarCustomization";
 import { CXPActivityLog } from "@/components/cxp/CXPActivityLog";
@@ -27,7 +26,6 @@ import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
 import { 
   Users, 
-  Coins,
   Activity
 } from 'lucide-react';
 
@@ -177,33 +175,15 @@ const Index = () => {
           />
 
           {/* 4. Detailed Sections - Secondary Information */}
-          <div className="grid gap-6 lg:grid-cols-2">
-            {/* Left Column - Social & Community */}
-            <div className="space-y-6">
-              <CollapsibleSection 
-                title="Avatar Customization" 
-                icon={<Users className="h-5 w-5" />}
-                defaultCollapsed={true}
-                className="sm:block"
-              >
-                <AvatarCustomization />
-              </CollapsibleSection>
-            </div>
-
-            {/* Right Column - Personal Progress */}
-            <div className="space-y-6">
-              <CollapsibleSection 
-                title="Token Economy" 
-                icon={<Coins className="h-5 w-5" />}
-                defaultCollapsed={true}
-              >
-                <TokenEconomy
-                  tokenData={tokenData}
-                  onSpendTokens={spendTokens}
-                  onConvertTokens={convertPremiumTokens}
-                />
-              </CollapsibleSection>
-            </div>
+          <div className="space-y-6">
+            <CollapsibleSection 
+              title="Avatar Customization" 
+              icon={<Users className="h-5 w-5" />}
+              defaultCollapsed={true}
+              className="sm:block"
+            >
+              <AvatarCustomization />
+            </CollapsibleSection>
           </div>
 
           {/* Mobile Action Panel */}
