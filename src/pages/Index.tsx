@@ -6,15 +6,8 @@ import { usePlayerAvatar } from "@/hooks/usePlayerAvatar";
 import { usePlayerAchievements } from "@/hooks/usePlayerAchievements";
 import { usePlayerTokens } from "@/hooks/usePlayerTokens";
 import { supabase } from "@/integrations/supabase/client";
-import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
-import { ProfileCard } from "@/components/dashboard/ProfileCard";
-import { PlayerStatsCards } from "@/components/dashboard/PlayerStatsCards";
-import { PlayerActionCards } from "@/components/dashboard/PlayerActionCards";
-import { PlayerActivityLogs } from "@/components/dashboard/PlayerActivityLogs";
-import { TokenEconomy } from "@/components/dashboard/TokenEconomy";
+import { DashboardLayout } from "@/components/dashboard/DashboardLayout";
 import { QuickActionButtons } from "@/components/activities/QuickActionButtons";
-import { ActivityFeed } from "@/components/activities/ActivityFeed";
-import { ActivityStats } from "@/components/activities/ActivityStats";
 import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
 import { CoachAvatarCustomization } from "@/components/avatar/CoachAvatarCustomization";
 import { CXPActivityLog } from "@/components/cxp/CXPActivityLog";
@@ -45,26 +38,6 @@ const Index = () => {
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
 
-  useEffect(() => {
-    if (user) {
-      fetchProfile();
-    }
-  }, [user]);
-
-  useEffect(() => {
-    // Initialize data based on user role
-    if (user && profile?.role === 'player') {
-      if (!hpLoading && !hpData) initializeHP();
-      if (!xpLoading && !xpData) initializeXP();
-      if (!tokensLoading && !tokenData) initializeTokens();
-      if (!avatarLoading && equippedItems.length === 0) initializeAvatar();
-    } else if (user && profile?.role === 'coach') {
-      if (!cxpLoading && !cxpData) initializeCXP();
-      if (!coachTokensLoading && !coachTokenData) initializeCoachTokens();
-      if (!crpLoading && !crpData) initializeCRP();
-    }
-  }, [user, profile, hpLoading, hpData, xpLoading, xpData, tokensLoading, tokenData, avatarLoading, equippedItems, cxpLoading, cxpData, coachTokensLoading, coachTokenData, crpLoading, crpData]);
-
   const fetchProfile = async () => {
     try {
       const { data, error } = await supabase
@@ -85,6 +58,26 @@ const Index = () => {
       setProfileLoading(false);
     }
   };
+
+  useEffect(() => {
+    if (user) {
+      fetchProfile();
+    }
+  }, [user]);
+
+  useEffect(() => {
+    // Initialize data based on user role
+    if (user && profile?.role === 'player') {
+      if (!hpLoading && !hpData) initializeHP();
+      if (!xpLoading && !xpData) initializeXP();
+      if (!tokensLoading && !tokenData) initializeTokens();
+      if (!avatarLoading && equippedItems.length === 0) initializeAvatar();
+    } else if (user && profile?.role === 'coach') {
+      if (!cxpLoading && !cxpData) initializeCXP();
+      if (!coachTokensLoading && !coachTokenData) initializeCoachTokens();
+      if (!crpLoading && !crpData) initializeCRP();
+    }
+  }, [user, profile, hpLoading, hpData, xpLoading, xpData, tokensLoading, tokenData, avatarLoading, equippedItems, cxpLoading, cxpData, coachTokensLoading, coachTokenData, crpLoading, crpData]);
 
   // Enhanced XP earning function that checks for avatar unlocks and achievements
   const handleAddXP = async (amount: number, activityType: string, description?: string) => {
@@ -120,75 +113,40 @@ const Index = () => {
   const isCoach = profile?.role === 'coach';
 
   return (
-    <div className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4 sm:space-y-6">
-      {/* Welcome Banner */}
-      <WelcomeBanner />
-
-      {/* Profile Card */}
-      <ProfileCard
-        profile={profile}
-        user={user}
-        profileLoading={profileLoading}
-        isPlayer={isPlayer}
-      />
-
-      {/* Player-specific content */}
+    <>
+      {/* Player Dashboard with New Layout */}
       {isPlayer && (
-        <>
+        <DashboardLayout
+          hpData={hpData}
+          xpData={xpData}
+          tokenData={tokenData}
+          hpLoading={hpLoading}
+          xpLoading={xpLoading}
+          tokensLoading={tokensLoading}
+          profile={profile}
+          user={user}
+          profileLoading={profileLoading}
+          isPlayer={isPlayer}
+          onRestoreHP={handleRestoreHP}
+          onAddXP={handleAddXP}
+          onAddTokens={handleAddTokens}
+        />
+      )}
+
+      {/* Additional Player Components */}
+      {isPlayer && (
+        <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
           {/* Quick Actions */}
           <QuickActionButtons />
 
-          {/* Status Cards */}
-          <PlayerStatsCards
-            hpData={hpData}
-            xpData={xpData}
-            tokenData={tokenData}
-            hpLoading={hpLoading}
-            xpLoading={xpLoading}
-            tokensLoading={tokensLoading}
-          />
-
-          {/* Activity Overview */}
-          <div className="grid gap-4 lg:grid-cols-2">
-            <ActivityFeed limit={5} showFilters={false} />
-            <ActivityStats />
-          </div>
-
           {/* Avatar Customization */}
           <AvatarCustomization />
-
-          {/* Action Cards */}
-          <PlayerActionCards
-            hpData={hpData}
-            xpData={xpData}
-            tokenData={tokenData}
-            onRestoreHP={handleRestoreHP}
-            onAddXP={handleAddXP}
-            onAddTokens={handleAddTokens}
-          />
-
-          {/* Token Economy */}
-          <TokenEconomy
-            tokenData={tokenData}
-            onSpendTokens={spendTokens}
-            onConvertTokens={convertPremiumTokens}
-          />
-
-          {/* Activity Logs */}
-          <PlayerActivityLogs
-            hpActivities={hpActivities}
-            xpActivities={xpActivities}
-            transactions={transactions}
-            hpLoading={hpLoading}
-            xpLoading={xpLoading}
-            tokensLoading={tokensLoading}
-          />
-        </>
+        </div>
       )}
 
       {/* Coach-specific content */}
       {isCoach && (
-        <>
+        <div className="p-3 sm:p-4 max-w-6xl mx-auto space-y-4 sm:space-y-6">
           {/* Coach Overview Cards */}
           <CoachOverviewCards
             cxpData={cxpData}
@@ -222,9 +180,9 @@ const Index = () => {
             <CXPActivityLog />
             <CTKTransactionHistory />
           </div>
-        </>
+        </div>
       )}
-    </div>
+    </>
   );
 };
 
