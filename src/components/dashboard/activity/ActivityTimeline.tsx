@@ -41,8 +41,8 @@ export function ActivityTimeline({
   activityFilter, 
   loading 
 }: ActivityTimelineProps) {
-  // Filter activities based on time and type
-  const filteredActivities = activities.filter(activity => {
+  // Filter activities based on time and type using REAL data only
+  const filteredActivities = (activities || []).filter(activity => {
     const activityDate = new Date(activity.logged_at);
     
     // Time filter
@@ -91,7 +91,7 @@ export function ActivityTimeline({
           <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
           <h3 className="text-lg font-medium mb-2">No Activities Found</h3>
           <p className="text-muted-foreground">
-            No activities match your current filters. Try adjusting the time period or activity type.
+            No activities match your current filters. Try adjusting the time period or activity type, or log some activities to see them here.
           </p>
         </CardContent>
       </Card>
@@ -164,7 +164,7 @@ export function ActivityTimeline({
                             )}
                           </div>
                           
-                          {/* Impact visualization */}
+                          {/* Real impact visualization */}
                           <div className="flex flex-wrap gap-2">
                             {activity.hp_impact !== 0 && (
                               <div className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${
