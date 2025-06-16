@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -240,18 +239,6 @@ const Index = () => {
               onAddTokens={handleAddTokens}
             />
           </div>
-
-          {/* 6. Detailed Activity Logs - Historical Data */}
-          <CollapsibleSection 
-            title="Activity History" 
-            icon={<Clock className="h-5 w-5" />}
-            defaultCollapsed={true}
-          >
-            <PlayerActivityLogs
-              activities={activities || []}
-              loading={activityLoading}
-            />
-          </CollapsibleSection>
 
           {/* Mobile Action Panel */}
           <MobileActionPanel
