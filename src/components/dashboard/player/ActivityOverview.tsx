@@ -28,7 +28,7 @@ export function ActivityOverview({ className }: ActivityOverviewProps) {
   const weeklyStats = {
     totalActivities: stats?.total_activities || 0,
     totalHours: stats?.total_duration_minutes ? (stats.total_duration_minutes / 60).toFixed(1) : '0',
-    averageIntensity: stats?.avg_intensity_level || 'N/A',
+    averageEnjoyment: stats?.avg_enjoyment_rating || 'N/A',
   };
 
   // Get recent activities (limit to 3 for overview)
@@ -85,8 +85,8 @@ export function ActivityOverview({ className }: ActivityOverviewProps) {
               <div className="flex items-center justify-center gap-1 mb-1">
                 <Zap className="h-4 w-4 text-orange-500" />
               </div>
-              <div className="text-2xl font-bold text-orange-600">{weeklyStats.averageIntensity}</div>
-              <div className="text-sm text-gray-600">Avg Intensity</div>
+              <div className="text-2xl font-bold text-orange-600">{weeklyStats.averageEnjoyment}</div>
+              <div className="text-sm text-gray-600">Avg Enjoyment</div>
             </div>
           </div>
         </CardContent>
