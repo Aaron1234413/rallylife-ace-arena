@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { HPRestoreActions } from '@/components/hp/HPRestoreActions';
@@ -23,8 +24,6 @@ export function ActionsPod({
   onAddXP,
   onAddTokens
 }: ActionsPodProps) {
-  console.log('[ActionsPod] mounted');
-  
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   return (

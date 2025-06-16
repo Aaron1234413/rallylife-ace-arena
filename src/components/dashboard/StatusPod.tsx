@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { DashboardCard } from './DashboardCard';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -24,8 +25,6 @@ export function StatusPod({
   xpLoading,
   tokensLoading
 }: StatusPodProps) {
-  console.log('[StatusPod] mounted');
-  
   const [isCollapsed, setIsCollapsed] = useState(false);
 
   // Determine which metric has highest priority for accent
