@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -5,13 +6,11 @@ import { usePlayerXP } from "@/hooks/usePlayerXP";
 import { usePlayerAvatar } from "@/hooks/usePlayerAvatar";
 import { usePlayerAchievements } from "@/hooks/usePlayerAchievements";
 import { usePlayerTokens } from "@/hooks/usePlayerTokens";
-import { useActivityLogs } from "@/hooks/useActivityLogs";
 import { supabase } from "@/integrations/supabase/client";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
 import { PlayerVitalsHero, EnhancedQuickActions } from "@/components/dashboard/player";
 import { PlayerActionCards } from "@/components/dashboard/PlayerActionCards";
-import { PlayerActivityLogs } from "@/components/dashboard/PlayerActivityLogs";
 import { TokenEconomy } from "@/components/dashboard/TokenEconomy";
 import { ActivityFeed } from "@/components/activities/ActivityFeed";
 import { ActivityStats } from "@/components/activities/ActivityStats";
@@ -25,27 +24,23 @@ import { CTKTransactionHistory } from "@/components/ctk/CTKTransactionHistory";
 import { CoachAchievementsDisplay } from "@/components/achievements/CoachAchievementsDisplay";
 import { CoachOverviewCards } from "@/components/coach/dashboard/CoachOverviewCards";
 import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickActions";
-import { UnifiedActivityDashboard } from "@/components/dashboard/activity";
 import { CollapsibleSection, MobileActionPanel } from "@/components/dashboard/mobile";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
 import { 
-  Activity, 
   Users, 
   TrendingUp, 
-  Coins, 
-  Clock 
+  Coins
 } from 'lucide-react';
 
 const Index = () => {
   const { user } = useAuth();
-  const { hpData, activities: hpActivities, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
-  const { xpData, activities: xpActivities, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
-  const { tokenData, transactions, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
+  const { hpData, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
+  const { xpData, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
+  const { tokenData, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
   const { equippedItems, loading: avatarLoading, initializeAvatar, checkLevelUnlocks } = usePlayerAvatar();
   const { checkAllAchievements } = usePlayerAchievements();
-  const { activities, loading: activityLoading } = useActivityLogs();
   
   // Coach-specific hooks
   const { cxpData, loading: cxpLoading, addCXP, initializeCXP } = useCoachCXP();
@@ -179,16 +174,13 @@ const Index = () => {
             />
           </div>
 
-          {/* Phase 4: Unified Activity Dashboard */}
-          <UnifiedActivityDashboard />
-
           {/* 4. Detailed Sections - Secondary Information */}
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Left Column - Social & Community */}
             <div className="space-y-6">
               <CollapsibleSection 
                 title="Activity Feed" 
-                icon={<Activity className="h-5 w-5" />}
+                icon={<Users className="h-5 w-5" />}
                 defaultCollapsed={false}
               >
                 <ActivityFeed limit={5} showFilters={false} />
