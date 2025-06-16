@@ -9,7 +9,6 @@ import { supabase } from "@/integrations/supabase/client";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
 import { PlayerVitalsHero, EnhancedQuickActions } from "@/components/dashboard/player";
-import { PlayerActionCards } from "@/components/dashboard/PlayerActionCards";
 import { TokenEconomy } from "@/components/dashboard/TokenEconomy";
 import { AvatarCustomization } from "@/components/avatar/AvatarCustomization";
 import { CoachAvatarCustomization } from "@/components/avatar/CoachAvatarCustomization";
@@ -22,12 +21,14 @@ import { CoachAchievementsDisplay } from "@/components/achievements/CoachAchieve
 import { CoachOverviewCards } from "@/components/coach/dashboard/CoachOverviewCards";
 import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickActions";
 import { CollapsibleSection, MobileActionPanel } from "@/components/dashboard/mobile";
+import { UnifiedActivityActions } from "@/components/activities/UnifiedActivityActions";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
 import { 
   Users, 
-  Coins
+  Coins,
+  Activity
 } from 'lucide-react';
 
 const Index = () => {
@@ -170,6 +171,11 @@ const Index = () => {
             />
           </div>
 
+          {/* 3. Unified Activity Actions - Primary Action Interface */}
+          <UnifiedActivityActions
+            onActivityCompleted={handleRefresh}
+          />
+
           {/* 4. Detailed Sections - Secondary Information */}
           <div className="grid gap-6 lg:grid-cols-2">
             {/* Left Column - Social & Community */}
@@ -198,18 +204,6 @@ const Index = () => {
                 />
               </CollapsibleSection>
             </div>
-          </div>
-
-          {/* 5. Additional Action Cards - Tertiary Actions (Desktop) */}
-          <div className="hidden lg:block">
-            <PlayerActionCards
-              hpData={hpData}
-              xpData={xpData}
-              tokenData={tokenData}
-              onRestoreHP={handleRestoreHP}
-              onAddXP={handleAddXP}
-              onAddTokens={handleAddTokens}
-            />
           </div>
 
           {/* Mobile Action Panel */}
