@@ -40,6 +40,7 @@ export function usePlayerXP() {
   const [activities, setActivities] = useState<XPActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
+  const subscriptionStatusRef = useRef<string>('unsubscribed');
 
   const fetchXP = async () => {
     if (!user) return;
@@ -143,6 +144,14 @@ export function usePlayerXP() {
   };
 
   useEffect(() => {
+    const cleanupChannel = () => {
+      if (channelRef.current && subscriptionStatusRef.current !== 'unsubscribed') {
+        channelRef.current.unsubscribe();
+        subscriptionStatusRef.current = 'unsubscribed';
+        channelRef.current = null;
+      }
+    };
+
     if (user) {
       const loadData = async () => {
         setLoading(true);
@@ -154,15 +163,13 @@ export function usePlayerXP() {
       loadData();
 
       // Clean up any existing channel
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
+      cleanupChannel();
 
       // Set up real-time subscription for XP changes with unique channel name
-      const channelName = `xp-${user.id}-${Date.now()}`;
-      const channel = supabase
-        .channel(channelName)
+      const channelName = `xp-${user.id}-${Date.now()}-${Math.random()}`;
+      const channel = supabase.channel(channelName);
+      
+      channel
         .on(
           'postgres_changes',
           {
@@ -186,23 +193,24 @@ export function usePlayerXP() {
           () => {
             fetchActivities();
           }
-        )
-        .subscribe();
+        );
 
-      channelRef.current = channel;
+      // Only subscribe if not already subscribed
+      if (subscriptionStatusRef.current === 'unsubscribed') {
+        subscriptionStatusRef.current = 'subscribing';
+        channel.subscribe((status) => {
+          subscriptionStatusRef.current = status;
+          console.log('XP Channel subscription status:', status);
+        });
+        channelRef.current = channel;
+      }
 
       return () => {
-        if (channelRef.current) {
-          channelRef.current.unsubscribe();
-          channelRef.current = null;
-        }
+        cleanupChannel();
       };
     } else {
       // Clean up when no user
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
+      cleanupChannel();
       setXpData(null);
       setActivities([]);
       setLoading(false);

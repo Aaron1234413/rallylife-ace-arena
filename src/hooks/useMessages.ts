@@ -8,6 +8,7 @@ export function useMessages(conversationId: string | null) {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const channelRef = useRef<any>(null);
+  const subscriptionStatusRef = useRef<string>('unsubscribed');
 
   const messagesQuery = useQuery({
     queryKey: ['messages', conversationId],
@@ -31,25 +32,27 @@ export function useMessages(conversationId: string | null) {
 
   // Set up real-time subscription for new messages
   useEffect(() => {
-    if (!conversationId || !user) {
-      // Clean up if no conversation or user
-      if (channelRef.current) {
+    const cleanupChannel = () => {
+      if (channelRef.current && subscriptionStatusRef.current !== 'unsubscribed') {
         channelRef.current.unsubscribe();
+        subscriptionStatusRef.current = 'unsubscribed';
         channelRef.current = null;
       }
+    };
+
+    if (!conversationId || !user) {
+      cleanupChannel();
       return;
     }
 
     // Clean up any existing channel
-    if (channelRef.current) {
-      channelRef.current.unsubscribe();
-      channelRef.current = null;
-    }
+    cleanupChannel();
 
     // Create new channel with unique name
-    const channelName = `messages:${conversationId}:${user.id}:${Date.now()}`;
-    const channel = supabase
-      .channel(channelName)
+    const channelName = `messages:${conversationId}:${user.id}:${Date.now()}:${Math.random()}`;
+    const channel = supabase.channel(channelName);
+    
+    channel
       .on(
         'postgres_changes',
         {
@@ -63,16 +66,20 @@ export function useMessages(conversationId: string | null) {
           queryClient.invalidateQueries({ queryKey: ['messages', conversationId] });
           queryClient.invalidateQueries({ queryKey: ['conversations'] });
         }
-      )
-      .subscribe();
+      );
 
-    channelRef.current = channel;
+    // Only subscribe if not already subscribed
+    if (subscriptionStatusRef.current === 'unsubscribed') {
+      subscriptionStatusRef.current = 'subscribing';
+      channel.subscribe((status) => {
+        subscriptionStatusRef.current = status;
+        console.log('Channel subscription status:', status);
+      });
+      channelRef.current = channel;
+    }
 
     return () => {
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
+      cleanupChannel();
     };
   }, [conversationId, user, queryClient]);
 

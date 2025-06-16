@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -81,6 +80,7 @@ export function useActivityLogs() {
   const [stats, setStats] = useState<ActivityStats | null>(null);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
+  const subscriptionStatusRef = useRef<string>('unsubscribed');
 
   const fetchActivities = async (
     limit = 20,
@@ -188,6 +188,14 @@ export function useActivityLogs() {
   };
 
   useEffect(() => {
+    const cleanupChannel = () => {
+      if (channelRef.current && subscriptionStatusRef.current !== 'unsubscribed') {
+        channelRef.current.unsubscribe();
+        subscriptionStatusRef.current = 'unsubscribed';
+        channelRef.current = null;
+      }
+    };
+
     if (user) {
       const loadData = async () => {
         setLoading(true);
@@ -199,44 +207,42 @@ export function useActivityLogs() {
       loadData();
 
       // Clean up any existing channel
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
+      cleanupChannel();
 
       // Set up real-time subscription for activity changes with unique channel name
-      const channelName = `activities-${user.id}-${Date.now()}`;
-      const channel = supabase
-        .channel(channelName)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'activity_logs',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => {
-            fetchActivities();
-            fetchStats();
-          }
-        )
-        .subscribe();
+      const channelName = `activities-${user.id}-${Date.now()}-${Math.random()}`;
+      const channel = supabase.channel(channelName);
+      
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'activity_logs',
+          filter: `player_id=eq.${user.id}`
+        },
+        () => {
+          fetchActivities();
+          fetchStats();
+        }
+      );
 
-      channelRef.current = channel;
+      // Only subscribe if not already subscribed
+      if (subscriptionStatusRef.current === 'unsubscribed') {
+        subscriptionStatusRef.current = 'subscribing';
+        channel.subscribe((status) => {
+          subscriptionStatusRef.current = status;
+          console.log('Activity Channel subscription status:', status);
+        });
+        channelRef.current = channel;
+      }
 
       return () => {
-        if (channelRef.current) {
-          channelRef.current.unsubscribe();
-          channelRef.current = null;
-        }
+        cleanupChannel();
       };
     } else {
       // Clean up when no user
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
+      cleanupChannel();
       setActivities([]);
       setStats(null);
       setLoading(false);

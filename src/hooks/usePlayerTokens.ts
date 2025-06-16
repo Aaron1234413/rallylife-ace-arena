@@ -1,41 +1,37 @@
-
 import { useState, useEffect, useRef } from 'react';
-import { useAuth } from '@/hooks/useAuth';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useToast } from '@/hooks/use-toast';
 
-interface PlayerTokens {
+export interface CoachTokens {
   id: string;
-  regular_tokens: number;
-  premium_tokens: number;
+  coach_id: string;
+  current_tokens: number;
   lifetime_earned: number;
   created_at: string;
   updated_at: string;
 }
 
-interface TokenTransaction {
+export interface CoachTokenTransaction {
   id: string;
+  coach_id: string;
   transaction_type: string;
-  token_type: string;
   amount: number;
+  source: string;
+  description: string | null;
   balance_before: number;
   balance_after: number;
-  source: string;
-  description: string;
+  metadata: any;
   created_at: string;
 }
 
 interface TokenResult {
   tokens_added?: number;
   tokens_spent?: number;
-  token_type: string;
   new_balance: number;
   lifetime_earned?: number;
   success?: boolean;
   error?: string;
-  premium_spent?: number;
-  regular_earned?: number;
-  conversion_rate?: number;
 }
 
 export function usePlayerTokens() {
@@ -44,6 +40,7 @@ export function usePlayerTokens() {
   const [transactions, setTransactions] = useState<TokenTransaction[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
+  const subscriptionStatusRef = useRef<string>('unsubscribed');
 
   const fetchTokens = async () => {
     if (!user) return;
@@ -233,6 +230,14 @@ export function usePlayerTokens() {
   };
 
   useEffect(() => {
+    const cleanupChannel = () => {
+      if (channelRef.current && subscriptionStatusRef.current !== 'unsubscribed') {
+        channelRef.current.unsubscribe();
+        subscriptionStatusRef.current = 'unsubscribed';
+        channelRef.current = null;
+      }
+    };
+
     if (user) {
       const loadData = async () => {
         setLoading(true);
@@ -244,15 +249,13 @@ export function usePlayerTokens() {
       loadData();
 
       // Clean up any existing channel
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
+      cleanupChannel();
 
       // Set up real-time subscription for token changes with unique channel name
-      const channelName = `tokens-${user.id}-${Date.now()}`;
-      const channel = supabase
-        .channel(channelName)
+      const channelName = `tokens-${user.id}-${Date.now()}-${Math.random()}`;
+      const channel = supabase.channel(channelName);
+      
+      channel
         .on(
           'postgres_changes',
           {
@@ -276,23 +279,24 @@ export function usePlayerTokens() {
           () => {
             fetchTransactions();
           }
-        )
-        .subscribe();
+        );
 
-      channelRef.current = channel;
+      // Only subscribe if not already subscribed
+      if (subscriptionStatusRef.current === 'unsubscribed') {
+        subscriptionStatusRef.current = 'subscribing';
+        channel.subscribe((status) => {
+          subscriptionStatusRef.current = status;
+          console.log('Token Channel subscription status:', status);
+        });
+        channelRef.current = channel;
+      }
 
       return () => {
-        if (channelRef.current) {
-          channelRef.current.unsubscribe();
-          channelRef.current = null;
-        }
+        cleanupChannel();
       };
     } else {
       // Clean up when no user
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
+      cleanupChannel();
       setTokenData(null);
       setTransactions([]);
       setLoading(false);

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -71,6 +70,7 @@ export function usePlayerAchievements() {
   const [achievementProgress, setAchievementProgress] = useState<AchievementProgress[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
+  const subscriptionStatusRef = useRef<string>('unsubscribed');
 
   const fetchAchievements = async () => {
     try {
@@ -235,6 +235,14 @@ export function usePlayerAchievements() {
   };
 
   useEffect(() => {
+    const cleanupChannel = () => {
+      if (channelRef.current && subscriptionStatusRef.current !== 'unsubscribed') {
+        channelRef.current.unsubscribe();
+        subscriptionStatusRef.current = 'unsubscribed';
+        channelRef.current = null;
+      }
+    };
+
     const loadData = async () => {
       setLoading(true);
       await fetchAchievements();
@@ -250,14 +258,12 @@ export function usePlayerAchievements() {
     // Set up real-time subscription for achievement changes
     if (user) {
       // Clean up any existing channel
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
+      cleanupChannel();
 
-      const channelName = `achievement-changes-${user.id}-${Date.now()}`;
-      const channel = supabase
-        .channel(channelName)
+      const channelName = `achievement-changes-${user.id}-${Date.now()}-${Math.random()}`;
+      const channel = supabase.channel(channelName);
+      
+      channel
         .on(
           'postgres_changes',
           {
@@ -281,23 +287,24 @@ export function usePlayerAchievements() {
           () => {
             fetchAchievementProgress();
           }
-        )
-        .subscribe();
+        );
 
-      channelRef.current = channel;
+      // Only subscribe if not already subscribed
+      if (subscriptionStatusRef.current === 'unsubscribed') {
+        subscriptionStatusRef.current = 'subscribing';
+        channel.subscribe((status) => {
+          subscriptionStatusRef.current = status;
+          console.log('Achievement Channel subscription status:', status);
+        });
+        channelRef.current = channel;
+      }
 
       return () => {
-        if (channelRef.current) {
-          channelRef.current.unsubscribe();
-          channelRef.current = null;
-        }
+        cleanupChannel();
       };
     } else {
       // Clean up when no user
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
+      cleanupChannel();
     }
   }, [user]);
 
