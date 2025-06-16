@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -117,32 +116,32 @@ const Index = () => {
     <>
       {/* Player Dashboard with New Pod Layout */}
       {isPlayer && (
-        <DashboardLayout
-          hpData={hpData}
-          xpData={xpData}
-          tokenData={tokenData}
-          hpLoading={hpLoading}
-          xpLoading={xpLoading}
-          tokensLoading={tokensLoading}
-          profile={profile}
-          user={user}
-          profileLoading={profileLoading}
-          isPlayer={isPlayer}
-          onRestoreHP={handleRestoreHP}
-          onAddXP={handleAddXP}
-          onAddTokens={handleAddTokens}
-        />
-      )}
+        <>
+          <DashboardLayout
+            hpData={hpData}
+            xpData={xpData}
+            tokenData={tokenData}
+            hpLoading={hpLoading}
+            xpLoading={xpLoading}
+            tokensLoading={tokensLoading}
+            profile={profile}
+            user={user}
+            profileLoading={profileLoading}
+            isPlayer={isPlayer}
+            onRestoreHP={handleRestoreHP}
+            onAddXP={handleAddXP}
+            onAddTokens={handleAddTokens}
+          />
 
-      {/* Additional Player Components */}
-      {isPlayer && (
-        <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
-          {/* Quick Actions */}
-          <QuickActionButtons />
+          {/* Additional Player Components */}
+          <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
+            {/* Quick Actions */}
+            <QuickActionButtons />
 
-          {/* Avatar Customization */}
-          <AvatarCustomization />
-        </div>
+            {/* Avatar Customization */}
+            <AvatarCustomization />
+          </div>
+        </>
       )}
 
       {/* Coach-specific content */}
