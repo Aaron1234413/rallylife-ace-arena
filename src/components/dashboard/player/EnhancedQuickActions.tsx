@@ -62,14 +62,7 @@ export function EnhancedQuickActions({
       recommended: hpPercentage > 30,
       estimatedDuration: 60,
       difficulty: 'medium' as const,
-      activityData: {
-        activity_type: 'training',
-        activity_category: 'on_court',
-        title: 'Training Session',
-        description: 'Practice drills, technique work, and skill development',
-        duration_minutes: 60,
-        intensity_level: 'medium'
-      }
+      navigateTo: '/start-training' // Navigate to training session
     },
     {
       id: 'social',
