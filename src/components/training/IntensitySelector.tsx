@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { FormItem, FormLabel } from '@/components/ui/form';
 
 interface IntensitySelectorProps {
   value?: string;
@@ -17,8 +16,8 @@ const intensityLevels = [
 
 export function IntensitySelector({ value, onValueChange }: IntensitySelectorProps) {
   return (
-    <FormItem>
-      <FormLabel>Training Intensity</FormLabel>
+    <div className="space-y-2">
+      <label className="text-sm font-medium leading-none">Training Intensity</label>
       <div className="grid grid-cols-2 gap-3">
         {intensityLevels.map((level) => (
           <div
@@ -40,6 +39,6 @@ export function IntensitySelector({ value, onValueChange }: IntensitySelectorPro
           </div>
         ))}
       </div>
-    </FormItem>
+    </div>
   );
 }

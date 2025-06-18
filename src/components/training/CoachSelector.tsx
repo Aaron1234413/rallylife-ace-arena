@@ -2,7 +2,6 @@
 import React, { useState } from 'react';
 import { Search } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { FormItem, FormLabel } from '@/components/ui/form';
 import { useSearchUsers } from '@/hooks/useSearchUsers';
 
 interface CoachSelectorProps {
@@ -39,8 +38,8 @@ export function CoachSelector({ value, onValueChange }: CoachSelectorProps) {
   };
 
   return (
-    <FormItem>
-      <FormLabel>Coach (Optional)</FormLabel>
+    <div className="space-y-2">
+      <label className="text-sm font-medium leading-none">Coach (Optional)</label>
       <div className="relative">
         <div className="relative">
           <Search className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
@@ -76,6 +75,6 @@ export function CoachSelector({ value, onValueChange }: CoachSelectorProps) {
           </div>
         )}
       </div>
-    </FormItem>
+    </div>
   );
 }

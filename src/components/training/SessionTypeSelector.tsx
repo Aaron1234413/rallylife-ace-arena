@@ -7,7 +7,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from '@/components/ui/select';
-import { FormItem, FormLabel } from '@/components/ui/form';
 
 interface SessionTypeSelectorProps {
   value?: string;
@@ -25,8 +24,8 @@ const sessionTypes = [
 
 export function SessionTypeSelector({ value, onValueChange }: SessionTypeSelectorProps) {
   return (
-    <FormItem>
-      <FormLabel>Session Type</FormLabel>
+    <div className="space-y-2">
+      <label className="text-sm font-medium leading-none">Session Type</label>
       <Select value={value} onValueChange={onValueChange}>
         <SelectTrigger>
           <SelectValue placeholder="What type of training session?" />
@@ -39,6 +38,6 @@ export function SessionTypeSelector({ value, onValueChange }: SessionTypeSelecto
           ))}
         </SelectContent>
       </Select>
-    </FormItem>
+    </div>
   );
 }

@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { FormItem, FormLabel } from '@/components/ui/form';
 
 interface DurationEstimatorProps {
   value?: number;
@@ -19,8 +18,8 @@ const durationOptions = [
 
 export function DurationEstimator({ value, onValueChange }: DurationEstimatorProps) {
   return (
-    <FormItem>
-      <FormLabel>Estimated Duration</FormLabel>
+    <div className="space-y-2">
+      <label className="text-sm font-medium leading-none">Estimated Duration</label>
       <div className="grid grid-cols-3 gap-3">
         {durationOptions.map((option) => (
           <div
@@ -42,6 +41,6 @@ export function DurationEstimator({ value, onValueChange }: DurationEstimatorPro
           </div>
         ))}
       </div>
-    </FormItem>
+    </div>
   );
 }

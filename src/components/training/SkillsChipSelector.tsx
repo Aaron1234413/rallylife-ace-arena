@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
-import { FormItem, FormLabel } from '@/components/ui/form';
 
 interface SkillsChipSelectorProps {
   value: string[];
@@ -33,8 +32,8 @@ export function SkillsChipSelector({ value, onValueChange }: SkillsChipSelectorP
   };
 
   return (
-    <FormItem>
-      <FormLabel>Skills Focus (Optional)</FormLabel>
+    <div className="space-y-2">
+      <label className="text-sm font-medium leading-none">Skills Focus (Optional)</label>
       <div className="flex flex-wrap gap-2">
         {availableSkills.map((skill) => (
           <Badge
@@ -52,6 +51,6 @@ export function SkillsChipSelector({ value, onValueChange }: SkillsChipSelectorP
           Selected: {value.join(', ')}
         </div>
       )}
-    </FormItem>
+    </div>
   );
 }

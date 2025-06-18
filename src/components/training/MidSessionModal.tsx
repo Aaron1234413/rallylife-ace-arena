@@ -8,7 +8,6 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
-import { FormItem, FormLabel } from '@/components/ui/form';
 import { useTrainingSession } from '@/contexts/TrainingSessionContext';
 import { getRandomMessage } from '@/utils/motivationalMessages';
 import { EmojiPicker } from './EmojiPicker';
@@ -55,20 +54,20 @@ export function MidSessionModal({ isOpen, onClose }: MidSessionModalProps) {
             <p className="text-lg text-gray-600 mb-4">{message}</p>
           </div>
 
-          <FormItem>
-            <FormLabel>How are you feeling?</FormLabel>
+          <div className="space-y-2">
+            <label className="text-sm font-medium leading-none">How are you feeling?</label>
             <EmojiPicker value={mood} onValueChange={setMood} />
-          </FormItem>
+          </div>
 
-          <FormItem>
-            <FormLabel>Quick Notes (Optional)</FormLabel>
+          <div className="space-y-2">
+            <label className="text-sm font-medium leading-none">Quick Notes (Optional)</label>
             <Textarea
               placeholder="How's your energy? Any adjustments needed?"
               value={notes}
               onChange={(e) => setNotes(e.target.value)}
               rows={3}
             />
-          </FormItem>
+          </div>
 
           <div className="flex gap-3 pt-4">
             <Button variant="outline" onClick={onClose} className="flex-1">
