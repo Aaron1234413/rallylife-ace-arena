@@ -15,8 +15,10 @@ export default function Feed() {
 
   // Refresh feed when navigating to this page
   useEffect(() => {
-    refreshFeed();
-  }, [location.pathname, refreshFeed]);
+    if (location.pathname === '/feed') {
+      refreshFeed();
+    }
+  }, [location.pathname]);
 
   const filteredPosts = feedPosts.filter(post => {
     if (filter === 'all') return true;

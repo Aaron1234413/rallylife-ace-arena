@@ -39,7 +39,12 @@ export function useFeedData() {
   const channelRef = useRef<any>(null);
 
   const fetchFeedPosts = async () => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
+
+    console.log('Fetching feed posts for user:', user.id);
 
     try {
       const { data, error } = await supabase.rpc('get_feed_posts_with_engagement', {
@@ -50,8 +55,11 @@ export function useFeedData() {
 
       if (error) {
         console.error('Error fetching feed posts:', error);
+        setLoading(false);
         return;
       }
+
+      console.log('Raw feed data:', data);
 
       // Transform backend data to FeedPost format
       const transformedPosts: FeedPost[] = (data || []).map((item: any) => ({
@@ -80,9 +88,12 @@ export function useFeedData() {
         userHasLiked: item.user_has_liked || false
       }));
 
+      console.log('Transformed feed posts:', transformedPosts);
       setFeedPosts(transformedPosts);
     } catch (error) {
       console.error('Error in fetchFeedPosts:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -94,7 +105,10 @@ export function useFeedData() {
 
   // Set up real-time subscriptions
   useEffect(() => {
-    if (!user) return;
+    if (!user) {
+      setLoading(false);
+      return;
+    }
 
     // Initial fetch
     fetchFeedPosts();
@@ -116,6 +130,7 @@ export function useFeedData() {
         table: 'feed_likes'
       },
       () => {
+        console.log('Feed likes changed, refreshing feed');
         fetchFeedPosts(); // Refetch when likes change
       }
     );
@@ -129,6 +144,7 @@ export function useFeedData() {
         table: 'feed_comments'
       },
       () => {
+        console.log('Feed comments changed, refreshing feed');
         fetchFeedPosts(); // Refetch when comments change
       }
     );
@@ -142,6 +158,7 @@ export function useFeedData() {
         table: 'activity_logs'
       },
       () => {
+        console.log('New activity logged, refreshing feed');
         fetchFeedPosts(); // Refetch when new activities are added
       }
     );
@@ -155,7 +172,7 @@ export function useFeedData() {
         channelRef.current = null;
       }
     };
-  }, [user]);
+  }, [user?.id]); // Only depend on user.id to prevent infinite loops
 
   const handleLike = async (postId: string) => {
     const wasLiked = await toggleLikeAction(postId);
@@ -187,12 +204,17 @@ export function useFeedData() {
     // Implementation for challenges can be added later
   };
 
+  const refreshFeed = () => {
+    setLoading(true);
+    fetchFeedPosts();
+  };
+
   return {
     feedPosts,
     loading,
     handleLike,
     handleComment,
     handleChallenge,
-    refreshFeed: fetchFeedPosts
+    refreshFeed
   };
 }
