@@ -26,6 +26,8 @@ import {
   Activity
 } from 'lucide-react';
 
+import { ActiveMatchWidget } from "@/components/match/ActiveMatchWidget";
+
 const Index = () => {
   const { user } = useAuth();
   const { hpData, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
@@ -154,6 +156,9 @@ const Index = () => {
             tokenData={tokenData}
             loading={vitalsLoading}
           />
+
+          {/* Active Match Widget - Shows when match is active */}
+          <ActiveMatchWidget />
 
           {/* 2. Enhanced Quick Actions - Contextual and Smart (Desktop) */}
           <div className="hidden sm:block">
