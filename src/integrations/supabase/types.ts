@@ -1328,6 +1328,70 @@ export type Database = {
           },
         ]
       }
+      feed_comments: {
+        Row: {
+          activity_id: string
+          content: string
+          created_at: string
+          id: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          content: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          content?: string
+          created_at?: string
+          id?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_comments_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activity_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      feed_likes: {
+        Row: {
+          activity_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activity_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activity_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "feed_likes_activity_id_fkey"
+            columns: ["activity_id"]
+            isOneToOne: false
+            referencedRelation: "activity_logs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       hp_activities: {
         Row: {
           activity_type: string
@@ -2478,6 +2542,14 @@ export type Database = {
         }
         Returns: Json
       }
+      add_feed_comment: {
+        Args: {
+          activity_id_param: string
+          user_id_param: string
+          content_param: string
+        }
+        Returns: string
+      }
       add_tokens: {
         Args: {
           user_id: string
@@ -3006,6 +3078,47 @@ export type Database = {
           score_value: number
           metadata: Json
           calculated_at: string
+        }[]
+      }
+      get_feed_comments: {
+        Args: {
+          activity_id_param: string
+          limit_count?: number
+          offset_count?: number
+        }
+        Returns: {
+          id: string
+          content: string
+          created_at: string
+          user_id: string
+          user_name: string
+          user_avatar: string
+        }[]
+      }
+      get_feed_posts_with_engagement: {
+        Args: {
+          user_id_param: string
+          limit_count?: number
+          offset_count?: number
+        }
+        Returns: {
+          id: string
+          activity_type: string
+          title: string
+          description: string
+          hp_impact: number
+          xp_earned: number
+          duration_minutes: number
+          score: string
+          opponent_name: string
+          location: string
+          logged_at: string
+          player_id: string
+          player_name: string
+          player_avatar: string
+          likes_count: number
+          comments_count: number
+          user_has_liked: boolean
         }[]
       }
       get_proj4_from_srid: {
@@ -4481,6 +4594,10 @@ export type Database = {
       text: {
         Args: { "": unknown }
         Returns: string
+      }
+      toggle_feed_like: {
+        Args: { activity_id_param: string; user_id_param: string }
+        Returns: boolean
       }
       unlock_avatar_item: {
         Args: { user_id: string; item_id: string; unlock_method?: string }

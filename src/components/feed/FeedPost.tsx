@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
-import { Heart, MessageCircle, Trophy, Target } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Heart, MessageCircle, Trophy, Target, Send } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface FeedPostProps {
@@ -17,16 +18,45 @@ interface FeedPostProps {
       avatar_url?: string;
     };
     timestamp: string;
-    content: any;
+    content: {
+      title: string;
+      description?: string;
+      stats: {
+        xp?: number;
+        hp?: number;
+        score?: string;
+        duration?: number;
+        opponent_name?: string;
+        location?: string;
+      };
+    };
     likes: number;
     comments: number;
+    userHasLiked: boolean;
   };
   onLike: (postId: string) => void;
-  onComment: (postId: string) => void;
+  onComment: (postId: string, content: string) => Promise<string | null>;
   onChallenge: (userId: string) => void;
 }
 
 export function FeedPost({ post, onLike, onComment, onChallenge }: FeedPostProps) {
+  const [showCommentInput, setShowCommentInput] = useState(false);
+  const [commentContent, setCommentContent] = useState('');
+  const [isSubmittingComment, setIsSubmittingComment] = useState(false);
+
+  const handleSubmitComment = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!commentContent.trim() || isSubmittingComment) return;
+
+    setIsSubmittingComment(true);
+    const result = await onComment(post.id, commentContent);
+    if (result) {
+      setCommentContent('');
+      setShowCommentInput(false);
+    }
+    setIsSubmittingComment(false);
+  };
+
   const renderPostContent = () => {
     switch (post.type) {
       case 'level_up':
@@ -38,8 +68,11 @@ export function FeedPost({ post, onLike, onComment, onChallenge }: FeedPostProps
               </div>
             </div>
             <div className="bg-green-400 rounded px-4 py-2 inline-block">
-              <span className="font-bold text-lg">LEVEL {post.content.level}</span>
+              <span className="font-bold text-lg">LEVEL UP!</span>
             </div>
+            {post.content.stats.xp && (
+              <p className="mt-2 text-sm">+{post.content.stats.xp} XP earned</p>
+            )}
           </div>
         );
 
@@ -57,11 +90,18 @@ export function FeedPost({ post, onLike, onComment, onChallenge }: FeedPostProps
                 </div>
                 <div className="text-right">
                   <div className="text-4xl font-bold text-green-700">
-                    {post.content.score}
+                    {post.content.stats.score || 'Match Completed'}
                   </div>
-                  <div className="text-sm text-green-600">
-                    {post.content.aces} aces • {post.content.winners} winners
-                  </div>
+                  {post.content.stats.opponent_name && (
+                    <div className="text-sm text-green-600">
+                      vs {post.content.stats.opponent_name}
+                    </div>
+                  )}
+                  {post.content.stats.duration && (
+                    <div className="text-sm text-green-600">
+                      {post.content.stats.duration} minutes
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -84,20 +124,52 @@ export function FeedPost({ post, onLike, onComment, onChallenge }: FeedPostProps
         );
 
       default:
-        return null;
+        return (
+          <div className="bg-gray-50 rounded-lg p-4 mb-4">
+            <div className="flex items-center justify-between text-sm text-gray-600 mb-2">
+              {post.content.stats.location && (
+                <span className="flex items-center gap-1">
+                  <Target className="w-4 h-4" />
+                  {post.content.stats.location}
+                </span>
+              )}
+              {post.content.stats.duration && (
+                <span>{post.content.stats.duration} min</span>
+              )}
+            </div>
+            {post.content.description && (
+              <p className="text-gray-700">{post.content.description}</p>
+            )}
+            <div className="flex items-center gap-4 mt-3">
+              {post.content.stats.xp && post.content.stats.xp > 0 && (
+                <Badge variant="secondary" className="text-yellow-600">
+                  +{post.content.stats.xp} XP
+                </Badge>
+              )}
+              {post.content.stats.hp && post.content.stats.hp !== 0 && (
+                <Badge 
+                  variant="secondary" 
+                  className={post.content.stats.hp > 0 ? 'text-green-600' : 'text-red-600'}
+                >
+                  {post.content.stats.hp > 0 ? '+' : ''}{post.content.stats.hp} HP
+                </Badge>
+              )}
+            </div>
+          </div>
+        );
     }
   };
 
   const getPostDescription = () => {
     switch (post.type) {
       case 'level_up':
-        return `Advanced to level ${post.content.level}`;
+        return 'Leveled up!';
       case 'match_result':
-        return 'Match Result!';
+        return 'Completed a match';
       case 'achievement':
-        return `Unlocked the "${post.content.name}" badge!`;
+        return 'Unlocked an achievement!';
       default:
-        return post.content.description || '';
+        return post.content.title;
     }
   };
 
@@ -115,6 +187,9 @@ export function FeedPost({ post, onLike, onComment, onChallenge }: FeedPostProps
             <div>
               <h3 className="font-semibold text-lg">{post.user.full_name}</h3>
               <p className="text-gray-600">{getPostDescription()}</p>
+              <p className="text-xs text-gray-500">
+                {format(new Date(post.timestamp), 'MMM d, HH:mm')}
+              </p>
             </div>
           </div>
           <button className="text-gray-400 hover:text-gray-600">
@@ -128,14 +203,18 @@ export function FeedPost({ post, onLike, onComment, onChallenge }: FeedPostProps
           <div className="flex items-center gap-6">
             <button 
               onClick={() => onLike(post.id)}
-              className="flex items-center gap-2 text-gray-600 hover:text-red-500 transition-colors"
+              className={`flex items-center gap-2 transition-colors ${
+                post.userHasLiked 
+                  ? 'text-red-500' 
+                  : 'text-gray-600 hover:text-red-500'
+              }`}
             >
-              <Heart className="w-5 h-5" />
+              <Heart className={`w-5 h-5 ${post.userHasLiked ? 'fill-current' : ''}`} />
               <span>{post.likes}</span>
             </button>
             
             <button 
-              onClick={() => onComment(post.id)}
+              onClick={() => setShowCommentInput(!showCommentInput)}
               className="flex items-center gap-2 text-gray-600 hover:text-blue-500 transition-colors"
             >
               <MessageCircle className="w-5 h-5" />
@@ -151,6 +230,25 @@ export function FeedPost({ post, onLike, onComment, onChallenge }: FeedPostProps
             Challenge
           </Button>
         </div>
+
+        {showCommentInput && (
+          <form onSubmit={handleSubmitComment} className="mt-4 flex gap-2">
+            <Input
+              value={commentContent}
+              onChange={(e) => setCommentContent(e.target.value)}
+              placeholder="Write a comment..."
+              className="flex-1"
+              disabled={isSubmittingComment}
+            />
+            <Button 
+              type="submit" 
+              size="sm"
+              disabled={!commentContent.trim() || isSubmittingComment}
+            >
+              <Send className="w-4 h-4" />
+            </Button>
+          </form>
+        )}
       </CardContent>
     </Card>
   );

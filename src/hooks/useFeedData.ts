@@ -1,8 +1,10 @@
 
-import { useState, useEffect } from 'react';
-import { useActivityLogs } from '@/hooks/useActivityLogs';
+import { useState, useEffect, useRef } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useFeedEngagement } from '@/hooks/useFeedEngagement';
 
-// Mock data structure for feed posts - updated to match FeedPost component interface
+// Updated interface to match backend data
 interface FeedPost {
   id: string;
   type: 'match_result' | 'achievement' | 'level_up' | 'activity';
@@ -12,66 +14,177 @@ interface FeedPost {
     avatar_url?: string;
   };
   timestamp: string;
-  content: any;
+  content: {
+    title: string;
+    description?: string;
+    stats: {
+      xp?: number;
+      hp?: number;
+      score?: string;
+      duration?: number;
+      opponent_name?: string;
+      location?: string;
+    };
+  };
   likes: number;
   comments: number;
+  userHasLiked: boolean;
 }
 
 export function useFeedData() {
-  const { activities, loading, refreshData } = useActivityLogs();
+  const { user } = useAuth();
+  const { toggleLike: toggleLikeAction, addComment: addCommentAction } = useFeedEngagement();
   const [feedPosts, setFeedPosts] = useState<FeedPost[]>([]);
+  const [loading, setLoading] = useState(true);
+  const channelRef = useRef<any>(null);
 
-  // Transform activities into feed posts
-  useEffect(() => {
-    if (activities && activities.length > 0) {
-      const posts: FeedPost[] = activities.map((activity, index) => ({
-        id: activity.id,
-        type: activity.activity_type === 'match' ? 'match_result' : 'activity', // Changed from 'training' to 'activity'
+  const fetchFeedPosts = async () => {
+    if (!user) return;
+
+    try {
+      const { data, error } = await supabase.rpc('get_feed_posts_with_engagement', {
+        user_id_param: user.id,
+        limit_count: 20,
+        offset_count: 0
+      });
+
+      if (error) {
+        console.error('Error fetching feed posts:', error);
+        return;
+      }
+
+      // Transform backend data to FeedPost format
+      const transformedPosts: FeedPost[] = (data || []).map((item: any) => ({
+        id: item.id,
+        type: determinePostType(item.activity_type, item.xp_earned, item.hp_impact),
         user: {
-          id: activity.id, // Using activity id as placeholder
-          full_name: 'You', // Placeholder for current user
-          avatar_url: '/placeholder.svg'
+          id: item.player_id,
+          full_name: item.player_name || 'Unknown Player',
+          avatar_url: item.player_avatar
         },
-        timestamp: activity.logged_at || activity.created_at,
+        timestamp: item.logged_at,
         content: {
-          title: activity.title,
-          description: activity.description || '',
+          title: item.title,
+          description: item.description,
           stats: {
-            xp: activity.xp_earned,
-            hp: activity.hp_impact,
-            score: activity.score,
-            duration: activity.duration_minutes
+            xp: item.xp_earned,
+            hp: item.hp_impact,
+            score: item.score,
+            duration: item.duration_minutes,
+            opponent_name: item.opponent_name,
+            location: item.location
           }
         },
-        likes: Math.floor(Math.random() * 10), // Mock data
-        comments: Math.floor(Math.random() * 5) // Mock data
+        likes: parseInt(item.likes_count) || 0,
+        comments: parseInt(item.comments_count) || 0,
+        userHasLiked: item.user_has_liked || false
       }));
-      
-      setFeedPosts(posts);
+
+      setFeedPosts(transformedPosts);
+    } catch (error) {
+      console.error('Error in fetchFeedPosts:', error);
     }
-  }, [activities]);
-
-  // Refresh data when hook is first used (component mounts)
-  useEffect(() => {
-    refreshData();
-  }, []);
-
-  const handleLike = (postId: string) => {
-    setFeedPosts(prev => prev.map(post => 
-      post.id === postId 
-        ? { ...post, likes: post.likes + 1 }
-        : post
-    ));
   };
 
-  const handleComment = (postId: string) => { // Fixed signature to match FeedPost component
-    console.log('Adding comment to post:', postId);
-    // Mock implementation - in real app would call API
+  const determinePostType = (activityType: string, xpEarned: number, hpImpact: number): FeedPost['type'] => {
+    if (activityType === 'match') return 'match_result';
+    if (xpEarned > 0 && hpImpact > 0) return 'level_up';
+    return 'activity';
+  };
+
+  // Set up real-time subscriptions
+  useEffect(() => {
+    if (!user) return;
+
+    // Initial fetch
+    fetchFeedPosts();
+
+    // Clean up existing channel
+    if (channelRef.current) {
+      channelRef.current.unsubscribe();
+    }
+
+    // Set up real-time subscription for likes and comments
+    const channel = supabase.channel(`feed-engagement-${user.id}-${Date.now()}`);
+    
+    // Listen for likes changes
+    channel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'feed_likes'
+      },
+      () => {
+        fetchFeedPosts(); // Refetch when likes change
+      }
+    );
+
+    // Listen for comments changes
+    channel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'feed_comments'
+      },
+      () => {
+        fetchFeedPosts(); // Refetch when comments change
+      }
+    );
+
+    // Listen for new activities
+    channel.on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'activity_logs'
+      },
+      () => {
+        fetchFeedPosts(); // Refetch when new activities are added
+      }
+    );
+
+    channel.subscribe();
+    channelRef.current = channel;
+
+    return () => {
+      if (channelRef.current) {
+        channelRef.current.unsubscribe();
+        channelRef.current = null;
+      }
+    };
+  }, [user]);
+
+  const handleLike = async (postId: string) => {
+    const wasLiked = await toggleLikeAction(postId);
+    
+    // Optimistically update the UI
+    setFeedPosts(prev => prev.map(post => {
+      if (post.id === postId) {
+        return {
+          ...post,
+          likes: wasLiked ? post.likes + 1 : post.likes - 1,
+          userHasLiked: wasLiked
+        };
+      }
+      return post;
+    }));
+  };
+
+  const handleComment = async (postId: string, content: string) => {
+    const commentId = await addCommentAction(postId, content);
+    if (commentId) {
+      // The real-time subscription will handle the UI update
+      return commentId;
+    }
+    return null;
   };
 
   const handleChallenge = (userId: string) => {
     console.log('Challenging user:', userId);
-    // Mock implementation - in real app would call API
+    // Implementation for challenges can be added later
   };
 
   return {
@@ -80,6 +193,6 @@ export function useFeedData() {
     handleLike,
     handleComment,
     handleChallenge,
-    refreshFeed: refreshData
+    refreshFeed: fetchFeedPosts
   };
 }
