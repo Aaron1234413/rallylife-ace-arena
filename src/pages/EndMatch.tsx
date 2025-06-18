@@ -7,7 +7,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
-import { Trophy, Clock, Target } from 'lucide-react';
+import { Trophy, Clock, Target, MessageCircle } from 'lucide-react';
 
 const EndMatch = () => {
   const navigate = useNavigate();
@@ -106,6 +106,34 @@ const EndMatch = () => {
             </div>
           </CardContent>
         </Card>
+
+        {/* Mid-Match Check-in Summary (if exists) */}
+        {(sessionData.midMatchMood || sessionData.midMatchNotes) && (
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="flex items-center gap-2 text-base">
+                <MessageCircle className="h-4 w-4" />
+                Mid-Match Check-in
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-2">
+              {sessionData.midMatchMood && (
+                <div className="flex items-center gap-2">
+                  <span className="text-sm text-gray-600">Mood:</span>
+                  <span className="text-lg">{sessionData.midMatchMood}</span>
+                </div>
+              )}
+              {sessionData.midMatchNotes && (
+                <div>
+                  <span className="text-sm text-gray-600">Notes:</span>
+                  <p className="text-sm mt-1 bg-gray-50 p-2 rounded">
+                    {sessionData.midMatchNotes}
+                  </p>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        )}
 
         {/* Match Details Form */}
         <Card>
