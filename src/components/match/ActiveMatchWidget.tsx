@@ -82,8 +82,6 @@ export const ActiveMatchWidget = () => {
   const opponentName = sessionData.opponentName;
   const currentSet = sessionData.sets[sessionData.currentSet];
   const completedSets = sessionData.sets.filter(set => set.completed);
-  const playerCompleteScore = getCurrentSetDisplay();
-  const opponentCompleteScore = getOpponentSetDisplay();
 
   return (
     <>
@@ -102,25 +100,60 @@ export const ActiveMatchWidget = () => {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Current Score Display */}
-          <div className="bg-white rounded-lg p-4 border">
-            <div className="grid grid-cols-2 gap-4 text-center">
-              <div>
-                <div className="font-semibold text-tennis-green-dark mb-2">{playerName}</div>
-                <div className="text-2xl font-bold">
-                  {playerCompleteScore || '0'}
-                </div>
+          {/* Tournament-Style Scoreboard */}
+          <div className="bg-white rounded-lg border-2 border-tennis-green-light overflow-hidden">
+            {/* Header Row */}
+            <div className="grid grid-cols-2 bg-tennis-green-dark text-white">
+              <div className="px-4 py-3 text-center font-semibold border-r border-tennis-green-light">
+                {playerName}
               </div>
-              <div>
-                <div className="font-semibold text-gray-700 mb-2">{opponentName}</div>
-                <div className="text-2xl font-bold">
-                  {opponentCompleteScore || '0'}
-                </div>
+              <div className="px-4 py-3 text-center font-semibold">
+                {opponentName}
               </div>
             </div>
             
+            {/* Set Scores Row */}
+            <div className="grid grid-cols-2 min-h-[60px]">
+              {/* Player Sets */}
+              <div className="flex items-center justify-center gap-2 p-4 border-r border-tennis-green-light bg-tennis-green-light/10">
+                {completedSets.length > 0 ? (
+                  <div className="flex gap-2">
+                    {completedSets.map((set, index) => (
+                      <div
+                        key={index}
+                        className="min-w-[40px] h-10 flex items-center justify-center bg-tennis-green-dark text-white font-bold rounded text-lg"
+                      >
+                        {set.playerScore}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-2xl font-bold text-tennis-green-dark">0</span>
+                )}
+              </div>
+              
+              {/* Opponent Sets */}
+              <div className="flex items-center justify-center gap-2 p-4 bg-tennis-green-light/10">
+                {completedSets.length > 0 ? (
+                  <div className="flex gap-2">
+                    {completedSets.map((set, index) => (
+                      <div
+                        key={index}
+                        className="min-w-[40px] h-10 flex items-center justify-center bg-gray-600 text-white font-bold rounded text-lg"
+                      >
+                        {set.opponentScore}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <span className="text-2xl font-bold text-gray-600">0</span>
+                )}
+              </div>
+            </div>
+            
+            {/* Match Info */}
             {completedSets.length > 0 && (
-              <div className="mt-3 pt-3 border-t text-center text-sm text-gray-600">
+              <div className="px-4 py-2 bg-tennis-green-light/5 border-t border-tennis-green-light text-center text-sm text-tennis-green-dark font-medium">
                 Sets completed: {completedSets.length}
               </div>
             )}
