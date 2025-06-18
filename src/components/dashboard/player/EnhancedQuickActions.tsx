@@ -1,5 +1,5 @@
-
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Zap, 
@@ -29,6 +29,7 @@ export function EnhancedQuickActions({
   onRestoreHP, 
   onAddTokens 
 }: EnhancedQuickActionsProps) {
+  const navigate = useNavigate();
   const { logActivity, refreshData } = useActivityLogs();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   
@@ -47,15 +48,7 @@ export function EnhancedQuickActions({
       recommended: hpPercentage > 40,
       estimatedDuration: 90,
       difficulty: 'high' as const,
-      activityData: {
-        activity_type: 'match',
-        activity_category: 'on_court',
-        title: 'Tennis Match',
-        description: 'Competitive tennis match with detailed scoring',
-        duration_minutes: 90,
-        intensity_level: 'high',
-        is_competitive: true
-      }
+      navigateTo: '/start-match' // Navigate instead of log activity
     },
     {
       id: 'training',
@@ -123,6 +116,13 @@ export function EnhancedQuickActions({
   ];
 
   const handleQuickAction = async (action: typeof quickActions[0]) => {
+    // If action has navigateTo, navigate instead of logging activity
+    if (action.navigateTo) {
+      navigate(action.navigateTo);
+      return;
+    }
+
+    // Otherwise, log the activity as before
     try {
       setLoadingAction(action.id);
       console.log('Logging unified quick action:', action.activityData);
