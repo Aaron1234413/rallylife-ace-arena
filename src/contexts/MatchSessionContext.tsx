@@ -11,9 +11,13 @@ interface MatchSessionData {
   matchType: 'singles' | 'doubles';
   startTime: Date;
   
-  // Simple score tracking
-  playerScore?: string; // e.g., "6-4, 2-1"
-  opponentScore?: string; // e.g., "4-6, 1-2"
+  // Progressive scoring system
+  sets: {
+    playerScore: string;
+    opponentScore: string;
+    completed: boolean;
+  }[];
+  currentSet: number; // 0-indexed
   
   // Mid-match check-in data
   midMatchMood?: string;
@@ -30,9 +34,12 @@ interface MatchSessionData {
 interface MatchSessionContextType {
   sessionData: MatchSessionData | null;
   updateSessionData: (data: Partial<MatchSessionData>) => void;
-  updateScore: (playerScore: string, opponentScore: string) => void;
+  logSetScore: (playerScore: string, opponentScore: string) => void;
+  startNextSet: () => void;
   clearSession: () => void;
   isSessionActive: boolean;
+  getCurrentSetDisplay: () => string;
+  getOpponentSetDisplay: () => string;
 }
 
 const MatchSessionContext = createContext<MatchSessionContextType | undefined>(undefined);
@@ -55,11 +62,11 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
   const updateSessionData = (data: Partial<MatchSessionData>) => {
     setSessionData(prev => {
       if (!prev) {
-        // Initialize with default scores if starting a new session
+        // Initialize with first set ready for input
         const newData = data as MatchSessionData;
-        if (!newData.playerScore) {
-          newData.playerScore = '0';
-          newData.opponentScore = '0';
+        if (!newData.sets) {
+          newData.sets = [{ playerScore: '', opponentScore: '', completed: false }];
+          newData.currentSet = 0;
         }
         return newData;
       }
@@ -67,15 +74,54 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
     });
   };
 
-  const updateScore = (playerScore: string, opponentScore: string) => {
+  const logSetScore = (playerScore: string, opponentScore: string) => {
     setSessionData(prev => {
       if (!prev) return prev;
-      return { 
-        ...prev, 
+      
+      const updatedSets = [...prev.sets];
+      updatedSets[prev.currentSet] = {
         playerScore,
-        opponentScore
+        opponentScore,
+        completed: true
+      };
+      
+      return {
+        ...prev,
+        sets: updatedSets
       };
     });
+  };
+
+  const startNextSet = () => {
+    setSessionData(prev => {
+      if (!prev) return prev;
+      
+      const newSets = [...prev.sets, { playerScore: '', opponentScore: '', completed: false }];
+      
+      return {
+        ...prev,
+        sets: newSets,
+        currentSet: prev.currentSet + 1
+      };
+    });
+  };
+
+  const getCurrentSetDisplay = () => {
+    if (!sessionData || !sessionData.sets) return '';
+    
+    return sessionData.sets
+      .filter(set => set.completed)
+      .map(set => set.playerScore)
+      .join(', ');
+  };
+
+  const getOpponentSetDisplay = () => {
+    if (!sessionData || !sessionData.sets) return '';
+    
+    return sessionData.sets
+      .filter(set => set.completed)
+      .map(set => set.opponentScore)
+      .join(', ');
   };
 
   const clearSession = () => {
@@ -89,9 +135,12 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
       value={{ 
         sessionData, 
         updateSessionData, 
-        updateScore,
+        logSetScore,
+        startNextSet,
         clearSession, 
-        isSessionActive 
+        isSessionActive,
+        getCurrentSetDisplay,
+        getOpponentSetDisplay
       }}
     >
       {children}
