@@ -8,6 +8,7 @@ interface TrainingSessionData {
   intensity?: string;
   estimatedDuration?: number;
   startTime?: string;
+  pausedAt?: string;
   midSessionCheckIn?: {
     mood?: string;
     notes?: string;

@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 
 import { ActiveMatchWidget } from "@/components/match/ActiveMatchWidget";
+import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
 
 const Index = () => {
   const { user } = useAuth();
@@ -159,6 +160,9 @@ const Index = () => {
 
           {/* Active Match Widget - Shows when match is active */}
           <ActiveMatchWidget />
+
+          {/* Active Training Widget - Shows when training session is active */}
+          <ActiveTrainingWidget />
 
           {/* 2. Enhanced Quick Actions - Contextual and Smart (Desktop) */}
           <div className="hidden sm:block">
