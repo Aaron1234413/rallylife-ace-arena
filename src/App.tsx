@@ -6,6 +6,7 @@ import {
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster"
 import { AppLayout } from "@/components/layout/AppLayout";
+import { MatchSessionProvider } from "@/contexts/MatchSessionContext";
 
 import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
@@ -20,34 +21,40 @@ import Messages from "@/pages/Messages";
 import Scheduling from "@/pages/Scheduling";
 import Feed from "@/pages/Feed";
 import Maps from "@/pages/Maps";
+import StartMatch from "@/pages/StartMatch";
+import EndMatch from "@/pages/EndMatch";
 
 const queryClient = new QueryClient();
 
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <BrowserRouter>
-        <AppLayout>
-          <Toaster />
-          <Routes>
-            <Route path="/auth" element={<Auth />} />
-            <Route path="/auth/login" element={<Auth />} />
-            <Route path="/auth/signup" element={<Auth />} />
-            <Route path="/auth/forgot-password" element={<Auth />} />
-            <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
-            <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
-            <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
-            <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-            <Route path="/pulse" element={<ProtectedRoute><Pulse /></ProtectedRoute>} />
-            <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-            <Route path="/scheduling" element={<ProtectedRoute><Scheduling /></ProtectedRoute>} />
-            <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
-            <Route path="/maps" element={<ProtectedRoute><Maps /></ProtectedRoute>} />
-            <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-            <Route path="*" element={<NotFound />} />
-          </Routes>
-        </AppLayout>
-      </BrowserRouter>
+      <MatchSessionProvider>
+        <BrowserRouter>
+          <AppLayout>
+            <Toaster />
+            <Routes>
+              <Route path="/auth" element={<Auth />} />
+              <Route path="/auth/login" element={<Auth />} />
+              <Route path="/auth/signup" element={<Auth />} />
+              <Route path="/auth/forgot-password" element={<Auth />} />
+              <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+              <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+              <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
+              <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+              <Route path="/pulse" element={<ProtectedRoute><Pulse /></ProtectedRoute>} />
+              <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+              <Route path="/scheduling" element={<ProtectedRoute><Scheduling /></ProtectedRoute>} />
+              <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+              <Route path="/maps" element={<ProtectedRoute><Maps /></ProtectedRoute>} />
+              <Route path="/start-match" element={<ProtectedRoute><StartMatch /></ProtectedRoute>} />
+              <Route path="/end-match" element={<ProtectedRoute><EndMatch /></ProtectedRoute>} />
+              <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+              <Route path="*" element={<NotFound />} />
+            </Routes>
+          </AppLayout>
+        </BrowserRouter>
+      </MatchSessionProvider>
     </QueryClientProvider>
   );
 }
