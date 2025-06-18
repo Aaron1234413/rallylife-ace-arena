@@ -2,12 +2,15 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
 import { Play, Users, User } from 'lucide-react';
+import { AnimatedButton } from '@/components/ui/animated-button';
+import { CardWithAnimation } from '@/components/ui/card-with-animation';
+import { getRandomMessage } from '@/utils/motivationalMessages';
+import { toast } from 'sonner';
 
 const StartMatch = () => {
   const navigate = useNavigate();
@@ -19,63 +22,85 @@ const StartMatch = () => {
   const [opponent1Name, setOpponent1Name] = useState('');
   const [opponent2Name, setOpponent2Name] = useState('');
   const [startTime, setStartTime] = useState(new Date().toISOString().slice(0, 16));
+  const [isStarting, setIsStarting] = useState(false);
 
-  // Rotating AI motivational messages
-  const motivationalMessages = [
-    "🎾 May the best player win!",
-    "Let the match begin!",
-    "Time to bring your A-game!",
-    "🔥 Ready to dominate the court?",
-    "Show them what you're made of!",
-    "🏆 Champions are made in moments like this!"
-  ];
+  const randomMessage = getRandomMessage('startMatch');
 
-  const randomMessage = motivationalMessages[Math.floor(Math.random() * motivationalMessages.length)];
-
-  const handleStartMatch = () => {
+  const validateForm = () => {
     if (!opponentName.trim()) {
-      return; // Add validation feedback later
+      toast.error('Please enter opponent name');
+      return false;
     }
+    
+    if (isDoubles) {
+      if (!partnerName.trim()) {
+        toast.error('Please enter your partner name');
+        return false;
+      }
+      if (!opponent1Name.trim()) {
+        toast.error('Please enter first opponent name');
+        return false;
+      }
+    }
+    
+    return true;
+  };
 
-    // Save session data
-    updateSessionData({
-      opponentName: opponentName.trim(),
-      isDoubles,
-      partnerName: isDoubles ? partnerName.trim() : undefined,
-      opponent1Name: isDoubles ? opponent1Name.trim() : undefined,
-      opponent2Name: isDoubles ? opponent2Name.trim() : undefined,
-      matchType: isDoubles ? 'doubles' : 'singles',
-      startTime: new Date(startTime)
-    });
+  const handleStartMatch = async () => {
+    if (!validateForm()) return;
 
-    // Navigate to dashboard or waiting screen
-    navigate('/');
+    setIsStarting(true);
+
+    try {
+      // Small delay for UX
+      await new Promise(resolve => setTimeout(resolve, 800));
+
+      // Save session data
+      updateSessionData({
+        opponentName: opponentName.trim(),
+        isDoubles,
+        partnerName: isDoubles ? partnerName.trim() : undefined,
+        opponent1Name: isDoubles ? opponent1Name.trim() : undefined,
+        opponent2Name: isDoubles ? opponent2Name.trim() : undefined,
+        matchType: isDoubles ? 'doubles' : 'singles',
+        startTime: new Date(startTime)
+      });
+
+      toast.success('Match started! Good luck out there! 🎾');
+      
+      // Navigate to dashboard
+      navigate('/');
+    } catch (error) {
+      toast.error('Failed to start match. Please try again.');
+    } finally {
+      setIsStarting(false);
+    }
   };
 
   return (
     <div className="min-h-screen bg-tennis-green-bg p-3 sm:p-4">
-      <div className="max-w-lg mx-auto space-y-6">
+      <div className="max-w-lg mx-auto space-y-4 sm:space-y-6">
         {/* Header with motivational message */}
-        <Card>
+        <CardWithAnimation delay={0}>
           <CardHeader className="text-center pb-4">
-            <CardTitle className="flex items-center justify-center gap-2 text-xl">
-              <Play className="h-6 w-6 text-tennis-green-dark" />
+            <CardTitle className="flex items-center justify-center gap-2 text-lg sm:text-xl">
+              <Play className="h-5 w-5 sm:h-6 sm:w-6 text-tennis-green-dark" />
               Start Tennis Match
             </CardTitle>
-            <p className="text-lg font-medium text-tennis-green-dark mt-2">
+            <p className="text-base sm:text-lg font-medium text-tennis-green-dark mt-2 leading-relaxed">
               {randomMessage}
             </p>
           </CardHeader>
-        </Card>
+        </CardWithAnimation>
 
         {/* Match Setup Form */}
-        <Card>
-          <CardContent className="space-y-6 pt-6">
+        <CardWithAnimation delay={100}>
+          <CardContent className="space-y-4 sm:space-y-6 pt-4 sm:pt-6">
             {/* Match Type Toggle */}
-            <div className="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
+            <div className="flex items-center justify-between p-3 sm:p-4 bg-gray-50 rounded-lg transition-colors hover:bg-gray-100">
               <div className="flex items-center gap-2">
-                {isDoubles ? <Users className="h-5 w-5" /> : <User className="h-5 w-5" />}
-                <span className="font-medium">
+                {isDoubles ? <Users className="h-4 w-4 sm:h-5 sm:w-5" /> : <User className="h-4 w-4 sm:h-5 sm:w-5" />}
+                <span className="font-medium text-sm sm:text-base">
                   {isDoubles ? 'Doubles Match' : 'Singles Match'}
                 </span>
               </div>
@@ -87,51 +112,55 @@ const StartMatch = () => {
 
             {/* Singles Fields */}
             {!isDoubles && (
-              <div className="space-y-2">
-                <Label htmlFor="opponent">Opponent Name *</Label>
+              <div className="space-y-2 animate-fade-in">
+                <Label htmlFor="opponent" className="text-sm sm:text-base">Opponent Name *</Label>
                 <Input
                   id="opponent"
                   placeholder="Enter opponent's name"
                   value={opponentName}
                   onChange={(e) => setOpponentName(e.target.value)}
-                  className="text-base"
+                  className="text-sm sm:text-base h-11 sm:h-12"
+                  disabled={isStarting}
                 />
               </div>
             )}
 
             {/* Doubles Fields */}
             {isDoubles && (
-              <div className="space-y-4">
+              <div className="space-y-4 animate-fade-in">
                 <div className="space-y-2">
-                  <Label htmlFor="partner">Your Partner *</Label>
+                  <Label htmlFor="partner" className="text-sm sm:text-base">Your Partner *</Label>
                   <Input
                     id="partner"
                     placeholder="Enter partner's name"
                     value={partnerName}
                     onChange={(e) => setPartnerName(e.target.value)}
-                    className="text-base"
+                    className="text-sm sm:text-base h-11 sm:h-12"
+                    disabled={isStarting}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="opponent1">Opponent 1 *</Label>
+                  <Label htmlFor="opponent1" className="text-sm sm:text-base">Opponent 1 *</Label>
                   <Input
                     id="opponent1"
                     placeholder="Enter first opponent's name"
                     value={opponent1Name}
                     onChange={(e) => setOpponent1Name(e.target.value)}
-                    className="text-base"
+                    className="text-sm sm:text-base h-11 sm:h-12"
+                    disabled={isStarting}
                   />
                 </div>
                 
                 <div className="space-y-2">
-                  <Label htmlFor="opponent2">Opponent 2</Label>
+                  <Label htmlFor="opponent2" className="text-sm sm:text-base">Opponent 2</Label>
                   <Input
                     id="opponent2"
                     placeholder="Enter second opponent's name"
                     value={opponent2Name}
                     onChange={(e) => setOpponent2Name(e.target.value)}
-                    className="text-base"
+                    className="text-sm sm:text-base h-11 sm:h-12"
+                    disabled={isStarting}
                   />
                 </div>
               </div>
@@ -139,30 +168,32 @@ const StartMatch = () => {
 
             {/* Start Time Override */}
             <div className="space-y-2">
-              <Label htmlFor="startTime">Start Time</Label>
+              <Label htmlFor="startTime" className="text-sm sm:text-base">Start Time</Label>
               <Input
                 id="startTime"
                 type="datetime-local"
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                className="text-base"
+                className="text-sm sm:text-base h-11 sm:h-12"
+                disabled={isStarting}
               />
-              <p className="text-sm text-gray-600">
+              <p className="text-xs sm:text-sm text-gray-600">
                 Auto-captured (modify if logging a past match)
               </p>
             </div>
 
             {/* Start Match Button */}
-            <Button
+            <AnimatedButton
               onClick={handleStartMatch}
+              loading={isStarting}
               disabled={!opponentName.trim() || (isDoubles && !partnerName.trim()) || (isDoubles && !opponent1Name.trim())}
-              className="w-full h-12 text-lg bg-tennis-green-dark hover:bg-tennis-green text-white"
+              className="w-full h-12 sm:h-14 text-base sm:text-lg bg-tennis-green-dark hover:bg-tennis-green text-white font-semibold"
             >
-              <Play className="h-5 w-5 mr-2" />
-              Start Match
-            </Button>
+              <Play className="h-4 w-4 sm:h-5 sm:w-5 mr-2" />
+              {isStarting ? 'Starting Match...' : 'Start Match'}
+            </AnimatedButton>
           </CardContent>
-        </Card>
+        </CardWithAnimation>
       </div>
     </div>
   );

@@ -1,58 +1,48 @@
 
 import React, { useState } from 'react';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-} from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
-import { Clock, Heart, Save } from 'lucide-react';
+import { MessageCircle, Save } from 'lucide-react';
 import { toast } from 'sonner';
+import { AnimatedButton } from '@/components/ui/animated-button';
+import { getRandomMessage } from '@/utils/motivationalMessages';
 
 interface MidMatchCheckInModalProps {
   isOpen: boolean;
   onClose: () => void;
-  matchDuration: number;
 }
 
-export const MidMatchCheckInModal: React.FC<MidMatchCheckInModalProps> = ({
-  isOpen,
-  onClose,
-  matchDuration
-}) => {
+export function MidMatchCheckInModal({ isOpen, onClose }: MidMatchCheckInModalProps) {
   const { sessionData, updateSessionData } = useMatchSession();
-  const [midMatchMood, setMidMatchMood] = useState(sessionData?.midMatchMood || '');
-  const [midMatchNotes, setMidMatchNotes] = useState(sessionData?.midMatchNotes || '');
+  const [mood, setMood] = useState('');
+  const [notes, setNotes] = useState('');
+  const [isSaving, setIsSaving] = useState(false);
 
-  // AI motivational check-in messages
-  const checkInMessages = [
-    "🔥 How's the match going? Log your current vibe!",
-    "⚡ Quick check-in - how are you feeling right now?",
-    "🎾 Mid-match moment - capture your thoughts!",
-    "💪 Time for a quick mental note - what's happening?",
-    "🎯 Pause and reflect - how's your energy?"
-  ];
+  const moodEmojis = ['😄', '😊', '😐', '😤', '😩', '🤔', '💪', '🎯'];
+  const randomMessage = getRandomMessage('midMatchCheckIn');
 
-  const randomMessage = checkInMessages[Math.floor(Math.random() * checkInMessages.length)];
+  const handleSave = async () => {
+    setIsSaving(true);
+    
+    // Small delay for UX
+    await new Promise(resolve => setTimeout(resolve, 500));
 
-  // Mood emojis for quick selection
-  const moodEmojis = ['🔥', '💪', '😤', '🎯', '😅', '😐', '🤔', '😩'];
-
-  const handleSave = () => {
     // Update session data with mid-match check-in
     updateSessionData({
-      midMatchMood,
-      midMatchNotes
+      midMatchMood: mood,
+      midMatchNotes: notes
     });
 
-    toast.success('Check-in saved!', {
-      description: 'Your mid-match thoughts have been recorded.'
-    });
+    toast.success('Check-in saved! Keep it up! 💪');
+    setIsSaving(false);
+    onClose();
+  };
 
+  const handleSkip = () => {
+    toast.info('Skipped check-in. Focus on your game! 🎾');
     onClose();
   };
 
@@ -60,45 +50,40 @@ export const MidMatchCheckInModal: React.FC<MidMatchCheckInModalProps> = ({
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="max-w-md mx-auto animate-scale-in">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-red-500" />
+          <DialogTitle className="flex items-center gap-2 text-lg">
+            <MessageCircle className="h-5 w-5 text-tennis-green-dark" />
             Mid-Match Check-In
           </DialogTitle>
+          <p className="text-sm text-gray-600 mt-2">
+            {randomMessage}
+          </p>
         </DialogHeader>
 
-        <div className="space-y-6">
-          {/* AI Message */}
-          <div className="text-center">
-            <p className="text-lg font-medium text-tennis-green-dark">
-              {randomMessage}
-            </p>
-          </div>
-
-          {/* Match Info */}
+        <div className="space-y-4 pt-4">
+          {/* Current Match Info */}
           <div className="bg-gray-50 p-3 rounded-lg">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-gray-600">
-                vs {sessionData.opponentName}
-              </span>
-              <div className="flex items-center gap-1 text-gray-600">
-                <Clock className="h-4 w-4" />
-                {matchDuration} minutes
-              </div>
-            </div>
+            <p className="text-sm font-medium">
+              Playing vs {sessionData.opponentName}
+              {sessionData.isDoubles && sessionData.opponent1Name && ` & ${sessionData.opponent1Name}`}
+            </p>
+            <p className="text-xs text-gray-500">
+              Started: {sessionData.startTime.toLocaleTimeString()}
+            </p>
           </div>
 
           {/* Mood Selector */}
           <div className="space-y-2">
-            <Label>How are you feeling right now?</Label>
+            <Label className="text-sm font-medium">How are you feeling?</Label>
             <div className="flex flex-wrap gap-2">
               {moodEmojis.map((emoji) => (
                 <Button
                   key={emoji}
-                  variant={midMatchMood === emoji ? 'default' : 'outline'}
-                  onClick={() => setMidMatchMood(emoji)}
-                  className="text-xl p-3"
+                  variant={mood === emoji ? 'default' : 'outline'}
+                  onClick={() => setMood(emoji)}
+                  className="text-xl p-3 transition-all transform hover:scale-110"
+                  disabled={isSaving}
                 >
                   {emoji}
                 </Button>
@@ -108,26 +93,40 @@ export const MidMatchCheckInModal: React.FC<MidMatchCheckInModalProps> = ({
 
           {/* Notes */}
           <div className="space-y-2">
-            <Label htmlFor="midNotes">Quick Notes (Optional)</Label>
+            <Label htmlFor="mid-notes" className="text-sm font-medium">
+              Quick Notes (Optional)
+            </Label>
             <Textarea
-              id="midNotes"
-              placeholder="How's the match going? Any key moments or thoughts..."
-              value={midMatchNotes}
-              onChange={(e) => setMidMatchNotes(e.target.value)}
-              className="text-base min-h-16"
+              id="mid-notes"
+              placeholder="How's the match going? Any observations?"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="text-sm min-h-16"
+              disabled={isSaving}
             />
           </div>
 
-          {/* Save Button */}
-          <Button
-            onClick={handleSave}
-            className="w-full bg-tennis-green-dark hover:bg-tennis-green text-white"
-          >
-            <Save className="h-4 w-4 mr-2" />
-            Save Check-In
-          </Button>
+          {/* Action Buttons */}
+          <div className="flex gap-2 pt-4">
+            <Button
+              variant="outline"
+              onClick={handleSkip}
+              className="flex-1 transition-all transform hover:scale-105"
+              disabled={isSaving}
+            >
+              Skip
+            </Button>
+            <AnimatedButton
+              onClick={handleSave}
+              loading={isSaving}
+              className="flex-1 bg-tennis-green-dark hover:bg-tennis-green text-white"
+            >
+              <Save className="h-4 w-4 mr-2" />
+              {isSaving ? 'Saving...' : 'Save Check-In'}
+            </AnimatedButton>
+          </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-};
+}
