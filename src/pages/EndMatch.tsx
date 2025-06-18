@@ -1,4 +1,5 @@
 
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -128,8 +129,8 @@ const EndMatch = () => {
 
       console.log('Match activity logged successfully:', data);
       
-      // Show success message with rewards - cast data to proper type
-      const activityData = data as ActivityLogResponse;
+      // Show success message with rewards - cast data to proper type through unknown
+      const activityData = data as unknown as ActivityLogResponse;
       if (activityData && activityData.success) {
         toast.success(`Match logged successfully!`, {
           description: `XP: +${activityData.xp_earned}, HP: ${activityData.hp_change >= 0 ? '+' : ''}${activityData.hp_change}`
@@ -329,3 +330,4 @@ const EndMatch = () => {
 };
 
 export default EndMatch;
+
