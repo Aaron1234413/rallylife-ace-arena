@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,6 +7,8 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
 import { Trophy, Clock, Target, MessageCircle } from 'lucide-react';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 const EndMatch = () => {
   const navigate = useNavigate();
@@ -18,6 +19,7 @@ const EndMatch = () => {
   const [endMood, setEndMood] = useState('');
   const [matchNotes, setMatchNotes] = useState('');
   const [result, setResult] = useState<'win' | 'loss'>('win');
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   // Rotating celebratory messages
   const celebratoryMessages = [
@@ -39,23 +41,110 @@ const EndMatch = () => {
       return;
     }
 
-    // Calculate duration if not provided
-    const calculatedDuration = duration ? parseInt(duration) : 
-      Math.floor((new Date().getTime() - sessionData.startTime.getTime()) / (1000 * 60));
+    setIsSubmitting(true);
 
-    // Here we'll integrate with log_comprehensive_activity RPC in Phase 5
-    console.log('Match data to submit:', {
-      ...sessionData,
-      finalScore,
-      duration: calculatedDuration,
-      endMood,
-      matchNotes,
-      result
-    });
+    try {
+      // Calculate duration if not provided
+      const calculatedDuration = duration ? parseInt(duration) : 
+        Math.floor((new Date().getTime() - sessionData.startTime.getTime()) / (1000 * 60));
 
-    // Clear session and redirect
-    clearSession();
-    navigate('/feed');
+      // Get current user
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) {
+        toast.error('User not authenticated');
+        return;
+      }
+
+      // Prepare opponent name for display
+      const opponentDisplayName = sessionData.isDoubles 
+        ? `${sessionData.opponent1Name}${sessionData.opponent2Name ? ` & ${sessionData.opponent2Name}` : ''}`
+        : sessionData.opponentName;
+
+      // Prepare activity title
+      const activityTitle = sessionData.isDoubles 
+        ? `Doubles Match vs ${opponentDisplayName}`
+        : `Singles Match vs ${opponentDisplayName}`;
+
+      // Prepare activity description
+      let description = `${sessionData.matchType} match`;
+      if (sessionData.isDoubles && sessionData.partnerName) {
+        description += ` with partner ${sessionData.partnerName}`;
+      }
+      description += ` vs ${opponentDisplayName}`;
+
+      // Prepare notes combining match notes and mid-match notes
+      let combinedNotes = '';
+      if (sessionData.midMatchNotes) {
+        combinedNotes += `Mid-match notes: ${sessionData.midMatchNotes}`;
+      }
+      if (matchNotes) {
+        if (combinedNotes) combinedNotes += '\n\n';
+        combinedNotes += `Final notes: ${matchNotes}`;
+      }
+
+      // Prepare mood information
+      let moodInfo = '';
+      if (sessionData.midMatchMood) {
+        moodInfo += `Mid-match mood: ${sessionData.midMatchMood}`;
+      }
+      if (endMood) {
+        if (moodInfo) moodInfo += ', ';
+        moodInfo += `End mood: ${endMood}`;
+      }
+
+      // Call the comprehensive activity logging RPC
+      const { data, error } = await supabase.rpc('log_comprehensive_activity', {
+        user_id: user.id,
+        activity_type: 'match',
+        activity_category: 'on_court',
+        title: activityTitle,
+        description: description,
+        duration_minutes: calculatedDuration,
+        intensity_level: 'high', // Matches are typically high intensity
+        opponent_name: opponentDisplayName,
+        score: finalScore || null,
+        result: result,
+        notes: combinedNotes || null,
+        is_competitive: true, // Matches are competitive
+        is_official: false, // Default to false, could be made configurable
+        logged_at: sessionData.startTime.toISOString(),
+        metadata: {
+          match_type: sessionData.matchType,
+          is_doubles: sessionData.isDoubles,
+          partner_name: sessionData.partnerName || null,
+          opponent_1_name: sessionData.opponent1Name || null,
+          opponent_2_name: sessionData.opponent2Name || null,
+          mid_match_mood: sessionData.midMatchMood || null,
+          end_mood: endMood || null,
+          start_time: sessionData.startTime.toISOString()
+        }
+      });
+
+      if (error) {
+        console.error('Error logging match activity:', error);
+        toast.error('Failed to save match data');
+        return;
+      }
+
+      console.log('Match activity logged successfully:', data);
+      
+      // Show success message with rewards
+      if (data) {
+        toast.success(`Match logged successfully!`, {
+          description: `XP: +${data.xp_earned}, HP: ${data.hp_change >= 0 ? '+' : ''}${data.hp_change}`
+        });
+      }
+
+      // Clear session and redirect
+      clearSession();
+      navigate('/feed');
+
+    } catch (error) {
+      console.error('Unexpected error:', error);
+      toast.error('An unexpected error occurred');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   if (!sessionData) {
@@ -217,18 +306,19 @@ const EndMatch = () => {
             <div className="bg-gray-50 p-4 rounded-lg">
               <h4 className="font-medium mb-2">Rewards Preview:</h4>
               <div className="flex justify-between text-sm">
-                <span>🎮 XP: +50</span>
-                <span>❤️ HP: -10</span>
+                <span>🎮 XP: +{result === 'win' ? '60' : '50'}</span>
+                <span>❤️ HP: {result === 'win' ? '+5' : '-10'}</span>
               </div>
             </div>
 
             {/* Submit Button */}
             <Button
               onClick={handleSubmit}
+              disabled={isSubmitting}
               className="w-full h-12 text-lg bg-tennis-green-dark hover:bg-tennis-green text-white"
             >
               <Target className="h-5 w-5 mr-2" />
-              Submit Match Log
+              {isSubmitting ? 'Saving Match...' : 'Submit Match Log'}
             </Button>
           </CardContent>
         </Card>
