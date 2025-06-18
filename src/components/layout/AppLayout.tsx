@@ -20,11 +20,12 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      <main className="pb-16 sm:pb-0">
+      {user && <AppNavigation />}
+      
+      <main className={`${user ? 'pt-16' : ''} pb-16 sm:pb-0`}>
         {children}
       </main>
       
-      {user && <AppNavigation />}
       {user && <FloatingCheckInButton />}
     </div>
   );
