@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,12 +8,24 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
 import { Trophy, Clock, Target, MessageCircle } from 'lucide-react';
-import { supabase } from '@/integrations/supabase/client';
+import { useActivityLogger } from '@/hooks/useActivityLogger';
 import { toast } from 'sonner';
+
+// Type for the RPC response
+interface ActivityLogResponse {
+  success: boolean;
+  activity_id: string;
+  activity_title: string;
+  hp_change: number;
+  xp_earned: number;
+  activity_type: string;
+  logged_at: string;
+}
 
 const EndMatch = () => {
   const navigate = useNavigate();
   const { sessionData, clearSession } = useMatchSession();
+  const { logActivity } = useActivityLogger();
   
   const [finalScore, setFinalScore] = useState('');
   const [duration, setDuration] = useState('');
@@ -47,13 +60,6 @@ const EndMatch = () => {
       // Calculate duration if not provided
       const calculatedDuration = duration ? parseInt(duration) : 
         Math.floor((new Date().getTime() - sessionData.startTime.getTime()) / (1000 * 60));
-
-      // Get current user
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        toast.error('User not authenticated');
-        return;
-      }
 
       // Prepare opponent name for display
       const opponentDisplayName = sessionData.isDoubles 
@@ -92,21 +98,21 @@ const EndMatch = () => {
         moodInfo += `End mood: ${endMood}`;
       }
 
-      // Call the comprehensive activity logging RPC
-      const { data, error } = await supabase.rpc('log_comprehensive_activity', {
-        user_id: user.id,
+      // Call the activity logger
+      const data = await logActivity({
+        user_id: '', // This will be set by the hook using auth.uid()
         activity_type: 'match',
         activity_category: 'on_court',
         title: activityTitle,
         description: description,
         duration_minutes: calculatedDuration,
-        intensity_level: 'high', // Matches are typically high intensity
+        intensity_level: 'high',
         opponent_name: opponentDisplayName,
-        score: finalScore || null,
+        score: finalScore || undefined,
         result: result,
-        notes: combinedNotes || null,
-        is_competitive: true, // Matches are competitive
-        is_official: false, // Default to false, could be made configurable
+        notes: combinedNotes || undefined,
+        is_competitive: true,
+        is_official: false,
         logged_at: sessionData.startTime.toISOString(),
         metadata: {
           match_type: sessionData.matchType,
@@ -120,18 +126,13 @@ const EndMatch = () => {
         }
       });
 
-      if (error) {
-        console.error('Error logging match activity:', error);
-        toast.error('Failed to save match data');
-        return;
-      }
-
       console.log('Match activity logged successfully:', data);
       
-      // Show success message with rewards
-      if (data) {
+      // Show success message with rewards - cast data to proper type
+      const activityData = data as ActivityLogResponse;
+      if (activityData && activityData.success) {
         toast.success(`Match logged successfully!`, {
-          description: `XP: +${data.xp_earned}, HP: ${data.hp_change >= 0 ? '+' : ''}${data.hp_change}`
+          description: `XP: +${activityData.xp_earned}, HP: ${activityData.hp_change >= 0 ? '+' : ''}${activityData.hp_change}`
         });
       }
 
