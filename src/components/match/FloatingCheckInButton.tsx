@@ -42,7 +42,6 @@ export const FloatingCheckInButton = () => {
       <MidMatchCheckInModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
-        matchDuration={matchDuration}
       />
     </>
   );
