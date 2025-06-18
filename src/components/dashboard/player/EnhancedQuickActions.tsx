@@ -1,24 +1,25 @@
-
-import React from 'react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { Badge } from '@/components/ui/badge';
 import { 
   Zap, 
+  Users, 
+  BookOpen, 
   Heart, 
-  Coins, 
-  TrendingUp, 
-  Target,
-  Dumbbell
+  Plus,
+  Sparkles
 } from 'lucide-react';
-import { useNavigate } from 'react-router-dom';
+import { useActivityLogs } from '@/hooks/useActivityLogs';
+import { toast } from 'sonner';
+import { SmartRecommendations } from './SmartRecommendations';
+import { ActionButton } from './ActionButton';
 
 interface EnhancedQuickActionsProps {
   hpData: any;
   xpData: any;
   onAddXP: (amount: number, activityType: string, description?: string) => Promise<any>;
-  onRestoreHP: (amount: number, activityType: string, description?: string) => Promise<any>;
-  onAddTokens: (amount: number, tokenType?: string, source?: string, description?: string) => Promise<any>;
+  onRestoreHP: (amount: number, activityType: string, description?: string) => Promise<void>;
+  onAddTokens: (amount: number, tokenType?: string, source?: string, description?: string) => Promise<void>;
 }
 
 export function EnhancedQuickActions({ 
@@ -29,129 +30,182 @@ export function EnhancedQuickActions({
   onAddTokens 
 }: EnhancedQuickActionsProps) {
   const navigate = useNavigate();
-
-  const handleQuickXP = async () => {
-    await onAddXP(20, 'quick_practice', 'Quick practice session');
-  };
-
-  const handleRestoreHP = async () => {
-    await onRestoreHP(10, 'rest', 'Quick recovery');
-  };
-
-  const handleEarnTokens = async () => {
-    await onAddTokens(5, 'regular', 'daily_bonus', 'Daily activity bonus');
-  };
-
-  const handleStartTraining = () => {
-    navigate('/start-training');
-  };
-
-  // Smart recommendations based on current state
-  const getRecommendations = () => {
-    const recommendations = [];
-    
-    if (hpData && hpData.current_hp < 30) {
-      recommendations.push({
-        type: 'warning',
-        text: 'Low HP - Consider rest',
-        action: 'rest'
-      });
+  const { logActivity, refreshData } = useActivityLogs();
+  const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  
+  const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
+  
+  const quickActions = [
+    {
+      id: 'match',
+      title: 'Tennis Match',
+      description: 'Record a competitive tennis match with detailed scoring',
+      icon: Zap,
+      color: 'bg-gradient-to-r from-blue-500 to-blue-600',
+      textColor: 'text-blue-700',
+      bgColor: 'bg-blue-50',
+      rewards: { hp: -5, xp: 50, tokens: 25 }, // High intensity competitive match
+      recommended: hpPercentage > 40,
+      estimatedDuration: 90,
+      difficulty: 'high' as const,
+      navigateTo: '/start-match' // Navigate instead of log activity
+    },
+    {
+      id: 'training',
+      title: 'Training Session',
+      description: 'Practice drills, technique work, and skill development',
+      icon: BookOpen,
+      color: 'bg-gradient-to-r from-green-500 to-green-600',
+      textColor: 'text-green-700',
+      bgColor: 'bg-green-50',
+      rewards: { hp: -5, xp: 30, tokens: 15 }, // Medium intensity training
+      recommended: hpPercentage > 30,
+      estimatedDuration: 60,
+      difficulty: 'medium' as const,
+      activityData: {
+        activity_type: 'training',
+        activity_category: 'on_court',
+        title: 'Training Session',
+        description: 'Practice drills, technique work, and skill development',
+        duration_minutes: 60,
+        intensity_level: 'medium'
+      }
+    },
+    {
+      id: 'social',
+      title: 'Social Play',
+      description: 'Casual games and fun activities with friends',
+      icon: Users,
+      color: 'bg-gradient-to-r from-purple-500 to-purple-600',
+      textColor: 'text-purple-700',
+      bgColor: 'bg-purple-50',
+      rewards: { hp: 5, xp: 15, tokens: 12 }, // Low intensity social activity
+      recommended: hpPercentage > 20,
+      estimatedDuration: 45,
+      difficulty: 'low' as const,
+      activityData: {
+        activity_type: 'social',
+        activity_category: 'social',
+        title: 'Social Play',
+        description: 'Casual games and fun activities with friends',
+        duration_minutes: 45,
+        intensity_level: 'low'
+      }
+    },
+    {
+      id: 'rest',
+      title: 'Rest & Recovery',
+      description: 'Restore your energy with proper rest and recovery',
+      icon: Heart,
+      color: 'bg-gradient-to-r from-red-500 to-pink-500',
+      textColor: 'text-red-700',
+      bgColor: 'bg-red-50',
+      rewards: { hp: 0, xp: 10, tokens: 10 }, // Recovery activity with token reward
+      recommended: hpPercentage < 40,
+      estimatedDuration: 30,
+      difficulty: 'low' as const,
+      activityData: {
+        activity_type: 'rest',
+        activity_category: 'recovery',
+        title: 'Rest & Recovery',
+        description: 'Restore your energy with proper rest and recovery',
+        duration_minutes: 30,
+        intensity_level: 'low'
+      }
     }
-    
-    if (xpData && xpData.current_xp / xpData.xp_to_next_level > 0.8) {
-      recommendations.push({
-        type: 'success',
-        text: 'Almost leveled up!',
-        action: 'practice'
-      });
+  ];
+
+  const handleQuickAction = async (action: typeof quickActions[0]) => {
+    // If action has navigateTo, navigate instead of logging activity
+    if (action.navigateTo) {
+      navigate(action.navigateTo);
+      return;
     }
 
-    return recommendations;
+    // Otherwise, log the activity as before
+    try {
+      setLoadingAction(action.id);
+      console.log('Logging unified quick action:', action.activityData);
+      
+      const result = await logActivity(action.activityData);
+      
+      console.log('Quick action logged successfully:', result);
+      
+      // Show success message with actual results from database
+      if (result) {
+        const rewards = [];
+        if (result.hp_change !== 0) {
+          rewards.push(`${result.hp_change > 0 ? '+' : ''}${result.hp_change} HP`);
+        }
+        if (result.xp_earned > 0) {
+          rewards.push(`+${result.xp_earned} XP`);
+        }
+        
+        toast.success(`${action.title} completed!`, {
+          description: rewards.join(' • ')
+        });
+      } else {
+        toast.success(`${action.title} completed!`);
+      }
+      
+      await refreshData();
+      
+    } catch (error) {
+      console.error('Error logging quick action:', error);
+      toast.error('Failed to log activity. Please try again.');
+    } finally {
+      setLoadingAction(null);
+    }
   };
 
-  const recommendations = getRecommendations();
+  const handleRecommendationClick = (actionId: string) => {
+    const action = quickActions.find(a => a.id === actionId);
+    if (action) {
+      handleQuickAction(action);
+    }
+  };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Target className="h-5 w-5" />
-          Quick Actions
-        </CardTitle>
-        {recommendations.length > 0 && (
-          <div className="flex flex-wrap gap-2">
-            {recommendations.map((rec, index) => (
-              <Badge 
-                key={index} 
-                variant={rec.type === 'warning' ? 'destructive' : 'default'}
-                className="text-xs"
-              >
-                {rec.text}
-              </Badge>
+    <div className="space-y-6">
+      {/* Smart Recommendations */}
+      <Card className="border-2 border-gradient-to-r from-purple-200 to-blue-200">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2">
+            <Sparkles className="h-5 w-5 text-purple-500" />
+            Smart Recommendations
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <SmartRecommendations 
+            hpData={hpData}
+            xpData={xpData}
+            onRecommendationClick={handleRecommendationClick}
+          />
+        </CardContent>
+      </Card>
+
+      {/* Enhanced Quick Actions */}
+      <Card>
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5" />
+            Quick Actions
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+            {quickActions.map((action) => (
+              <ActionButton
+                key={action.id}
+                action={action}
+                onClick={() => handleQuickAction(action)}
+                disabled={loadingAction !== null}
+                loading={loadingAction === action.id}
+              />
             ))}
           </div>
-        )}
-      </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-          {/* Training Session Button - Primary Action */}
-          <Button
-            onClick={handleStartTraining}
-            className="h-20 flex-col gap-2 bg-tennis-green-light hover:bg-tennis-green-dark text-white"
-          >
-            <Dumbbell className="h-5 w-5" />
-            <span className="text-xs font-medium">Start Training</span>
-          </Button>
-
-          {/* Quick XP */}
-          <Button
-            variant="outline"
-            onClick={handleQuickXP}
-            className="h-20 flex-col gap-2 hover:bg-blue-50"
-          >
-            <TrendingUp className="h-5 w-5 text-blue-600" />
-            <span className="text-xs font-medium">Quick XP</span>
-            <span className="text-xs text-muted-foreground">+20</span>
-          </Button>
-
-          {/* Restore HP */}
-          <Button
-            variant="outline"
-            onClick={handleRestoreHP}
-            className="h-20 flex-col gap-2 hover:bg-red-50"
-            disabled={hpData?.current_hp >= hpData?.max_hp}
-          >
-            <Heart className="h-5 w-5 text-red-600" />
-            <span className="text-xs font-medium">Restore HP</span>
-            <span className="text-xs text-muted-foreground">+10</span>
-          </Button>
-
-          {/* Earn Tokens */}
-          <Button
-            variant="outline"
-            onClick={handleEarnTokens}
-            className="h-20 flex-col gap-2 hover:bg-yellow-50"
-          >
-            <Coins className="h-5 w-5 text-yellow-600" />
-            <span className="text-xs font-medium">Daily Bonus</span>
-            <span className="text-xs text-muted-foreground">+5 🪙</span>
-          </Button>
-        </div>
-
-        {/* Smart Recommendations */}
-        {recommendations.length > 0 && (
-          <div className="mt-4 p-3 bg-muted/30 rounded-lg">
-            <h4 className="text-sm font-medium mb-2">Recommended Actions</h4>
-            <div className="space-y-1">
-              {recommendations.map((rec, index) => (
-                <p key={index} className="text-xs text-muted-foreground">
-                  • {rec.text}
-                </p>
-              ))}
-            </div>
-          </div>
-        )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+    </div>
   );
 }
