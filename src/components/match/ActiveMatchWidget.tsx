@@ -1,10 +1,10 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Clock, Users, MessageCircle, Square, Save, Plus } from 'lucide-react';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
 import { MidMatchCheckInModal } from './MidMatchCheckInModal';
@@ -83,6 +83,11 @@ export const ActiveMatchWidget = () => {
   const currentSet = sessionData.sets[sessionData.currentSet];
   const completedSets = sessionData.sets.filter(set => set.completed);
 
+  const getSetLabel = (index: number) => {
+    const setLabels = ['First set', 'Second set', 'Third set', 'Fourth set', 'Fifth set'];
+    return setLabels[index] || `Set ${index + 1}`;
+  };
+
   return (
     <>
       <Card className="border-tennis-green-light bg-gradient-to-r from-tennis-green-light/5 to-tennis-green-dark/5">
@@ -100,61 +105,41 @@ export const ActiveMatchWidget = () => {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Tournament-Style Scoreboard */}
+          {/* Table-Style Scoreboard */}
           <div className="bg-white rounded-lg border-2 border-tennis-green-light overflow-hidden">
-            {/* Header Row */}
-            <div className="grid grid-cols-2 bg-tennis-green-dark text-white">
-              <div className="px-4 py-3 text-center font-semibold border-r border-tennis-green-light">
-                {playerName}
-              </div>
-              <div className="px-4 py-3 text-center font-semibold">
-                {opponentName}
-              </div>
-            </div>
-            
-            {/* Set Scores Row */}
-            <div className="grid grid-cols-2 min-h-[60px]">
-              {/* Player Sets */}
-              <div className="flex items-center justify-center gap-2 p-4 border-r border-tennis-green-light bg-tennis-green-light/10">
-                {completedSets.length > 0 ? (
-                  <div className="flex gap-2">
-                    {completedSets.map((set, index) => (
-                      <div
-                        key={index}
-                        className="min-w-[40px] h-10 flex items-center justify-center bg-tennis-green-dark text-white font-bold rounded text-lg"
-                      >
-                        {set.playerScore}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="text-2xl font-bold text-tennis-green-dark">0</span>
-                )}
-              </div>
-              
-              {/* Opponent Sets */}
-              <div className="flex items-center justify-center gap-2 p-4 bg-tennis-green-light/10">
-                {completedSets.length > 0 ? (
-                  <div className="flex gap-2">
-                    {completedSets.map((set, index) => (
-                      <div
-                        key={index}
-                        className="min-w-[40px] h-10 flex items-center justify-center bg-gray-600 text-white font-bold rounded text-lg"
-                      >
-                        {set.opponentScore}
-                      </div>
-                    ))}
-                  </div>
-                ) : (
-                  <span className="text-2xl font-bold text-gray-600">0</span>
-                )}
-              </div>
-            </div>
-            
-            {/* Match Info */}
-            {completedSets.length > 0 && (
-              <div className="px-4 py-2 bg-tennis-green-light/5 border-t border-tennis-green-light text-center text-sm text-tennis-green-dark font-medium">
-                Sets completed: {completedSets.length}
+            {completedSets.length > 0 ? (
+              <Table>
+                <TableHeader>
+                  <TableRow className="bg-tennis-green-dark hover:bg-tennis-green-dark">
+                    <TableHead className="text-white font-semibold">Score</TableHead>
+                    <TableHead className="text-white font-semibold text-center">You</TableHead>
+                    <TableHead className="text-white font-semibold text-center">Opponent</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {completedSets.map((set, index) => (
+                    <TableRow key={index} className="bg-tennis-green-light/5 hover:bg-tennis-green-light/10">
+                      <TableCell className="font-medium text-tennis-green-dark">
+                        {getSetLabel(index)}
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center justify-center min-w-[32px] h-8 bg-tennis-green-dark text-white font-bold rounded text-sm">
+                          {set.playerScore}
+                        </span>
+                      </TableCell>
+                      <TableCell className="text-center">
+                        <span className="inline-flex items-center justify-center min-w-[32px] h-8 bg-gray-600 text-white font-bold rounded text-sm">
+                          {set.opponentScore}
+                        </span>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>
+              </Table>
+            ) : (
+              <div className="p-6 text-center text-tennis-green-dark">
+                <p className="text-lg font-medium">No sets completed yet</p>
+                <p className="text-sm text-gray-600 mt-1">Start playing and log your first set score below</p>
               </div>
             )}
           </div>
