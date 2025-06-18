@@ -2,29 +2,19 @@
 import { useState, useEffect } from 'react';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
 
-// Mock data structure for feed posts
+// Mock data structure for feed posts - updated to match FeedPost component interface
 interface FeedPost {
   id: string;
-  type: 'match_result' | 'achievement' | 'level_up' | 'training';
+  type: 'match_result' | 'achievement' | 'level_up' | 'activity';
   user: {
     id: string;
-    name: string;
-    avatar: string;
+    full_name: string;
+    avatar_url?: string;
   };
-  timestamp: Date;
-  content: {
-    title: string;
-    description: string;
-    stats?: {
-      xp?: number;
-      hp?: number;
-      score?: string;
-      duration?: number;
-    };
-  };
+  timestamp: string;
+  content: any;
   likes: number;
   comments: number;
-  isLiked: boolean;
 }
 
 export function useFeedData() {
@@ -36,14 +26,13 @@ export function useFeedData() {
     if (activities && activities.length > 0) {
       const posts: FeedPost[] = activities.map((activity, index) => ({
         id: activity.id,
-        type: activity.activity_type === 'match' ? 'match_result' : 
-              activity.activity_type === 'training' ? 'training' : 'achievement',
+        type: activity.activity_type === 'match' ? 'match_result' : 'activity', // Changed from 'training' to 'activity'
         user: {
           id: activity.id, // Using activity id as placeholder
-          name: 'You', // Placeholder for current user
-          avatar: '/placeholder.svg'
+          full_name: 'You', // Placeholder for current user
+          avatar_url: '/placeholder.svg'
         },
-        timestamp: new Date(activity.logged_at || activity.created_at),
+        timestamp: activity.logged_at || activity.created_at,
         content: {
           title: activity.title,
           description: activity.description || '',
@@ -55,8 +44,7 @@ export function useFeedData() {
           }
         },
         likes: Math.floor(Math.random() * 10), // Mock data
-        comments: Math.floor(Math.random() * 5), // Mock data
-        isLiked: false
+        comments: Math.floor(Math.random() * 5) // Mock data
       }));
       
       setFeedPosts(posts);
@@ -71,18 +59,18 @@ export function useFeedData() {
   const handleLike = (postId: string) => {
     setFeedPosts(prev => prev.map(post => 
       post.id === postId 
-        ? { ...post, isLiked: !post.isLiked, likes: post.isLiked ? post.likes - 1 : post.likes + 1 }
+        ? { ...post, likes: post.likes + 1 }
         : post
     ));
   };
 
-  const handleComment = (postId: string, comment: string) => {
-    console.log('Adding comment to post:', postId, comment);
+  const handleComment = (postId: string) => { // Fixed signature to match FeedPost component
+    console.log('Adding comment to post:', postId);
     // Mock implementation - in real app would call API
   };
 
-  const handleChallenge = (postId: string) => {
-    console.log('Challenging user from post:', postId);
+  const handleChallenge = (userId: string) => {
+    console.log('Challenging user:', userId);
     // Mock implementation - in real app would call API
   };
 
