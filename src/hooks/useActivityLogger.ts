@@ -3,7 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 export interface ActivityLogParams {
-  user_id: string;
+  user_id?: string; // Make optional since we'll set it automatically
   activity_type: string;
   activity_category: string;
   title: string;
@@ -34,7 +34,20 @@ export interface ActivityLogParams {
 export const useActivityLogger = () => {
   const logActivity = async (params: ActivityLogParams) => {
     try {
-      const { data, error } = await supabase.rpc('log_comprehensive_activity', params);
+      // Get current user
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      
+      if (authError || !user) {
+        console.error('Authentication error:', authError);
+        toast.error('Authentication required to save activity');
+        throw new Error('User not authenticated');
+      }
+
+      // Call the RPC with user_id automatically set
+      const { data, error } = await supabase.rpc('log_comprehensive_activity', {
+        user_id: user.id,
+        ...params
+      });
 
       if (error) {
         console.error('Error logging activity:', error);

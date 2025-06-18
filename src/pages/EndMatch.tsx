@@ -1,5 +1,3 @@
-
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -52,6 +50,7 @@ const EndMatch = () => {
   const handleSubmit = async () => {
     if (!sessionData) {
       console.error('No session data found');
+      toast.error('No match session found');
       return;
     }
 
@@ -89,7 +88,7 @@ const EndMatch = () => {
         combinedNotes += `Final notes: ${matchNotes}`;
       }
 
-      // Prepare mood information
+      // Prepare mood information for metadata
       let moodInfo = '';
       if (sessionData.midMatchMood) {
         moodInfo += `Mid-match mood: ${sessionData.midMatchMood}`;
@@ -99,9 +98,8 @@ const EndMatch = () => {
         moodInfo += `End mood: ${endMood}`;
       }
 
-      // Call the activity logger
+      // Call the activity logger with properly formatted payload
       const data = await logActivity({
-        user_id: '', // This will be set by the hook using auth.uid()
         activity_type: 'match',
         activity_category: 'on_court',
         title: activityTitle,
@@ -123,7 +121,8 @@ const EndMatch = () => {
           opponent_2_name: sessionData.opponent2Name || null,
           mid_match_mood: sessionData.midMatchMood || null,
           end_mood: endMood || null,
-          start_time: sessionData.startTime.toISOString()
+          start_time: sessionData.startTime.toISOString(),
+          mood_info: moodInfo || null
         }
       });
 
@@ -135,15 +134,22 @@ const EndMatch = () => {
         toast.success(`Match logged successfully!`, {
           description: `XP: +${activityData.xp_earned}, HP: ${activityData.hp_change >= 0 ? '+' : ''}${activityData.hp_change}`
         });
+      } else {
+        // Fallback success message if response format is different
+        toast.success('Match logged successfully!');
       }
 
-      // Clear session and redirect
+      // Clear session and redirect to feed
       clearSession();
-      navigate('/feed');
+      
+      // Small delay to ensure toast is visible before navigation
+      setTimeout(() => {
+        navigate('/feed', { replace: true });
+      }, 1000);
 
     } catch (error) {
-      console.error('Unexpected error:', error);
-      toast.error('An unexpected error occurred');
+      console.error('Error submitting match:', error);
+      toast.error('Failed to save match. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
@@ -330,4 +336,3 @@ const EndMatch = () => {
 };
 
 export default EndMatch;
-
