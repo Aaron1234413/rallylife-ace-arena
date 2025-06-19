@@ -99,8 +99,7 @@ export function CreateSessionDialog({ children }: CreateSessionDialogProps) {
                 setSessionType(value as 'singles' | 'doubles');
                 // Reset selected friends if switching to singles
                 if (value === 'singles' && selectedFriends.length > 1) {
-                  setSelectedFriends(selectedF
-riends.slice(0, 1));
+                  setSelectedFriends(selectedFriends.slice(0, 1));
                 }
               }}
               className="grid grid-cols-2 gap-4"
