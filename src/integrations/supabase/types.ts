@@ -2127,6 +2127,149 @@ export type Database = {
         }
         Relationships: []
       }
+      social_play_checkins: {
+        Row: {
+          checked_in_at: string
+          id: string
+          mood_emoji: string
+          notes: string | null
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          checked_in_at?: string
+          id?: string
+          mood_emoji: string
+          notes?: string | null
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          checked_in_at?: string
+          id?: string
+          mood_emoji?: string
+          notes?: string | null
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_play_checkins_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "social_play_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_play_checkins_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_play_participants: {
+        Row: {
+          id: string
+          invited_at: string
+          joined_at: string | null
+          session_id: string
+          status: string
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          invited_at?: string
+          joined_at?: string | null
+          session_id: string
+          status?: string
+          user_id: string
+        }
+        Update: {
+          id?: string
+          invited_at?: string
+          joined_at?: string | null
+          session_id?: string
+          status?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_play_participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "social_play_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_play_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      social_play_sessions: {
+        Row: {
+          competitive_level: string
+          created_at: string
+          created_by: string
+          end_time: string | null
+          final_score: string | null
+          id: string
+          location: string | null
+          mood: string | null
+          notes: string | null
+          paused_duration: number | null
+          session_type: string
+          start_time: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          competitive_level?: string
+          created_at?: string
+          created_by: string
+          end_time?: string | null
+          final_score?: string | null
+          id?: string
+          location?: string | null
+          mood?: string | null
+          notes?: string | null
+          paused_duration?: number | null
+          session_type: string
+          start_time?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          competitive_level?: string
+          created_at?: string
+          created_by?: string
+          end_time?: string | null
+          final_score?: string | null
+          id?: string
+          location?: string | null
+          mood?: string | null
+          notes?: string | null
+          paused_duration?: number | null
+          session_type?: string
+          start_time?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_play_sessions_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       spatial_ref_sys: {
         Row: {
           auth_name: string | null
@@ -2273,6 +2416,48 @@ export type Database = {
           {
             foreignKeyName: "training_plans_coach_id_fkey"
             columns: ["coach_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      user_connections: {
+        Row: {
+          addressee_id: string
+          created_at: string
+          id: string
+          requester_id: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          addressee_id: string
+          created_at?: string
+          id?: string
+          requester_id: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          addressee_id?: string
+          created_at?: string
+          id?: string
+          requester_id?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_connections_addressee_id_fkey"
+            columns: ["addressee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_connections_requester_id_fkey"
+            columns: ["requester_id"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
