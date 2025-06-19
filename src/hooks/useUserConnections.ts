@@ -57,9 +57,14 @@ export function useUserConnections() {
 
       if (connectionsError) throw connectionsError;
 
-      // Transform connections to include the other person's profile
-      const transformedConnections = (connectionsData || []).map(conn => ({
-        ...conn,
+      // Transform connections to include the other person's profile with proper typing
+      const transformedConnections: UserConnection[] = (connectionsData || []).map(conn => ({
+        id: conn.id,
+        requester_id: conn.requester_id,
+        addressee_id: conn.addressee_id,
+        status: conn.status as 'pending' | 'accepted' | 'declined' | 'blocked',
+        created_at: conn.created_at,
+        updated_at: conn.updated_at,
         profile: conn.requester_id === user.id ? conn.addressee_profile : conn.requester_profile,
       }));
 
@@ -77,7 +82,17 @@ export function useUserConnections() {
 
       if (requestsError) throw requestsError;
 
-      setPendingRequests(requestsData || []);
+      // Transform requests with proper typing
+      const transformedRequests: ConnectionRequest[] = (requestsData || []).map(req => ({
+        id: req.id,
+        requester_id: req.requester_id,
+        addressee_id: req.addressee_id,
+        status: 'pending' as const,
+        created_at: req.created_at,
+        requester_profile: req.requester_profile,
+      }));
+
+      setPendingRequests(transformedRequests);
     } catch (err) {
       console.error('Error fetching connections:', err);
       setError(err instanceof Error ? err.message : 'Failed to fetch connections');

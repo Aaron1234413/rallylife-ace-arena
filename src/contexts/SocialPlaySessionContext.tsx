@@ -169,10 +169,20 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
       }
 
       if (session) {
-        const updatedData = {
+        const updatedData: SocialPlaySessionData = {
           ...session,
-          participants: session.social_play_participants || [],
-          check_ins: session.social_play_checkins || [],
+          session_type: session.session_type as 'singles' | 'doubles',
+          competitive_level: session.competitive_level as 'low' | 'medium' | 'high',
+          status: session.status as 'pending' | 'active' | 'paused' | 'completed' | 'cancelled',
+          participants: (session.social_play_participants || []).map((p: any) => ({
+            ...p,
+            status: p.status as 'invited' | 'accepted' | 'declined' | 'joined',
+            profile: p.profiles
+          })),
+          check_ins: (session.social_play_checkins || []).map((c: any) => ({
+            ...c,
+            profile: c.profiles
+          })),
         };
         setSessionData(updatedData);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(updatedData));
@@ -229,7 +239,12 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
           joined_at: new Date().toISOString(),
         });
 
-      updateSessionData(session);
+      updateSessionData({
+        ...session,
+        session_type: session.session_type as 'singles' | 'doubles',
+        competitive_level: session.competitive_level as 'low' | 'medium' | 'high',
+        status: session.status as 'pending' | 'active' | 'paused' | 'completed' | 'cancelled',
+      });
       return session.id;
     } catch (err) {
       console.error('Error creating session:', err);
