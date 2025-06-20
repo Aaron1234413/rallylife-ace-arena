@@ -52,6 +52,7 @@ export function useSocialPlayFeed() {
         .insert({
           player_id: user.id,
           activity_type: 'social_play',
+          activity_category: 'social',
           title,
           description,
           duration_minutes: feedData.duration,
@@ -59,7 +60,7 @@ export function useSocialPlayFeed() {
           score: feedData.finalScore,
           xp_earned: 0, // XP already awarded in session completion
           hp_impact: 0, // HP already restored in session completion
-          session_data: {
+          metadata: {
             session_id: feedData.sessionId,
             session_type: feedData.sessionType,
             competitive_level: feedData.competitiveLevel,

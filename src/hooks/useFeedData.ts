@@ -1,4 +1,3 @@
-
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -89,13 +88,13 @@ export function useFeedData() {
             duration: post.duration_minutes,
             opponent_name: post.opponent_name,
             location: post.location,
-            // Social play specific stats from session_data
-            session_type: post.session_data?.session_type,
-            competitive_level: post.session_data?.competitive_level,
-            participant_count: post.session_data?.participant_count,
-            participant_names: post.session_data?.participant_names,
-            mood: post.session_data?.mood,
-            notes: post.session_data?.notes
+            // Social play specific stats from metadata
+            session_type: post.metadata?.session_type,
+            competitive_level: post.metadata?.competitive_level,
+            participant_count: post.metadata?.participant_count,
+            participant_names: post.metadata?.participant_names,
+            mood: post.metadata?.mood,
+            notes: post.metadata?.notes
           }
         },
         likes: parseInt(post.likes_count) || 0,
