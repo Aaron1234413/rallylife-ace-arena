@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -138,7 +137,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
           .single();
 
         if (session && !error) {
-          setActiveSession(session);
+          setActiveSession(session as SocialPlaySessionData);
           await loadParticipants(session.id);
           return;
         } else {
@@ -168,8 +167,8 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
 
       if (sessions && sessions.length > 0) {
         const session = sessions[0];
-        setActiveSession(session);
-        setParticipants(session.participants || []);
+        setActiveSession(session as SocialPlaySessionData);
+        setParticipants((session.participants || []) as SocialPlayParticipant[]);
         localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
       }
     } catch (error) {
@@ -197,7 +196,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
         return;
       }
 
-      setParticipants(data || []);
+      setParticipants((data || []) as SocialPlayParticipant[]);
     } catch (error) {
       console.error('Failed to load participants:', error);
     }
@@ -240,7 +239,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
         if (updateError) throw updateError;
       }
 
-      setActiveSession(session);
+      setActiveSession(session as SocialPlaySessionData);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
       await loadParticipants(sessionId);
 
@@ -301,7 +300,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
 
       if (error) throw error;
 
-      setActiveSession(data);
+      setActiveSession(data as SocialPlaySessionData);
       localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
 
       // Clear from storage if session is completed or cancelled
