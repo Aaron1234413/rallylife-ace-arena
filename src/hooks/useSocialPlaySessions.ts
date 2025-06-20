@@ -115,29 +115,31 @@ export function useSocialPlaySessions() {
       if (sessionError) throw sessionError;
 
       // Add creator as a participant with 'joined' status
-      const participantInserts = [
-        {
+      const { error: creatorError } = await supabase
+        .from('social_play_participants')
+        .insert({
           session_id: session.id,
           user_id: user.id,
-          status: 'joined' as const,
+          status: 'joined',
           joined_at: new Date().toISOString()
-        }
-      ];
+        });
+      
+      if (creatorError) throw creatorError;
 
-      // Add other participants as 'invited'
+      // Add other participants as 'invited' (if any)
       if (sessionData.participants.length > 0) {
-        participantInserts.push(...sessionData.participants.map(userId => ({
+        const invitedParticipants = sessionData.participants.map(userId => ({
           session_id: session.id,
           user_id: userId,
           status: 'invited' as const
-        })));
-      }
+        }));
 
-      const { error: participantsError } = await supabase
-        .from('social_play_participants')
-        .insert(participantInserts);
-      
-      if (participantsError) throw participantsError;
+        const { error: participantsError } = await supabase
+          .from('social_play_participants')
+          .insert(invitedParticipants);
+        
+        if (participantsError) throw participantsError;
+      }
       
       return session;
     },
