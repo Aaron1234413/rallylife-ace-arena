@@ -2,6 +2,7 @@
 import { useAuth } from "@/hooks/useAuth";
 import { AppNavigation } from "@/components/navigation/AppNavigation";
 import { FloatingCheckInButton } from "@/components/match/FloatingCheckInButton";
+import { FloatingCheckInTrigger } from "@/components/training/FloatingCheckInTrigger";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -26,7 +27,12 @@ export function AppLayout({ children }: AppLayoutProps) {
         {children}
       </main>
       
-      {user && <FloatingCheckInButton />}
+      {user && (
+        <>
+          <FloatingCheckInButton />
+          <FloatingCheckInTrigger />
+        </>
+      )}
     </div>
   );
 }
