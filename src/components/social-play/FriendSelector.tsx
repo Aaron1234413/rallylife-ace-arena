@@ -6,19 +6,19 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, UserPlus, X } from 'lucide-react';
-import { useProfiles } from '@/hooks/useProfiles';
-import { useAuth } from '@/hooks/useAuth';
+import { useFriendConnections } from '@/hooks/useFriendConnections';
 
-interface User {
-  id: string;
-  full_name: string;
-  avatar_url: string | null;
-  email: string;
+interface Friend {
+  friend_id: string;
+  friend_name: string;
+  friend_avatar_url: string | null;
+  connection_status: string;
+  connected_since: string;
 }
 
 interface FriendSelectorProps {
-  selectedFriends: User[];
-  onFriendSelect: (friend: User) => void;
+  selectedFriends: Friend[];
+  onFriendSelect: (friend: Friend) => void;
   onFriendRemove: (friendId: string) => void;
   maxSelection?: number;
 }
@@ -30,44 +30,21 @@ export const FriendSelector: React.FC<FriendSelectorProps> = ({
   maxSelection = 3
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { data: allUsers, isLoading } = useProfiles();
-  const { user } = useAuth();
+  const { friends, isLoading } = useFriendConnections();
 
-  // Filter users based on search query and exclude selected friends and current user
-  const filteredUsers = (allUsers || []).filter(profile => {
-    // Exclude current user
-    if (profile.id === user?.id) return false;
-    
-    // Exclude already selected friends
-    if (selectedFriends.some(selected => selected.id === profile.id)) return false;
-    
-    // Filter by search query (full name)
-    if (searchQuery.trim()) {
-      return profile.full_name?.toLowerCase().includes(searchQuery.toLowerCase());
-    }
-    
-    // If no search query, don't show any users (user needs to type to search)
-    return false;
-  });
+  const filteredFriends = friends.filter(friend => 
+    friend.friend_name.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    !selectedFriends.some(selected => selected.friend_id === friend.friend_id)
+  );
 
   const canAddMore = selectedFriends.length < maxSelection;
-
-  const handleUserSelect = (profile: any) => {
-    const user: User = {
-      id: profile.id,
-      full_name: profile.full_name || 'Unknown User',
-      avatar_url: profile.avatar_url,
-      email: profile.email
-    };
-    onFriendSelect(user);
-  };
 
   return (
     <Card>
       <CardHeader className="pb-3">
         <CardTitle className="text-lg flex items-center gap-2">
           <UserPlus className="h-5 w-5" />
-          Search Users to Invite
+          Select Friends to Invite
         </CardTitle>
       </CardHeader>
       
@@ -76,7 +53,7 @@ export const FriendSelector: React.FC<FriendSelectorProps> = ({
         <div className="relative">
           <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
           <Input
-            placeholder="Search by name..."
+            placeholder="Search friends..."
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             className="pl-10"
@@ -92,22 +69,22 @@ export const FriendSelector: React.FC<FriendSelectorProps> = ({
             <div className="flex flex-wrap gap-2">
               {selectedFriends.map((friend) => (
                 <Badge
-                  key={friend.id}
+                  key={friend.friend_id}
                   variant="secondary"
                   className="flex items-center gap-2 pr-1"
                 >
                   <Avatar className="h-5 w-5">
-                    <AvatarImage src={friend.avatar_url || ''} />
+                    <AvatarImage src={friend.friend_avatar_url || ''} />
                     <AvatarFallback className="text-xs">
-                      {friend.full_name.charAt(0)}
+                      {friend.friend_name.charAt(0)}
                     </AvatarFallback>
                   </Avatar>
-                  {friend.full_name}
+                  {friend.friend_name}
                   <Button
                     size="sm"
                     variant="ghost"
                     className="h-4 w-4 p-0 hover:bg-destructive hover:text-destructive-foreground"
-                    onClick={() => onFriendRemove(friend.id)}
+                    onClick={() => onFriendRemove(friend.friend_id)}
                   >
                     <X className="h-3 w-3" />
                   </Button>
@@ -117,49 +94,43 @@ export const FriendSelector: React.FC<FriendSelectorProps> = ({
           </div>
         )}
 
-        {/* Search Results */}
+        {/* Available Friends */}
         <div className="space-y-2">
-          <h4 className="font-medium text-sm text-muted-foreground">Search Results</h4>
+          <h4 className="font-medium text-sm text-muted-foreground">Available Friends</h4>
           
           {isLoading ? (
             <div className="text-center py-4 text-muted-foreground">
-              Loading users...
+              Loading friends...
             </div>
-          ) : !searchQuery.trim() ? (
+          ) : filteredFriends.length === 0 ? (
             <div className="text-center py-4 text-muted-foreground">
-              Type a name to search for users
-            </div>
-          ) : filteredUsers.length === 0 ? (
-            <div className="text-center py-4 text-muted-foreground">
-              No users found matching "{searchQuery}"
+              {searchQuery ? 'No friends found matching your search' : 'No friends available'}
             </div>
           ) : (
             <div className="space-y-2 max-h-40 overflow-y-auto">
-              {filteredUsers.map((profile) => (
+              {filteredFriends.map((friend) => (
                 <div
-                  key={profile.id}
+                  key={friend.friend_id}
                   className="flex items-center justify-between p-2 rounded-lg border hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={profile.avatar_url || ''} />
+                      <AvatarImage src={friend.friend_avatar_url || ''} />
                       <AvatarFallback className="text-sm">
-                        {profile.full_name?.charAt(0) || 'U'}
+                        {friend.friend_name.charAt(0)}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium text-sm">
-                        {profile.full_name || 'Unknown User'}
-                      </p>
+                      <p className="font-medium text-sm">{friend.friend_name}</p>
                       <p className="text-xs text-muted-foreground">
-                        {profile.email}
+                        Connected since {new Date(friend.connected_since).toLocaleDateString()}
                       </p>
                     </div>
                   </div>
                   
                   <Button
                     size="sm"
-                    onClick={() => handleUserSelect(profile)}
+                    onClick={() => onFriendSelect(friend)}
                     disabled={!canAddMore}
                     className="h-8"
                   >
@@ -174,7 +145,7 @@ export const FriendSelector: React.FC<FriendSelectorProps> = ({
 
         {!canAddMore && (
           <p className="text-xs text-muted-foreground text-center">
-            Maximum {maxSelection} users can be invited to a session
+            Maximum {maxSelection} friends can be invited to a session
           </p>
         )}
       </CardContent>

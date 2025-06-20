@@ -1,189 +1,302 @@
 
 import React, { useState } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
+} from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Separator } from '@/components/ui/separator';
-import { Users, MapPin, Calendar, Clock, Trophy, Star, Smile } from 'lucide-react';
-import { AnimatedButton } from '@/components/ui/animated-button';
+import { Textarea } from '@/components/ui/textarea';
+import { Users, MapPin } from 'lucide-react';
 import { FriendSelector } from './FriendSelector';
 import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
 
-interface User {
-  id: string;
-  full_name: string;
-  avatar_url: string | null;
-  email: string;
+interface Friend {
+  friend_id: string;
+  friend_name: string;
+  friend_avatar_url: string | null;
+  connection_status: string;
+  connected_since: string;
 }
 
 interface CreateSocialPlayDialogProps {
-  open: boolean;
-  onOpenChange: (open: boolean) => void;
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
-export function CreateSocialPlayDialog({ open, onOpenChange }: CreateSocialPlayDialogProps) {
-  const { createSession, isCreatingSession } = useSocialPlaySessions();
-  
+export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
+  children,
+  open,
+  onOpenChange,
+}) => {
+  const [internalOpen, setInternalOpen] = useState(false);
   const [sessionType, setSessionType] = useState<'singles' | 'doubles'>('singles');
   const [competitiveLevel, setCompetitiveLevel] = useState<'low' | 'medium' | 'high'>('medium');
   const [location, setLocation] = useState('');
-  const [selectedFriends, setSelectedFriends] = useState<User[]>([]);
+  const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
+  
+  const { createSession, isCreatingSession } = useSocialPlaySessions();
 
-  const handleFriendSelect = (friend: User) => {
-    if (selectedFriends.length < 3) {
-      setSelectedFriends([...selectedFriends, friend]);
-    }
+  // Use controlled state if provided, otherwise use internal state
+  const isOpen = open !== undefined ? open : internalOpen;
+  const handleOpenChange = onOpenChange || setInternalOpen;
+
+  const handleFriendSelect = (friend: Friend) => {
+    setSelectedFriends(prev => [...prev, friend]);
   };
 
   const handleFriendRemove = (friendId: string) => {
-    setSelectedFriends(selectedFriends.filter(f => f.id !== friendId));
+    setSelectedFriends(prev => prev.filter(f => f.friend_id !== friendId));
   };
 
-  const handleCreateSession = () => {
+  const handleCreateSession = async () => {
+    if (selectedFriends.length === 0) {
+      return;
+    }
+
     createSession({
       session_type: sessionType,
       competitive_level: competitiveLevel,
       location: location.trim() || undefined,
-      participants: selectedFriends.map(f => f.id)
+      participants: selectedFriends.map(f => f.friend_id),
     });
-    
-    // Reset form
+
+    // Reset form and close dialog
     setSessionType('singles');
     setCompetitiveLevel('medium');
     setLocation('');
     setSelectedFriends([]);
-    onOpenChange(false);
+    handleOpenChange(false);
   };
 
-  const getCompetitiveLevelConfig = (level: string) => {
-    switch (level) {
-      case 'low':
-        return { label: 'Chill', icon: Smile, color: 'text-green-600', description: 'Relaxed, fun play' };
-      case 'medium':
-        return { label: 'Fun', icon: Star, color: 'text-blue-600', description: 'Balanced competitive play' };
-      case 'high':
-        return { label: 'Competitive', icon: Trophy, color: 'text-red-600', description: 'Serious, competitive match' };
-      default:
-        return { label: 'Fun', icon: Star, color: 'text-blue-600', description: 'Balanced competitive play' };
-    }
-  };
+  const maxParticipants = sessionType === 'singles' ? 1 : 3;
 
+  // If we're controlling the dialog externally and no children are provided,
+  // render the dialog without a trigger
+  if (open !== undefined && !children) {
+    return (
+      <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Create Social Play Session
+            </DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-6">
+            {/* Session Type */}
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Session Type</Label>
+              <RadioGroup
+                value={sessionType}
+                onValueChange={(value) => {
+                  setSessionType(value as 'singles' | 'doubles');
+                  // Reset selected friends if switching to more restrictive type
+                  if (value === 'singles' && selectedFriends.length > 1) {
+                    setSelectedFriends(prev => prev.slice(0, 1));
+                  }
+                }}
+                className="flex gap-6"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="singles" id="singles" />
+                  <Label htmlFor="singles">Singles (1v1)</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="doubles" id="doubles" />
+                  <Label htmlFor="doubles">Doubles (2v2)</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Competitive Level */}
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Intensity Level</Label>
+              <RadioGroup
+                value={competitiveLevel}
+                onValueChange={(value) => setCompetitiveLevel(value as 'low' | 'medium' | 'high')}
+                className="flex gap-6"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="low" id="low" />
+                  <Label htmlFor="low">Casual</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="medium" id="medium" />
+                  <Label htmlFor="medium">Competitive</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="high" id="high" />
+                  <Label htmlFor="high">Intense</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Location */}
+            <div className="space-y-2">
+              <Label htmlFor="location" className="text-base font-medium">
+                Location (Optional)
+              </Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  id="location"
+                  placeholder="Where will you play?"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            {/* Friend Selection */}
+            <FriendSelector
+              selectedFriends={selectedFriends}
+              onFriendSelect={handleFriendSelect}
+              onFriendRemove={handleFriendRemove}
+              maxSelection={maxParticipants}
+            />
+
+            {/* Create Button */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                onClick={handleCreateSession}
+                disabled={selectedFriends.length === 0 || isCreatingSession}
+                className="flex-1"
+              >
+                {isCreatingSession ? 'Creating...' : `Create Session & Invite ${selectedFriends.length} Friend${selectedFriends.length !== 1 ? 's' : ''}`}
+              </Button>
+              <Button
+                variant="outline"
+                onClick={() => handleOpenChange(false)}
+                disabled={isCreatingSession}
+              >
+                Cancel
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    );
+  }
+
+  // Standard implementation with trigger
   return (
-    <Dialog open={open} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
+      {children && (
+        <DialogTrigger asChild>
+          {children}
+        </DialogTrigger>
+      )}
+      
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="flex items-center gap-2 text-xl">
-            <Users className="h-6 w-6 text-purple-600" />
+          <DialogTitle className="flex items-center gap-2">
+            <Users className="h-5 w-5" />
             Create Social Play Session
           </DialogTitle>
-          <p className="text-muted-foreground">
-            Set up a tennis session and invite friends to join you!
-          </p>
         </DialogHeader>
-
-        <div className="space-y-6 pt-4">
+        
+        <div className="space-y-6">
           {/* Session Type */}
           <div className="space-y-3">
             <Label className="text-base font-medium">Session Type</Label>
             <RadioGroup
               value={sessionType}
-              onValueChange={(value: 'singles' | 'doubles') => setSessionType(value)}
-              className="grid grid-cols-2 gap-4"
+              onValueChange={(value) => {
+                setSessionType(value as 'singles' | 'doubles');
+                // Reset selected friends if switching to more restrictive type
+                if (value === 'singles' && selectedFriends.length > 1) {
+                  setSelectedFriends(prev => prev.slice(0, 1));
+                }
+              }}
+              className="flex gap-6"
             >
-              <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50">
+              <div className="flex items-center space-x-2">
                 <RadioGroupItem value="singles" id="singles" />
-                <Label htmlFor="singles" className="flex-1 cursor-pointer">
-                  <div className="font-medium">Singles</div>
-                  <div className="text-sm text-muted-foreground">1v1 tennis match</div>
-                </Label>
+                <Label htmlFor="singles">Singles (1v1)</Label>
               </div>
-              <div className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50">
+              <div className="flex items-center space-x-2">
                 <RadioGroupItem value="doubles" id="doubles" />
-                <Label htmlFor="doubles" className="flex-1 cursor-pointer">
-                  <div className="font-medium">Doubles</div>
-                  <div className="text-sm text-muted-foreground">2v2 tennis match</div>
-                </Label>
+                <Label htmlFor="doubles">Doubles (2v2)</Label>
               </div>
             </RadioGroup>
           </div>
 
           {/* Competitive Level */}
           <div className="space-y-3">
-            <Label className="text-base font-medium">Competitive Level</Label>
+            <Label className="text-base font-medium">Intensity Level</Label>
             <RadioGroup
               value={competitiveLevel}
-              onValueChange={(value: 'low' | 'medium' | 'high') => setCompetitiveLevel(value)}
-              className="grid grid-cols-1 gap-3"
+              onValueChange={(value) => setCompetitiveLevel(value as 'low' | 'medium' | 'high')}
+              className="flex gap-6"
             >
-              {['low', 'medium', 'high'].map((level) => {
-                const config = getCompetitiveLevelConfig(level);
-                const IconComponent = config.icon;
-                return (
-                  <div key={level} className="flex items-center space-x-2 border rounded-lg p-4 cursor-pointer hover:bg-muted/50">
-                    <RadioGroupItem value={level} id={level} />
-                    <Label htmlFor={level} className="flex-1 cursor-pointer">
-                      <div className="flex items-center gap-2">
-                        <IconComponent className={`h-4 w-4 ${config.color}`} />
-                        <span className="font-medium">{config.label}</span>
-                      </div>
-                      <div className="text-sm text-muted-foreground">{config.description}</div>
-                    </Label>
-                  </div>
-                );
-              })}
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="low" id="low" />
+                <Label htmlFor="low">Casual</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="medium" id="medium" />
+                <Label htmlFor="medium">Competitive</Label>
+              </div>
+              <div className="flex items-center space-x-2">
+                <RadioGroupItem value="high" id="high" />
+                <Label htmlFor="high">Intense</Label>
+              </div>
             </RadioGroup>
           </div>
 
           {/* Location */}
           <div className="space-y-2">
-            <Label htmlFor="location" className="text-base font-medium flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
+            <Label htmlFor="location" className="text-base font-medium">
               Location (Optional)
             </Label>
-            <Input
-              id="location"
-              placeholder="e.g., Central Park Tennis Courts"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="w-full"
-            />
+            <div className="relative">
+              <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                id="location"
+                placeholder="Where will you play?"
+                value={location}
+                onChange={(e) => setLocation(e.target.value)}
+                className="pl-10"
+              />
+            </div>
           </div>
 
-          <Separator />
-
-          {/* Friend Selector */}
+          {/* Friend Selection */}
           <FriendSelector
             selectedFriends={selectedFriends}
             onFriendSelect={handleFriendSelect}
             onFriendRemove={handleFriendRemove}
-            maxSelection={3}
+            maxSelection={maxParticipants}
           />
 
-          {/* Action Buttons */}
+          {/* Create Button */}
           <div className="flex gap-3 pt-4">
             <Button
-              variant="outline"
-              onClick={() => onOpenChange(false)}
+              onClick={handleCreateSession}
+              disabled={selectedFriends.length === 0 || isCreatingSession}
               className="flex-1"
+            >
+              {isCreatingSession ? 'Creating...' : `Create Session & Invite ${selectedFriends.length} Friend${selectedFriends.length !== 1 ? 's' : ''}`}
+            </Button>
+            <Button
+              variant="outline"
+              onClick={() => handleOpenChange(false)}
               disabled={isCreatingSession}
             >
               Cancel
             </Button>
-            <AnimatedButton
-              onClick={handleCreateSession}
-              disabled={isCreatingSession}
-              loading={isCreatingSession}
-              className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Create Session
-            </AnimatedButton>
           </div>
         </div>
       </DialogContent>
     </Dialog>
   );
-}
+};
