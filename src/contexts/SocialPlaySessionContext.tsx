@@ -128,13 +128,29 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
       if (stored) {
         const storedSession = JSON.parse(stored);
         
-        // Verify session still exists and is active
-        const { data: session, error } = await supabase
+        // Try to get session if user owns it
+        let { data: session, error } = await supabase
           .from('social_play_sessions')
           .select('*')
           .eq('id', storedSession.id)
+          .eq('created_by', user.id)
           .in('status', ['pending', 'active', 'paused'])
           .single();
+
+        // If not owned, check if user participates
+        if (error && error.code === 'PGRST116') {
+          const { data: participantData, error: participantError } = await supabase
+            .from('social_play_participants')
+            .select('session:social_play_sessions(*)')
+            .eq('session_id', storedSession.id)
+            .eq('user_id', user.id)
+            .single();
+          
+          if (!participantError && participantData?.session) {
+            session = participantData.session;
+            error = null;
+          }
+        }
 
         if (session && !error) {
           setActiveSession(session as SocialPlaySessionData);
@@ -145,31 +161,41 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
         }
       }
 
-      // Look for any active session the user is involved in
-      const { data: sessions, error } = await supabase
+      // Look for any active session the user owns
+      const { data: ownedSessions, error: ownedError } = await supabase
         .from('social_play_sessions')
-        .select(`
-          *,
-          participants:social_play_participants(
-            *,
-            user:profiles(id, full_name, avatar_url)
-          )
-        `)
-        .or(`created_by.eq.${user.id},social_play_participants.user_id.eq.${user.id}`)
+        .select('*')
+        .eq('created_by', user.id)
         .in('status', ['pending', 'active', 'paused'])
         .order('created_at', { ascending: false })
         .limit(1);
 
-      if (error) {
-        console.error('Error loading active session:', error);
+      if (!ownedError && ownedSessions && ownedSessions.length > 0) {
+        const session = ownedSessions[0];
+        setActiveSession(session as SocialPlaySessionData);
+        await loadParticipants(session.id);
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
         return;
       }
 
-      if (sessions && sessions.length > 0) {
-        const session = sessions[0];
-        setActiveSession(session as SocialPlaySessionData);
-        setParticipants((session.participants || []) as SocialPlayParticipant[]);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+      // Look for any active session the user participates in
+      const { data: participantSessions, error: participantError } = await supabase
+        .from('social_play_participants')
+        .select(`
+          session:social_play_sessions(*)
+        `)
+        .eq('user_id', user.id)
+        .in('session.status', ['pending', 'active', 'paused'])
+        .order('session.created_at', { ascending: false })
+        .limit(1);
+
+      if (!participantError && participantSessions && participantSessions.length > 0) {
+        const session = participantSessions[0].session;
+        if (session) {
+          setActiveSession(session as SocialPlaySessionData);
+          await loadParticipants(session.id);
+          localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+        }
       }
     } catch (error) {
       console.error('Failed to load active session:', error);
@@ -207,15 +233,31 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
 
     setLoading(true);
     try {
-      // Get session details
-      const { data: session, error: sessionError } = await supabase
+      // Try to get session if user owns it
+      let { data: session, error: sessionError } = await supabase
         .from('social_play_sessions')
         .select('*')
         .eq('id', sessionId)
+        .eq('created_by', user.id)
         .single();
 
+      // If not owned, try to get through participants
+      if (sessionError && sessionError.code === 'PGRST116') {
+        const { data: participantData, error: participantError } = await supabase
+          .from('social_play_participants')
+          .select('session:social_play_sessions(*)')
+          .eq('session_id', sessionId)
+          .eq('user_id', user.id)
+          .single();
+        
+        if (!participantError && participantData?.session) {
+          session = participantData.session;
+          sessionError = null;
+        }
+      }
+
       if (sessionError || !session) {
-        throw new Error('Session not found');
+        throw new Error('Session not found or no access');
       }
 
       // Check if user is already a participant

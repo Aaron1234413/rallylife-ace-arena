@@ -2201,6 +2201,7 @@ export type Database = {
           id: string
           invited_at: string
           joined_at: string | null
+          session_creator_id: string
           session_id: string
           status: string
           user_id: string
@@ -2209,6 +2210,7 @@ export type Database = {
           id?: string
           invited_at?: string
           joined_at?: string | null
+          session_creator_id: string
           session_id: string
           status?: string
           user_id: string
@@ -2217,11 +2219,19 @@ export type Database = {
           id?: string
           invited_at?: string
           joined_at?: string | null
+          session_creator_id?: string
           session_id?: string
           status?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "social_play_participants_session_creator_id_fkey"
+            columns: ["session_creator_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "social_play_participants_session_id_fkey"
             columns: ["session_id"]

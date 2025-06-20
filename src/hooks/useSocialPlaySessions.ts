@@ -40,13 +40,14 @@ export function useSocialPlaySessions() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
 
-  // Get user's social play sessions
+  // Get user's social play sessions - now we need to get both owned and participated sessions separately
   const { data: sessions, isLoading: sessionsLoading } = useQuery({
     queryKey: ['social-play-sessions', user?.id],
     queryFn: async () => {
       if (!user?.id) return [];
       
-      const { data, error } = await supabase
+      // Get sessions user created
+      const { data: ownedSessions, error: ownedError } = await supabase
         .from('social_play_sessions')
         .select(`
           *,
@@ -55,22 +56,54 @@ export function useSocialPlaySessions() {
             user:profiles(id, full_name, avatar_url)
           )
         `)
-        .or(`created_by.eq.${user.id},social_play_participants.user_id.eq.${user.id}`)
+        .eq('created_by', user.id)
         .order('created_at', { ascending: false });
       
-      if (error) throw error;
-      return data as (SocialPlaySession & { participants: SocialPlayParticipant[] })[];
+      if (ownedError) throw ownedError;
+
+      // Get sessions user participates in
+      const { data: participantSessions, error: participantError } = await supabase
+        .from('social_play_participants')
+        .select(`
+          session:social_play_sessions(
+            *,
+            participants:social_play_participants(
+              *,
+              user:profiles(id, full_name, avatar_url)
+            )
+          )
+        `)
+        .eq('user_id', user.id)
+        .neq('session.created_by', user.id); // Exclude sessions we already got above
+      
+      if (participantError) throw participantError;
+
+      // Combine and flatten the results
+      const allSessions = [
+        ...(ownedSessions || []),
+        ...(participantSessions?.map(p => p.session).filter(Boolean) || [])
+      ];
+
+      // Remove duplicates and sort by created_at
+      const uniqueSessions = allSessions
+        .filter((session, index, self) => 
+          session && self.findIndex(s => s?.id === session.id) === index
+        )
+        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+      
+      return uniqueSessions as (SocialPlaySession & { participants: SocialPlayParticipant[] })[];
     },
     enabled: !!user?.id
   });
 
-  // Get active session
+  // Get active session - same approach
   const { data: activeSession } = useQuery({
     queryKey: ['active-social-play-session', user?.id],
     queryFn: async () => {
       if (!user?.id) return null;
       
-      const { data, error } = await supabase
+      // Check owned sessions first
+      const { data: ownedSession, error: ownedError } = await supabase
         .from('social_play_sessions')
         .select(`
           *,
@@ -79,12 +112,35 @@ export function useSocialPlaySessions() {
             user:profiles(id, full_name, avatar_url)
           )
         `)
-        .eq('status', 'active')
-        .or(`created_by.eq.${user.id},social_play_participants.user_id.eq.${user.id}`)
+        .eq('created_by', user.id)
+        .in('status', ['pending', 'active', 'paused'])
+        .order('created_at', { ascending: false })
+        .limit(1)
         .maybeSingle();
       
-      if (error) throw error;
-      return data as (SocialPlaySession & { participants: SocialPlayParticipant[] }) | null;
+      if (ownedError) throw ownedError;
+      if (ownedSession) return ownedSession as (SocialPlaySession & { participants: SocialPlayParticipant[] });
+
+      // Check participated sessions
+      const { data: participantSession, error: participantError } = await supabase
+        .from('social_play_participants')
+        .select(`
+          session:social_play_sessions(
+            *,
+            participants:social_play_participants(
+              *,
+              user:profiles(id, full_name, avatar_url)
+            )
+          )
+        `)
+        .eq('user_id', user.id)
+        .in('session.status', ['pending', 'active', 'paused'])
+        .order('session.created_at', { ascending: false })
+        .limit(1)
+        .maybeSingle();
+      
+      if (participantError) throw participantError;
+      return participantSession?.session as (SocialPlaySession & { participants: SocialPlayParticipant[] }) | null;
     },
     enabled: !!user?.id
   });
