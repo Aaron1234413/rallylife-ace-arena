@@ -11,8 +11,7 @@ import {
   MapPin,
   Search,
   User,
-  Bolt,
-  Users
+  Bolt
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -24,7 +23,6 @@ export function AppNavigation() {
   const navItems = [
     { path: '/', label: 'Dashboard', icon: Home },
     { path: '/pulse', label: 'Pulse', icon: Bolt },
-    { path: '/start-social-play', label: 'Social Play', icon: Users },
     { path: '/search', label: 'Search', icon: Search },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
     { path: '/scheduling', label: 'Scheduling', icon: Calendar },

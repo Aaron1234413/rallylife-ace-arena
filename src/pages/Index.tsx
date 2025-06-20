@@ -28,7 +28,6 @@ import {
 
 import { ActiveMatchWidget } from "@/components/match/ActiveMatchWidget";
 import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
-import { ActiveSocialPlayWidget } from "@/components/social/ActiveSocialPlayWidget";
 
 const Index = () => {
   const { user } = useAuth();
@@ -145,9 +144,6 @@ const Index = () => {
     <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6 pb-24 sm:pb-6">
       {/* Welcome Banner */}
       <WelcomeBanner />
-
-      {/* Active Social Play Widget - Shows for all users when they have an active session */}
-      <ActiveSocialPlayWidget />
 
       {/* Player-specific content */}
       {isPlayer && (
