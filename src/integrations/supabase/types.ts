@@ -3292,6 +3292,10 @@ export type Database = {
           calculated_at: string
         }[]
       }
+      get_current_user_id: {
+        Args: Record<PropertyKey, never>
+        Returns: string
+      }
       get_feed_comments: {
         Args: {
           activity_id_param: string
