@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -29,9 +28,9 @@ import {
 
 import { ActiveMatchWidget } from "@/components/match/ActiveMatchWidget";
 import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
-import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
 import { SocialPlayInvitations } from "@/components/social-play/SocialPlayInvitations";
 import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
+import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
 
 const Index = () => {
   const { user } = useAuth();
