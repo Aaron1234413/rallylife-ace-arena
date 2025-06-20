@@ -25,6 +25,7 @@ interface SocialPlayParticipant {
   id: string;
   session_id: string;
   user_id: string;
+  session_creator_id: string;
   status: 'invited' | 'accepted' | 'declined' | 'joined';
   invited_at: string;
   joined_at: string | null;
@@ -53,7 +54,7 @@ export function useSocialPlaySessions() {
           *,
           participants:social_play_participants(
             *,
-            user:profiles(id, full_name, avatar_url)
+            user:profiles!social_play_participants_user_id_fkey(id, full_name, avatar_url)
           )
         `)
         .eq('created_by', user.id)
@@ -69,7 +70,7 @@ export function useSocialPlaySessions() {
             *,
             participants:social_play_participants(
               *,
-              user:profiles(id, full_name, avatar_url)
+              user:profiles!social_play_participants_user_id_fkey(id, full_name, avatar_url)
             )
           )
         `)
@@ -109,7 +110,7 @@ export function useSocialPlaySessions() {
           *,
           participants:social_play_participants(
             *,
-            user:profiles(id, full_name, avatar_url)
+            user:profiles!social_play_participants_user_id_fkey(id, full_name, avatar_url)
           )
         `)
         .eq('created_by', user.id)
@@ -129,7 +130,7 @@ export function useSocialPlaySessions() {
             *,
             participants:social_play_participants(
               *,
-              user:profiles(id, full_name, avatar_url)
+              user:profiles!social_play_participants_user_id_fkey(id, full_name, avatar_url)
             )
           )
         `)
@@ -176,6 +177,7 @@ export function useSocialPlaySessions() {
         .insert({
           session_id: session.id,
           user_id: user.id,
+          session_creator_id: user.id,
           status: 'joined',
           joined_at: new Date().toISOString()
         });
@@ -187,6 +189,7 @@ export function useSocialPlaySessions() {
         const invitedParticipants = sessionData.participants.map(userId => ({
           session_id: session.id,
           user_id: userId,
+          session_creator_id: user.id,
           status: 'invited' as const
         }));
 

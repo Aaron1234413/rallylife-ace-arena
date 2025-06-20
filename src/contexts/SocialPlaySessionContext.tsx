@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,6 +25,7 @@ interface SocialPlayParticipant {
   id: string;
   session_id: string;
   user_id: string;
+  session_creator_id: string;
   status: 'invited' | 'accepted' | 'declined' | 'joined';
   invited_at: string;
   joined_at: string | null;
@@ -213,7 +215,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
         .from('social_play_participants')
         .select(`
           *,
-          user:profiles(id, full_name, avatar_url)
+          user:profiles!social_play_participants_user_id_fkey(id, full_name, avatar_url)
         `)
         .eq('session_id', id);
 
@@ -375,6 +377,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
         .insert({
           session_id: activeSession.id,
           user_id: userId,
+          session_creator_id: activeSession.created_by,
           status: 'invited'
         });
 
