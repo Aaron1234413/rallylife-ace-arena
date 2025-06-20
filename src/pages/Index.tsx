@@ -30,6 +30,7 @@ import { ActiveMatchWidget } from "@/components/match/ActiveMatchWidget";
 import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
 import { SocialPlayInvitations } from "@/components/social-play/SocialPlayInvitations";
 import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
+import { useSocialPlaySession } from "@/contexts/SocialPlaySessionContext";
 
 const Index = () => {
   const { user } = useAuth();
@@ -43,6 +44,9 @@ const Index = () => {
   const { cxpData, loading: cxpLoading, addCXP, initializeCXP } = useCoachCXP();
   const { tokenData: coachTokenData, loading: coachTokensLoading, addTokens: addCoachTokens, initializeTokens: initializeCoachTokens } = useCoachTokens();
   const { crpData, isLoading: crpLoading, initializeCRP } = useCoachCRP();
+  
+  // Social Play Session Hook
+  const { activeSession, joinSession } = useSocialPlaySession();
   
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -160,15 +164,16 @@ const Index = () => {
             loading={vitalsLoading}
           />
 
-          {/* Social Play Invitations - High Priority */}
-          <SocialPlayInvitations />
+          {/* Social Play Section - Conditional */}
+          {activeSession === null ? (
+            <SocialPlayInvitations onStart={joinSession} />
+          ) : activeSession?.type === 'social' ? (
+            <SocialPlayQuickActions session={activeSession} />
+          ) : null}
 
           {/* Active Session Widgets */}
           <ActiveMatchWidget />
           <ActiveTrainingWidget />
-
-          {/* Social Play Quick Actions */}
-          <SocialPlayQuickActions />
 
           {/* 2. Enhanced Quick Actions - Contextual and Smart (Desktop) */}
           <div className="hidden sm:block">
