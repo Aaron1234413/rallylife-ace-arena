@@ -1,13 +1,13 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Clock, MapPin, Play, Pause, Square, MessageCircle, Heart } from 'lucide-react';
+import { Users, Clock, MapPin, Play, Pause, Square, MessageCircle, Trophy } from 'lucide-react';
 import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
 import { formatDistanceToNow } from 'date-fns';
 import { SocialPlayCheckInModal } from './SocialPlayCheckInModal';
+import { EndSocialPlayModal } from './EndSocialPlayModal';
 
 export const ActiveSocialPlayWidget = () => {
   const { 
@@ -21,6 +21,7 @@ export const ActiveSocialPlayWidget = () => {
   } = useSocialPlaySession();
 
   const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
+  const [isEndModalOpen, setIsEndModalOpen] = useState(false);
   const [sessionDuration, setSessionDuration] = useState(0);
 
   // Update session duration every minute
@@ -93,7 +94,7 @@ export const ActiveSocialPlayWidget = () => {
   };
 
   const handleEndSession = () => {
-    updateSessionStatus('completed');
+    setIsEndModalOpen(true);
   };
 
   const joinedParticipants = participants.filter(p => p.status === 'joined' || p.status === 'accepted');
@@ -136,9 +137,8 @@ export const ActiveSocialPlayWidget = () => {
             )}
           </div>
         </CardHeader>
-
+        
         <CardContent className="space-y-4">
-          {/* Session Details */}
           <div className="flex items-center gap-3 flex-wrap">
             <Badge variant="outline" className="bg-white">
               {activeSession.session_type === 'singles' ? 'Singles' : 'Doubles'}
@@ -151,7 +151,6 @@ export const ActiveSocialPlayWidget = () => {
             </Badge>
           </div>
 
-          {/* Participants */}
           <div className="space-y-3">
             <h4 className="font-medium text-sm flex items-center gap-2">
               <Users className="h-4 w-4" />
@@ -218,12 +217,11 @@ export const ActiveSocialPlayWidget = () => {
                   </Button>
                   <Button 
                     onClick={handleEndSession}
-                    variant="destructive"
-                    className="flex-1 h-9"
+                    className="flex-1 h-9 bg-purple-600 hover:bg-purple-700"
                     disabled={loading}
                   >
-                    <Square className="h-4 w-4 mr-1" />
-                    End
+                    <Trophy className="h-4 w-4 mr-1" />
+                    Complete
                   </Button>
                 </>
               )}
@@ -240,12 +238,11 @@ export const ActiveSocialPlayWidget = () => {
                   </Button>
                   <Button 
                     onClick={handleEndSession}
-                    variant="destructive"
-                    className="flex-1 h-9"
+                    className="flex-1 h-9 bg-purple-600 hover:bg-purple-700"
                     disabled={loading}
                   >
-                    <Square className="h-4 w-4 mr-1" />
-                    End
+                    <Trophy className="h-4 w-4 mr-1" />
+                    Complete
                   </Button>
                 </>
               )}
@@ -264,14 +261,26 @@ export const ActiveSocialPlayWidget = () => {
             </Button>
             
             {!isSessionOwner && (
-              <Button 
-                onClick={leaveSession}
-                variant="outline"
-                className="flex-1 h-9 text-red-600 hover:text-red-700"
-                disabled={loading}
-              >
-                Leave Session
-              </Button>
+              <>
+                <Button 
+                  onClick={leaveSession}
+                  variant="outline"
+                  className="flex-1 h-9 text-red-600 hover:text-red-700"
+                  disabled={loading}
+                >
+                  Leave Session
+                </Button>
+                {(activeSession.status === 'active' || activeSession.status === 'paused') && (
+                  <Button 
+                    onClick={handleEndSession}
+                    className="flex-1 h-9 bg-purple-600 hover:bg-purple-700"
+                    disabled={loading}
+                  >
+                    <Trophy className="h-4 w-4 mr-1" />
+                    Complete
+                  </Button>
+                )}
+              </>
             )}
           </div>
         </CardContent>
@@ -282,6 +291,12 @@ export const ActiveSocialPlayWidget = () => {
         isOpen={isCheckInModalOpen}
         onClose={() => setIsCheckInModalOpen(false)}
         sessionId={activeSession.id}
+      />
+
+      {/* End Session Modal */}
+      <EndSocialPlayModal
+        isOpen={isEndModalOpen}
+        onClose={() => setIsEndModalOpen(false)}
       />
     </>
   );
