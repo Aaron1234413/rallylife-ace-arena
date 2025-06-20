@@ -203,9 +203,10 @@ export function EnhancedQuickActions({
       </Card>
 
       {/* Social Play Dialog */}
-      <CreateSocialPlayDialog open={socialPlayDialogOpen} onOpenChange={setSocialPlayDialogOpen}>
-        <div /> {/* Empty trigger since we control the dialog state */}
-      </CreateSocialPlayDialog>
+      <CreateSocialPlayDialog 
+        open={socialPlayDialogOpen} 
+        onOpenChange={setSocialPlayDialogOpen}
+      />
     </div>
   );
 }
