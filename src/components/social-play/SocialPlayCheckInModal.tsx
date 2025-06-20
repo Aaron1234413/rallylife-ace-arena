@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Heart, Zap, Coffee, Fire } from 'lucide-react';
+import { MessageCircle, Heart, Zap, Coffee } from 'lucide-react';
 import { useSocialPlayCheckins } from '@/hooks/useSocialPlayCheckins';
 import { AnimatedButton } from '@/components/ui/animated-button';
 import { ScrollArea } from '@/components/ui/scroll-area';
