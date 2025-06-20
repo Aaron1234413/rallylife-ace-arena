@@ -114,36 +114,57 @@ export function useSocialPlaySessions() {
       
       if (sessionError) throw sessionError;
 
-      // Add participants
+      // Add creator as a participant with 'joined' status
+      const participantInserts = [
+        {
+          session_id: session.id,
+          user_id: user.id,
+          status: 'joined' as const,
+          joined_at: new Date().toISOString()
+        }
+      ];
+
+      // Add other participants as 'invited'
       if (sessionData.participants.length > 0) {
-        const participantInserts = sessionData.participants.map(userId => ({
+        participantInserts.push(...sessionData.participants.map(userId => ({
           session_id: session.id,
           user_id: userId,
           status: 'invited' as const
-        }));
-
-        const { error: participantsError } = await supabase
-          .from('social_play_participants')
-          .insert(participantInserts);
-        
-        if (participantsError) throw participantsError;
+        })));
       }
+
+      const { error: participantsError } = await supabase
+        .from('social_play_participants')
+        .insert(participantInserts);
+      
+      if (participantsError) throw participantsError;
       
       return session;
     },
-    onSuccess: () => {
+    onSuccess: (session, variables, context) => {
       queryClient.invalidateQueries({ queryKey: ['social-play-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['active-social-play-session'] });
       toast({
         title: 'Social Play Session Created',
         description: 'Your friends have been invited to play!',
       });
+      
+      // Call the onSuccess callback if provided
+      if (context && typeof context === 'object' && 'onSuccess' in context) {
+        (context as any).onSuccess(session.id);
+      }
     },
-    onError: (error: any) => {
+    onError: (error: any, variables, context) => {
       toast({
         title: 'Error',
         description: error.message || 'Failed to create social play session',
         variant: 'destructive',
       });
+      
+      // Call the onError callback if provided
+      if (context && typeof context === 'object' && 'onError' in context) {
+        (context as any).onError(error);
+      }
     }
   });
 
@@ -218,11 +239,31 @@ export function useSocialPlaySessions() {
     }
   });
 
+  // Enhanced createSession function that supports callbacks
+  const createSessionWithCallback = (sessionData: {
+    session_type: 'singles' | 'doubles';
+    competitive_level: 'low' | 'medium' | 'high';
+    location?: string;
+    participants: string[];
+    onSuccess?: (sessionId: string) => void;
+    onError?: (error: any) => void;
+  }) => {
+    const { onSuccess, onError, ...data } = sessionData;
+    createSession.mutate(data, {
+      onSuccess: (session) => {
+        onSuccess?.(session.id);
+      },
+      onError: (error) => {
+        onError?.(error);
+      }
+    });
+  };
+
   return {
     sessions: sessions || [],
     activeSession,
     isLoading: sessionsLoading,
-    createSession: createSession.mutate,
+    createSession: createSessionWithCallback,
     updateSessionStatus: updateSessionStatus.mutate,
     acceptInvitation: acceptInvitation.mutate,
     isCreatingSession: createSession.isPending,

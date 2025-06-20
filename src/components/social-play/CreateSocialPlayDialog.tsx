@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -14,6 +15,7 @@ import { Textarea } from '@/components/ui/textarea';
 import { Users, MapPin } from 'lucide-react';
 import { FriendSelector } from './FriendSelector';
 import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
+import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
 
 interface Player {
   id: string;
@@ -39,6 +41,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   const [selectedFriends, setSelectedFriends] = useState<Player[]>([]);
   
   const { createSession, isCreatingSession } = useSocialPlaySessions();
+  const { joinSession } = useSocialPlaySession();
 
   // Use controlled state if provided, otherwise use internal state
   const isOpen = open !== undefined ? open : internalOpen;
@@ -57,19 +60,31 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
       return;
     }
 
-    createSession({
-      session_type: sessionType,
-      competitive_level: competitiveLevel,
-      location: location.trim() || undefined,
-      participants: selectedFriends.map(p => p.id),
-    });
+    try {
+      // Create the session
+      const sessionId = await new Promise<string>((resolve, reject) => {
+        createSession({
+          session_type: sessionType,
+          competitive_level: competitiveLevel,
+          location: location.trim() || undefined,
+          participants: selectedFriends.map(p => p.id),
+          onSuccess: (sessionId: string) => resolve(sessionId),
+          onError: (error: any) => reject(error),
+        });
+      });
 
-    // Reset form and close dialog
-    setSessionType('singles');
-    setCompetitiveLevel('medium');
-    setLocation('');
-    setSelectedFriends([]);
-    handleOpenChange(false);
+      // Join the newly created session
+      await joinSession(sessionId);
+
+      // Reset form and close dialog
+      setSessionType('singles');
+      setCompetitiveLevel('medium');
+      setLocation('');
+      setSelectedFriends([]);
+      handleOpenChange(false);
+    } catch (error) {
+      console.error('Failed to create and join session:', error);
+    }
   };
 
   const maxParticipants = sessionType === 'singles' ? 1 : 3;
