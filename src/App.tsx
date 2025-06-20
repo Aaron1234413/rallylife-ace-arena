@@ -9,6 +9,7 @@ import Index from '@/pages/Index';
 import Auth from '@/pages/Auth';
 import Profile from '@/pages/Profile';
 import EndTraining from '@/pages/EndTraining';
+import StartSocialPlay from '@/pages/StartSocialPlay';
 import { Toaster } from "@/components/ui/toaster"
 import { SocialPlaySessionProvider } from "@/contexts/SocialPlaySessionContext";
 
@@ -28,6 +29,7 @@ function App() {
                     <Route path="/auth" element={<Auth />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/end-training" element={<EndTraining />} />
+                    <Route path="/start-social-play" element={<StartSocialPlay />} />
                   </Routes>
                   <Toaster />
                 </div>
