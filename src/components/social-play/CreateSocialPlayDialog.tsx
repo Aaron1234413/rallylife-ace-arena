@@ -26,18 +26,26 @@ interface Friend {
 
 interface CreateSocialPlayDialogProps {
   children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
 }
 
 export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   children,
+  open,
+  onOpenChange,
 }) => {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
   const [sessionType, setSessionType] = useState<'singles' | 'doubles'>('singles');
   const [competitiveLevel, setCompetitiveLevel] = useState<'low' | 'medium' | 'high'>('medium');
   const [location, setLocation] = useState('');
   const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
   
   const { createSession, isCreatingSession } = useSocialPlaySessions();
+
+  // Use controlled state if provided, otherwise use internal state
+  const isOpen = open !== undefined ? open : internalOpen;
+  const handleOpenChange = onOpenChange || setInternalOpen;
 
   const handleFriendSelect = (friend: Friend) => {
     setSelectedFriends(prev => [...prev, friend]);
@@ -64,13 +72,13 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
     setCompetitiveLevel('medium');
     setLocation('');
     setSelectedFriends([]);
-    setOpen(false);
+    handleOpenChange(false);
   };
 
   const maxParticipants = sessionType === 'singles' ? 1 : 3;
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
@@ -168,7 +176,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
             </Button>
             <Button
               variant="outline"
-              onClick={() => setOpen(false)}
+              onClick={() => handleOpenChange(false)}
               disabled={isCreatingSession}
             >
               Cancel

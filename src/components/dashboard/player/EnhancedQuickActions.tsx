@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -13,6 +14,7 @@ import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { toast } from 'sonner';
 import { SmartRecommendations } from './SmartRecommendations';
 import { ActionButton } from './ActionButton';
+import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
 
 interface EnhancedQuickActionsProps {
   hpData: any;
@@ -32,6 +34,7 @@ export function EnhancedQuickActions({
   const navigate = useNavigate();
   const { logActivity, refreshData } = useActivityLogs();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
+  const [socialPlayDialogOpen, setSocialPlayDialogOpen] = useState(false);
   
   const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
   
@@ -44,11 +47,11 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-blue-500 to-blue-600',
       textColor: 'text-blue-700',
       bgColor: 'bg-blue-50',
-      rewards: { hp: -5, xp: 50, tokens: 25 }, // High intensity competitive match
+      rewards: { hp: -5, xp: 50, tokens: 25 },
       recommended: hpPercentage > 40,
       estimatedDuration: 90,
       difficulty: 'high' as const,
-      navigateTo: '/start-match' // Navigate instead of log activity
+      navigateTo: '/start-match'
     },
     {
       id: 'training',
@@ -58,32 +61,25 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-green-500 to-green-600',
       textColor: 'text-green-700',
       bgColor: 'bg-green-50',
-      rewards: { hp: -5, xp: 30, tokens: 15 }, // Medium intensity training
+      rewards: { hp: -5, xp: 30, tokens: 15 },
       recommended: hpPercentage > 30,
       estimatedDuration: 60,
       difficulty: 'medium' as const,
-      navigateTo: '/start-training' // Navigate to training session
+      navigateTo: '/start-training'
     },
     {
       id: 'social',
       title: 'Social Play',
-      description: 'Casual games and fun activities with friends',
+      description: 'Create a session and invite friends to play together',
       icon: Users,
       color: 'bg-gradient-to-r from-purple-500 to-purple-600',
       textColor: 'text-purple-700',
       bgColor: 'bg-purple-50',
-      rewards: { hp: 5, xp: 15, tokens: 12 }, // Low intensity social activity
+      rewards: { hp: 5, xp: 15, tokens: 12 },
       recommended: hpPercentage > 20,
       estimatedDuration: 45,
       difficulty: 'low' as const,
-      activityData: {
-        activity_type: 'social',
-        activity_category: 'social',
-        title: 'Social Play',
-        description: 'Casual games and fun activities with friends',
-        duration_minutes: 45,
-        intensity_level: 'low'
-      }
+      openDialog: true
     },
     {
       id: 'rest',
@@ -93,7 +89,7 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-red-500 to-pink-500',
       textColor: 'text-red-700',
       bgColor: 'bg-red-50',
-      rewards: { hp: 0, xp: 10, tokens: 10 }, // Recovery activity with token reward
+      rewards: { hp: 0, xp: 10, tokens: 10 },
       recommended: hpPercentage < 40,
       estimatedDuration: 30,
       difficulty: 'low' as const,
@@ -112,6 +108,12 @@ export function EnhancedQuickActions({
     // If action has navigateTo, navigate instead of logging activity
     if (action.navigateTo) {
       navigate(action.navigateTo);
+      return;
+    }
+
+    // If action should open dialog, open it
+    if (action.openDialog && action.id === 'social') {
+      setSocialPlayDialogOpen(true);
       return;
     }
 
@@ -199,6 +201,11 @@ export function EnhancedQuickActions({
           </div>
         </CardContent>
       </Card>
+
+      {/* Social Play Dialog */}
+      <CreateSocialPlayDialog open={socialPlayDialogOpen} onOpenChange={setSocialPlayDialogOpen}>
+        <div /> {/* Empty trigger since we control the dialog state */}
+      </CreateSocialPlayDialog>
     </div>
   );
 }
