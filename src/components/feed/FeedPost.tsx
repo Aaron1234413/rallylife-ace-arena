@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Trophy, Target, Send } from 'lucide-react';
+import { Heart, MessageCircle, Trophy, Target, Send, Users, Clock, Star, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface FeedPostProps {
   post: {
     id: string;
-    type: 'level_up' | 'match_result' | 'achievement' | 'activity';
+    type: 'level_up' | 'match_result' | 'achievement' | 'activity' | 'social_play';
     user: {
       id: string;
       full_name: string;
@@ -28,6 +28,13 @@ interface FeedPostProps {
         duration?: number;
         opponent_name?: string;
         location?: string;
+        // Social play specific stats
+        session_type?: 'singles' | 'doubles';
+        competitive_level?: 'low' | 'medium' | 'high';
+        participant_count?: number;
+        participant_names?: string[];
+        mood?: string;
+        notes?: string;
       };
     };
     likes: number;
@@ -57,8 +64,122 @@ export function FeedPost({ post, onLike, onComment, onChallenge }: FeedPostProps
     setIsSubmittingComment(false);
   };
 
+  const getMoodEmoji = (mood: string) => {
+    const moodMap: Record<string, string> = {
+      'great': '😄',
+      'good': '😊',
+      'relaxed': '😌',
+      'strong': '💪',
+      'energized': '🔥',
+      'exhausted': '😓',
+      'focused': '🤔',
+      'determined': '😤'
+    };
+    return moodMap[mood] || '';
+  };
+
+  const getCompetitiveLevelText = (level: string) => {
+    switch (level) {
+      case 'low': return 'Chill';
+      case 'medium': return 'Fun';
+      case 'high': return 'Competitive';
+      default: return level;
+    }
+  };
+
+  const getCompetitiveLevelColor = (level: string) => {
+    switch (level) {
+      case 'low': return 'bg-blue-100 text-blue-800';
+      case 'medium': return 'bg-green-100 text-green-800';
+      case 'high': return 'bg-red-100 text-red-800';
+      default: return 'bg-gray-100 text-gray-800';
+    }
+  };
+
   const renderPostContent = () => {
     switch (post.type) {
+      case 'social_play':
+        return (
+          <div className="bg-gradient-to-r from-purple-50 to-pink-50 rounded-lg p-6 mb-4 border border-purple-200">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
+                  <Users className="w-6 h-6 text-white" />
+                </div>
+                <div>
+                  <div className="font-semibold text-purple-900">Social Play Session</div>
+                  <div className="text-sm text-purple-700">
+                    {post.content.stats.session_type === 'singles' ? 'Singles' : 'Doubles'} • 
+                    {post.content.stats.competitive_level && ` ${getCompetitiveLevelText(post.content.stats.competitive_level)}`}
+                  </div>
+                </div>
+              </div>
+              {post.content.stats.mood && (
+                <div className="text-2xl">
+                  {getMoodEmoji(post.content.stats.mood)}
+                </div>
+              )}
+            </div>
+
+            <div className="grid grid-cols-2 gap-4 mb-4 text-sm">
+              {post.content.stats.duration && (
+                <div className="flex items-center gap-2 text-purple-700">
+                  <Clock className="w-4 h-4" />
+                  <span>{post.content.stats.duration} minutes</span>
+                </div>
+              )}
+              {post.content.stats.participant_count && (
+                <div className="flex items-center gap-2 text-purple-700">
+                  <Users className="w-4 h-4" />
+                  <span>{post.content.stats.participant_count} players</span>
+                </div>
+              )}
+              {post.content.stats.location && (
+                <div className="flex items-center gap-2 text-purple-700">
+                  <MapPin className="w-4 h-4" />
+                  <span>{post.content.stats.location}</span>
+                </div>
+              )}
+              {post.content.stats.score && (
+                <div className="flex items-center gap-2 text-purple-700">
+                  <Trophy className="w-4 h-4" />
+                  <span>{post.content.stats.score}</span>
+                </div>
+              )}
+            </div>
+
+            {post.content.stats.participant_names && post.content.stats.participant_names.length > 0 && (
+              <div className="mb-3">
+                <div className="text-xs text-purple-600 mb-2">Played with:</div>
+                <div className="flex flex-wrap gap-1">
+                  {post.content.stats.participant_names.map((name, index) => (
+                    <Badge key={index} variant="secondary" className="text-xs bg-purple-100 text-purple-800">
+                      {name}
+                    </Badge>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            <div className="flex items-center gap-2 mb-3">
+              {post.content.stats.competitive_level && (
+                <Badge className={`${getCompetitiveLevelColor(post.content.stats.competitive_level)} border-0 text-xs`}>
+                  {getCompetitiveLevelText(post.content.stats.competitive_level)}
+                </Badge>
+              )}
+              <Badge variant="outline" className="bg-white text-xs">
+                Social Play
+              </Badge>
+            </div>
+
+            {post.content.stats.notes && (
+              <div className="bg-white/60 rounded p-3 text-sm text-gray-700 italic">
+                "{post.content.stats.notes}"
+              </div>
+            )}
+          </div>
+        );
+
       case 'level_up':
         return (
           <div className="bg-green-500 rounded-lg p-6 text-center text-white mb-4">
@@ -149,7 +270,7 @@ export function FeedPost({ post, onLike, onComment, onChallenge }: FeedPostProps
               {post.content.stats.hp && post.content.stats.hp !== 0 && (
                 <Badge 
                   variant="secondary" 
-                  className={post.content.stats.hp > 0 ? 'text-green-600' : 'text-red-600'}
+                  className={post.content.stats.hp >  0 ? 'text-green-600' : 'text-red-600'}
                 >
                   {post.content.stats.hp > 0 ? '+' : ''}{post.content.stats.hp} HP
                 </Badge>
@@ -162,6 +283,8 @@ export function FeedPost({ post, onLike, onComment, onChallenge }: FeedPostProps
 
   const getPostDescription = () => {
     switch (post.type) {
+      case 'social_play':
+        return `Completed a social ${post.content.stats.session_type} session`;
       case 'level_up':
         return 'Leveled up!';
       case 'match_result':

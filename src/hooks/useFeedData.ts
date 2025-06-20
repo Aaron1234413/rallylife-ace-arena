@@ -1,13 +1,13 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 import { useFeedEngagement } from '@/hooks/useFeedEngagement';
 
-// Updated interface to match backend data
 interface FeedPost {
   id: string;
-  type: 'match_result' | 'achievement' | 'level_up' | 'activity';
+  type: 'level_up' | 'match_result' | 'achievement' | 'activity' | 'social_play';
   user: {
     id: string;
     full_name: string;
@@ -24,6 +24,13 @@ interface FeedPost {
       duration?: number;
       opponent_name?: string;
       location?: string;
+      // Social play specific stats
+      session_type?: 'singles' | 'doubles';
+      competitive_level?: 'low' | 'medium' | 'high';
+      participant_count?: number;
+      participant_names?: string[];
+      mood?: string;
+      notes?: string;
     };
   };
   likes: number;
@@ -33,180 +40,130 @@ interface FeedPost {
 
 export function useFeedData() {
   const { user } = useAuth();
-  const { toggleLike: toggleLikeAction, addComment: addCommentAction } = useFeedEngagement();
+  const { toast } = useToast();
+  const { toggleLike, addComment } = useFeedEngagement();
   const [feedPosts, setFeedPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
-  const channelRef = useRef<any>(null);
 
-  const fetchFeedPosts = async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    console.log('Fetching feed posts for user:', user.id);
+  const loadFeedData = async () => {
+    if (!user?.id) return;
 
     try {
+      setLoading(true);
+      
       const { data, error } = await supabase.rpc('get_feed_posts_with_engagement', {
         user_id_param: user.id,
-        limit_count: 20,
+        limit_count: 50,
         offset_count: 0
       });
 
       if (error) {
-        console.error('Error fetching feed posts:', error);
-        setLoading(false);
+        console.error('Error loading feed data:', error);
+        toast({
+          title: 'Error',
+          description: 'Failed to load feed data',
+          variant: 'destructive',
+        });
         return;
       }
 
-      console.log('Raw feed data:', data);
-
-      // Transform backend data to FeedPost format
-      const transformedPosts: FeedPost[] = (data || []).map((item: any) => ({
-        id: item.id,
-        type: determinePostType(item.activity_type, item.xp_earned, item.hp_impact),
+      const transformedPosts: FeedPost[] = data.map((post: any) => ({
+        id: post.id,
+        type: post.activity_type === 'social_play' ? 'social_play' : 
+              post.activity_type === 'level_up' ? 'level_up' :
+              post.activity_type === 'match' ? 'match_result' :
+              post.activity_type === 'achievement' ? 'achievement' : 'activity',
         user: {
-          id: item.player_id,
-          full_name: item.player_name || 'Unknown Player',
-          avatar_url: item.player_avatar
+          id: post.player_id,
+          full_name: post.player_name,
+          avatar_url: post.player_avatar
         },
-        timestamp: item.logged_at,
+        timestamp: post.logged_at,
         content: {
-          title: item.title,
-          description: item.description,
+          title: post.title,
+          description: post.description,
           stats: {
-            xp: item.xp_earned,
-            hp: item.hp_impact,
-            score: item.score,
-            duration: item.duration_minutes,
-            opponent_name: item.opponent_name,
-            location: item.location
+            xp: post.xp_earned,
+            hp: post.hp_impact,
+            score: post.score,
+            duration: post.duration_minutes,
+            opponent_name: post.opponent_name,
+            location: post.location,
+            // Social play specific stats from session_data
+            session_type: post.session_data?.session_type,
+            competitive_level: post.session_data?.competitive_level,
+            participant_count: post.session_data?.participant_count,
+            participant_names: post.session_data?.participant_names,
+            mood: post.session_data?.mood,
+            notes: post.session_data?.notes
           }
         },
-        likes: parseInt(item.likes_count) || 0,
-        comments: parseInt(item.comments_count) || 0,
-        userHasLiked: item.user_has_liked || false
+        likes: parseInt(post.likes_count) || 0,
+        comments: parseInt(post.comments_count) || 0,
+        userHasLiked: post.user_has_liked || false
       }));
 
-      console.log('Transformed feed posts:', transformedPosts);
       setFeedPosts(transformedPosts);
     } catch (error) {
-      console.error('Error in fetchFeedPosts:', error);
+      console.error('Failed to load feed data:', error);
     } finally {
       setLoading(false);
     }
   };
 
-  const determinePostType = (activityType: string, xpEarned: number, hpImpact: number): FeedPost['type'] => {
-    if (activityType === 'match') return 'match_result';
-    if (xpEarned > 0 && hpImpact > 0) return 'level_up';
-    return 'activity';
-  };
-
-  // Set up real-time subscriptions
   useEffect(() => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
-
-    // Initial fetch
-    fetchFeedPosts();
-
-    // Clean up existing channel
-    if (channelRef.current) {
-      channelRef.current.unsubscribe();
-    }
-
-    // Set up real-time subscription for likes and comments
-    const channel = supabase.channel(`feed-engagement-${user.id}-${Date.now()}`);
-    
-    // Listen for likes changes
-    channel.on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'feed_likes'
-      },
-      () => {
-        console.log('Feed likes changed, refreshing feed');
-        fetchFeedPosts(); // Refetch when likes change
-      }
-    );
-
-    // Listen for comments changes
-    channel.on(
-      'postgres_changes',
-      {
-        event: '*',
-        schema: 'public',
-        table: 'feed_comments'
-      },
-      () => {
-        console.log('Feed comments changed, refreshing feed');
-        fetchFeedPosts(); // Refetch when comments change
-      }
-    );
-
-    // Listen for new activities
-    channel.on(
-      'postgres_changes',
-      {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'activity_logs'
-      },
-      () => {
-        console.log('New activity logged, refreshing feed');
-        fetchFeedPosts(); // Refetch when new activities are added
-      }
-    );
-
-    channel.subscribe();
-    channelRef.current = channel;
-
-    return () => {
-      if (channelRef.current) {
-        channelRef.current.unsubscribe();
-        channelRef.current = null;
-      }
-    };
-  }, [user?.id]); // Only depend on user.id to prevent infinite loops
+    loadFeedData();
+  }, [user?.id]);
 
   const handleLike = async (postId: string) => {
-    const wasLiked = await toggleLikeAction(postId);
+    const wasLiked = await toggleLike(postId);
     
     // Optimistically update the UI
-    setFeedPosts(prev => prev.map(post => {
-      if (post.id === postId) {
-        return {
-          ...post,
-          likes: wasLiked ? post.likes + 1 : post.likes - 1,
-          userHasLiked: wasLiked
-        };
-      }
-      return post;
-    }));
+    setFeedPosts(prevPosts => 
+      prevPosts.map(post => {
+        if (post.id === postId) {
+          return {
+            ...post,
+            likes: wasLiked ? post.likes + 1 : post.likes - 1,
+            userHasLiked: wasLiked
+          };
+        }
+        return post;
+      })
+    );
   };
 
-  const handleComment = async (postId: string, content: string) => {
-    const commentId = await addCommentAction(postId, content);
+  const handleComment = async (postId: string, content: string): Promise<string | null> => {
+    const commentId = await addComment(postId, content);
+    
     if (commentId) {
-      // The real-time subscription will handle the UI update
-      return commentId;
+      // Optimistically update the comments count
+      setFeedPosts(prevPosts => 
+        prevPosts.map(post => {
+          if (post.id === postId) {
+            return {
+              ...post,
+              comments: post.comments + 1
+            };
+          }
+          return post;
+        })
+      );
     }
-    return null;
+    
+    return commentId;
   };
 
   const handleChallenge = (userId: string) => {
-    console.log('Challenging user:', userId);
-    // Implementation for challenges can be added later
+    // TODO: Implement challenge functionality
+    toast({
+      title: 'Challenge Feature',
+      description: 'Challenge functionality coming soon!',
+    });
   };
 
   const refreshFeed = () => {
-    setLoading(true);
-    fetchFeedPosts();
+    loadFeedData();
   };
 
   return {
