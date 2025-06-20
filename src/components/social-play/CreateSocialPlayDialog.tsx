@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -16,12 +15,10 @@ import { Users, MapPin } from 'lucide-react';
 import { FriendSelector } from './FriendSelector';
 import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
 
-interface Friend {
-  friend_id: string;
-  friend_name: string;
-  friend_avatar_url: string | null;
-  connection_status: string;
-  connected_since: string;
+interface Player {
+  id: string;
+  full_name: string;
+  avatar_url: string | null;
 }
 
 interface CreateSocialPlayDialogProps {
@@ -39,7 +36,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   const [sessionType, setSessionType] = useState<'singles' | 'doubles'>('singles');
   const [competitiveLevel, setCompetitiveLevel] = useState<'low' | 'medium' | 'high'>('medium');
   const [location, setLocation] = useState('');
-  const [selectedFriends, setSelectedFriends] = useState<Friend[]>([]);
+  const [selectedFriends, setSelectedFriends] = useState<Player[]>([]);
   
   const { createSession, isCreatingSession } = useSocialPlaySessions();
 
@@ -47,12 +44,12 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   const isOpen = open !== undefined ? open : internalOpen;
   const handleOpenChange = onOpenChange || setInternalOpen;
 
-  const handleFriendSelect = (friend: Friend) => {
-    setSelectedFriends(prev => [...prev, friend]);
+  const handleFriendSelect = (player: Player) => {
+    setSelectedFriends(prev => [...prev, player]);
   };
 
-  const handleFriendRemove = (friendId: string) => {
-    setSelectedFriends(prev => prev.filter(f => f.friend_id !== friendId));
+  const handleFriendRemove = (playerId: string) => {
+    setSelectedFriends(prev => prev.filter(p => p.id !== playerId));
   };
 
   const handleCreateSession = async () => {
@@ -64,7 +61,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
       session_type: sessionType,
       competitive_level: competitiveLevel,
       location: location.trim() || undefined,
-      participants: selectedFriends.map(f => f.friend_id),
+      participants: selectedFriends.map(p => p.id),
     });
 
     // Reset form and close dialog
@@ -171,7 +168,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
                 disabled={selectedFriends.length === 0 || isCreatingSession}
                 className="flex-1"
               >
-                {isCreatingSession ? 'Creating...' : `Create Session & Invite ${selectedFriends.length} Friend${selectedFriends.length !== 1 ? 's' : ''}`}
+                {isCreatingSession ? 'Creating...' : `Create Session & Invite ${selectedFriends.length} Player${selectedFriends.length !== 1 ? 's' : ''}`}
               </Button>
               <Button
                 variant="outline"
@@ -285,7 +282,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
               disabled={selectedFriends.length === 0 || isCreatingSession}
               className="flex-1"
             >
-              {isCreatingSession ? 'Creating...' : `Create Session & Invite ${selectedFriends.length} Friend${selectedFriends.length !== 1 ? 's' : ''}`}
+              {isCreatingSession ? 'Creating...' : `Create Session & Invite ${selectedFriends.length} Player${selectedFriends.length !== 1 ? 's' : ''}`}
             </Button>
             <Button
               variant="outline"
