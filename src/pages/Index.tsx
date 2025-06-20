@@ -28,6 +28,7 @@ import {
 
 import { ActiveMatchWidget } from "@/components/match/ActiveMatchWidget";
 import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
+import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
 
 const Index = () => {
   const { user } = useAuth();
@@ -158,11 +159,10 @@ const Index = () => {
             loading={vitalsLoading}
           />
 
-          {/* Active Match Widget - Shows when match is active */}
+          {/* Active Session Widgets */}
           <ActiveMatchWidget />
-
-          {/* Active Training Widget - Shows when training session is active */}
           <ActiveTrainingWidget />
+          <ActiveSocialPlayWidget />
 
           {/* 2. Enhanced Quick Actions - Contextual and Smart (Desktop) */}
           <div className="hidden sm:block">
