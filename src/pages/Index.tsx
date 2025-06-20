@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -29,6 +30,8 @@ import {
 import { ActiveMatchWidget } from "@/components/match/ActiveMatchWidget";
 import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
 import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
+import { SocialPlayInvitations } from "@/components/social-play/SocialPlayInvitations";
+import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
 
 const Index = () => {
   const { user } = useAuth();
@@ -159,10 +162,16 @@ const Index = () => {
             loading={vitalsLoading}
           />
 
+          {/* Social Play Invitations - High Priority */}
+          <SocialPlayInvitations />
+
           {/* Active Session Widgets */}
           <ActiveMatchWidget />
           <ActiveTrainingWidget />
           <ActiveSocialPlayWidget />
+
+          {/* Social Play Quick Actions */}
+          <SocialPlayQuickActions />
 
           {/* 2. Enhanced Quick Actions - Contextual and Smart (Desktop) */}
           <div className="hidden sm:block">
