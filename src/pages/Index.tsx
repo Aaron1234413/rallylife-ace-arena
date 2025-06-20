@@ -30,7 +30,6 @@ import { ActiveMatchWidget } from "@/components/match/ActiveMatchWidget";
 import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
 import { SocialPlayInvitations } from "@/components/social-play/SocialPlayInvitations";
 import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
-import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
 
 const Index = () => {
   const { user } = useAuth();
@@ -167,7 +166,6 @@ const Index = () => {
           {/* Active Session Widgets */}
           <ActiveMatchWidget />
           <ActiveTrainingWidget />
-          <ActiveSocialPlayWidget />
 
           {/* Social Play Quick Actions */}
           <SocialPlayQuickActions />
