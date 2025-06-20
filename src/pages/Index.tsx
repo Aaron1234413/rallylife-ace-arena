@@ -46,7 +46,7 @@ const Index = () => {
   const { crpData, isLoading: crpLoading, initializeCRP } = useCoachCRP();
   
   // Social Play Session Hook
-  const { activeSession, joinSession } = useSocialPlaySession();
+  const { activeSession, isSessionActive } = useSocialPlaySession();
   
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -165,11 +165,11 @@ const Index = () => {
           />
 
           {/* Social Play Section - Conditional */}
-          {activeSession === null ? (
-            <SocialPlayInvitations onStart={joinSession} />
-          ) : activeSession?.type === 'social' ? (
-            <SocialPlayQuickActions session={activeSession} />
-          ) : null}
+          {!isSessionActive ? (
+            <SocialPlayInvitations />
+          ) : (
+            <SocialPlayQuickActions />
+          )}
 
           {/* Active Session Widgets */}
           <ActiveMatchWidget />
