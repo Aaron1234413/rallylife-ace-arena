@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -32,6 +31,9 @@ import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget
 import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
 import { useSocialPlaySession } from "@/contexts/SocialPlaySessionContext";
 import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
+import { SimpleEventManagement } from "@/components/social-play/SimpleEventManagement";
+import { EventHistory } from "@/components/social-play/EventHistory";
+import { EventAnalytics } from "@/components/social-play/EventAnalytics";
 
 const Index = () => {
   const { user } = useAuth();
@@ -172,6 +174,15 @@ const Index = () => {
           <ActiveSocialPlayWidget />
           <ActiveMatchWidget />
           <ActiveTrainingWidget />
+
+          {/* Phase 4: Social Play Management & Analytics */}
+          <div className="grid gap-4 lg:grid-cols-2">
+            <SimpleEventManagement />
+            <EventHistory />
+          </div>
+          
+          {/* Social Play Analytics */}
+          <EventAnalytics />
 
           {/* 2. Enhanced Quick Actions - Contextual and Smart (Desktop) */}
           <div className="hidden sm:block">
