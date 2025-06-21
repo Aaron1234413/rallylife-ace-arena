@@ -1,3 +1,4 @@
+
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -74,9 +75,9 @@ export function useSocialPlayEvents() {
         participants: event.participants?.map(participant => ({
           id: participant.id,
           user_id: participant.user_id,
-          status: (participant.status === 'joined' || participant.status === 'declined') 
-            ? participant.status as 'joined' | 'declined' 
-            : 'joined' as const, // Default to 'joined' for other statuses
+          status: (['joined', 'declined'].includes(participant.status) 
+            ? participant.status 
+            : 'joined') as 'joined' | 'declined',
           user: participant.user
         })) || []
       }));
@@ -149,7 +150,7 @@ export function useSocialPlayEvents() {
       queryClient.invalidateQueries({ queryKey: ['social-play-events'] });
       toast({
         title: 'Event Created!',
-        description: 'Your social tennis event has been created and invitations sent.',
+        description: 'Your social tennis event has been created and is ready to share.',
       });
     },
     onError: (error: any) => {
@@ -161,10 +162,56 @@ export function useSocialPlayEvents() {
     }
   });
 
+  // Join event
+  const joinEvent = useMutation({
+    mutationFn: async (eventId: string) => {
+      if (!user?.id) throw new Error('User not authenticated');
+      
+      // Check if user is already a participant
+      const { data: existingParticipant, error: checkError } = await supabase
+        .from('social_play_participants')
+        .select('id')
+        .eq('session_id', eventId)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      
+      if (checkError) throw checkError;
+      
+      if (existingParticipant) {
+        throw new Error('You are already participating in this event');
+      }
+
+      // Add user as participant
+      const { error: joinError } = await supabase
+        .from('social_play_participants')
+        .insert({
+          session_id: eventId,
+          user_id: user.id,
+          session_creator_id: user.id, // This should ideally be the actual creator ID
+          status: 'joined',
+          joined_at: new Date().toISOString()
+        });
+      
+      if (joinError) throw joinError;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['social-play-events'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to join event',
+        variant: 'destructive',
+      });
+    }
+  });
+
   return {
     events: events || [],
     isLoading: eventsLoading,
     createEvent: createEvent.mutateAsync,
+    joinEvent: joinEvent.mutateAsync,
     isCreatingEvent: createEvent.isPending,
+    isJoiningEvent: joinEvent.isPending,
   };
 }

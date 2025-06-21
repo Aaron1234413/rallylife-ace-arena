@@ -5,53 +5,98 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Calendar, MapPin, Users, Clock } from 'lucide-react';
-import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
+import { Calendar, MapPin, Users, Clock, Share2 } from 'lucide-react';
+import { useSocialPlayEvents } from '@/hooks/useSocialPlayEvents';
 import { useToast } from '@/hooks/use-toast';
+import { formatDistanceToNow } from 'date-fns';
 
 const JoinSocialPlay = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const { joinEvent, loading: joiningEvent } = useSocialPlaySession();
+  const { events, joinEvent, isJoiningEvent } = useSocialPlayEvents();
   const { toast } = useToast();
   
-  const sessionId = searchParams.get('session');
-  const [sessionData, setSessionData] = useState<any>(null);
+  const eventId = searchParams.get('event');
+  const [event, setEvent] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    if (!sessionId) {
+    if (!eventId) {
       toast({
         title: 'Invalid Link',
-        description: 'This social play link is invalid or expired.',
+        description: 'This event link is invalid or expired.',
         variant: 'destructive',
       });
       navigate('/');
       return;
     }
 
-    // Mock session data for now - in Phase 2 we'll load real data
-    setSessionData({
-      id: sessionId,
-      session_type: 'singles',
-      location: 'Central Park Tennis Courts',
-      created_at: new Date().toISOString(),
-      creator: {
-        full_name: 'John Doe',
-        avatar_url: null
-      }
-    });
-    setLoading(false);
-  }, [sessionId, navigate, toast]);
+    // Find the event in the loaded events
+    const foundEvent = events.find(e => e.id === eventId);
+    if (foundEvent) {
+      setEvent(foundEvent);
+      setLoading(false);
+    } else if (events.length > 0) {
+      // Events loaded but event not found
+      toast({
+        title: 'Event Not Found',
+        description: 'This event may no longer be available.',
+        variant: 'destructive',
+      });
+      navigate('/');
+    }
+  }, [eventId, events, navigate, toast]);
 
-  const handleJoinSession = async () => {
-    if (!sessionId) return;
+  const handleJoinEvent = async () => {
+    if (!eventId) return;
     
     try {
-      await joinEvent(sessionId);
+      await joinEvent(eventId);
+      toast({
+        title: 'Successfully Joined!',
+        description: 'You have joined the tennis event.',
+      });
       navigate('/');
     } catch (error) {
-      console.error('Failed to join session:', error);
+      console.error('Failed to join event:', error);
+      toast({
+        title: 'Failed to Join',
+        description: 'Could not join this event. Please try again.',
+        variant: 'destructive',
+      });
+    }
+  };
+
+  const handleShareEvent = async () => {
+    if (!event) return;
+    
+    const shareUrl = `${window.location.origin}/join-social-play?event=${event.id}`;
+    
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `Join ${event.session_type} Tennis Event`,
+          text: `Join me for a ${event.session_type} tennis session at ${event.location}!`,
+          url: shareUrl,
+        });
+      } catch (error) {
+        // User cancelled share
+      }
+    } else {
+      // Fallback to clipboard
+      try {
+        await navigator.clipboard.writeText(shareUrl);
+        toast({
+          title: 'Link Copied!',
+          description: 'Share this link with others to invite them.',
+        });
+      } catch (error) {
+        toast({
+          title: 'Could not copy link',
+          description: 'Please copy the URL manually.',
+          variant: 'destructive',
+        });
+      }
     }
   };
 
@@ -66,7 +111,7 @@ const JoinSocialPlay = () => {
     );
   }
 
-  if (!sessionData) {
+  if (!event) {
     return (
       <div className="flex items-center justify-center min-h-screen">
         <Card className="w-full max-w-md">
@@ -79,60 +124,107 @@ const JoinSocialPlay = () => {
     );
   }
 
+  const currentParticipants = event.participants?.length || 0;
+  const maxParticipants = event.max_participants || (event.session_type === 'singles' ? 2 : 4);
+  const isEventFull = currentParticipants >= maxParticipants;
+
   return (
     <div className="container mx-auto p-4 max-w-2xl">
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Users className="h-5 w-5" />
-            Join Social Tennis Event
+            {event.title || `${event.session_type} Tennis Event`}
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
-          {/* Session Details */}
+          {/* Event Organizer */}
           <div className="space-y-4">
             <div className="flex items-center gap-3">
               <Avatar>
-                <AvatarImage src={sessionData.creator?.avatar_url || ''} />
+                <AvatarImage src={event.creator?.avatar_url || ''} />
                 <AvatarFallback>
-                  {sessionData.creator?.full_name?.charAt(0) || 'U'}
+                  {event.creator?.full_name?.charAt(0) || 'U'}
                 </AvatarFallback>
               </Avatar>
               <div>
-                <p className="font-medium">{sessionData.creator?.full_name}</p>
+                <p className="font-medium">{event.creator?.full_name || 'Event Organizer'}</p>
                 <p className="text-sm text-muted-foreground">Event Organizer</p>
               </div>
             </div>
 
+            {/* Event Details */}
             <div className="grid gap-3">
               <div className="flex items-center gap-2">
                 <Users className="h-4 w-4 text-muted-foreground" />
-                <span className="capitalize">{sessionData.session_type}</span>
+                <span className="capitalize">{event.session_type}</span>
                 <Badge variant="secondary">
-                  {sessionData.session_type === 'singles' ? '1 vs 1' : '2 vs 2'}
+                  {event.session_type === 'singles' ? '1 vs 1' : '2 vs 2'}
+                </Badge>
+                <Badge variant={isEventFull ? 'destructive' : 'default'}>
+                  {currentParticipants}/{maxParticipants} players
                 </Badge>
               </div>
               
               <div className="flex items-center gap-2">
                 <MapPin className="h-4 w-4 text-muted-foreground" />
-                <span>{sessionData.location}</span>
+                <span>{event.location}</span>
               </div>
               
               <div className="flex items-center gap-2">
                 <Calendar className="h-4 w-4 text-muted-foreground" />
-                <span>{new Date(sessionData.created_at).toLocaleDateString()}</span>
+                <span>Created {formatDistanceToNow(new Date(event.created_at))} ago</span>
               </div>
+
+              {event.description && (
+                <div className="bg-gray-50 p-3 rounded-lg">
+                  <p className="text-sm">{event.description}</p>
+                </div>
+              )}
             </div>
           </div>
 
-          {/* Join Button */}
+          {/* Current Participants */}
+          {event.participants && event.participants.length > 0 && (
+            <div className="space-y-2">
+              <h4 className="font-medium">Current Players:</h4>
+              <div className="flex flex-wrap gap-2">
+                {event.participants.map((participant: any) => (
+                  <div
+                    key={participant.id}
+                    className="flex items-center gap-2 bg-blue-50 border border-blue-200 rounded-full px-3 py-1.5"
+                  >
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage src={participant.user?.avatar_url || ''} />
+                      <AvatarFallback className="text-xs">
+                        {participant.user?.full_name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span className="text-sm font-medium">
+                      {participant.user?.full_name || 'Player'}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {/* Action Buttons */}
           <div className="flex gap-3">
             <Button 
-              onClick={handleJoinSession}
-              disabled={joiningEvent}
+              onClick={handleJoinEvent}
+              disabled={isJoiningEvent || isEventFull}
               className="flex-1"
             >
-              {joiningEvent ? 'Joining...' : 'Join Event'}
+              {isJoiningEvent ? 'Joining...' : isEventFull ? 'Event Full' : 'Join Event'}
+            </Button>
+            <Button 
+              variant="outline" 
+              onClick={handleShareEvent}
+              className="flex items-center gap-2"
+            >
+              <Share2 className="h-4 w-4" />
+              Share
             </Button>
             <Button 
               variant="outline" 
