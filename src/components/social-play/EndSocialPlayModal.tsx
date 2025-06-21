@@ -7,12 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Separator } from '@/components/ui/separator';
-import { Checkbox } from '@/components/ui/checkbox';
-import { Trophy, Clock, Users, Star, Gift, Heart, Zap, Coins, Share2 } from 'lucide-react';
+import { Trophy, Clock, Users, Star, Gift, Heart, Zap, Coins } from 'lucide-react';
 import { AnimatedButton } from '@/components/ui/animated-button';
 import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
-import { useSocialPlayFeed } from '@/hooks/useSocialPlayFeed';
-import { formatDistanceToNow } from 'date-fns';
 
 interface EndSocialPlayModalProps {
   isOpen: boolean;
@@ -21,13 +18,11 @@ interface EndSocialPlayModalProps {
 
 export function EndSocialPlayModal({ isOpen, onClose }: EndSocialPlayModalProps) {
   const { activeSession, participants, completeSession, loading } = useSocialPlaySession();
-  const { createSocialPlayPost, isCreatingPost } = useSocialPlayFeed();
 
   const [sessionNotes, setSessionNotes] = useState('');
   const [selectedMood, setSelectedMood] = useState('');
   const [myScore, setMyScore] = useState('');
   const [opponentScore, setOpponentScore] = useState('');
-  const [shareToFeed, setShareToFeed] = useState(true);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   if (!activeSession) return null;
@@ -87,28 +82,8 @@ export function EndSocialPlayModal({ isOpen, onClose }: EndSocialPlayModalProps)
         finalScore = `${myScore || '0'}-${opponentScore || '0'}`;
       }
 
-      // Complete session using the new RPC function
-      const result = await completeSession(finalScore, sessionNotes.trim() || undefined, selectedMood);
-
-      // Create feed post if sharing is enabled
-      if (shareToFeed && result) {
-        const participantNames = joinedParticipants
-          .map(p => p.user?.full_name || 'Unknown')
-          .filter(name => name !== 'Unknown');
-
-        createSocialPlayPost({
-          sessionId: activeSession.id,
-          sessionType: activeSession.session_type,
-          competitiveLevel: activeSession.competitive_level,
-          duration: result.duration_minutes,
-          participantCount: result.participant_count,
-          participantNames,
-          location: activeSession.location || undefined,
-          finalScore: result.final_score || undefined,
-          mood: selectedMood,
-          notes: sessionNotes.trim() || undefined
-        });
-      }
+      // Complete session using the RPC function (database trigger will handle feed posting)
+      await completeSession(finalScore, sessionNotes.trim() || undefined, selectedMood);
 
       onClose();
     } catch (error) {
@@ -232,23 +207,6 @@ export function EndSocialPlayModal({ isOpen, onClose }: EndSocialPlayModalProps)
             </div>
           </div>
 
-          {/* Share to Feed Option */}
-          <div className="flex items-center space-x-2">
-            <Checkbox
-              id="share-to-feed"
-              checked={shareToFeed}
-              onCheckedChange={(checked) => setShareToFeed(!!checked)}
-              disabled={isSubmitting}
-            />
-            <Label 
-              htmlFor="share-to-feed" 
-              className="text-sm font-medium cursor-pointer flex items-center gap-2"
-            >
-              <Share2 className="h-4 w-4" />
-              Share session to your feed
-            </Label>
-          </div>
-
           <Separator />
 
           {/* Rewards Preview */}
@@ -300,7 +258,7 @@ export function EndSocialPlayModal({ isOpen, onClose }: EndSocialPlayModalProps)
             <AnimatedButton
               onClick={handleEndSession}
               disabled={!selectedMood || isSubmitting}
-              loading={isSubmitting || isCreatingPost}
+              loading={isSubmitting}
               className="flex-1 bg-purple-600 hover:bg-purple-700 text-white"
             >
               <Trophy className="h-4 w-4 mr-2" />

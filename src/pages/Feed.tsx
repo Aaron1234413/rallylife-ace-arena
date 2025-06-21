@@ -3,28 +3,30 @@ import React, { useState, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
-import { Activity } from 'lucide-react';
+import { Activity, Info } from 'lucide-react';
 import { FeedPost } from '@/components/feed/FeedPost';
 import { FeedHeader } from '@/components/feed/FeedHeader';
 import { useFeedData } from '@/hooks/useFeedData';
+import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Feed() {
   const [filter, setFilter] = useState<string>('all');
   const { feedPosts, loading, handleLike, handleComment, handleChallenge, refreshFeed } = useFeedData();
   const location = useLocation();
 
-  // Refresh feed when navigating to this page
+  // Refresh feed when navigating to this page or when location changes
   useEffect(() => {
     if (location.pathname === '/feed') {
       refreshFeed();
     }
-  }, [location.pathname]);
+  }, [location.pathname, refreshFeed]);
 
   const filteredPosts = feedPosts.filter(post => {
     if (filter === 'all') return true;
     if (filter === 'achievements') return post.type === 'achievement';
     if (filter === 'matches') return post.type === 'match_result';
     if (filter === 'level_ups') return post.type === 'level_up';
+    if (filter === 'social_play') return post.type === 'social_play';
     return true;
   });
 
@@ -63,6 +65,14 @@ export default function Feed() {
         filter={filter} 
         onFilterChange={setFilter}
       />
+
+      {/* Info alert about automatic posting */}
+      <Alert className="mb-6 border-blue-200 bg-blue-50">
+        <Info className="h-4 w-4 text-blue-600" />
+        <AlertDescription className="text-blue-800">
+          Your activities automatically appear in your feed when you complete sessions, matches, or training.
+        </AlertDescription>
+      </Alert>
 
       {filteredPosts.length === 0 ? (
         <Card>
