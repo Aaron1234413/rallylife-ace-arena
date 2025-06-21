@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -72,7 +71,14 @@ export function useSocialPlayEvents() {
         status: 'open' as const, // Type cast to expected union type
         created_at: event.created_at,
         creator: event.creator,
-        participants: event.participants
+        participants: event.participants?.map(participant => ({
+          id: participant.id,
+          user_id: participant.user_id,
+          status: (participant.status === 'joined' || participant.status === 'declined') 
+            ? participant.status as 'joined' | 'declined' 
+            : 'joined' as const, // Default to 'joined' for other statuses
+          user: participant.user
+        })) || []
       }));
       
       return transformedEvents;
