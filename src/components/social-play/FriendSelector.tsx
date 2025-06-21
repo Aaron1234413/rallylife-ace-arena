@@ -7,6 +7,7 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, UserPlus, X } from 'lucide-react';
 import { useProfiles } from '@/hooks/useProfiles';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Player {
   id: string;
@@ -29,10 +30,12 @@ export const FriendSelector: React.FC<FriendSelectorProps> = ({
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
   const { data: players, isLoading } = useProfiles();
+  const { user } = useAuth();
 
   const filteredPlayers = (players || []).filter(player => 
     player.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    !selectedFriends.some(selected => selected.id === player.id)
+    !selectedFriends.some(selected => selected.id === player.id) &&
+    player.id !== user?.id // Exclude the current user (session creator)
   );
 
   const canAddMore = selectedFriends.length < maxSelection;

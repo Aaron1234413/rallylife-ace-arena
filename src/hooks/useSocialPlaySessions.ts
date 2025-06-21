@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -146,7 +145,7 @@ export function useSocialPlaySessions() {
     enabled: !!user?.id
   });
 
-  // Create social play session
+  // Create social play session - updated to properly set session_creator_id
   const createSession = useMutation({
     mutationFn: async (sessionData: {
       session_type: 'singles' | 'doubles';
@@ -177,7 +176,7 @@ export function useSocialPlaySessions() {
         .insert({
           session_id: session.id,
           user_id: user.id,
-          session_creator_id: user.id,
+          session_creator_id: user.id, // Use the denormalized session_creator_id
           status: 'joined',
           joined_at: new Date().toISOString()
         });
@@ -189,7 +188,7 @@ export function useSocialPlaySessions() {
         const invitedParticipants = sessionData.participants.map(userId => ({
           session_id: session.id,
           user_id: userId,
-          session_creator_id: user.id,
+          session_creator_id: user.id, // Denormalized session creator ID
           status: 'invited' as const
         }));
 
