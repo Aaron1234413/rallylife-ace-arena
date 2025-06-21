@@ -16,7 +16,6 @@ import {
   MessageSquare
 } from 'lucide-react';
 import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
-import { useSocialPlayNotifications } from '@/hooks/useSocialPlayNotifications';
 import { getRandomSocialPlayMessage } from '@/utils/socialPlayMessages';
 import { formatDistanceToNow } from 'date-fns';
 import { EndSocialPlayModal } from './EndSocialPlayModal';
@@ -29,9 +28,6 @@ export function ActiveSocialPlayWidget() {
     updateSessionStatus, 
     loading 
   } = useSocialPlaySession();
-  
-  // Enable notifications
-  useSocialPlayNotifications();
   
   const [showEndModal, setShowEndModal] = useState(false);
   const [motivationalMessage, setMotivationalMessage] = useState(getRandomSocialPlayMessage());

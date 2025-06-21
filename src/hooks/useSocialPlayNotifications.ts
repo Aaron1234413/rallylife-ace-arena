@@ -1,5 +1,5 @@
 
-import { useEffect } from 'react';
+import { useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
@@ -7,11 +7,18 @@ import { useToast } from '@/hooks/use-toast';
 export function useSocialPlayNotifications() {
   const { user } = useAuth();
   const { toast } = useToast();
+  const channelsRef = useRef<{ [key: string]: any }>({});
 
   useEffect(() => {
     if (!user?.id) return;
 
     console.log('Setting up social play notifications for user:', user.id);
+
+    // Clean up existing channels first
+    Object.values(channelsRef.current).forEach(channel => {
+      supabase.removeChannel(channel);
+    });
+    channelsRef.current = {};
 
     // Listen for participant changes (invites, acceptances, etc.)
     const participantsChannel = supabase
@@ -88,10 +95,7 @@ export function useSocialPlayNotifications() {
             }
           }
         }
-      )
-      .subscribe((status) => {
-        console.log('Social play notifications channel status:', status);
-      });
+      );
 
     // Listen for session status changes
     const sessionsChannel = supabase
@@ -142,7 +146,6 @@ export function useSocialPlayNotifications() {
                   case 'cancelled':
                     title = 'Session Cancelled';
                     message = 'Your social play session has been cancelled';
-                    variant: 'destructive';
                     break;
                 }
                 
@@ -157,15 +160,29 @@ export function useSocialPlayNotifications() {
             }
           }
         }
-      )
-      .subscribe((status) => {
-        console.log('Social play sessions channel status:', status);
-      });
+      );
+
+    // Subscribe to channels one by one
+    participantsChannel.subscribe((status) => {
+      console.log('Social play notifications channel status:', status);
+    });
+
+    sessionsChannel.subscribe((status) => {
+      console.log('Social play sessions channel status:', status);
+    });
+
+    // Store channels for cleanup
+    channelsRef.current = {
+      participants: participantsChannel,
+      sessions: sessionsChannel
+    };
 
     return () => {
       console.log('Cleaning up social play notifications');
-      supabase.removeChannel(participantsChannel);
-      supabase.removeChannel(sessionsChannel);
+      Object.values(channelsRef.current).forEach(channel => {
+        supabase.removeChannel(channel);
+      });
+      channelsRef.current = {};
     };
   }, [user?.id, toast]);
 }

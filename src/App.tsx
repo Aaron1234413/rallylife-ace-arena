@@ -47,7 +47,7 @@ function App() {
   const session = useSession();
   const supabase = useSupabaseClient();
   
-  // Add social play notifications
+  // Only call social play notifications once at the app level
   useSocialPlayNotifications();
 
   return (
