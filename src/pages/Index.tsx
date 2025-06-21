@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -45,8 +46,8 @@ const Index = () => {
   const { tokenData: coachTokenData, loading: coachTokensLoading, addTokens: addCoachTokens, initializeTokens: initializeCoachTokens } = useCoachTokens();
   const { crpData, isLoading: crpLoading, initializeCRP } = useCoachCRP();
   
-  // Social Play Session Hook
-  const { joinEvent, loading } = useSocialPlaySession();
+  // Social Play Session Hook - removed joinEvent as it doesn't exist
+  const { loading } = useSocialPlaySession();
   
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);

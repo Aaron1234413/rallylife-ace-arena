@@ -69,7 +69,7 @@ export const ActiveSocialPlayWidget = () => {
                 <Button
                   onClick={() => startSession({
                     id: dbSession.id,
-                    sessionType: dbSession.session_type,
+                    sessionType: dbSession.session_type as 'singles' | 'doubles',
                     location: dbSession.location || undefined
                   })}
                   className="flex items-center gap-2"
