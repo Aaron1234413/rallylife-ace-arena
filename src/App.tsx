@@ -1,108 +1,77 @@
 
-import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
-import { Auth } from '@supabase/auth-ui-react';
-import { ThemeSupa } from '@supabase/auth-ui-shared';
-import { useSession, useSupabaseClient } from '@supabase/auth-helpers-react';
-import { Toaster } from '@/components/ui/toaster';
-import { SocialPlaySessionProvider } from '@/contexts/SocialPlaySessionContext';
-import { ActiveSocialPlayWidget } from '@/components/social-play/ActiveSocialPlayWidget';
-import { SocialPlayInvitations } from '@/components/social-play/SocialPlayInvitations';
-import { useSocialPlayNotifications } from '@/hooks/useSocialPlayNotifications';
-// Import existing pages
-import Feed from './pages/Feed';
-import StartSocialPlay from './pages/StartSocialPlay';
+import {
+  QueryClient,
+  QueryClientProvider,
+} from "@tanstack/react-query";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { Toaster } from "@/components/ui/toaster"
+import { AppLayout } from "@/components/layout/AppLayout";
+import { MatchSessionProvider } from "@/contexts/MatchSessionContext";
+import { TrainingSessionProvider } from "@/contexts/TrainingSessionContext";
+import { SocialPlaySessionProvider } from "@/contexts/SocialPlaySessionContext";
+import { FloatingCheckInTrigger } from "@/components/training/FloatingCheckInTrigger";
 
-// Create placeholder components for missing pages
-const Home = () => (
-  <div className="text-center space-y-6">
-    <h1 className="text-3xl font-bold">Welcome to RallyLife</h1>
-    <p className="text-muted-foreground">Your gamified tennis platform</p>
-  </div>
-);
+import Auth from "@/pages/Auth";
+import Index from "@/pages/Index";
+import NotFound from "@/pages/NotFound";
+import Onboarding from "@/pages/Onboarding";
+import Search from "@/pages/Search";
+import Store from "@/pages/Store";
+import Profile from "@/pages/Profile";
+import Pulse from "@/pages/Pulse";
+import ProtectedRoute from "@/components/ProtectedRoute";
+import Messages from "@/pages/Messages";
+import Scheduling from "@/pages/Scheduling";
+import Feed from "@/pages/Feed";
+import Maps from "@/pages/Maps";
+import StartMatch from "@/pages/StartMatch";
+import EndMatch from "@/pages/EndMatch";
+import StartTraining from "@/pages/StartTraining";
+import EndTraining from "@/pages/EndTraining";
+import StartSocialPlay from "@/pages/StartSocialPlay";
+import JoinSocialPlay from "@/pages/JoinSocialPlay";
 
-const Account = ({ session }: { session: any }) => (
-  <div className="text-center space-y-6">
-    <h1 className="text-2xl font-bold">Account</h1>
-    <p>Welcome, {session?.user?.email}</p>
-  </div>
-);
-
-const Training = () => (
-  <div className="text-center space-y-6">
-    <h1 className="text-2xl font-bold">Training</h1>
-    <p className="text-muted-foreground">Training features coming soon</p>
-  </div>
-);
-
-const Matches = () => (
-  <div className="text-center space-y-6">
-    <h1 className="text-2xl font-bold">Matches</h1>
-    <p className="text-muted-foreground">Match features coming soon</p>
-  </div>
-);
+const queryClient = new QueryClient();
 
 function App() {
-  const [showHeader, setShowHeader] = useState(true);
-  const session = useSession();
-  const supabase = useSupabaseClient();
-  
-  // Only call social play notifications once at the app level
-  useSocialPlayNotifications();
-
   return (
-    <>
-      <Router>
-        <div className="container" style={{ padding: '50px 0 100px 0' }}>
+    <QueryClientProvider client={queryClient}>
+      <TrainingSessionProvider>
+        <MatchSessionProvider>
           <SocialPlaySessionProvider>
-            {showHeader && (
-              <div className="mb-8 grid grid-cols-1 md:grid-cols-2 gap-4">
-                <ActiveSocialPlayWidget />
-                <SocialPlayInvitations />
-              </div>
-            )}
-
-            <Routes>
-              <Route path="/" element={<Home />} />
-              <Route path="/training" element={<Training />} />
-              <Route path="/matches" element={<Matches />} />
-              <Route path="/feed" element={<Feed />} />
-              <Route path="/start-social-play" element={<StartSocialPlay />} />
-              <Route
-                path="/account"
-                element={
-                  !session ? (
-                    <Navigate to="/login" replace={true} />
-                  ) : (
-                    <Account key={session.user.id} session={session} />
-                  )
-                }
-              />
-              <Route
-                path="/login"
-                element={
-                  session ? (
-                    <Navigate to="/account" replace={true} />
-                  ) : (
-                    <div className="w-full flex justify-center">
-                      <div className="block-container w-full max-w-sm">
-                        <Auth
-                          supabaseClient={supabase}
-                          appearance={{ theme: ThemeSupa }}
-                          providers={['google', 'github']}
-                          redirectTo={`${window.location.origin}/account`}
-                        />
-                      </div>
-                    </div>
-                  )
-                }
-              />
-            </Routes>
+            <BrowserRouter>
+              <AppLayout>
+                <Toaster />
+                <FloatingCheckInTrigger />
+                <Routes>
+                  <Route path="/auth" element={<Auth />} />
+                  <Route path="/auth/login" element={<Auth />} />
+                  <Route path="/auth/signup" element={<Auth />} />
+                  <Route path="/auth/forgot-password" element={<Auth />} />
+                  <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+                  <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
+                  <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
+                  <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
+                  <Route path="/pulse" element={<ProtectedRoute><Pulse /></ProtectedRoute>} />
+                  <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
+                  <Route path="/scheduling" element={<ProtectedRoute><Scheduling /></ProtectedRoute>} />
+                  <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+                  <Route path="/maps" element={<ProtectedRoute><Maps /></ProtectedRoute>} />
+                  <Route path="/start-match" element={<ProtectedRoute><StartMatch /></ProtectedRoute>} />
+                  <Route path="/end-match" element={<ProtectedRoute><EndMatch /></ProtectedRoute>} />
+                  <Route path="/start-training" element={<ProtectedRoute><StartTraining /></ProtectedRoute>} />
+                  <Route path="/end-training" element={<ProtectedRoute><EndTraining /></ProtectedRoute>} />
+                  <Route path="/start-social-play" element={<ProtectedRoute><StartSocialPlay /></ProtectedRoute>} />
+                  <Route path="/join-social-play" element={<ProtectedRoute><JoinSocialPlay /></ProtectedRoute>} />
+                  <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </AppLayout>
+            </BrowserRouter>
           </SocialPlaySessionProvider>
-        </div>
-      </Router>
-      <Toaster />
-    </>
+        </MatchSessionProvider>
+      </TrainingSessionProvider>
+    </QueryClientProvider>
   );
 }
 
