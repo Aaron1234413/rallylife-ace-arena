@@ -2154,6 +2154,45 @@ export type Database = {
         }
         Relationships: []
       }
+      social_play_access: {
+        Row: {
+          access_type: string
+          created_at: string | null
+          id: string
+          session_id: string
+          user_id: string
+        }
+        Insert: {
+          access_type: string
+          created_at?: string | null
+          id?: string
+          session_id: string
+          user_id: string
+        }
+        Update: {
+          access_type?: string
+          created_at?: string | null
+          id?: string
+          session_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "social_play_access_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "social_play_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "social_play_access_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       social_play_checkins: {
         Row: {
           checked_in_at: string

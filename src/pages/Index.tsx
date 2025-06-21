@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -169,7 +168,10 @@ const Index = () => {
           <SocialPlayQuickActions />
 
           {/* Active Session Widgets */}
-          <ActiveSocialPlayWidget />
+          <ActiveSocialPlayWidget 
+            onAddXP={handleAddXP}
+            onRestoreHP={handleRestoreHP}
+          />
           <ActiveMatchWidget />
           <ActiveTrainingWidget />
 

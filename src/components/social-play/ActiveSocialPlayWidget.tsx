@@ -7,11 +7,21 @@ import { Users, Clock, Play, Square, MapPin } from 'lucide-react';
 import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
 import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
 import { ShareLinkGenerator } from './ShareLinkGenerator';
+import { SimpleEndEventModal } from './SimpleEndEventModal';
 
-export const ActiveSocialPlayWidget = () => {
+interface ActiveSocialPlayWidgetProps {
+  onAddXP?: (amount: number, type: string, desc?: string) => Promise<void>;
+  onRestoreHP?: (amount: number, type: string, desc?: string) => Promise<void>;
+}
+
+export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
+  onAddXP,
+  onRestoreHP
+}) => {
   const { activeSession, startSession, endSession, getDurationMinutes, loading } = useSocialPlaySession();
   const { activeSession: dbSession } = useSocialPlaySessions();
   const [duration, setDuration] = useState(0);
+  const [showEndModal, setShowEndModal] = useState(false);
 
   // Update duration every minute
   useEffect(() => {
@@ -25,6 +35,11 @@ export const ActiveSocialPlayWidget = () => {
     const interval = setInterval(updateDuration, 60000); // Update every minute
     return () => clearInterval(interval);
   }, [activeSession, getDurationMinutes]);
+
+  const handleEndSession = async () => {
+    await endSession();
+    setShowEndModal(false);
+  };
 
   // Show database session that could be started
   if (!activeSession && dbSession && dbSession.status === 'pending') {
@@ -97,57 +112,71 @@ export const ActiveSocialPlayWidget = () => {
   // Show active session
   if (activeSession) {
     return (
-      <Card className="border-green-200 bg-green-50/50">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <Users className="h-5 w-5 text-green-600" />
-              <span className="text-lg">Playing Now</span>
-            </div>
-            <Badge variant="outline" className="flex items-center gap-1 bg-green-100">
-              <Clock className="h-3 w-3" />
-              {duration}m
-            </Badge>
-          </CardTitle>
-        </CardHeader>
+      <>
+        <Card className="border-green-200 bg-green-50/50">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="h-5 w-5 text-green-600" />
+                <span className="text-lg">Playing Now</span>
+              </div>
+              <Badge variant="outline" className="flex items-center gap-1 bg-green-100">
+                <Clock className="h-3 w-3" />
+                {duration}m
+              </Badge>
+            </CardTitle>
+          </CardHeader>
 
-        <CardContent className="space-y-4">
-          <div className="bg-white rounded-lg p-4 border shadow-sm">
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <h4 className="font-medium capitalize">
-                  {activeSession.sessionType} Session
-                </h4>
-                <Badge variant="secondary" className="bg-green-100 text-green-800">
-                  Active
-                </Badge>
-              </div>
-              
-              {activeSession.location && (
-                <div className="flex items-center gap-1 text-sm text-muted-foreground">
-                  <MapPin className="h-3 w-3" />
-                  {activeSession.location}
+          <CardContent className="space-y-4">
+            <div className="bg-white rounded-lg p-4 border shadow-sm">
+              <div className="space-y-3">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-medium capitalize">
+                    {activeSession.sessionType} Session
+                  </h4>
+                  <Badge variant="secondary" className="bg-green-100 text-green-800">
+                    Active
+                  </Badge>
                 </div>
-              )}
-              
-              <div className="text-center py-4">
-                <div className="text-2xl font-bold text-green-600">{duration}</div>
-                <div className="text-sm text-muted-foreground">minutes played</div>
+                
+                {activeSession.location && (
+                  <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                    <MapPin className="h-3 w-3" />
+                    {activeSession.location}
+                  </div>
+                )}
+                
+                <div className="text-center py-4">
+                  <div className="text-2xl font-bold text-green-600">{duration}</div>
+                  <div className="text-sm text-muted-foreground">minutes played</div>
+                </div>
+                
+                <Button
+                  onClick={() => setShowEndModal(true)}
+                  variant="outline"
+                  className="w-full flex items-center gap-2"
+                  disabled={loading}
+                >
+                  <Square className="h-4 w-4" />
+                  End Session
+                </Button>
               </div>
-              
-              <Button
-                onClick={endSession}
-                variant="outline"
-                className="w-full flex items-center gap-2"
-                disabled={loading}
-              >
-                <Square className="h-4 w-4" />
-                End Session
-              </Button>
             </div>
-          </div>
-        </CardContent>
-      </Card>
+          </CardContent>
+        </Card>
+
+        {/* End Session Modal */}
+        {onAddXP && onRestoreHP && (
+          <SimpleEndEventModal
+            open={showEndModal}
+            onOpenChange={setShowEndModal}
+            durationMinutes={duration}
+            onConfirmEnd={handleEndSession}
+            onAddXP={onAddXP}
+            onRestoreHP={onRestoreHP}
+          />
+        )}
+      </>
     );
   }
 
