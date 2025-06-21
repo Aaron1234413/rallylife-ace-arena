@@ -5,10 +5,14 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Bell, Check, X, Users, Clock, MapPin } from 'lucide-react';
 import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
+import { useSocialPlayNotifications } from '@/hooks/useSocialPlayNotifications';
 import { formatDistanceToNow } from 'date-fns';
 
 export const SocialPlayInvitations = () => {
   const { sessions, acceptInvitation, isAcceptingInvitation } = useSocialPlaySessions();
+  
+  // Enable notifications for this component
+  useSocialPlayNotifications();
 
   // Filter for sessions where user is invited but hasn't accepted
   const pendingInvitations = sessions.filter(session => {

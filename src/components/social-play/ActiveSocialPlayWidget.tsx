@@ -4,63 +4,94 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Clock, MapPin, Play, Pause, Square, MessageCircle, Trophy, Share2, Copy } from 'lucide-react';
+import { 
+  Users, 
+  Play, 
+  Pause, 
+  Square, 
+  Clock, 
+  MapPin, 
+  Trophy,
+  UserPlus,
+  MessageSquare
+} from 'lucide-react';
 import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
+import { useSocialPlayNotifications } from '@/hooks/useSocialPlayNotifications';
+import { getRandomSocialPlayMessage } from '@/utils/socialPlayMessages';
 import { formatDistanceToNow } from 'date-fns';
-import { SocialPlayCheckInModal } from './SocialPlayCheckInModal';
 import { EndSocialPlayModal } from './EndSocialPlayModal';
-import { toast } from 'sonner';
 
-export const ActiveSocialPlayWidget = () => {
+export function ActiveSocialPlayWidget() {
   const { 
     activeSession, 
     participants, 
-    isSessionActive, 
-    isSessionOwner,
-    updateSessionStatus,
-    leaveSession,
+    isSessionOwner, 
+    updateSessionStatus, 
     loading 
   } = useSocialPlaySession();
-
-  const [isCheckInModalOpen, setIsCheckInModalOpen] = useState(false);
-  const [isEndModalOpen, setIsEndModalOpen] = useState(false);
-  const [sessionDuration, setSessionDuration] = useState(0);
-
-  // Update session duration every minute
+  
+  // Enable notifications
+  useSocialPlayNotifications();
+  
+  const [showEndModal, setShowEndModal] = useState(false);
+  const [motivationalMessage, setMotivationalMessage] = useState(getRandomSocialPlayMessage());
+  
+  // Rotate motivational message every 30 seconds
   useEffect(() => {
-    if (!isSessionActive || !activeSession?.start_time) return;
-
-    const updateDuration = () => {
-      const startTime = new Date(activeSession.start_time);
-      const now = new Date();
-      const durationMinutes = Math.floor((now.getTime() - startTime.getTime()) / (1000 * 60));
-      setSessionDuration(durationMinutes);
-    };
-
-    updateDuration();
-    const interval = setInterval(updateDuration, 60000); // Update every minute
+    const interval = setInterval(() => {
+      setMotivationalMessage(getRandomSocialPlayMessage());
+    }, 30000);
+    
     return () => clearInterval(interval);
-  }, [isSessionActive, activeSession?.start_time]);
+  }, []);
 
-  // Don't render if no active session
-  if (!isSessionActive || !activeSession) {
-    return null;
+  if (!activeSession) {
+    return (
+      <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg flex items-center gap-2">
+            <Users className="h-5 w-5 text-purple-600" />
+            Social Play
+          </CardTitle>
+          <p className="text-sm text-purple-700 font-medium animate-pulse">
+            {motivationalMessage}
+          </p>
+        </CardHeader>
+        <CardContent>
+          <p className="text-sm text-muted-foreground mb-4">
+            No active social play session. Create one to start playing with friends!
+          </p>
+          <Button 
+            className="w-full bg-purple-600 hover:bg-purple-700"
+            onClick={() => window.location.href = '/start-social-play'}
+          >
+            <UserPlus className="h-4 w-4 mr-2" />
+            Start Social Play
+          </Button>
+        </CardContent>
+      </Card>
+    );
   }
+
+  const joinedParticipants = participants.filter(p => p.status === 'joined' || p.status === 'accepted');
+  const sessionDuration = activeSession.start_time 
+    ? Math.floor((new Date().getTime() - new Date(activeSession.start_time).getTime()) / (1000 * 60))
+    : 0;
 
   const getStatusColor = (status: string) => {
     switch (status) {
-      case 'pending': return 'bg-yellow-500';
       case 'active': return 'bg-green-500';
-      case 'paused': return 'bg-orange-500';
+      case 'paused': return 'bg-yellow-500';
+      case 'pending': return 'bg-blue-500';
       default: return 'bg-gray-500';
     }
   };
 
   const getStatusText = (status: string) => {
     switch (status) {
-      case 'pending': return 'Waiting to start';
-      case 'active': return 'Playing now';
+      case 'active': return 'Playing';
       case 'paused': return 'Paused';
+      case 'pending': return 'Waiting';
       default: return status;
     }
   };
@@ -74,71 +105,16 @@ export const ActiveSocialPlayWidget = () => {
     }
   };
 
-  const getCompetitiveLevelColor = (level: string) => {
-    switch (level) {
-      case 'low': return 'bg-blue-100 text-blue-800';
-      case 'medium': return 'bg-green-100 text-green-800';
-      case 'high': return 'bg-red-100 text-red-800';
-      default: return 'bg-gray-100 text-gray-800';
-    }
-  };
-
-  const handleStartSession = () => {
-    updateSessionStatus('active');
-  };
-
-  const handlePauseSession = () => {
-    updateSessionStatus('paused');
-  };
-
-  const handleResumeSession = () => {
-    updateSessionStatus('active');
-  };
-
-  const handleEndSession = () => {
-    setIsEndModalOpen(true);
-  };
-
-  const handleCopyShareLink = async () => {
-    const shareUrl = `${window.location.origin}/join-social-play?id=${activeSession.id}`;
-    
-    try {
-      await navigator.clipboard.writeText(shareUrl);
-      toast.success('Share link copied to clipboard!');
-    } catch (error) {
-      // Fallback for older browsers
-      const textArea = document.createElement('textarea');
-      textArea.value = shareUrl;
-      document.body.appendChild(textArea);
-      textArea.select();
-      document.execCommand('copy');
-      document.body.removeChild(textArea);
-      toast.success('Share link copied to clipboard!');
-    }
-  };
-
-  const joinedParticipants = participants.filter(p => p.status === 'joined' || p.status === 'accepted');
-  const pendingParticipants = participants.filter(p => p.status === 'invited');
-
-  // Find the host participant to get their details
-  const hostParticipant = participants.find(p => p.session_creator_id === p.user_id);
-
-  const displayDuration = () => {
-    if (activeSession.status === 'pending') {
-      return `Created ${formatDistanceToNow(new Date(activeSession.created_at))} ago`;
-    }
-    if (activeSession.start_time) {
-      return sessionDuration > 0 ? `${sessionDuration}m` : 'Just started';
-    }
-    return 'Not started';
+  const handleStatusUpdate = (status: 'active' | 'paused') => {
+    updateSessionStatus(status);
   };
 
   return (
     <>
-      <Card className="border-2 border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
+      <Card className="border-purple-200 bg-gradient-to-r from-purple-50 to-pink-50">
         <CardHeader className="pb-3">
           <div className="flex items-center justify-between">
-            <CardTitle className="text-lg font-semibold flex items-center gap-2">
+            <CardTitle className="text-lg flex items-center gap-2">
               <Users className="h-5 w-5 text-purple-600" />
               Social Play Session
             </CardTitle>
@@ -146,206 +122,126 @@ export const ActiveSocialPlayWidget = () => {
               {getStatusText(activeSession.status)}
             </Badge>
           </div>
-          
-          <div className="flex items-center gap-4 text-sm text-muted-foreground">
-            <div className="flex items-center gap-1">
-              <Clock className="h-4 w-4" />
-              {displayDuration()}
+          <p className="text-sm text-purple-700 font-medium">
+            {activeSession.session_type === 'singles' ? 'Singles (1v1)' : 'Doubles (2v2)'} • {getCompetitiveLevelText(activeSession.competitive_level)}
+          </p>
+        </CardHeader>
+
+        <CardContent className="space-y-4">
+          {/* Session Info */}
+          <div className="grid grid-cols-2 gap-4 text-sm">
+            {activeSession.start_time && (
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <span>{sessionDuration} min</span>
+              </div>
+            )}
+            <div className="flex items-center gap-2">
+              <Users className="h-4 w-4 text-muted-foreground" />
+              <span>{joinedParticipants.length + 1} players</span>
             </div>
             {activeSession.location && (
-              <div className="flex items-center gap-1">
-                <MapPin className="h-4 w-4" />
-                {activeSession.location}
+              <div className="flex items-center gap-2 col-span-2">
+                <MapPin className="h-4 w-4 text-muted-foreground" />
+                <span className="truncate">{activeSession.location}</span>
               </div>
             )}
           </div>
-        </CardHeader>
-        
-        <CardContent className="space-y-4">
-          <div className="flex items-center gap-3 flex-wrap">
-            <Badge variant="outline" className="bg-white">
-              {activeSession.session_type === 'singles' ? 'Singles' : 'Doubles'}
-            </Badge>
-            <Badge variant="outline" className={`${getCompetitiveLevelColor(activeSession.competitive_level)} border-0`}>
-              {getCompetitiveLevelText(activeSession.competitive_level)}
-            </Badge>
-            <Badge variant="outline" className="bg-white">
-              {joinedParticipants.length + 1} players
-            </Badge>
-          </div>
 
-          <div className="space-y-3">
-            <h4 className="font-medium text-sm flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Players ({joinedParticipants.length + 1})
-            </h4>
-            
-            <div className="flex flex-wrap gap-2">
-              {/* Show session creator/host */}
-              {isSessionOwner ? (
-                <div className="flex items-center gap-2 bg-purple-100 rounded-full px-3 py-1.5 border">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src="" />
-                    <AvatarFallback className="text-xs bg-purple-200">ME</AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium">You</span>
-                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4">Host</Badge>
-                </div>
-              ) : hostParticipant ? (
-                <div className="flex items-center gap-2 bg-purple-100 rounded-full px-3 py-1.5 border">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={hostParticipant.user?.avatar_url || ''} />
-                    <AvatarFallback className="text-xs bg-purple-200">
-                      {hostParticipant.user?.full_name?.charAt(0) || 'H'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm font-medium">{hostParticipant.user?.full_name || 'Host'}</span>
-                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4">Host</Badge>
-                </div>
-              ) : null}
-              
-              {/* Show joined participants (excluding host) */}
-              {joinedParticipants
-                .filter(p => p.session_creator_id !== p.user_id) // Exclude host
-                .map((participant) => (
-                <div key={participant.id} className="flex items-center gap-2 bg-white rounded-full px-3 py-1.5 border">
-                  <Avatar className="h-6 w-6">
-                    <AvatarImage src={participant.user?.avatar_url || ''} />
-                    <AvatarFallback className="text-xs bg-gray-200">
-                      {participant.user?.full_name?.charAt(0) || 'U'}
-                    </AvatarFallback>
-                  </Avatar>
-                  <span className="text-sm">{participant.user?.full_name || 'Unknown'}</span>
-                </div>
-              ))}
+          {/* Participants */}
+          {joinedParticipants.length > 0 && (
+            <div className="space-y-2">
+              <p className="text-sm font-medium">Playing with:</p>
+              <div className="flex flex-wrap gap-2">
+                {joinedParticipants.map((participant) => (
+                  <div
+                    key={participant.id}
+                    className="flex items-center gap-2 bg-white rounded-full px-3 py-1 text-sm border"
+                  >
+                    <Avatar className="h-5 w-5">
+                      <AvatarImage src={participant.user?.avatar_url || ''} />
+                      <AvatarFallback className="text-xs">
+                        {participant.user?.full_name?.charAt(0) || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <span>{participant.user?.full_name || 'Unknown'}</span>
+                  </div>
+                ))}
+              </div>
             </div>
+          )}
 
-            {/* Pending invitations */}
-            {pendingParticipants.length > 0 && (
-              <div className="text-xs text-muted-foreground bg-yellow-50 p-2 rounded">
-                ⏳ {pendingParticipants.length} player(s) invited, waiting for response
-              </div>
-            )}
-          </div>
-
-          {/* Session Owner Controls */}
+          {/* Session Controls (Owner Only) */}
           {isSessionOwner && (
-            <div className="flex gap-2 pt-2">
+            <div className="flex gap-2">
               {activeSession.status === 'pending' && (
-                <Button 
-                  onClick={handleStartSession}
-                  className="flex-1 h-9 bg-green-600 hover:bg-green-700"
+                <Button
+                  onClick={() => handleStatusUpdate('active')}
                   disabled={loading}
+                  className="flex-1"
                 >
-                  <Play className="h-4 w-4 mr-1" />
+                  <Play className="h-4 w-4 mr-2" />
                   Start Session
                 </Button>
               )}
               
               {activeSession.status === 'active' && (
-                <>
-                  <Button 
-                    onClick={handlePauseSession}
-                    variant="outline"
-                    className="flex-1 h-9"
-                    disabled={loading}
-                  >
-                    <Pause className="h-4 w-4 mr-1" />
-                    Pause
-                  </Button>
-                  <Button 
-                    onClick={handleEndSession}
-                    className="flex-1 h-9 bg-purple-600 hover:bg-purple-700"
-                    disabled={loading}
-                  >
-                    <Trophy className="h-4 w-4 mr-1" />
-                    Complete
-                  </Button>
-                </>
+                <Button
+                  onClick={() => handleStatusUpdate('paused')}
+                  disabled={loading}
+                  variant="outline"
+                  className="flex-1"
+                >
+                  <Pause className="h-4 w-4 mr-2" />
+                  Pause
+                </Button>
               )}
               
               {activeSession.status === 'paused' && (
-                <>
-                  <Button 
-                    onClick={handleResumeSession}
-                    className="flex-1 h-9 bg-green-600 hover:bg-green-700"
-                    disabled={loading}
-                  >
-                    <Play className="h-4 w-4 mr-1" />
-                    Resume
-                  </Button>
-                  <Button 
-                    onClick={handleEndSession}
-                    className="flex-1 h-9 bg-purple-600 hover:bg-purple-700"
-                    disabled={loading}
-                  >
-                    <Trophy className="h-4 w-4 mr-1" />
-                    Complete
-                  </Button>
-                </>
+                <Button
+                  onClick={() => handleStatusUpdate('active')}
+                  disabled={loading}
+                  className="flex-1"
+                >
+                  <Play className="h-4 w-4 mr-2" />
+                  Resume
+                </Button>
+              )}
+              
+              {activeSession.status !== 'pending' && (
+                <Button
+                  onClick={() => setShowEndModal(true)}
+                  disabled={loading}
+                  variant="destructive"
+                  className="flex-1"
+                >
+                  <Square className="h-4 w-4 mr-2" />
+                  End Session
+                </Button>
               )}
             </div>
           )}
 
-          {/* Participant Actions */}
-          <div className="flex gap-2 pt-2">
-            <Button
-              onClick={() => setIsCheckInModalOpen(true)}
-              variant="outline"
-              className="flex-1 h-9"
-            >
-              <MessageCircle className="h-4 w-4 mr-2" />
-              Check-In
-            </Button>
-
-            {/* Copy Share Link Button */}
-            <Button
-              onClick={handleCopyShareLink}
-              variant="outline"
-              className="flex-1 h-9"
-            >
-              <Share2 className="h-4 w-4 mr-2" />
-              Share Link
-            </Button>
-            
-            {!isSessionOwner && (
-              <>
-                <Button 
-                  onClick={leaveSession}
-                  variant="outline"
-                  className="flex-1 h-9 text-red-600 hover:text-red-700"
-                  disabled={loading}
-                >
-                  Leave Session
-                </Button>
-                {(activeSession.status === 'active' || activeSession.status === 'paused') && (
-                  <Button 
-                    onClick={handleEndSession}
-                    className="flex-1 h-9 bg-purple-600 hover:bg-purple-700"
-                    disabled={loading}
-                  >
-                    <Trophy className="h-4 w-4 mr-1" />
-                    Complete
-                  </Button>
-                )}
-              </>
-            )}
-          </div>
+          {/* Non-owner message */}
+          {!isSessionOwner && (
+            <div className="text-center py-2">
+              <p className="text-sm text-muted-foreground">
+                {activeSession.status === 'pending' ? 'Waiting for session to start...' : 'Session in progress'}
+              </p>
+              {activeSession.status === 'active' && (
+                <p className="text-xs text-muted-foreground mt-1">
+                  Started {formatDistanceToNow(new Date(activeSession.start_time!))} ago
+                </p>
+              )}
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Check-In Modal */}
-      <SocialPlayCheckInModal
-        isOpen={isCheckInModalOpen}
-        onClose={() => setIsCheckInModalOpen(false)}
-        sessionId={activeSession.id}
-      />
-
-      {/* End Session Modal */}
       <EndSocialPlayModal
-        isOpen={isEndModalOpen}
-        onClose={() => setIsEndModalOpen(false)}
+        isOpen={showEndModal}
+        onClose={() => setShowEndModal(false)}
       />
     </>
   );
-};
+}
