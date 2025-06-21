@@ -1,13 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Clock, MapPin, Play, Pause, Square, MessageCircle, Trophy } from 'lucide-react';
+import { Users, Clock, MapPin, Play, Pause, Square, MessageCircle, Trophy, Share2, Copy } from 'lucide-react';
 import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
 import { formatDistanceToNow } from 'date-fns';
 import { SocialPlayCheckInModal } from './SocialPlayCheckInModal';
 import { EndSocialPlayModal } from './EndSocialPlayModal';
+import { toast } from 'sonner';
 
 export const ActiveSocialPlayWidget = () => {
   const { 
@@ -97,8 +99,29 @@ export const ActiveSocialPlayWidget = () => {
     setIsEndModalOpen(true);
   };
 
+  const handleCopyShareLink = async () => {
+    const shareUrl = `${window.location.origin}/join-social-play?id=${activeSession.id}`;
+    
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      toast.success('Share link copied to clipboard!');
+    } catch (error) {
+      // Fallback for older browsers
+      const textArea = document.createElement('textarea');
+      textArea.value = shareUrl;
+      document.body.appendChild(textArea);
+      textArea.select();
+      document.execCommand('copy');
+      document.body.removeChild(textArea);
+      toast.success('Share link copied to clipboard!');
+    }
+  };
+
   const joinedParticipants = participants.filter(p => p.status === 'joined' || p.status === 'accepted');
   const pendingParticipants = participants.filter(p => p.status === 'invited');
+
+  // Find the host participant to get their details
+  const hostParticipant = participants.find(p => p.session_creator_id === p.user_id);
 
   const displayDuration = () => {
     if (activeSession.status === 'pending') {
@@ -158,18 +181,33 @@ export const ActiveSocialPlayWidget = () => {
             </h4>
             
             <div className="flex flex-wrap gap-2">
-              {/* Show session creator */}
-              <div className="flex items-center gap-2 bg-purple-100 rounded-full px-3 py-1.5 border">
-                <Avatar className="h-6 w-6">
-                  <AvatarImage src="" />
-                  <AvatarFallback className="text-xs bg-purple-200">ME</AvatarFallback>
-                </Avatar>
-                <span className="text-sm font-medium">You</span>
-                <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4">Host</Badge>
-              </div>
+              {/* Show session creator/host */}
+              {isSessionOwner ? (
+                <div className="flex items-center gap-2 bg-purple-100 rounded-full px-3 py-1.5 border">
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src="" />
+                    <AvatarFallback className="text-xs bg-purple-200">ME</AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium">You</span>
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4">Host</Badge>
+                </div>
+              ) : hostParticipant ? (
+                <div className="flex items-center gap-2 bg-purple-100 rounded-full px-3 py-1.5 border">
+                  <Avatar className="h-6 w-6">
+                    <AvatarImage src={hostParticipant.user?.avatar_url || ''} />
+                    <AvatarFallback className="text-xs bg-purple-200">
+                      {hostParticipant.user?.full_name?.charAt(0) || 'H'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="text-sm font-medium">{hostParticipant.user?.full_name || 'Host'}</span>
+                  <Badge variant="secondary" className="text-xs px-1.5 py-0.5 h-4">Host</Badge>
+                </div>
+              ) : null}
               
-              {/* Show joined participants */}
-              {joinedParticipants.map((participant) => (
+              {/* Show joined participants (excluding host) */}
+              {joinedParticipants
+                .filter(p => p.session_creator_id !== p.user_id) // Exclude host
+                .map((participant) => (
                 <div key={participant.id} className="flex items-center gap-2 bg-white rounded-full px-3 py-1.5 border">
                   <Avatar className="h-6 w-6">
                     <AvatarImage src={participant.user?.avatar_url || ''} />
@@ -258,6 +296,16 @@ export const ActiveSocialPlayWidget = () => {
             >
               <MessageCircle className="h-4 w-4 mr-2" />
               Check-In
+            </Button>
+
+            {/* Copy Share Link Button */}
+            <Button
+              onClick={handleCopyShareLink}
+              variant="outline"
+              className="flex-1 h-9"
+            >
+              <Share2 className="h-4 w-4 mr-2" />
+              Share Link
             </Button>
             
             {!isSessionOwner && (
