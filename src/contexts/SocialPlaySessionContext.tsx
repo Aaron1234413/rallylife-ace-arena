@@ -60,6 +60,15 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
   const [participants, setParticipants] = useState<SocialPlayParticipant[]>([]);
   const [loading, setLoading] = useState(false);
 
+  // Persist active session to localStorage
+  const persistSession = (session: SocialPlaySessionData | null) => {
+    if (session) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+    } else {
+      localStorage.removeItem(STORAGE_KEY);
+    }
+  };
+
   // Load active session on mount
   useEffect(() => {
     if (user?.id) {
@@ -67,15 +76,15 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
     }
   }, [user?.id]);
 
-  // Set up real-time subscriptions
+  // Enhanced real-time subscriptions with better error handling
   useEffect(() => {
-    if (!activeSession?.id) return;
+    if (!activeSession?.id || !user?.id) return;
 
-    console.log('Setting up real-time subscriptions for session:', activeSession.id);
+    console.log('Setting up enhanced real-time subscriptions for session:', activeSession.id);
 
     // Session updates subscription
     const sessionChannel = supabase
-      .channel(`session-${activeSession.id}`)
+      .channel(`session-updates-${activeSession.id}`)
       .on(
         'postgres_changes',
         {
@@ -85,19 +94,31 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
           filter: `id=eq.${activeSession.id}`
         },
         (payload) => {
-          console.log('Session update received:', payload);
-          if (payload.eventType === 'UPDATE') {
-            setActiveSession(payload.new as SocialPlaySessionData);
+          console.log('Session real-time update:', payload);
+          if (payload.eventType === 'UPDATE' && payload.new) {
+            const updatedSession = payload.new as SocialPlaySessionData;
+            setActiveSession(updatedSession);
+            persistSession(updatedSession);
+            
+            // Show toast for status changes
+            if (payload.old && payload.old.status !== updatedSession.status) {
+              toast({
+                title: 'Session Updated',
+                description: `Session status changed to ${updatedSession.status}`,
+              });
+            }
           } else if (payload.eventType === 'DELETE') {
             handleSessionDeleted();
           }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Session channel status:', status);
+      });
 
-    // Participants updates subscription
+    // Participants updates subscription with enhanced filtering
     const participantsChannel = supabase
-      .channel(`participants-${activeSession.id}`)
+      .channel(`participants-updates-${activeSession.id}`)
       .on(
         'postgres_changes',
         {
@@ -107,18 +128,43 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
           filter: `session_id=eq.${activeSession.id}`
         },
         (payload) => {
-          console.log('Participants update received:', payload);
+          console.log('Participants real-time update:', payload);
+          
+          // Reload participants data to get updated info
           loadParticipants();
+          
+          // Show toast for participant changes
+          if (payload.eventType === 'INSERT' && payload.new) {
+            const newParticipant = payload.new as SocialPlayParticipant;
+            if (newParticipant.user_id !== user.id) {
+              toast({
+                title: 'Player Invited',
+                description: 'A new player has been invited to the session',
+              });
+            }
+          } else if (payload.eventType === 'UPDATE' && payload.new && payload.old) {
+            const updatedParticipant = payload.new as SocialPlayParticipant;
+            const oldParticipant = payload.old as SocialPlayParticipant;
+            
+            if (oldParticipant.status !== updatedParticipant.status) {
+              toast({
+                title: 'Player Status Updated',
+                description: `A player's status changed to ${updatedParticipant.status}`,
+              });
+            }
+          }
         }
       )
-      .subscribe();
+      .subscribe((status) => {
+        console.log('Participants channel status:', status);
+      });
 
     return () => {
       console.log('Cleaning up real-time subscriptions');
       supabase.removeChannel(sessionChannel);
       supabase.removeChannel(participantsChannel);
     };
-  }, [activeSession?.id]);
+  }, [activeSession?.id, user?.id]);
 
   const loadActiveSession = async () => {
     if (!user?.id) return;
@@ -130,35 +176,27 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
       if (stored) {
         const storedSession = JSON.parse(stored);
         
-        // Try to get session if user owns it
-        let { data: session, error } = await supabase
+        // Verify stored session is still valid and accessible
+        const { data: session, error } = await supabase
           .from('social_play_sessions')
           .select('*')
           .eq('id', storedSession.id)
-          .eq('created_by', user.id)
           .in('status', ['pending', 'active', 'paused'])
           .single();
 
-        // If not owned, check if user participates
-        if (error && error.code === 'PGRST116') {
-          const { data: participantData, error: participantError } = await supabase
-            .from('social_play_participants')
-            .select('session:social_play_sessions(*)')
-            .eq('session_id', storedSession.id)
-            .eq('user_id', user.id)
-            .single();
+        // Check if user has access (either owns it or participates)
+        if (session) {
+          const hasAccess = session.created_by === user.id || 
+            await checkUserParticipation(session.id, user.id);
           
-          if (!participantError && participantData?.session) {
-            session = participantData.session;
-            error = null;
+          if (hasAccess) {
+            setActiveSession(session as SocialPlaySessionData);
+            await loadParticipants(session.id);
+            return;
+          } else {
+            localStorage.removeItem(STORAGE_KEY);
           }
-        }
-
-        if (session && !error) {
-          setActiveSession(session as SocialPlaySessionData);
-          await loadParticipants(session.id);
-          return;
-        } else {
+        } else if (error) {
           localStorage.removeItem(STORAGE_KEY);
         }
       }
@@ -176,7 +214,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
         const session = ownedSessions[0];
         setActiveSession(session as SocialPlaySessionData);
         await loadParticipants(session.id);
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+        persistSession(session as SocialPlaySessionData);
         return;
       }
 
@@ -196,7 +234,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
         if (session) {
           setActiveSession(session as SocialPlaySessionData);
           await loadParticipants(session.id);
-          localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+          persistSession(session as SocialPlaySessionData);
         }
       }
     } catch (error) {
@@ -204,6 +242,17 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
     } finally {
       setLoading(false);
     }
+  };
+
+  const checkUserParticipation = async (sessionId: string, userId: string): Promise<boolean> => {
+    const { data, error } = await supabase
+      .from('social_play_participants')
+      .select('id')
+      .eq('session_id', sessionId)
+      .eq('user_id', userId)
+      .single();
+    
+    return !error && !!data;
   };
 
   const loadParticipants = async (sessionId?: string) => {
@@ -235,31 +284,15 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
 
     setLoading(true);
     try {
-      // Try to get session if user owns it
-      let { data: session, error: sessionError } = await supabase
+      // Get session details first
+      const { data: session, error: sessionError } = await supabase
         .from('social_play_sessions')
         .select('*')
         .eq('id', sessionId)
-        .eq('created_by', user.id)
         .single();
 
-      // If not owned, try to get through participants
-      if (sessionError && sessionError.code === 'PGRST116') {
-        const { data: participantData, error: participantError } = await supabase
-          .from('social_play_participants')
-          .select('session:social_play_sessions(*)')
-          .eq('session_id', sessionId)
-          .eq('user_id', user.id)
-          .single();
-        
-        if (!participantError && participantData?.session) {
-          session = participantData.session;
-          sessionError = null;
-        }
-      }
-
       if (sessionError || !session) {
-        throw new Error('Session not found or no access');
+        throw new Error('Session not found');
       }
 
       // Check if user is already a participant
@@ -281,10 +314,23 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
           .eq('id', existingParticipant.id);
 
         if (updateError) throw updateError;
+      } else {
+        // Add as new participant (only if invited by session creator or public session)
+        const { error: insertError } = await supabase
+          .from('social_play_participants')
+          .insert({
+            session_id: sessionId,
+            user_id: user.id,
+            session_creator_id: session.created_by,
+            status: 'joined',
+            joined_at: new Date().toISOString()
+          });
+
+        if (insertError) throw insertError;
       }
 
       setActiveSession(session as SocialPlaySessionData);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
+      persistSession(session as SocialPlaySessionData);
       await loadParticipants(sessionId);
 
       toast({
@@ -306,7 +352,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
   const leaveSession = () => {
     setActiveSession(null);
     setParticipants([]);
-    localStorage.removeItem(STORAGE_KEY);
+    persistSession(null);
     
     toast({
       title: 'Left Session',
@@ -344,12 +390,14 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
 
       if (error) throw error;
 
-      setActiveSession(data as SocialPlaySessionData);
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
-
+      const updatedSession = data as SocialPlaySessionData;
+      setActiveSession(updatedSession);
+      
       // Clear from storage if session is completed or cancelled
       if (status === 'completed' || status === 'cancelled') {
-        localStorage.removeItem(STORAGE_KEY);
+        persistSession(null);
+      } else {
+        persistSession(updatedSession);
       }
 
       toast({
@@ -425,7 +473,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
   const handleSessionDeleted = () => {
     setActiveSession(null);
     setParticipants([]);
-    localStorage.removeItem(STORAGE_KEY);
+    persistSession(null);
     
     toast({
       title: 'Session Ended',
