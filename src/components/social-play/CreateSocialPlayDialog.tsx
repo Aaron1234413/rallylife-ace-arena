@@ -11,7 +11,6 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
-import { Textarea } from '@/components/ui/textarea';
 import { Users, MapPin } from 'lucide-react';
 import { FriendSelector } from './FriendSelector';
 import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
@@ -27,12 +26,14 @@ interface CreateSocialPlayDialogProps {
   children?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
+  onSessionCreated?: () => void; // New callback for successful session creation
 }
 
 export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   children,
   open,
   onOpenChange,
+  onSessionCreated,
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const [sessionType, setSessionType] = useState<'singles' | 'doubles'>('singles');
@@ -82,6 +83,9 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
       setLocation('');
       setSelectedFriends([]);
       handleOpenChange(false);
+
+      // Call the success callback if provided
+      onSessionCreated?.();
     } catch (error) {
       console.error('Failed to create and join session:', error);
     }

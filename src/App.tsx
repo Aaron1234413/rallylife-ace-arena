@@ -28,6 +28,7 @@ import StartMatch from "@/pages/StartMatch";
 import EndMatch from "@/pages/EndMatch";
 import StartTraining from "@/pages/StartTraining";
 import EndTraining from "@/pages/EndTraining";
+import StartSocialPlay from "@/pages/StartSocialPlay";
 
 const queryClient = new QueryClient();
 
@@ -59,6 +60,7 @@ function App() {
                   <Route path="/end-match" element={<ProtectedRoute><EndMatch /></ProtectedRoute>} />
                   <Route path="/start-training" element={<ProtectedRoute><StartTraining /></ProtectedRoute>} />
                   <Route path="/end-training" element={<ProtectedRoute><EndTraining /></ProtectedRoute>} />
+                  <Route path="/start-social-play" element={<ProtectedRoute><StartSocialPlay /></ProtectedRoute>} />
                   <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
