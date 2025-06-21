@@ -275,8 +275,7 @@ export function EndSocialPlayModal({ isOpen, onClose }: EndSocialPlayModalProps)
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 text-yellow-600">
                   <Coins className="h-4 w-4" />
-                  <span className="font-bold">+{estimatedRe
-wards.tokens}</span>
+                  <span className="font-bold">+{estimatedRewards.tokens}</span>
                 </div>
                 <div className="text-xs text-gray-600">Tokens</div>
               </div>
