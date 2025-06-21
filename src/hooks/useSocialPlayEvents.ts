@@ -59,17 +59,17 @@ export function useSocialPlayEvents() {
       
       if (createdError) throw createdError;
 
-      // Transform the results to match expected interface
+      // Transform the results to match expected interface with proper type casting
       const transformedEvents: SocialPlayEvent[] = (createdEvents || []).map(event => ({
         id: event.id,
         created_by: event.created_by,
         title: `${event.session_type} Event`, // Generate title from session type
-        session_type: event.session_type,
+        session_type: event.session_type as 'singles' | 'doubles', // Type cast to expected union type
         location: event.location || '',
         scheduled_time: event.created_at, // Use created_at as scheduled time for now
         description: event.notes,
         max_participants: event.session_type === 'singles' ? 2 : 4,
-        status: 'open', // Simplify status for Phase 1
+        status: 'open' as const, // Type cast to expected union type
         created_at: event.created_at,
         creator: event.creator,
         participants: event.participants
