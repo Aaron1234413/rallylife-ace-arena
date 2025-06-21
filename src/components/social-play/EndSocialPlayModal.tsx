@@ -11,9 +11,6 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { Trophy, Clock, Users, Star, Gift, Heart, Zap, Coins, Share2 } from 'lucide-react';
 import { AnimatedButton } from '@/components/ui/animated-button';
 import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
-import { usePlayerHP } from '@/hooks/usePlayerHP';
-import { usePlayerXP } from '@/hooks/usePlayerXP';
-import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { useSocialPlayFeed } from '@/hooks/useSocialPlayFeed';
 import { formatDistanceToNow } from 'date-fns';
 
@@ -23,10 +20,7 @@ interface EndSocialPlayModalProps {
 }
 
 export function EndSocialPlayModal({ isOpen, onClose }: EndSocialPlayModalProps) {
-  const { activeSession, participants, updateSessionStatus, loading } = useSocialPlaySession();
-  const { addXP } = usePlayerXP();
-  const { restoreHP } = usePlayerHP();
-  const { addTokens } = usePlayerTokens();
+  const { activeSession, participants, completeSession, loading } = useSocialPlaySession();
   const { createSocialPlayPost, isCreatingPost } = useSocialPlayFeed();
 
   const [sessionNotes, setSessionNotes] = useState('');
@@ -57,23 +51,20 @@ export function EndSocialPlayModal({ isOpen, onClose }: EndSocialPlayModalProps)
   const isCompetitive = activeSession.competitive_level === 'high';
   const showScoreInput = isCompetitive;
 
-  // Calculate rewards based on session details
-  const calculateRewards = () => {
-    const baseHP = Math.max(10, Math.floor(sessionDuration / 5)); // 2 HP per 5 min, min 10
-    const baseXP = Math.max(15, Math.floor(sessionDuration / 3)); // ~5 XP per 5 min, min 15
-    const baseTokens = Math.max(5, Math.floor(sessionDuration / 10)); // 1 token per 10 min, min 5
+  // Calculate estimated rewards (this will be calculated server-side)
+  const calculateEstimatedRewards = () => {
+    const baseHP = Math.max(10, Math.floor(sessionDuration / 5));
+    const baseXP = Math.max(15, Math.floor(sessionDuration / 3));
+    const baseTokens = Math.max(5, Math.floor(sessionDuration / 10));
 
-    // Social bonus (playing with friends)
     const socialBonus = joinedParticipants.length > 0 ? 1.5 : 1;
     
-    // Competitive level multiplier
     const levelMultiplier = {
       'low': 1.0,
       'medium': 1.2,
       'high': 1.5
     }[activeSession.competitive_level] || 1.0;
 
-    // Mood bonus
     const moodMultiplier = ['great', 'strong', 'energized'].includes(selectedMood) ? 1.1 : 1.0;
 
     return {
@@ -83,7 +74,7 @@ export function EndSocialPlayModal({ isOpen, onClose }: EndSocialPlayModalProps)
     };
   };
 
-  const rewards = calculateRewards();
+  const estimatedRewards = calculateEstimatedRewards();
 
   const handleEndSession = async () => {
     if (!selectedMood) return;
@@ -96,23 +87,11 @@ export function EndSocialPlayModal({ isOpen, onClose }: EndSocialPlayModalProps)
         finalScore = `${myScore || '0'}-${opponentScore || '0'}`;
       }
 
-      // Update session with completion data
-      await updateSessionStatus('completed', {
-        mood: selectedMood,
-        notes: sessionNotes.trim() || null,
-        final_score: finalScore,
-        end_time: new Date().toISOString()
-      });
-
-      // Award rewards
-      await Promise.all([
-        restoreHP(rewards.hp, 'social_play', `Social play session - ${sessionDuration}min with friends`),
-        addXP(rewards.xp, 'social_play', `Social play session - ${activeSession.competitive_level} level`),
-        addTokens(rewards.tokens, 'regular', 'social_play', 'Social play session completion')
-      ]);
+      // Complete session using the new RPC function
+      const result = await completeSession(finalScore, sessionNotes.trim() || undefined, selectedMood);
 
       // Create feed post if sharing is enabled
-      if (shareToFeed) {
+      if (shareToFeed && result) {
         const participantNames = joinedParticipants
           .map(p => p.user?.full_name || 'Unknown')
           .filter(name => name !== 'Unknown');
@@ -121,11 +100,11 @@ export function EndSocialPlayModal({ isOpen, onClose }: EndSocialPlayModalProps)
           sessionId: activeSession.id,
           sessionType: activeSession.session_type,
           competitiveLevel: activeSession.competitive_level,
-          duration: sessionDuration,
-          participantCount: joinedParticipants.length + 1, // +1 for session owner
+          duration: result.duration_minutes,
+          participantCount: result.participant_count,
           participantNames,
           location: activeSession.location || undefined,
-          finalScore: finalScore || undefined,
+          finalScore: result.final_score || undefined,
           mood: selectedMood,
           notes: sessionNotes.trim() || undefined
         });
@@ -276,27 +255,28 @@ export function EndSocialPlayModal({ isOpen, onClose }: EndSocialPlayModalProps)
           <div className="bg-green-50 p-4 rounded-lg space-y-3">
             <div className="flex items-center gap-2">
               <Gift className="h-4 w-4 text-green-600" />
-              <h3 className="font-medium text-green-900">Session Rewards</h3>
+              <h3 className="font-medium text-green-900">Estimated Rewards</h3>
             </div>
             <div className="grid grid-cols-3 gap-3">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 text-red-600">
                   <Heart className="h-4 w-4" />
-                  <span className="font-bold">+{rewards.hp}</span>
+                  <span className="font-bold">+{estimatedRewards.hp}</span>
                 </div>
                 <div className="text-xs text-gray-600">HP</div>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 text-blue-600">
                   <Zap className="h-4 w-4" />
-                  <span className="font-bold">+{rewards.xp}</span>
+                  <span className="font-bold">+{estimatedRewards.xp}</span>
                 </div>
                 <div className="text-xs text-gray-600">XP</div>
               </div>
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 text-yellow-600">
                   <Coins className="h-4 w-4" />
-                  <span className="font-bold">+{rewards.tokens}</span>
+                  <span className="font-bold">+{estimatedRe
+wards.tokens}</span>
                 </div>
                 <div className="text-xs text-gray-600">Tokens</div>
               </div>

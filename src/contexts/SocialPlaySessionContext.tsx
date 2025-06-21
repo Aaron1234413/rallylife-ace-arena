@@ -1,4 +1,3 @@
-
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -44,6 +43,7 @@ interface SocialPlaySessionContextType {
   joinSession: (sessionId: string) => Promise<void>;
   leaveSession: () => void;
   updateSessionStatus: (status: SocialPlaySessionData['status'], updates?: Partial<SocialPlaySessionData>) => Promise<void>;
+  completeSession: (finalScore?: string, notes?: string, mood?: string) => Promise<any>;
   addParticipant: (userId: string) => Promise<void>;
   removeParticipant: (participantId: string) => Promise<void>;
   loading: boolean;
@@ -60,7 +60,6 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
   const [participants, setParticipants] = useState<SocialPlayParticipant[]>([]);
   const [loading, setLoading] = useState(false);
 
-  // Persist active session to localStorage
   const persistSession = (session: SocialPlaySessionData | null) => {
     if (session) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(session));
@@ -416,6 +415,51 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
     }
   };
 
+  const completeSession = async (finalScore?: string, notes?: string, mood?: string) => {
+    if (!activeSession || !user?.id) return;
+
+    setLoading(true);
+    try {
+      const { data, error } = await supabase
+        .rpc('complete_social_play_session', {
+          session_id: activeSession.id,
+          final_score: finalScore || null,
+          notes: notes || null,
+          mood: mood || null
+        });
+
+      if (error) throw error;
+
+      const result = data as any;
+      
+      if (!result.success) {
+        throw new Error(result.error || 'Failed to complete session');
+      }
+
+      // Clear session from storage since it's completed
+      setActiveSession(null);
+      setParticipants([]);
+      persistSession(null);
+
+      toast({
+        title: 'Session Completed!',
+        description: `Earned ${result.rewards.hp} HP, ${result.rewards.xp} XP, and ${result.rewards.tokens} tokens!`,
+      });
+
+      return result;
+    } catch (error: any) {
+      console.error('Failed to complete session:', error);
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to complete session',
+        variant: 'destructive',
+      });
+      throw error;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const addParticipant = async (userId: string) => {
     if (!activeSession || !user?.id) return;
 
@@ -494,6 +538,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
         joinSession,
         leaveSession,
         updateSessionStatus,
+        completeSession,
         addParticipant,
         removeParticipant,
         loading

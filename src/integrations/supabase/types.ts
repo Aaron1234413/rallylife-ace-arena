@@ -2929,6 +2929,15 @@ export type Database = {
         Args: { user_id: string; achievement_id: string }
         Returns: Json
       }
+      complete_social_play_session: {
+        Args: {
+          session_id: string
+          final_score?: string
+          notes?: string
+          mood?: string
+        }
+        Returns: Json
+      }
       complete_training_assignment: {
         Args: { assignment_id: string; player_feedback?: string }
         Returns: Json
