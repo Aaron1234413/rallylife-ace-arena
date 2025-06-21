@@ -18,7 +18,7 @@ import { CTKTransactionHistory } from "@/components/ctk/CTKTransactionHistory";
 import { CoachAchievementsDisplay } from "@/components/achievements/CoachAchievementsDisplay";
 import { CoachOverviewCards } from "@/components/coach/dashboard/CoachOverviewCards";
 import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickActions";
-import { CollapsibleSection, MobileActionPanel } from "@/components/dashboard/mobile";
+import { MobileActionPanel } from "@/components/dashboard/mobile";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
@@ -28,7 +28,6 @@ import {
 
 import { ActiveMatchWidget } from "@/components/match/ActiveMatchWidget";
 import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
-import { SocialPlayInvitations } from "@/components/social-play/SocialPlayInvitations";
 import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
 import { useSocialPlaySession } from "@/contexts/SocialPlaySessionContext";
 import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
@@ -47,7 +46,7 @@ const Index = () => {
   const { crpData, isLoading: crpLoading, initializeCRP } = useCoachCRP();
   
   // Social Play Session Hook
-  const { activeSession, isSessionActive } = useSocialPlaySession();
+  const { joinEvent, loading } = useSocialPlaySession();
   
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
@@ -165,15 +164,11 @@ const Index = () => {
             loading={vitalsLoading}
           />
 
-          {/* Social Play Section - Conditional */}
-          {!isSessionActive ? (
-            <SocialPlayInvitations />
-          ) : (
-            <SocialPlayQuickActions />
-          )}
+          {/* Social Play Section - Always show quick actions for Phase 1 */}
+          <SocialPlayQuickActions />
 
-          {/* Active Session Widgets - Social Play takes priority */}
-          {isSessionActive && <ActiveSocialPlayWidget />}
+          {/* Active Session Widgets */}
+          <ActiveSocialPlayWidget />
           <ActiveMatchWidget />
           <ActiveTrainingWidget />
 

@@ -6,7 +6,7 @@ import { useToast } from '@/hooks/use-toast';
 
 interface SocialPlayEvent {
   id: string;
-  creator_id: string;
+  created_by: string;
   title: string;
   session_type: 'singles' | 'doubles';
   location: string;
@@ -59,38 +59,23 @@ export function useSocialPlayEvents() {
       
       if (createdError) throw createdError;
 
-      // Get events user participates in
-      const { data: participantEvents, error: participantError } = await supabase
-        .from('social_play_participants')
-        .select(`
-          session:social_play_sessions(
-            *,
-            creator:profiles!social_play_sessions_created_by_fkey(id, full_name, avatar_url),
-            participants:social_play_participants(
-              *,
-              user:profiles!social_play_participants_user_id_fkey(id, full_name, avatar_url)
-            )
-          )
-        `)
-        .eq('user_id', user.id)
-        .neq('session.created_by', user.id);
+      // Transform the results to match expected interface
+      const transformedEvents: SocialPlayEvent[] = (createdEvents || []).map(event => ({
+        id: event.id,
+        created_by: event.created_by,
+        title: `${event.session_type} Event`, // Generate title from session type
+        session_type: event.session_type,
+        location: event.location || '',
+        scheduled_time: event.created_at, // Use created_at as scheduled time for now
+        description: event.notes,
+        max_participants: event.session_type === 'singles' ? 2 : 4,
+        status: 'open', // Simplify status for Phase 1
+        created_at: event.created_at,
+        creator: event.creator,
+        participants: event.participants
+      }));
       
-      if (participantError) throw participantError;
-
-      // Combine and flatten results
-      const allEvents = [
-        ...(createdEvents || []),
-        ...(participantEvents?.map(p => p.session).filter(Boolean) || [])
-      ];
-
-      // Remove duplicates and sort
-      const uniqueEvents = allEvents
-        .filter((event, index, self) => 
-          event && self.findIndex(e => e?.id === event.id) === index
-        )
-        .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
-      
-      return uniqueEvents as SocialPlayEvent[];
+      return transformedEvents;
     },
     enabled: !!user?.id
   });
@@ -106,8 +91,6 @@ export function useSocialPlayEvents() {
       invited_users: string[];
     }) => {
       if (!user?.id) throw new Error('User not authenticated');
-      
-      const maxParticipants = eventData.session_type === 'singles' ? 2 : 4;
       
       // Create the event (reusing existing table structure)
       const { data: event, error: eventError } = await supabase

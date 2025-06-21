@@ -15,7 +15,7 @@ interface User {
 export function useUserSearch(query: string) {
   const { user: currentUser } = useAuth();
 
-  return useQuery({
+  const result = useQuery({
     queryKey: ['user-search', query],
     queryFn: async () => {
       if (!query.trim() || query.length < 2) return [];
@@ -73,4 +73,10 @@ export function useUserSearch(query: string) {
     },
     enabled: !!query.trim() && query.length >= 2,
   });
+
+  return {
+    users: result.data || [],
+    isLoading: result.isLoading,
+    error: result.error
+  };
 }
