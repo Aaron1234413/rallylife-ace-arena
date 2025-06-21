@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Users, Plus } from 'lucide-react';
+import { Plus } from 'lucide-react';
 import { CreateSocialPlayDialog } from './CreateSocialPlayDialog';
 
 export const SocialPlayQuickActions = () => {
