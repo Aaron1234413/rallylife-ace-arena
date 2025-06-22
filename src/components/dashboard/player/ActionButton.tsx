@@ -27,15 +27,13 @@ interface ActionButtonProps {
 export function ActionButton({ action, onClick, disabled, loading }: ActionButtonProps) {
   const Icon = action.icon;
 
-  // For training sessions, show HP restoration hint for lessons
+  // For training sessions, show minimum HP benefit from lessons with coaches
   const getHPDisplay = () => {
     if (action.id === 'training') {
       return (
         <div className="flex items-center gap-1">
-          <Heart className="h-3 w-3 text-red-500" />
-          <span className="text-xs text-gray-600">
-            -{Math.abs(action.rewards.hp)} HP (Lessons restore HP!)
-          </span>
+          <Heart className="h-3 w-3 text-green-500" />
+          <span className="text-xs text-green-600">+5 HP</span>
         </div>
       );
     }
