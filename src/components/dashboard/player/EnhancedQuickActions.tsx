@@ -61,7 +61,7 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-green-500 to-green-600',
       textColor: 'text-green-700',
       bgColor: 'bg-green-50',
-      rewards: { hp: -5, xp: 30, tokens: 15 },
+      rewards: { hp: -5, xp: 30, tokens: 15 }, // Shows general training HP cost, but lessons will restore HP
       recommended: hpPercentage > 30,
       estimatedDuration: 60,
       difficulty: 'medium' as const,
