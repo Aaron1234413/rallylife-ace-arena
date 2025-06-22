@@ -49,7 +49,7 @@ export const useActivityLogger = () => {
         user_id: user.id,
         ...params,
         coach_id: params.coach_id || null // Ensure coach_id is passed to the database
-      });
+      } as any); // Use 'as any' to bypass strict type checking for the RPC call
 
       if (error) {
         console.error('Error logging activity:', error);
@@ -60,10 +60,13 @@ export const useActivityLogger = () => {
       console.log('Activity logged successfully:', data);
       
       // Show enhanced success message for lessons with coach benefits
-      if (data?.coach_level_bonus && data?.coach_level) {
-        toast.success(
-          `Lesson completed! +${data.hp_impact} HP restored from Level ${data.coach_level} coach!`
-        );
+      if (data && typeof data === 'object' && 'coach_level_bonus' in data && 'coach_level' in data) {
+        const responseData = data as any;
+        if (responseData.coach_level_bonus && responseData.coach_level) {
+          toast.success(
+            `Lesson completed! +${responseData.hp_impact} HP restored from Level ${responseData.coach_level} coach!`
+          );
+        }
       }
       
       return data;
