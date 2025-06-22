@@ -7,7 +7,7 @@ import { useFeedEngagement } from '@/hooks/useFeedEngagement';
 
 interface FeedPost {
   id: string;
-  type: 'level_up' | 'match_result' | 'achievement' | 'activity' | 'social_play';
+  type: 'level_up' | 'match_result' | 'achievement' | 'activity' | 'social_play' | 'training' | 'lesson';
   user: {
     id: string;
     full_name: string;
