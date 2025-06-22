@@ -74,7 +74,9 @@ export function useFeedData() {
         type: post.activity_type === 'social_play' ? 'social_play' : 
               post.activity_type === 'level_up' ? 'level_up' :
               post.activity_type === 'match' ? 'match_result' :
-              post.activity_type === 'achievement' ? 'achievement' : 'activity',
+              post.activity_type === 'achievement' ? 'achievement' : 
+              post.activity_type === 'training' ? 'training' :
+              post.activity_type === 'lesson' ? 'lesson' : 'activity',
         user: {
           id: post.player_id,
           full_name: post.player_name,
