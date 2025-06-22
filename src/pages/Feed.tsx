@@ -1,6 +1,5 @@
 
-import React, { useState, useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { Activity, Info } from 'lucide-react';
@@ -11,15 +10,7 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Feed() {
   const [filter, setFilter] = useState<string>('all');
-  const { feedPosts, loading, handleLike, handleComment, handleChallenge, refreshFeed } = useFeedData();
-  const location = useLocation();
-
-  // Refresh feed when navigating to this page or when location changes
-  useEffect(() => {
-    if (location.pathname === '/feed') {
-      refreshFeed();
-    }
-  }, [location.pathname, refreshFeed]);
+  const { feedPosts, loading, handleLike, handleComment, handleChallenge } = useFeedData();
 
   const filteredPosts = feedPosts.filter(post => {
     if (filter === 'all') return true;

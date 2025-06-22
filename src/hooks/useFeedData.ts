@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -43,11 +44,13 @@ export function useFeedData() {
   const { toggleLike, addComment } = useFeedEngagement();
   const [feedPosts, setFeedPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
+  const loadingRef = useRef(false);
 
-  const loadFeedData = async () => {
-    if (!user?.id) return;
+  const loadFeedData = useCallback(async () => {
+    if (!user?.id || loadingRef.current) return;
 
     try {
+      loadingRef.current = true;
       setLoading(true);
       
       const { data, error } = await supabase.rpc('get_feed_posts_with_engagement', {
@@ -107,12 +110,15 @@ export function useFeedData() {
       console.error('Failed to load feed data:', error);
     } finally {
       setLoading(false);
+      loadingRef.current = false;
     }
-  };
+  }, [user?.id, toast]);
 
   useEffect(() => {
-    loadFeedData();
-  }, [user?.id]);
+    if (user?.id) {
+      loadFeedData();
+    }
+  }, [loadFeedData]);
 
   const handleLike = async (postId: string) => {
     const wasLiked = await toggleLike(postId);
@@ -161,9 +167,11 @@ export function useFeedData() {
     });
   };
 
-  const refreshFeed = () => {
-    loadFeedData();
-  };
+  const refreshFeed = useCallback(() => {
+    if (!loadingRef.current) {
+      loadFeedData();
+    }
+  }, [loadFeedData]);
 
   return {
     feedPosts,
