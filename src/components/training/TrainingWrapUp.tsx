@@ -26,6 +26,7 @@ export function TrainingWrapUp() {
   const [adjustedDuration, setAdjustedDuration] = useState(sessionData.estimatedDuration || 60);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [coachId, setCoachId] = useState<string | null>(null);
+  const [coachLevel, setCoachLevel] = useState<number>(1);
 
   // Search for coach to get their ID if coach name is provided
   const { data: coaches } = useSearchUsers({
@@ -39,18 +40,18 @@ export function TrainingWrapUp() {
     }
   });
 
-  // Set coach ID when coaches are found
+  // Set coach ID and level when coaches are found
   useEffect(() => {
     if (sessionData.coachName && coaches && coaches.length > 0) {
-      // Find exact match or closest match
       const exactMatch = coaches.find(coach => 
         coach.full_name.toLowerCase() === sessionData.coachName?.toLowerCase()
       );
       if (exactMatch) {
         setCoachId(exactMatch.id);
+        setCoachLevel(exactMatch.current_level || 1);
       } else if (coaches.length === 1) {
-        // If only one coach found, use that one
         setCoachId(coaches[0].id);
+        setCoachLevel(coaches[0].current_level || 1);
       }
     }
   }, [sessionData.coachName, coaches]);
@@ -70,8 +71,24 @@ export function TrainingWrapUp() {
     
     // If this is a lesson with a coach, HP will be restored
     if (sessionData.sessionType === 'lesson' && sessionData.coachName) {
-      // Base HP restoration for lessons (will be enhanced by coach level in backend)
-      return Math.round(5 * (adjustedDuration / 60)); // Positive HP for preview
+      let baseRestoration;
+      
+      // Calculate HP restoration based on coach level
+      if (coachLevel >= 40) {
+        baseRestoration = 25; // Master Coach
+      } else if (coachLevel >= 25) {
+        baseRestoration = 20; // Expert Coach
+      } else if (coachLevel >= 15) {
+        baseRestoration = 15; // Advanced Coach
+      } else if (coachLevel >= 8) {
+        baseRestoration = 12; // Intermediate Coach
+      } else if (coachLevel >= 3) {
+        baseRestoration = 8;  // Junior Coach
+      } else {
+        baseRestoration = 5;  // Novice Coach
+      }
+      
+      return Math.max(Math.round(baseRestoration * (adjustedDuration / 60)), 1);
     }
     
     // Regular training sessions cost HP
@@ -88,9 +105,26 @@ export function TrainingWrapUp() {
   const calculateXPGain = () => {
     if (!sessionData.intensity || !adjustedDuration) return 0;
     
-    // Lessons get higher base XP
+    // Lessons get higher base XP based on coach level
     if (sessionData.sessionType === 'lesson' && sessionData.coachName) {
-      return Math.round(60 * (adjustedDuration / 60)); // Higher XP for lessons
+      let baseXP;
+      
+      // Calculate XP based on coach level
+      if (coachLevel >= 40) {
+        baseXP = 130; // Master Coach
+      } else if (coachLevel >= 25) {
+        baseXP = 110; // Expert Coach
+      } else if (coachLevel >= 15) {
+        baseXP = 90;  // Advanced Coach
+      } else if (coachLevel >= 8) {
+        baseXP = 75;  // Intermediate Coach
+      } else if (coachLevel >= 3) {
+        baseXP = 60;  // Junior Coach
+      } else {
+        baseXP = 45;  // Novice Coach
+      }
+      
+      return Math.max(Math.round(baseXP * (adjustedDuration / 60)), 1);
     }
     
     const baseXP = {
@@ -105,6 +139,7 @@ export function TrainingWrapUp() {
 
   const hpImpact = calculateHPImpact();
   const xpGain = calculateXPGain();
+  const isLesson = sessionData.sessionType === 'lesson' || sessionData.coachName;
 
   const getCompletionMessage = () => {
     const messages = [
@@ -128,10 +163,6 @@ export function TrainingWrapUp() {
     setIsSubmitting(true);
     
     try {
-      // Determine activity type based on session type and coach presence
-      const isLesson = sessionData.sessionType === 'lesson' || sessionData.coachName;
-      
-      // Prepare activity data
       const activityData = {
         activity_type: isLesson ? 'lesson' : 'training',
         activity_category: 'on_court',
@@ -140,7 +171,7 @@ export function TrainingWrapUp() {
         duration_minutes: adjustedDuration,
         intensity_level: sessionData.intensity || 'medium',
         coach_name: sessionData.coachName || undefined,
-        coach_id: isLesson && coachId ? coachId : undefined, // Pass coach_id for lessons
+        coach_id: isLesson && coachId ? coachId : undefined,
         skills_practiced: sessionData.skillsFocus || [],
         notes: sessionNotes,
         energy_after: mood ? parseInt(mood) : undefined,
@@ -149,15 +180,9 @@ export function TrainingWrapUp() {
 
       console.log('Logging activity with data:', activityData);
 
-      // Log the activity
       await logActivity(activityData);
-      
-      // Clear the session
       clearSession();
-      
       toast.success(`${isLesson ? 'Lesson' : 'Training session'} completed successfully!`);
-      
-      // Navigate back to dashboard
       navigate('/');
       
     } catch (error) {
@@ -211,7 +236,12 @@ export function TrainingWrapUp() {
               <p className="text-sm text-gray-600">Coach</p>
               <p className="font-medium">{sessionData.coachName}</p>
               {coachId && (
-                <p className="text-xs text-green-600">✓ Coach identified for enhanced benefits</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs text-green-600">✓ Level {coachLevel} Coach</p>
+                  <Badge variant="outline" className="text-xs">
+                    Enhanced Benefits
+                  </Badge>
+                </div>
               )}
             </div>
           )}
@@ -291,15 +321,19 @@ export function TrainingWrapUp() {
           <div className="grid grid-cols-2 gap-4">
             <div className={`text-center p-4 rounded-lg ${hpImpact > 0 ? 'bg-green-50' : 'bg-red-50'}`}>
               <Heart className={`h-6 w-6 mx-auto mb-2 ${hpImpact > 0 ? 'text-green-500' : 'text-red-500'}`} />
-              <p className="text-sm text-gray-600">HP Impact</p>
+              <p className="text-sm text-gray-600">
+                {hpImpact > 0 ? 'HP Restoration' : 'HP Impact'}
+              </p>
               <p className={`text-lg font-bold ${hpImpact > 0 ? 'text-green-600' : 'text-red-600'}`}>
                 {hpImpact > 0 ? '+' : ''}{hpImpact}
               </p>
               <p className="text-xs text-gray-500">
                 {hpData ? `${hpData.current_hp} → ${Math.max(0, Math.min(hpData.max_hp, hpData.current_hp + hpImpact))}` : ''}
               </p>
-              {sessionData.coachName && hpImpact > 0 && (
-                <p className="text-xs text-green-600 mt-1">Coach lesson bonus!</p>
+              {isLesson && hpImpact > 0 && (
+                <p className="text-xs text-green-600 mt-1">
+                  Level {coachLevel} coach bonus!
+                </p>
               )}
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
@@ -309,6 +343,11 @@ export function TrainingWrapUp() {
               <p className="text-xs text-gray-500">
                 {xpData ? `Level ${xpData.current_level}` : ''}
               </p>
+              {isLesson && (
+                <p className="text-xs text-yellow-600 mt-1">
+                  Enhanced lesson XP!
+                </p>
+              )}
             </div>
           </div>
         </CardContent>
