@@ -29,6 +29,7 @@ export interface ActivityLogParams {
   is_official?: boolean;
   logged_at?: string;
   metadata?: any;
+  coach_id?: string; // Add coach_id parameter for lessons
 }
 
 export const useActivityLogger = () => {
@@ -43,10 +44,11 @@ export const useActivityLogger = () => {
         throw new Error('User not authenticated');
       }
 
-      // Call the RPC with user_id automatically set
+      // Call the RPC with user_id automatically set and coach_id if provided
       const { data, error } = await supabase.rpc('log_comprehensive_activity', {
         user_id: user.id,
-        ...params
+        ...params,
+        coach_id: params.coach_id || null // Ensure coach_id is passed to the database
       });
 
       if (error) {
@@ -56,6 +58,14 @@ export const useActivityLogger = () => {
       }
 
       console.log('Activity logged successfully:', data);
+      
+      // Show enhanced success message for lessons with coach benefits
+      if (data?.coach_level_bonus && data?.coach_level) {
+        toast.success(
+          `Lesson completed! +${data.hp_impact} HP restored from Level ${data.coach_level} coach!`
+        );
+      }
+      
       return data;
     } catch (error) {
       console.error('Unexpected error logging activity:', error);
