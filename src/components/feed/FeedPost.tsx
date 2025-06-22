@@ -11,7 +11,7 @@ import { format } from 'date-fns';
 interface FeedPostProps {
   post: {
     id: string;
-    type: 'level_up' | 'match_result' | 'achievement' | 'activity' | 'social_play';
+    type: 'level_up' | 'match_result' | 'achievement' | 'activity' | 'social_play' | 'training' | 'lesson';
     user: {
       id: string;
       full_name: string;
