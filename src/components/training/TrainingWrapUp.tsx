@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,6 +10,7 @@ import { useTrainingSession } from '@/contexts/TrainingSessionContext';
 import { useActivityLogger } from '@/hooks/useActivityLogger';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
+import { useSearchUsers } from '@/hooks/useSearchUsers';
 import { toast } from 'sonner';
 import { EmojiPicker } from './EmojiPicker';
 
@@ -25,6 +25,35 @@ export function TrainingWrapUp() {
   const [mood, setMood] = useState('');
   const [adjustedDuration, setAdjustedDuration] = useState(sessionData.estimatedDuration || 60);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [coachId, setCoachId] = useState<string | null>(null);
+
+  // Search for coach to get their ID if coach name is provided
+  const { data: coaches } = useSearchUsers({
+    query: sessionData.coachName || '',
+    userType: 'coach',
+    filters: {
+      level: 'all',
+      location: '',
+      skillLevel: 'all',
+      coachingFocus: 'all'
+    }
+  });
+
+  // Set coach ID when coaches are found
+  useEffect(() => {
+    if (sessionData.coachName && coaches && coaches.length > 0) {
+      // Find exact match or closest match
+      const exactMatch = coaches.find(coach => 
+        coach.full_name.toLowerCase() === sessionData.coachName?.toLowerCase()
+      );
+      if (exactMatch) {
+        setCoachId(exactMatch.id);
+      } else if (coaches.length === 1) {
+        // If only one coach found, use that one
+        setCoachId(coaches[0].id);
+      }
+    }
+  }, [sessionData.coachName, coaches]);
 
   // Calculate actual session duration
   const actualDuration = sessionData.startTime 
@@ -35,10 +64,17 @@ export function TrainingWrapUp() {
     setAdjustedDuration(actualDuration);
   }, [actualDuration]);
 
-  // Calculate HP and XP preview
+  // Calculate HP and XP preview - different for lessons vs regular training
   const calculateHPImpact = () => {
     if (!sessionData.intensity || !adjustedDuration) return 0;
     
+    // If this is a lesson with a coach, HP will be restored
+    if (sessionData.sessionType === 'lesson' && sessionData.coachName) {
+      // Base HP restoration for lessons (will be enhanced by coach level in backend)
+      return Math.round(5 * (adjustedDuration / 60)); // Positive HP for preview
+    }
+    
+    // Regular training sessions cost HP
     const baseImpact = {
       'light': -3,
       'medium': -5,
@@ -51,6 +87,11 @@ export function TrainingWrapUp() {
 
   const calculateXPGain = () => {
     if (!sessionData.intensity || !adjustedDuration) return 0;
+    
+    // Lessons get higher base XP
+    if (sessionData.sessionType === 'lesson' && sessionData.coachName) {
+      return Math.round(60 * (adjustedDuration / 60)); // Higher XP for lessons
+    }
     
     const baseXP = {
       'light': 20,
@@ -87,20 +128,26 @@ export function TrainingWrapUp() {
     setIsSubmitting(true);
     
     try {
+      // Determine activity type based on session type and coach presence
+      const isLesson = sessionData.sessionType === 'lesson' || sessionData.coachName;
+      
       // Prepare activity data
       const activityData = {
-        activity_type: 'training',
+        activity_type: isLesson ? 'lesson' : 'training',
         activity_category: 'on_court',
         title: `${sessionData.sessionType?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Training'} Session`,
-        description: sessionNotes || `${sessionData.intensity} intensity training session`,
+        description: sessionNotes || `${sessionData.intensity} intensity ${isLesson ? 'lesson' : 'training'} session`,
         duration_minutes: adjustedDuration,
         intensity_level: sessionData.intensity || 'medium',
         coach_name: sessionData.coachName || undefined,
+        coach_id: isLesson && coachId ? coachId : undefined, // Pass coach_id for lessons
         skills_practiced: sessionData.skillsFocus || [],
         notes: sessionNotes,
         energy_after: mood ? parseInt(mood) : undefined,
         tags: [sessionData.sessionType || 'general'].filter(Boolean)
       };
+
+      console.log('Logging activity with data:', activityData);
 
       // Log the activity
       await logActivity(activityData);
@@ -108,7 +155,7 @@ export function TrainingWrapUp() {
       // Clear the session
       clearSession();
       
-      toast.success('Training session completed successfully!');
+      toast.success(`${isLesson ? 'Lesson' : 'Training session'} completed successfully!`);
       
       // Navigate back to dashboard
       navigate('/');
@@ -163,6 +210,9 @@ export function TrainingWrapUp() {
             <div>
               <p className="text-sm text-gray-600">Coach</p>
               <p className="font-medium">{sessionData.coachName}</p>
+              {coachId && (
+                <p className="text-xs text-green-600">✓ Coach identified for enhanced benefits</p>
+              )}
             </div>
           )}
           
@@ -239,13 +289,18 @@ export function TrainingWrapUp() {
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="grid grid-cols-2 gap-4">
-            <div className="text-center p-4 bg-red-50 rounded-lg">
-              <Heart className="h-6 w-6 text-red-500 mx-auto mb-2" />
+            <div className={`text-center p-4 rounded-lg ${hpImpact > 0 ? 'bg-green-50' : 'bg-red-50'}`}>
+              <Heart className={`h-6 w-6 mx-auto mb-2 ${hpImpact > 0 ? 'text-green-500' : 'text-red-500'}`} />
               <p className="text-sm text-gray-600">HP Impact</p>
-              <p className="text-lg font-bold text-red-600">{hpImpact}</p>
-              <p className="text-xs text-gray-500">
-                {hpData ? `${hpData.current_hp} → ${Math.max(20, hpData.current_hp + hpImpact)}` : ''}
+              <p className={`text-lg font-bold ${hpImpact > 0 ? 'text-green-600' : 'text-red-600'}`}>
+                {hpImpact > 0 ? '+' : ''}{hpImpact}
               </p>
+              <p className="text-xs text-gray-500">
+                {hpData ? `${hpData.current_hp} → ${Math.max(0, Math.min(hpData.max_hp, hpData.current_hp + hpImpact))}` : ''}
+              </p>
+              {sessionData.coachName && hpImpact > 0 && (
+                <p className="text-xs text-green-600 mt-1">Coach lesson bonus!</p>
+              )}
             </div>
             <div className="text-center p-4 bg-yellow-50 rounded-lg">
               <Trophy className="h-6 w-6 text-yellow-500 mx-auto mb-2" />
