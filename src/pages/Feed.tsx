@@ -18,6 +18,7 @@ export default function Feed() {
     if (filter === 'matches') return post.type === 'match_result';
     if (filter === 'level_ups') return post.type === 'level_up';
     if (filter === 'social_play') return post.type === 'social_play';
+    if (filter === 'sessions') return ['training', 'lesson'].includes(post.type);
     return true;
   });
 

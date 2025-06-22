@@ -2,7 +2,7 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { RefreshCw, Users, Trophy, Star, TrendingUp, Activity } from 'lucide-react';
+import { RefreshCw, Users, Trophy, Star, TrendingUp, Activity, Clock } from 'lucide-react';
 
 interface FeedHeaderProps {
   filter: string;
@@ -15,7 +15,8 @@ export function FeedHeader({ filter, onFilterChange }: FeedHeaderProps) {
     { value: 'achievements', label: 'Achievements', icon: Trophy },
     { value: 'matches', label: 'Matches', icon: Star },
     { value: 'level_ups', label: 'Level Ups', icon: TrendingUp },
-    { value: 'social_play', label: 'Social Play', icon: Users }
+    { value: 'social_play', label: 'Social Play', icon: Users },
+    { value: 'sessions', label: 'Sessions', icon: Clock }
   ];
 
   return (
