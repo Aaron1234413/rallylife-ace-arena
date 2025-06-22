@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -35,15 +34,7 @@ export function usePlayerHP() {
     if (!user) return;
 
     try {
-      // First calculate any decay
-      const { data: decayResult, error: decayError } = await supabase
-        .rpc('calculate_hp_decay', { user_id: user.id });
-
-      if (decayError) {
-        console.error('Error calculating HP decay:', decayError);
-      }
-
-      // Then fetch current HP status
+      // Fetch current HP status directly without decay calculation
       const { data, error } = await supabase
         .from('player_hp')
         .select('*')
@@ -105,12 +96,13 @@ export function usePlayerHP() {
         return;
       }
 
-      toast.success(`HP restored! +${amount} HP`);
+      const changeText = amount > 0 ? `+${amount}` : `${amount}`;
+      toast.success(`HP changed! ${changeText} HP`);
       await fetchHP();
       await fetchActivities();
     } catch (error) {
       console.error('Error in restoreHP:', error);
-      toast.error('An error occurred while restoring HP');
+      toast.error('An error occurred while changing HP');
     }
   };
 
