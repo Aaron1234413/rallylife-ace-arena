@@ -122,6 +122,12 @@ export function EnhancedQuickActions({
     }
   };
 
+  const handleRecoveryModeSelect = (mode: any) => {
+    console.log('Recovery mode selected from quick actions:', mode);
+    // Navigate to the recovery center with the selected mode
+    setRecoveryCenterOpen(true);
+  };
+
   if (recoveryCenterOpen) {
     return (
       <RecoveryCenter onBack={() => setRecoveryCenterOpen(false)} />
@@ -169,9 +175,8 @@ export function EnhancedQuickActions({
             
             {/* Recovery Center Action */}
             <RecoveryQuickAction
-              onOpenRecoveryCenter={() => setRecoveryCenterOpen(true)}
-              disabled={loadingAction !== null}
-              loading={false}
+              onModeSelect={handleRecoveryModeSelect}
+              className="lg:col-span-2"
             />
           </div>
         </CardContent>
