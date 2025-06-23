@@ -22,6 +22,17 @@ interface MeditationProgress {
   last_session_date: string | null;
 }
 
+interface MeditationCompletionResult {
+  success: boolean;
+  session_id: string;
+  hp_gained: number;
+  total_sessions: number;
+  total_minutes: number;
+  current_streak: number;
+  longest_streak: number;
+  streak_bonus_applied: boolean;
+}
+
 export function useMeditationProgress() {
   return useQuery({
     queryKey: ['meditation-progress'],
@@ -82,7 +93,7 @@ export function useCompleteMeditation() {
         throw error;
       }
       
-      return data;
+      return data as MeditationCompletionResult;
     },
     onSuccess: (data) => {
       console.log('Meditation session completed successfully:', data);
