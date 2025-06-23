@@ -62,7 +62,7 @@ export function StretchingPanel() {
   
   const completeStretching = useCompleteStretching();
   const { checkStretchingAchievements } = useStretchingAchievements();
-  const { restoreHP } = usePlayerHP();
+  const { restoreHP, refreshHP } = usePlayerHP();
 
   const handleStartStretching = (routineId: string) => {
     const routine = STRETCHING_ROUTINES.find(r => r.id === routineId);
@@ -83,16 +83,24 @@ export function StretchingPanel() {
     if (!routine) return;
 
     try {
+      console.log('Starting stretching completion process...');
+      
       // Complete stretching session through backend
-      await completeStretching.mutateAsync({
+      const result = await completeStretching.mutateAsync({
         routine_id: routine.id,
         routine_name: routine.name,
         duration_minutes: routine.duration,
         difficulty: routine.difficulty
       });
       
+      console.log('Stretching completion result:', result);
+      
       // Restore HP through backend
       await restoreHP(routine.hp, 'stretching', `Completed ${routine.name} stretching routine`);
+      
+      // Force refresh HP data to ensure UI updates
+      console.log('Refreshing HP data after stretching...');
+      await refreshHP();
       
       // Check for stretching achievements after completion
       setTimeout(() => {
