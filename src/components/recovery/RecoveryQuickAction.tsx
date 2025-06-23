@@ -77,16 +77,18 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
           </div>
         </div>
 
-        {/* Main Action Button - matches other cards button position */}
-        <RecoveryModeSelector onModeSelect={handleModeSelect}>
-          <Button 
-            variant="outline" 
-            className="w-full justify-center bg-gradient-to-r from-purple-50 to-green-50 border-purple-200 hover:border-purple-300"
-          >
-            <Sparkles className="h-4 w-4 mr-2 text-purple-500" />
-            Choose Recovery Method
-          </Button>
-        </RecoveryModeSelector>
+        {/* Main Action Button - matches other cards button position exactly */}
+        <div className="pt-2">
+          <RecoveryModeSelector onModeSelect={handleModeSelect}>
+            <Button 
+              variant="outline" 
+              className="w-full justify-center bg-gradient-to-r from-purple-50 to-green-50 border-purple-200 hover:border-purple-300"
+            >
+              <Sparkles className="h-4 w-4 mr-2 text-purple-500" />
+              Choose Recovery Method
+            </Button>
+          </RecoveryModeSelector>
+        </div>
       </div>
     </div>
   );
