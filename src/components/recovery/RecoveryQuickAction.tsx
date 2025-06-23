@@ -38,7 +38,7 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
   };
 
   return (
-    <div className={`p-4 rounded-lg border-2 border-red-200 hover:border-red-300 transition-colors bg-red-50 ${className}`}>
+    <div className={`p-4 rounded-lg border-2 border-gray-200 hover:border-gray-300 transition-colors bg-gray-50 ${className}`}>
       <div className="space-y-3">
         {/* Header - matches other cards */}
         <div className="flex items-center gap-2">
