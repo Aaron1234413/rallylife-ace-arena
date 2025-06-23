@@ -6,15 +6,16 @@ import {
   Zap, 
   Users, 
   BookOpen, 
-  Sparkles,
-  Plus
+  Brain,
+  Plus,
+  Sparkles
 } from 'lucide-react';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { toast } from 'sonner';
 import { SmartRecommendations } from './SmartRecommendations';
 import { ActionButton } from './ActionButton';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
-import { RecoveryQuickAction } from '@/components/recovery/RecoveryQuickAction';
+import { MeditationPanel } from '@/components/meditation/MeditationPanel';
 
 interface EnhancedQuickActionsProps {
   hpData: any;
@@ -35,6 +36,7 @@ export function EnhancedQuickActions({
   const { logActivity, refreshData } = useActivityLogs();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [socialPlayDialogOpen, setSocialPlayDialogOpen] = useState(false);
+  const [meditationPanelOpen, setMeditationPanelOpen] = useState(false);
   
   const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
   
@@ -80,6 +82,20 @@ export function EnhancedQuickActions({
       estimatedDuration: 45,
       difficulty: 'low' as const,
       openDialog: true
+    },
+    {
+      id: 'meditation',
+      title: 'Meditation & Recovery',
+      description: 'Restore your energy with mindful meditation sessions',
+      icon: Brain,
+      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
+      textColor: 'text-purple-700',
+      bgColor: 'bg-purple-50',
+      rewards: { hp: 8, xp: 10, tokens: 10 },
+      recommended: hpPercentage < 60,
+      estimatedDuration: 10,
+      difficulty: 'low' as const,
+      openMeditation: true
     }
   ];
 
@@ -93,6 +109,12 @@ export function EnhancedQuickActions({
     // If action should open dialog, open it
     if (action.openDialog && action.id === 'social') {
       setSocialPlayDialogOpen(true);
+      return;
+    }
+
+    // If action should open meditation panel
+    if (action.openMeditation && action.id === 'meditation') {
+      setMeditationPanelOpen(true);
       return;
     }
 
@@ -120,6 +142,23 @@ export function EnhancedQuickActions({
       handleQuickAction(action);
     }
   };
+
+  if (meditationPanelOpen) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Meditation & Recovery</h2>
+          <button
+            onClick={() => setMeditationPanelOpen(false)}
+            className="text-gray-500 hover:text-gray-700 text-sm"
+          >
+            ← Back to Quick Actions
+          </button>
+        </div>
+        <MeditationPanel />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -159,27 +198,6 @@ export function EnhancedQuickActions({
                 loading={loadingAction === action.id}
               />
             ))}
-            
-            {/* Recovery Center Action */}
-            <div className="lg:col-span-2">
-              <RecoveryQuickAction className="w-full h-auto p-4 text-left">
-                <div className="flex items-center justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Sparkles className="h-5 w-5 text-purple-200" />
-                      <span className="font-semibold text-white">Recovery Center</span>
-                    </div>
-                    <p className="text-sm text-purple-100">
-                      Restore your energy with meditation and stretching sessions
-                    </p>
-                  </div>
-                  <div className="text-right">
-                    <div className="text-xs text-purple-200">Recommended</div>
-                    <div className="text-xs text-purple-200">5-15 min</div>
-                  </div>
-                </div>
-              </RecoveryQuickAction>
-            </div>
           </div>
         </CardContent>
       </Card>
