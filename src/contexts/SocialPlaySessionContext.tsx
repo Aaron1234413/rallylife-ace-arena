@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, ReactNode, useState } from 'react';
-import { useToast } from '@/hooks/use-toast';
+import { toast } from 'sonner';
 import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
 
 interface ActiveSession {
@@ -21,7 +21,6 @@ interface SocialPlaySessionContextType {
 const SocialPlaySessionContext = createContext<SocialPlaySessionContextType | undefined>(undefined);
 
 export function SocialPlaySessionProvider({ children }: { children: ReactNode }) {
-  const { toast } = useToast();
   const { updateSessionStatus } = useSocialPlaySessions();
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [loading, setLoading] = useState(false);
@@ -43,8 +42,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
       updates: { start_time: new Date().toISOString() }
     });
     
-    toast({
-      title: 'Session Started',
+    toast.success('Session Started', {
       description: 'Your tennis session is now active!',
     });
   };
@@ -69,15 +67,12 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
       
       setActiveSession(null);
       
-      toast({
-        title: 'Session Completed',
+      toast.success('Session Completed', {
         description: `Great session! You played for ${durationMinutes} minutes.`,
       });
     } catch (error) {
-      toast({
-        title: 'Error',
+      toast.error('Error', {
         description: 'Failed to end session',
-        variant: 'destructive',
       });
     } finally {
       setLoading(false);
