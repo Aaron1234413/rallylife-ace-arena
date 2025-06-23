@@ -2452,6 +2452,42 @@ export type Database = {
         }
         Relationships: []
       }
+      stretching_progress: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_session_date: string | null
+          longest_streak: number
+          total_minutes: number
+          total_sessions: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_session_date?: string | null
+          longest_streak?: number
+          total_minutes?: number
+          total_sessions?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_session_date?: string | null
+          longest_streak?: number
+          total_minutes?: number
+          total_sessions?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       stretching_routines: {
         Row: {
           category: string
@@ -3161,12 +3197,20 @@ export type Database = {
         Returns: Json
       }
       complete_stretching_session: {
-        Args: {
-          user_id: string
-          routine_id: string
-          completed_stretches: Json
-          notes?: string
-        }
+        Args:
+          | {
+              user_id: string
+              routine_id: string
+              completed_stretches: Json
+              notes?: string
+            }
+          | {
+              user_id: string
+              routine_id: string
+              routine_name: string
+              duration_minutes: number
+              difficulty?: string
+            }
         Returns: Json
       }
       complete_training_assignment: {
