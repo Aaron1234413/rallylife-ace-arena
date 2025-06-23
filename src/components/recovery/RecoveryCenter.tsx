@@ -10,7 +10,7 @@ import {
   Heart, 
   Clock, 
   Sparkles, 
-  Stretching,
+  Dumbbell,
   Waves,
   Moon,
   ArrowLeft,
@@ -35,7 +35,7 @@ const STRETCHING_ROUTINES = [
     duration: 10,
     hp: 6,
     difficulty: 'Easy',
-    icon: Stretching,
+    icon: Dumbbell,
     color: 'bg-gradient-to-r from-green-500 to-emerald-500'
   },
   {
@@ -202,7 +202,7 @@ export function RecoveryCenter({ onBack }: RecoveryCenterProps) {
                   onClick={() => setActiveTab('stretching')}
                 >
                   <div className="flex items-center gap-3 mb-2">
-                    <Stretching className="h-6 w-6 text-green-500" />
+                    <Dumbbell className="h-6 w-6 text-green-500" />
                     <div>
                       <h3 className="font-semibold">Targeted Stretching</h3>
                       <p className="text-sm text-gray-600">8-15 minutes</p>
@@ -229,7 +229,7 @@ export function RecoveryCenter({ onBack }: RecoveryCenterProps) {
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
-                <Stretching className="h-5 w-5 text-green-500" />
+                <Dumbbell className="h-5 w-5 text-green-500" />
                 Stretching Routines
               </CardTitle>
             </CardHeader>
