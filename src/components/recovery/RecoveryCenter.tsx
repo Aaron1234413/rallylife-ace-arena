@@ -15,6 +15,7 @@ import { MeditationProgress } from '@/components/meditation/MeditationProgress';
 import { MeditationAchievements } from '@/components/meditation/MeditationAchievements';
 import { StretchingPanel } from '@/components/stretching/StretchingPanel';
 import { StretchingProgress } from '@/components/stretching/StretchingProgress';
+import { ClosestBadges } from '@/components/achievements/ClosestBadges';
 import { RecoveryModeSelector } from './RecoveryModeSelector';
 
 interface RecoveryCenterProps {
@@ -116,6 +117,9 @@ export function RecoveryCenter({ onBack }: RecoveryCenterProps) {
               </div>
             </CardContent>
           </Card>
+
+          {/* Closest Badges */}
+          <ClosestBadges />
 
           {/* Recent Progress */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
