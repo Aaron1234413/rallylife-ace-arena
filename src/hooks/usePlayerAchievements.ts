@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -87,6 +86,7 @@ export function usePlayerAchievements() {
         return;
       }
 
+      console.log('Fetched achievements:', data?.length);
       setAchievements(data || []);
     } catch (error) {
       console.error('Error in fetchAchievements:', error);
@@ -111,6 +111,7 @@ export function usePlayerAchievements() {
         return;
       }
 
+      console.log('Fetched player achievements:', data?.length);
       setPlayerAchievements(data || []);
     } catch (error) {
       console.error('Error in fetchPlayerAchievements:', error);
@@ -135,6 +136,7 @@ export function usePlayerAchievements() {
         return;
       }
 
+      console.log('Fetched achievement progress:', data?.length);
       setAchievementProgress(data || []);
     } catch (error) {
       console.error('Error in fetchAchievementProgress:', error);
@@ -145,88 +147,9 @@ export function usePlayerAchievements() {
     if (!user) return { success: false, error: 'User not authenticated' };
 
     try {
-      // First get meditation progress for meditation achievements
-      const achievement = achievements.find(a => a.id === achievementId);
-      if (achievement?.category === 'meditation') {
-        const { data: meditationProgress } = await supabase
-          .from('meditation_progress')
-          .select('*')
-          .eq('user_id', user.id)
-          .single();
-
-        if (meditationProgress) {
-          let currentValue = 0;
-          switch (achievement.requirement_type) {
-            case 'meditation_sessions':
-              currentValue = meditationProgress.total_sessions;
-              break;
-            case 'meditation_minutes':
-              currentValue = meditationProgress.total_minutes;
-              break;
-            case 'meditation_streak':
-              currentValue = meditationProgress.current_streak;
-              break;
-          }
-
-          // Update progress first
-          await supabase
-            .from('achievement_progress')
-            .upsert({
-              player_id: user.id,
-              achievement_id: achievementId,
-              current_progress: currentValue,
-              last_updated: new Date().toISOString()
-            });
-
-          // Check if should unlock
-          if (currentValue >= achievement.requirement_value) {
-            // Check if already unlocked
-            const { data: existing } = await supabase
-              .from('player_achievements')
-              .select('id')
-              .eq('player_id', user.id)
-              .eq('achievement_id', achievementId)
-              .single();
-
-            if (!existing) {
-              // Unlock the achievement
-              await supabase
-                .from('player_achievements')
-                .insert({
-                  player_id: user.id,
-                  achievement_id: achievementId,
-                  progress_value: currentValue
-                });
-
-              toast.success(`🏆 Achievement Unlocked: ${achievement.name}!`);
-              
-              // Refresh data
-              await fetchPlayerAchievements();
-              await fetchAchievementProgress();
-
-              return {
-                success: true,
-                unlocked: true,
-                current_progress: currentValue,
-                required_progress: achievement.requirement_value,
-                achievement_name: achievement.name,
-                achievement_tier: achievement.tier
-              };
-            }
-          }
-
-          return {
-            success: true,
-            unlocked: false,
-            current_progress: currentValue,
-            required_progress: achievement.requirement_value,
-            achievement_name: achievement.name,
-            achievement_tier: achievement.tier
-          };
-        }
-      }
-
-      // Fallback to original RPC function for other achievements
+      console.log('Checking achievement unlock for:', achievementId);
+      
+      // Use the fixed RPC function that handles all achievement types
       const { data, error } = await supabase
         .rpc('check_achievement_unlock', {
           user_id: user.id,
@@ -239,12 +162,16 @@ export function usePlayerAchievements() {
       }
 
       const result = data as unknown as AchievementCheckResult;
+      console.log('Achievement check result:', result);
       
       if (result.unlocked) {
         toast.success(`🏆 Achievement Unlocked: ${result.achievement_name}!`);
-        // Refresh data
-        await fetchPlayerAchievements();
-        await fetchAchievementProgress();
+        
+        // Refresh data immediately after unlock
+        await Promise.all([
+          fetchPlayerAchievements(),
+          fetchAchievementProgress()
+        ]);
       }
 
       return result;
@@ -317,6 +244,18 @@ export function usePlayerAchievements() {
     }
   };
 
+  const refreshData = async () => {
+    console.log('Refreshing achievement data...');
+    setLoading(true);
+    await fetchAchievements();
+    if (user) {
+      await fetchPlayerAchievements();
+      await fetchAchievementProgress();
+    }
+    setLoading(false);
+    console.log('Achievement data refresh completed');
+  };
+
   useEffect(() => {
     const cleanupChannel = () => {
       if (channelRef.current && subscriptionStatusRef.current !== 'unsubscribed') {
@@ -327,13 +266,7 @@ export function usePlayerAchievements() {
     };
 
     const loadData = async () => {
-      setLoading(true);
-      await fetchAchievements();
-      if (user) {
-        await fetchPlayerAchievements();
-        await fetchAchievementProgress();
-      }
-      setLoading(false);
+      await refreshData();
     };
 
     loadData();
@@ -356,6 +289,7 @@ export function usePlayerAchievements() {
             filter: `player_id=eq.${user.id}`
           },
           () => {
+            console.log('Player achievements changed, refreshing...');
             fetchPlayerAchievements();
           }
         )
@@ -368,6 +302,7 @@ export function usePlayerAchievements() {
             filter: `player_id=eq.${user.id}`
           },
           () => {
+            console.log('Achievement progress changed, refreshing...');
             fetchAchievementProgress();
           }
         );
@@ -391,32 +326,12 @@ export function usePlayerAchievements() {
     }
   }, [user]);
 
-  // Check achievements when user data changes (XP, tokens, etc.)
-  useEffect(() => {
-    if (user && achievements.length > 0 && playerAchievements.length >= 0) {
-      // Small delay to ensure other systems have updated
-      const timer = setTimeout(() => {
-        checkAllAchievements();
-      }, 1000);
-
-      return () => clearTimeout(timer);
-    }
-  }, [user, achievements.length]);
-
   return {
     achievements,
     playerAchievements,
     achievementProgress,
     loading,
     checkAchievementUnlock,
-    checkAllAchievements,
-    claimAchievementReward,
-    refreshData: async () => {
-      await fetchAchievements();
-      if (user) {
-        await fetchPlayerAchievements();
-        await fetchAchievementProgress();
-      }
-    }
+    refreshData
   };
 }

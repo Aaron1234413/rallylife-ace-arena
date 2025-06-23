@@ -8,8 +8,10 @@ import { MeditationProgress } from './MeditationProgress';
 import { useCompleteMeditation } from '@/hooks/useMeditation';
 import { useMeditationAchievements } from '@/hooks/useMeditationAchievements';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
+import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
 import { Brain, Heart, Clock, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 
 const MEDITATION_DURATIONS = [
   { minutes: 5, hp: 5, label: 'Quick Reset', description: 'Perfect for busy schedules' },
@@ -23,6 +25,8 @@ export function MeditationPanel() {
   const completeMeditation = useCompleteMeditation();
   const { checkMeditationAchievements } = useMeditationAchievements();
   const { refreshData } = useActivityLogs();
+  const { refreshData: refreshAchievements } = usePlayerAchievements();
+  const queryClient = useQueryClient();
 
   const handleStartMeditation = (duration: number) => {
     setSelectedDuration(duration);
@@ -45,18 +49,34 @@ export function MeditationPanel() {
           toast.success(`🧘 Meditation complete! +${result.hp_gained} HP restored`);
         }
         
-        // Refresh all data to ensure UI updates
-        await refreshData();
+        // Force refresh all meditation and achievement related data
+        console.log('Refreshing all data after meditation completion...');
         
-        // Check for meditation achievements after completion (with delay to ensure data is updated)
+        await Promise.all([
+          // Refresh activity logs
+          refreshData(),
+          // Refresh achievement data
+          refreshAchievements(),
+          // Invalidate and refetch meditation data
+          queryClient.invalidateQueries({ queryKey: ['meditation-progress'] }),
+          queryClient.invalidateQueries({ queryKey: ['meditation-sessions'] }),
+          // Force refetch player data
+          queryClient.refetchQueries({ queryKey: ['player-hp'] }),
+          queryClient.refetchQueries({ queryKey: ['player-achievements'] }),
+          queryClient.refetchQueries({ queryKey: ['achievement-progress'] })
+        ]);
+        
+        console.log('All data refreshed, now checking achievements...');
+        
+        // Wait a bit for data to be fully updated, then check achievements
         setTimeout(async () => {
           try {
             await checkMeditationAchievements();
+            console.log('Meditation achievements check completed');
           } catch (error) {
             console.error('Error checking meditation achievements:', error);
-            // Don't show error to user since this is secondary functionality
           }
-        }, 1500);
+        }, 2000);
         
       } catch (error) {
         console.error('Error completing meditation:', error);

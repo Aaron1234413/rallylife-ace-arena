@@ -4,9 +4,8 @@ import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
 import { useMeditationProgress, useMeditationSessions } from '@/hooks/useMeditation';
 
 export function useMeditationAchievements() {
-  const { checkAchievementUnlock, achievements } = usePlayerAchievements();
+  const { checkAchievementUnlock, achievements, refreshData } = usePlayerAchievements();
   const { data: meditationProgress } = useMeditationProgress();
-  const { data: meditationSessions } = useMeditationSessions();
 
   const checkMeditationAchievements = useCallback(async () => {
     if (!meditationProgress || !achievements.length) {
@@ -38,18 +37,27 @@ export function useMeditationAchievements() {
 
       console.log(`Checking achievement "${achievement.name}": ${currentValue}/${achievement.requirement_value}`);
 
-      // Check if achievement should be unlocked
-      if (currentValue >= achievement.requirement_value) {
-        try {
-          const result = await checkAchievementUnlock(achievement.id);
-          console.log('Achievement check result:', result);
-        } catch (error) {
-          console.error('Error checking meditation achievement:', achievement.name, error);
-          // Continue with other achievements even if one fails
+      try {
+        const result = await checkAchievementUnlock(achievement.id);
+        console.log('Achievement check result for', achievement.name, ':', result);
+        
+        if (result.unlocked) {
+          console.log('🏆 Achievement unlocked:', achievement.name);
         }
+      } catch (error) {
+        console.error('Error checking meditation achievement:', achievement.name, error);
+        // Continue with other achievements even if one fails
       }
     }
-  }, [meditationProgress, achievements, checkAchievementUnlock]);
+
+    // Force refresh achievement data after checking all achievements
+    try {
+      await refreshData();
+      console.log('Achievement data refreshed after meditation achievements check');
+    } catch (error) {
+      console.error('Error refreshing achievement data:', error);
+    }
+  }, [meditationProgress, achievements, checkAchievementUnlock, refreshData]);
 
   return {
     checkMeditationAchievements,
