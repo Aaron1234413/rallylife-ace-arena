@@ -95,7 +95,7 @@ export function useCompleteMeditation() {
       
       return data as unknown as MeditationCompletionResult;
     },
-    onSuccess: (data) => {
+    onSuccess: async (data) => {
       console.log('Meditation session completed successfully:', data);
       
       // Show success message with streak info
@@ -112,6 +112,16 @@ export function useCompleteMeditation() {
       queryClient.invalidateQueries({ queryKey: ['meditation-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['player-hp'] });
       queryClient.invalidateQueries({ queryKey: ['activity-logs'] });
+      
+      // Check for meditation achievements
+      // Import achievement checking here
+      const { useMeditationAchievements } = await import('./useMeditationAchievements');
+      
+      // Trigger achievement check after a short delay to ensure data is refreshed
+      setTimeout(() => {
+        // This will be handled by the component that uses this hook
+        queryClient.invalidateQueries({ queryKey: ['meditation-achievements'] });
+      }, 500);
     },
     onError: (error) => {
       console.error('Error completing meditation:', error);

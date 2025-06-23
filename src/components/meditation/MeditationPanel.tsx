@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { MeditationTimer } from './MeditationTimer';
 import { MeditationProgress } from './MeditationProgress';
 import { useCompleteMeditation } from '@/hooks/useMeditation';
+import { useMeditationAchievements } from '@/hooks/useMeditationAchievements';
 import { Brain, Heart, Clock, Sparkles } from 'lucide-react';
 
 const MEDITATION_DURATIONS = [
@@ -18,18 +19,28 @@ export function MeditationPanel() {
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const completeMeditation = useCompleteMeditation();
+  const { checkMeditationAchievements } = useMeditationAchievements();
 
   const handleStartMeditation = (duration: number) => {
     setSelectedDuration(duration);
     setIsTimerActive(true);
   };
 
-  const handleMeditationComplete = () => {
+  const handleMeditationComplete = async () => {
     if (selectedDuration) {
-      completeMeditation.mutate({ 
-        duration_minutes: selectedDuration,
-        session_type: 'guided' 
-      });
+      try {
+        await completeMeditation.mutateAsync({ 
+          duration_minutes: selectedDuration,
+          session_type: 'guided' 
+        });
+        
+        // Check for meditation achievements after completion
+        setTimeout(() => {
+          checkMeditationAchievements();
+        }, 1000);
+      } catch (error) {
+        console.error('Error completing meditation:', error);
+      }
     }
     setIsTimerActive(false);
     setSelectedDuration(null);
@@ -101,7 +112,7 @@ export function MeditationPanel() {
           
           <div className="mt-4 p-3 rounded-lg bg-gradient-to-r from-purple-50 to-blue-50 border border-purple-200">
             <div className="text-sm text-purple-700">
-              <strong>💡 Pro Tip:</strong> Regular meditation builds streaks for bonus HP rewards!
+              <strong>💡 Pro Tip:</strong> Regular meditation builds streaks for bonus HP rewards and unlocks achievement badges!
             </div>
           </div>
         </CardContent>

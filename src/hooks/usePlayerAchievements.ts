@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -144,6 +145,88 @@ export function usePlayerAchievements() {
     if (!user) return { success: false, error: 'User not authenticated' };
 
     try {
+      // First get meditation progress for meditation achievements
+      const achievement = achievements.find(a => a.id === achievementId);
+      if (achievement?.category === 'meditation') {
+        const { data: meditationProgress } = await supabase
+          .from('meditation_progress')
+          .select('*')
+          .eq('user_id', user.id)
+          .single();
+
+        if (meditationProgress) {
+          let currentValue = 0;
+          switch (achievement.requirement_type) {
+            case 'meditation_sessions':
+              currentValue = meditationProgress.total_sessions;
+              break;
+            case 'meditation_minutes':
+              currentValue = meditationProgress.total_minutes;
+              break;
+            case 'meditation_streak':
+              currentValue = meditationProgress.current_streak;
+              break;
+          }
+
+          // Update progress first
+          await supabase
+            .from('achievement_progress')
+            .upsert({
+              player_id: user.id,
+              achievement_id: achievementId,
+              current_progress: currentValue,
+              last_updated: new Date().toISOString()
+            });
+
+          // Check if should unlock
+          if (currentValue >= achievement.requirement_value) {
+            // Check if already unlocked
+            const { data: existing } = await supabase
+              .from('player_achievements')
+              .select('id')
+              .eq('player_id', user.id)
+              .eq('achievement_id', achievementId)
+              .single();
+
+            if (!existing) {
+              // Unlock the achievement
+              await supabase
+                .from('player_achievements')
+                .insert({
+                  player_id: user.id,
+                  achievement_id: achievementId,
+                  progress_value: currentValue
+                });
+
+              toast.success(`🏆 Achievement Unlocked: ${achievement.name}!`);
+              
+              // Refresh data
+              await fetchPlayerAchievements();
+              await fetchAchievementProgress();
+
+              return {
+                success: true,
+                unlocked: true,
+                current_progress: currentValue,
+                required_progress: achievement.requirement_value,
+                achievement_name: achievement.name,
+                achievement_tier: achievement.tier
+              };
+            }
+          }
+
+          return {
+            success: true,
+            unlocked: false,
+            current_progress: currentValue,
+            required_progress: achievement.requirement_value,
+            achievement_name: achievement.name,
+            achievement_tier: achievement.tier
+          };
+        }
+      }
+
+      // Fallback to original RPC function for other achievements
       const { data, error } = await supabase
         .rpc('check_achievement_unlock', {
           user_id: user.id,
