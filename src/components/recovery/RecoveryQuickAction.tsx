@@ -87,11 +87,6 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
             Choose Recovery Method
           </Button>
         </RecoveryModeSelector>
-
-        {/* Pro Tip - matches other cards description position */}
-        <div className="text-xs text-gray-500 border-t pt-2">
-          💡 Regular recovery boosts performance and reduces injury risk
-        </div>
       </div>
     </div>
   );
