@@ -8,11 +8,14 @@ import {
   Heart, 
   Clock, 
   Play,
-  ArrowLeft
+  ArrowLeft,
+  Loader2
 } from 'lucide-react';
 import { useCompleteStretching } from '@/hooks/useStretching';
 import { useStretchingAchievements } from '@/hooks/useStretchingAchievements';
 import { StretchingTimer } from './StretchingTimer';
+import { usePlayerHP } from '@/hooks/usePlayerHP';
+import { toast } from 'sonner';
 
 const STRETCHING_ROUTINES = [
   {
@@ -59,40 +62,65 @@ export function StretchingPanel() {
   
   const completeStretching = useCompleteStretching();
   const { checkStretchingAchievements } = useStretchingAchievements();
+  const { restoreHP } = usePlayerHP();
 
   const handleStartStretching = (routineId: string) => {
+    const routine = STRETCHING_ROUTINES.find(r => r.id === routineId);
+    if (!routine) return;
+
     setSelectedRoutine(routineId);
     setIsStretching(true);
+    
+    toast.success('Stretching session started!', {
+      description: `${routine.name} - ${routine.duration} minutes`
+    });
   };
 
   const handleCompleteStretching = async () => {
-    if (selectedRoutine) {
-      const routine = STRETCHING_ROUTINES.find(r => r.id === selectedRoutine);
-      if (routine) {
-        try {
-          await completeStretching.mutateAsync({
-            routine_id: routine.id,
-            routine_name: routine.name,
-            duration_minutes: routine.duration,
-            difficulty: routine.difficulty
-          });
-          
-          // Check for stretching achievements after completion
-          setTimeout(() => {
-            checkStretchingAchievements();
-          }, 1000);
-        } catch (error) {
-          console.error('Error completing stretching:', error);
-        }
-      }
+    if (!selectedRoutine) return;
+
+    const routine = STRETCHING_ROUTINES.find(r => r.id === selectedRoutine);
+    if (!routine) return;
+
+    try {
+      // Complete stretching session through backend
+      await completeStretching.mutateAsync({
+        routine_id: routine.id,
+        routine_name: routine.name,
+        duration_minutes: routine.duration,
+        difficulty: routine.difficulty
+      });
+      
+      // Restore HP through backend
+      await restoreHP(routine.hp, 'stretching', `Completed ${routine.name} stretching routine`);
+      
+      // Check for stretching achievements after completion
+      setTimeout(() => {
+        checkStretchingAchievements();
+      }, 1000);
+
+      toast.success('Stretching session completed!', {
+        description: `+${routine.hp} HP restored! Great work on your recovery.`
+      });
+    } catch (error) {
+      console.error('Error completing stretching:', error);
+      toast.error('Failed to complete stretching session', {
+        description: 'Please try again or contact support if the problem persists.'
+      });
     }
+
     setIsStretching(false);
     setSelectedRoutine(null);
   };
 
   const handleCancelStretching = () => {
+    const routine = STRETCHING_ROUTINES.find(r => r.id === selectedRoutine);
     setIsStretching(false);
     setSelectedRoutine(null);
+    
+    toast.info('Stretching session cancelled', {
+      description: routine ? `${routine.name} session stopped` : 'Session stopped'
+    });
   };
 
   // Show timer when stretching is active
@@ -105,6 +133,7 @@ export function StretchingPanel() {
             variant="ghost" 
             onClick={handleCancelStretching}
             className="mb-4"
+            disabled={completeStretching.isPending}
           >
             <ArrowLeft className="h-4 w-4 mr-2" />
             Back to Routines
@@ -113,6 +142,7 @@ export function StretchingPanel() {
             routine={routine}
             onComplete={handleCompleteStretching}
             onCancel={handleCancelStretching}
+            isLoading={completeStretching.isPending}
           />
         </div>
       );
@@ -155,9 +185,13 @@ export function StretchingPanel() {
                 <Button 
                   onClick={() => handleStartStretching(routine.id)}
                   className={routine.color}
-                  disabled={completeStretching.isPending}
+                  disabled={completeStretching.isPending || isStretching}
                 >
-                  <Play className="h-4 w-4 mr-2" />
+                  {completeStretching.isPending ? (
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                  ) : (
+                    <Play className="h-4 w-4 mr-2" />
+                  )}
                   Start
                 </Button>
               </div>

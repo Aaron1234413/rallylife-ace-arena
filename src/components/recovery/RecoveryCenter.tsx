@@ -15,13 +15,40 @@ import { MeditationProgress } from '@/components/meditation/MeditationProgress';
 import { MeditationAchievements } from '@/components/meditation/MeditationAchievements';
 import { StretchingPanel } from '@/components/stretching/StretchingPanel';
 import { StretchingProgress } from '@/components/stretching/StretchingProgress';
+import { RecoveryModeSelector } from './RecoveryModeSelector';
 
 interface RecoveryCenterProps {
   onBack: () => void;
 }
 
+interface RecoveryMode {
+  id: string;
+  title: string;
+  description: string;
+  icon: React.ElementType;
+  color: string;
+  bgColor: string;
+  duration: string;
+  hp: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+}
+
 export function RecoveryCenter({ onBack }: RecoveryCenterProps) {
   const [activeTab, setActiveTab] = useState('overview');
+  const [selectedMode, setSelectedMode] = useState<RecoveryMode | null>(null);
+
+  const handleModeSelect = (mode: RecoveryMode) => {
+    console.log('Recovery mode selected:', mode);
+    
+    // Navigate to the appropriate tab based on mode
+    if (mode.id === 'meditation') {
+      setActiveTab('meditation');
+    } else if (mode.id === 'stretching') {
+      setActiveTab('stretching');
+    }
+    
+    setSelectedMode(mode);
+  };
 
   return (
     <div className="space-y-6">
@@ -50,7 +77,7 @@ export function RecoveryCenter({ onBack }: RecoveryCenterProps) {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* Quick Recovery Actions */}
+          {/* Quick Recovery Actions with Mode Selector */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
@@ -60,19 +87,18 @@ export function RecoveryCenter({ onBack }: RecoveryCenterProps) {
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div 
-                  className="p-4 rounded-lg border-2 border-purple-200 hover:border-purple-300 transition-colors cursor-pointer bg-gradient-to-r from-purple-50 to-pink-50"
-                  onClick={() => setActiveTab('meditation')}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <Brain className="h-6 w-6 text-purple-500" />
-                    <div>
-                      <h3 className="font-semibold">Quick Meditation</h3>
-                      <p className="text-sm text-gray-600">5-15 minutes</p>
+                <RecoveryModeSelector onModeSelect={handleModeSelect}>
+                  <div className="p-4 rounded-lg border-2 border-purple-200 hover:border-purple-300 transition-colors cursor-pointer bg-gradient-to-r from-purple-50 to-pink-50">
+                    <div className="flex items-center gap-3 mb-2">
+                      <Brain className="h-6 w-6 text-purple-500" />
+                      <div>
+                        <h3 className="font-semibold">Quick Meditation</h3>
+                        <p className="text-sm text-gray-600">5-15 minutes</p>
+                      </div>
                     </div>
+                    <p className="text-sm text-gray-600">Guided mindfulness sessions</p>
                   </div>
-                  <p className="text-sm text-gray-600">Guided mindfulness sessions</p>
-                </div>
+                </RecoveryModeSelector>
 
                 <div 
                   className="p-4 rounded-lg border-2 border-green-200 hover:border-green-300 transition-colors cursor-pointer bg-gradient-to-r from-green-50 to-emerald-50"

@@ -12,7 +12,8 @@ import {
   CheckCircle,
   Dumbbell,
   Heart,
-  Clock
+  Clock,
+  Loader2
 } from 'lucide-react';
 
 interface StretchingTimerProps {
@@ -26,9 +27,10 @@ interface StretchingTimerProps {
   };
   onComplete: () => void;
   onCancel: () => void;
+  isLoading?: boolean;
 }
 
-export function StretchingTimer({ routine, onComplete, onCancel }: StretchingTimerProps) {
+export function StretchingTimer({ routine, onComplete, onCancel, isLoading = false }: StretchingTimerProps) {
   const [timeLeft, setTimeLeft] = useState(routine.duration * 60); // Convert to seconds
   const [isActive, setIsActive] = useState(false);
   const [isPaused, setIsPaused] = useState(false);
@@ -40,7 +42,7 @@ export function StretchingTimer({ routine, onComplete, onCancel }: StretchingTim
   useEffect(() => {
     let interval: NodeJS.Timeout | null = null;
 
-    if (isActive && !isPaused && timeLeft > 0) {
+    if (isActive && !isPaused && timeLeft > 0 && !isLoading) {
       interval = setInterval(() => {
         setTimeLeft(timeLeft => {
           if (timeLeft <= 1) {
@@ -59,7 +61,7 @@ export function StretchingTimer({ routine, onComplete, onCancel }: StretchingTim
     return () => {
       if (interval) clearInterval(interval);
     };
-  }, [isActive, isPaused, timeLeft]);
+  }, [isActive, isPaused, timeLeft, isLoading]);
 
   const formatTime = (seconds: number) => {
     const mins = Math.floor(seconds / 60);
@@ -155,9 +157,17 @@ export function StretchingTimer({ routine, onComplete, onCancel }: StretchingTim
           </div>
         </div>
 
+        {/* Loading State */}
+        {isLoading && (
+          <div className="flex items-center justify-center gap-2 text-blue-600">
+            <Loader2 className="h-4 w-4 animate-spin" />
+            <span className="text-sm">Completing session...</span>
+          </div>
+        )}
+
         {/* Controls */}
         <div className="flex justify-center gap-3">
-          {!isActive && !isCompleted && (
+          {!isActive && !isCompleted && !isLoading && (
             <>
               <Button onClick={handleStart} className="bg-green-500 hover:bg-green-600">
                 <Play className="h-4 w-4 mr-2" />
@@ -169,7 +179,7 @@ export function StretchingTimer({ routine, onComplete, onCancel }: StretchingTim
             </>
           )}
 
-          {isActive && !isCompleted && (
+          {isActive && !isCompleted && !isLoading && (
             <>
               <Button onClick={handlePause} variant="outline">
                 <Pause className="h-4 w-4 mr-2" />
@@ -186,7 +196,7 @@ export function StretchingTimer({ routine, onComplete, onCancel }: StretchingTim
             </>
           )}
 
-          {isCompleted && (
+          {isCompleted && !isLoading && (
             <>
               <Button onClick={handleComplete} className="bg-green-500 hover:bg-green-600">
                 <CheckCircle className="h-4 w-4 mr-2" />
@@ -198,21 +208,31 @@ export function StretchingTimer({ routine, onComplete, onCancel }: StretchingTim
               </Button>
             </>
           )}
+
+          {isLoading && (
+            <Button disabled className="bg-gray-400">
+              <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+              Processing...
+            </Button>
+          )}
         </div>
 
         {/* Instructions */}
         <div className="text-xs text-gray-500 space-y-1">
-          {!isActive && !isCompleted && (
+          {!isActive && !isCompleted && !isLoading && (
             <p>Tap Start when you're ready to begin your stretching routine</p>
           )}
-          {isActive && !isPaused && (
+          {isActive && !isPaused && !isLoading && (
             <p>Follow along with your stretching routine. Take your time and listen to your body.</p>
           )}
-          {isPaused && (
+          {isPaused && !isLoading && (
             <p>Session paused. Take a break and resume when ready.</p>
           )}
-          {isCompleted && (
+          {isCompleted && !isLoading && (
             <p>🎉 Great job! You've completed your stretching session.</p>
+          )}
+          {isLoading && (
+            <p>Saving your progress and awarding HP...</p>
           )}
         </div>
       </CardContent>
