@@ -58,20 +58,20 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
           <Badge variant="outline" className="text-xs">low intensity</Badge>
         </div>
 
-        {/* Rewards grid - matches other cards rewards layout */}
+        {/* Rewards grid - matches other cards rewards layout with right alignment for stretching */}
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="flex items-center gap-1 text-purple-600">
             <Brain className="h-3 w-3" />
             <span>Meditation: 5-15min</span>
           </div>
-          <div className="flex items-center gap-1 text-green-600">
+          <div className="flex items-center gap-1 text-green-600 justify-end">
             <Dumbbell className="h-3 w-3" />
             <span>Stretching: 8-20min</span>
           </div>
         </div>
 
         {/* Main Action Button - matches other cards button position exactly */}
-        <div className="pt-1">
+        <div className="pt-2">
           <RecoveryModeSelector onModeSelect={handleModeSelect}>
             <Button 
               variant="outline" 
