@@ -41,14 +41,15 @@ export function RecoveryCenter({ onBack }: RecoveryCenterProps) {
   const handleModeSelect = (mode: RecoveryMode) => {
     console.log('Recovery mode selected:', mode);
     
+    // Set the selected mode
+    setSelectedMode(mode);
+    
     // Navigate to the appropriate tab based on mode
     if (mode.id === 'meditation') {
       setActiveTab('meditation');
     } else if (mode.id === 'stretching') {
       setActiveTab('stretching');
     }
-    
-    setSelectedMode(mode);
   };
 
   return (
@@ -103,7 +104,17 @@ export function RecoveryCenter({ onBack }: RecoveryCenterProps) {
 
                 <div 
                   className="p-4 rounded-lg border-2 border-green-200 hover:border-green-300 transition-colors cursor-pointer bg-gradient-to-r from-green-50 to-emerald-50"
-                  onClick={() => setActiveTab('stretching')}
+                  onClick={() => handleModeSelect({
+                    id: 'stretching',
+                    title: 'Stretching',
+                    description: 'Tennis-focused muscle recovery',
+                    icon: Dumbbell,
+                    color: 'text-green-600',
+                    bgColor: 'bg-green-50',
+                    duration: '8-20 min',
+                    hp: 12,
+                    difficulty: 'medium'
+                  })}
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <Dumbbell className="h-6 w-6 text-green-500" />
