@@ -93,7 +93,7 @@ export function useCompleteMeditation() {
         throw error;
       }
       
-      return data as MeditationCompletionResult;
+      return data as unknown as MeditationCompletionResult;
     },
     onSuccess: (data) => {
       console.log('Meditation session completed successfully:', data);
