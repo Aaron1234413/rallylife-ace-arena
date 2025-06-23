@@ -12,6 +12,7 @@ import {
   Activity
 } from 'lucide-react';
 import { ActionButton } from '@/components/dashboard/player/ActionButton';
+import { RecoveryQuickActionCompact } from '@/components/recovery/RecoveryQuickAction';
 
 interface MobileActionPanelProps {
   hpData: any;
@@ -40,20 +41,6 @@ export function MobileActionPanel({
 
   // Create action objects that match the ActionButton interface
   const quickActions = [
-    {
-      id: 'restore-hp',
-      title: 'Restore HP',
-      description: 'Quick health boost',
-      icon: Heart,
-      color: 'bg-red-500',
-      textColor: 'text-red-700',
-      bgColor: 'border-red-200',
-      rewards: { hp: 10, xp: 0, tokens: 0 },
-      recommended: false,
-      estimatedDuration: 5,
-      difficulty: 'low' as const,
-      onClick: () => onRestoreHP(10, 'rest', 'Quick mobile HP restore')
-    },
     {
       id: 'add-xp',
       title: 'Add XP',
@@ -121,6 +108,7 @@ export function MobileActionPanel({
             </div>
             
             <div className="flex gap-2">
+              <RecoveryQuickActionCompact />
               <Button
                 variant={activePanel === 'stats' ? 'default' : 'outline'}
                 size="sm"
