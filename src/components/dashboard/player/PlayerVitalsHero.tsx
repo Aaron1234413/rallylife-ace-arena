@@ -1,10 +1,11 @@
 
-import React from 'react';
+import React, { useEffect } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { Heart, Star, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { usePlayerHP } from '@/hooks/usePlayerHP';
 
 interface PlayerVitalsHeroProps {
   hpData: any;
@@ -14,6 +15,16 @@ interface PlayerVitalsHeroProps {
 }
 
 export function PlayerVitalsHero({ hpData, xpData, tokenData, loading }: PlayerVitalsHeroProps) {
+  const { refreshHP } = usePlayerHP();
+
+  // Refresh HP data when component mounts or when critical changes occur
+  useEffect(() => {
+    if (!loading && !hpData) {
+      console.log('PlayerVitalsHero: No HP data available, refreshing...');
+      refreshHP();
+    }
+  }, [loading, hpData, refreshHP]);
+
   if (loading) {
     return (
       <Card className="w-full bg-gradient-to-br from-blue-50 to-purple-50 border-0 shadow-lg">
