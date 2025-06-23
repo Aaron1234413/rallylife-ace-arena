@@ -3,18 +3,16 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Progress } from '@/components/ui/progress';
 import { 
   Dumbbell, 
   Heart, 
   Clock, 
-  Play, 
-  Pause, 
-  CheckCircle,
+  Play,
   ArrowLeft
 } from 'lucide-react';
 import { useCompleteStretching } from '@/hooks/useStretching';
 import { useStretchingAchievements } from '@/hooks/useStretchingAchievements';
+import { StretchingTimer } from './StretchingTimer';
 
 const STRETCHING_ROUTINES = [
   {
@@ -58,7 +56,6 @@ const STRETCHING_ROUTINES = [
 export function StretchingPanel() {
   const [selectedRoutine, setSelectedRoutine] = useState<string | null>(null);
   const [isStretching, setIsStretching] = useState(false);
-  const [stretchingProgress, setStretchingProgress] = useState(0);
   
   const completeStretching = useCompleteStretching();
   const { checkStretchingAchievements } = useStretchingAchievements();
@@ -66,22 +63,6 @@ export function StretchingPanel() {
   const handleStartStretching = (routineId: string) => {
     setSelectedRoutine(routineId);
     setIsStretching(true);
-    setStretchingProgress(0);
-    
-    // Simulate stretching progress
-    const routine = STRETCHING_ROUTINES.find(r => r.id === routineId);
-    if (routine) {
-      const interval = setInterval(() => {
-        setStretchingProgress(prev => {
-          if (prev >= 100) {
-            clearInterval(interval);
-            handleCompleteStretching();
-            return 100;
-          }
-          return prev + (100 / (routine.duration * 6)); // Progress per 10 seconds
-        });
-      }, 10000); // Update every 10 seconds
-    }
   };
 
   const handleCompleteStretching = async () => {
@@ -107,68 +88,35 @@ export function StretchingPanel() {
     }
     setIsStretching(false);
     setSelectedRoutine(null);
-    setStretchingProgress(0);
   };
 
   const handleCancelStretching = () => {
     setIsStretching(false);
     setSelectedRoutine(null);
-    setStretchingProgress(0);
   };
 
+  // Show timer when stretching is active
   if (isStretching && selectedRoutine) {
     const routine = STRETCHING_ROUTINES.find(r => r.id === selectedRoutine);
-    
-    return (
-      <Card className="border-2 border-gradient-to-r from-green-200 to-blue-200">
-        <CardContent className="p-8 text-center">
-          <div className="space-y-6">
-            <div className="flex justify-center">
-              <div className="p-4 rounded-full bg-gradient-to-r from-green-100 to-blue-100">
-                <Dumbbell className="h-12 w-12 text-green-600" />
-              </div>
-            </div>
-            
-            <div>
-              <h2 className="text-2xl font-bold mb-2">{routine?.name}</h2>
-              <p className="text-gray-600">{routine?.description}</p>
-              <Badge className="mt-2">{routine?.difficulty}</Badge>
-            </div>
-            
-            <div className="space-y-3">
-              <div className="flex justify-between text-sm text-gray-600">
-                <span>Progress</span>
-                <span>{Math.round(stretchingProgress)}%</span>
-              </div>
-              <Progress value={stretchingProgress} className="h-3" />
-            </div>
-            
-            <div className="flex justify-center gap-4">
-              <Button 
-                variant="outline" 
-                onClick={handleCancelStretching}
-              >
-                <Pause className="h-4 w-4 mr-2" />
-                Stop
-              </Button>
-              {stretchingProgress >= 100 && (
-                <Button 
-                  onClick={handleCompleteStretching}
-                  className="bg-green-500 hover:bg-green-600"
-                >
-                  <CheckCircle className="h-4 w-4 mr-2" />
-                  Complete
-                </Button>
-              )}
-            </div>
-            
-            <div className="text-sm text-gray-500">
-              Follow along with your stretching routine. Take your time and listen to your body.
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
+    if (routine) {
+      return (
+        <div className="space-y-4">
+          <Button 
+            variant="ghost" 
+            onClick={handleCancelStretching}
+            className="mb-4"
+          >
+            <ArrowLeft className="h-4 w-4 mr-2" />
+            Back to Routines
+          </Button>
+          <StretchingTimer
+            routine={routine}
+            onComplete={handleCompleteStretching}
+            onCancel={handleCancelStretching}
+          />
+        </div>
+      );
+    }
   }
 
   return (
