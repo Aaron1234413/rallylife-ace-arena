@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -28,12 +29,13 @@ export function usePlayerHP() {
   const [activities, setActivities] = useState<HPActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
-  const subscriptionStatusRef = useRef<string>('unsubscribed');
 
   const fetchHP = async () => {
     if (!user) return;
 
     try {
+      console.log('Fetching HP data for user:', user.id);
+      
       // Fetch current HP status directly without decay calculation
       const { data, error } = await supabase
         .from('player_hp')
@@ -46,6 +48,7 @@ export function usePlayerHP() {
         return;
       }
 
+      console.log('HP data fetched:', data);
       setHpData(data);
     } catch (error) {
       console.error('Error in fetchHP:', error);
@@ -82,6 +85,8 @@ export function usePlayerHP() {
     if (!user) return;
 
     try {
+      console.log('Restoring HP:', { amount, activityType, description });
+      
       const { data, error } = await supabase
         .rpc('restore_hp', {
           user_id: user.id,
@@ -96,8 +101,12 @@ export function usePlayerHP() {
         return;
       }
 
+      console.log('HP restored successfully:', data);
+      
       const changeText = amount > 0 ? `+${amount}` : `${amount}`;
       toast.success(`HP changed! ${changeText} HP`);
+      
+      // Immediately fetch fresh data
       await fetchHP();
       await fetchActivities();
     } catch (error) {
@@ -124,11 +133,19 @@ export function usePlayerHP() {
     }
   };
 
+  // Simplified refresh function that ensures fresh data
+  const refreshHP = async () => {
+    console.log('Refreshing HP data...');
+    await fetchHP();
+    await fetchActivities();
+    console.log('HP data refresh completed');
+  };
+
   useEffect(() => {
     const cleanupChannel = () => {
-      if (channelRef.current && subscriptionStatusRef.current !== 'unsubscribed') {
+      if (channelRef.current) {
+        console.log('Cleaning up HP channel subscription');
         channelRef.current.unsubscribe();
-        subscriptionStatusRef.current = 'unsubscribed';
         channelRef.current = null;
       }
     };
@@ -146,8 +163,8 @@ export function usePlayerHP() {
       // Clean up any existing channel
       cleanupChannel();
 
-      // Set up real-time subscription for HP changes with unique channel name
-      const channelName = `hp-${user.id}-${Date.now()}-${Math.random()}`;
+      // Set up simplified real-time subscription
+      const channelName = `hp-updates-${user.id}`;
       const channel = supabase.channel(channelName);
       
       channel
@@ -159,7 +176,9 @@ export function usePlayerHP() {
             table: 'player_hp',
             filter: `player_id=eq.${user.id}`
           },
-          () => {
+          (payload) => {
+            console.log('HP real-time update received:', payload);
+            // Immediately refresh data when changes occur
             fetchHP();
           }
         )
@@ -171,20 +190,17 @@ export function usePlayerHP() {
             table: 'hp_activities',
             filter: `player_id=eq.${user.id}`
           },
-          () => {
+          (payload) => {
+            console.log('HP activity real-time update received:', payload);
+            // Immediately refresh activities when new ones are added
             fetchActivities();
           }
-        );
-
-      // Only subscribe if not already subscribed
-      if (subscriptionStatusRef.current === 'unsubscribed') {
-        subscriptionStatusRef.current = 'subscribing';
-        channel.subscribe((status) => {
-          subscriptionStatusRef.current = status;
+        )
+        .subscribe((status) => {
           console.log('HP Channel subscription status:', status);
         });
-        channelRef.current = channel;
-      }
+
+      channelRef.current = channel;
 
       return () => {
         cleanupChannel();
@@ -204,6 +220,6 @@ export function usePlayerHP() {
     loading,
     restoreHP,
     initializeHP,
-    refreshHP: fetchHP
+    refreshHP
   };
 }
