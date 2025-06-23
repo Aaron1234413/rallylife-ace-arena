@@ -14,7 +14,7 @@ import { toast } from 'sonner';
 import { SmartRecommendations } from './SmartRecommendations';
 import { ActionButton } from './ActionButton';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
-import { RecoveryQuickAction } from '@/components/recovery';
+import { RecoveryCenter, RecoveryQuickAction } from '@/components/recovery';
 
 interface EnhancedQuickActionsProps {
   hpData: any;
@@ -35,6 +35,7 @@ export function EnhancedQuickActions({
   const { logActivity, refreshData } = useActivityLogs();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [socialPlayDialogOpen, setSocialPlayDialogOpen] = useState(false);
+  const [recoveryCenterOpen, setRecoveryCenterOpen] = useState(false);
   
   const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
   
@@ -121,6 +122,18 @@ export function EnhancedQuickActions({
     }
   };
 
+  const handleRecoveryModeSelect = (mode: any) => {
+    console.log('Recovery mode selected from quick actions:', mode);
+    // Navigate to the recovery center with the selected mode
+    setRecoveryCenterOpen(true);
+  };
+
+  if (recoveryCenterOpen) {
+    return (
+      <RecoveryCenter onBack={() => setRecoveryCenterOpen(false)} />
+    );
+  }
+
   return (
     <div className="space-y-6">
       {/* Smart Recommendations */}
@@ -140,7 +153,7 @@ export function EnhancedQuickActions({
         </CardContent>
       </Card>
 
-      {/* Enhanced Quick Actions - 2x2 grid */}
+      {/* Enhanced Quick Actions - Now includes Recovery as 4th quadrant */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
@@ -160,8 +173,10 @@ export function EnhancedQuickActions({
               />
             ))}
             
-            {/* Recovery Quick Action */}
-            <RecoveryQuickAction />
+            {/* Recovery Center Action - Now part of the main grid */}
+            <RecoveryQuickAction
+              onModeSelect={handleRecoveryModeSelect}
+            />
           </div>
         </CardContent>
       </Card>
