@@ -9,6 +9,7 @@ import { useCompleteMeditation } from '@/hooks/useMeditation';
 import { useMeditationAchievements } from '@/hooks/useMeditationAchievements';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
+import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { Brain, Heart, Clock, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
 import { useQueryClient } from '@tanstack/react-query';
@@ -26,6 +27,7 @@ export function MeditationPanel() {
   const { checkMeditationAchievements } = useMeditationAchievements();
   const { refreshData } = useActivityLogs();
   const { refreshData: refreshAchievements } = usePlayerAchievements();
+  const { refreshHP } = usePlayerHP();
   const queryClient = useQueryClient();
 
   const handleStartMeditation = (duration: number) => {
@@ -53,6 +55,8 @@ export function MeditationPanel() {
         console.log('Refreshing all data after meditation completion...');
         
         await Promise.all([
+          // Refresh HP data directly
+          refreshHP(),
           // Refresh activity logs
           refreshData(),
           // Refresh achievement data
@@ -60,8 +64,7 @@ export function MeditationPanel() {
           // Invalidate and refetch meditation data
           queryClient.invalidateQueries({ queryKey: ['meditation-progress'] }),
           queryClient.invalidateQueries({ queryKey: ['meditation-sessions'] }),
-          // Force refetch player data
-          queryClient.refetchQueries({ queryKey: ['player-hp'] }),
+          // Force refetch achievement data
           queryClient.refetchQueries({ queryKey: ['player-achievements'] }),
           queryClient.refetchQueries({ queryKey: ['achievement-progress'] })
         ]);
