@@ -38,6 +38,16 @@ export function ActionButton({ action, onClick, disabled, loading }: ActionButto
       );
     }
     
+    // For meditation, show variable HP reward
+    if (action.id === 'meditation') {
+      return (
+        <div className="flex items-center gap-1">
+          <Heart className="h-3 w-3 text-purple-500" />
+          <span className="text-xs text-purple-600">+5-12 HP</span>
+        </div>
+      );
+    }
+    
     const hpColor = action.rewards.hp >= 0 ? 'text-green-600' : 'text-red-500';
     return (
       <div className="flex items-center gap-1">

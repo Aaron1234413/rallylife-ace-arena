@@ -1575,6 +1575,88 @@ export type Database = {
         }
         Relationships: []
       }
+      meditation_progress: {
+        Row: {
+          created_at: string
+          current_streak: number
+          id: string
+          last_session_date: string | null
+          longest_streak: number
+          total_minutes: number
+          total_sessions: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_session_date?: string | null
+          longest_streak?: number
+          total_minutes?: number
+          total_sessions?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          current_streak?: number
+          id?: string
+          last_session_date?: string | null
+          longest_streak?: number
+          total_minutes?: number
+          total_sessions?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meditation_progress_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      meditation_sessions: {
+        Row: {
+          completed_at: string
+          created_at: string
+          duration_minutes: number
+          hp_gained: number
+          id: string
+          session_type: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          created_at?: string
+          duration_minutes: number
+          hp_gained?: number
+          id?: string
+          session_type?: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          created_at?: string
+          duration_minutes?: number
+          hp_gained?: number
+          id?: string
+          session_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "meditation_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           content: string
@@ -2370,6 +2452,99 @@ export type Database = {
         }
         Relationships: []
       }
+      stretching_routines: {
+        Row: {
+          category: string
+          created_at: string
+          description: string
+          difficulty_level: string
+          duration_minutes: number
+          focus_areas: string[]
+          hp_reward: number
+          id: string
+          is_active: boolean
+          name: string
+          stretches_data: Json
+        }
+        Insert: {
+          category: string
+          created_at?: string
+          description: string
+          difficulty_level?: string
+          duration_minutes: number
+          focus_areas?: string[]
+          hp_reward?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          stretches_data: Json
+        }
+        Update: {
+          category?: string
+          created_at?: string
+          description?: string
+          difficulty_level?: string
+          duration_minutes?: number
+          focus_areas?: string[]
+          hp_reward?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          stretches_data?: Json
+        }
+        Relationships: []
+      }
+      stretching_sessions: {
+        Row: {
+          completed_at: string
+          completed_stretches: Json
+          completion_percentage: number
+          created_at: string
+          hp_gained: number
+          id: string
+          notes: string | null
+          routine_id: string
+          user_id: string
+        }
+        Insert: {
+          completed_at?: string
+          completed_stretches?: Json
+          completion_percentage?: number
+          created_at?: string
+          hp_gained?: number
+          id?: string
+          notes?: string | null
+          routine_id: string
+          user_id: string
+        }
+        Update: {
+          completed_at?: string
+          completed_stretches?: Json
+          completion_percentage?: number
+          created_at?: string
+          hp_gained?: number
+          id?: string
+          notes?: string | null
+          routine_id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "stretching_sessions_routine_id_fkey"
+            columns: ["routine_id"]
+            isOneToOne: false
+            referencedRelation: "stretching_routines"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "stretching_sessions_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       token_balances: {
         Row: {
           created_at: string
@@ -2968,12 +3143,29 @@ export type Database = {
         Args: { user_id: string; achievement_id: string }
         Returns: Json
       }
+      complete_meditation_session: {
+        Args: {
+          user_id: string
+          duration_minutes: number
+          session_type?: string
+        }
+        Returns: Json
+      }
       complete_social_play_session: {
         Args: {
           session_id: string
           final_score?: string
           notes?: string
           mood?: string
+        }
+        Returns: Json
+      }
+      complete_stretching_session: {
+        Args: {
+          user_id: string
+          routine_id: string
+          completed_stretches: Json
+          notes?: string
         }
         Returns: Json
       }

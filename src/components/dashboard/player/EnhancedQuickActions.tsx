@@ -6,7 +6,7 @@ import {
   Zap, 
   Users, 
   BookOpen, 
-  Heart, 
+  Brain,
   Plus,
   Sparkles
 } from 'lucide-react';
@@ -15,6 +15,7 @@ import { toast } from 'sonner';
 import { SmartRecommendations } from './SmartRecommendations';
 import { ActionButton } from './ActionButton';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
+import { MeditationPanel } from '@/components/meditation/MeditationPanel';
 
 interface EnhancedQuickActionsProps {
   hpData: any;
@@ -35,6 +36,7 @@ export function EnhancedQuickActions({
   const { logActivity, refreshData } = useActivityLogs();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [socialPlayDialogOpen, setSocialPlayDialogOpen] = useState(false);
+  const [meditationPanelOpen, setMeditationPanelOpen] = useState(false);
   
   const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
   
@@ -61,7 +63,7 @@ export function EnhancedQuickActions({
       color: 'bg-gradient-to-r from-green-500 to-green-600',
       textColor: 'text-green-700',
       bgColor: 'bg-green-50',
-      rewards: { hp: -5, xp: 30, tokens: 15 }, // Shows general training HP cost, but lessons will restore HP
+      rewards: { hp: -5, xp: 30, tokens: 15 },
       recommended: hpPercentage > 30,
       estimatedDuration: 60,
       difficulty: 'medium' as const,
@@ -82,25 +84,18 @@ export function EnhancedQuickActions({
       openDialog: true
     },
     {
-      id: 'rest',
-      title: 'Rest & Recovery',
-      description: 'Restore your energy with proper rest and recovery',
-      icon: Heart,
-      color: 'bg-gradient-to-r from-red-500 to-pink-500',
-      textColor: 'text-red-700',
-      bgColor: 'bg-red-50',
-      rewards: { hp: 0, xp: 10, tokens: 10 },
-      recommended: hpPercentage < 40,
-      estimatedDuration: 30,
+      id: 'meditation',
+      title: 'Meditation & Recovery',
+      description: 'Restore your energy with mindful meditation sessions',
+      icon: Brain,
+      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
+      textColor: 'text-purple-700',
+      bgColor: 'bg-purple-50',
+      rewards: { hp: 8, xp: 10, tokens: 10 },
+      recommended: hpPercentage < 60,
+      estimatedDuration: 10,
       difficulty: 'low' as const,
-      activityData: {
-        activity_type: 'rest',
-        activity_category: 'recovery',
-        title: 'Rest & Recovery',
-        description: 'Restore your energy with proper rest and recovery',
-        duration_minutes: 30,
-        intensity_level: 'low'
-      }
+      openMeditation: true
     }
   ];
 
@@ -117,31 +112,19 @@ export function EnhancedQuickActions({
       return;
     }
 
-    // Otherwise, log the activity as before
+    // If action should open meditation panel
+    if (action.openMeditation && action.id === 'meditation') {
+      setMeditationPanelOpen(true);
+      return;
+    }
+
+    // For any other actions that might still use the old rest system
     try {
       setLoadingAction(action.id);
-      console.log('Logging unified quick action:', action.activityData);
+      console.log('Logging unified quick action:', action);
       
-      const result = await logActivity(action.activityData);
-      
-      console.log('Quick action logged successfully:', result);
-      
-      // Show success message with actual results from database
-      if (result) {
-        const rewards = [];
-        if (result.hp_change !== 0) {
-          rewards.push(`${result.hp_change > 0 ? '+' : ''}${result.hp_change} HP`);
-        }
-        if (result.xp_earned > 0) {
-          rewards.push(`+${result.xp_earned} XP`);
-        }
-        
-        toast.success(`${action.title} completed!`, {
-          description: rewards.join(' • ')
-        });
-      } else {
-        toast.success(`${action.title} completed!`);
-      }
+      // This would be for any remaining direct activity logging
+      toast.success(`${action.title} completed!`);
       
       await refreshData();
       
@@ -159,6 +142,23 @@ export function EnhancedQuickActions({
       handleQuickAction(action);
     }
   };
+
+  if (meditationPanelOpen) {
+    return (
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <h2 className="text-xl font-semibold">Meditation & Recovery</h2>
+          <button
+            onClick={() => setMeditationPanelOpen(false)}
+            className="text-gray-500 hover:text-gray-700 text-sm"
+          >
+            ← Back to Quick Actions
+          </button>
+        </div>
+        <MeditationPanel />
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
