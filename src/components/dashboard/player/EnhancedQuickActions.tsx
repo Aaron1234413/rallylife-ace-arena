@@ -5,8 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { 
   Zap, 
   Users, 
-  BookOpen, 
-  Brain,
+  BookOpen,
   Plus,
   Sparkles
 } from 'lucide-react';
@@ -15,7 +14,7 @@ import { toast } from 'sonner';
 import { SmartRecommendations } from './SmartRecommendations';
 import { ActionButton } from './ActionButton';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
-import { MeditationPanel } from '@/components/meditation/MeditationPanel';
+import { RecoveryCenter, RecoveryQuickAction } from '@/components/recovery';
 
 interface EnhancedQuickActionsProps {
   hpData: any;
@@ -36,7 +35,7 @@ export function EnhancedQuickActions({
   const { logActivity, refreshData } = useActivityLogs();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [socialPlayDialogOpen, setSocialPlayDialogOpen] = useState(false);
-  const [meditationPanelOpen, setMeditationPanelOpen] = useState(false);
+  const [recoveryCenterOpen, setRecoveryCenterOpen] = useState(false);
   
   const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
   
@@ -82,20 +81,6 @@ export function EnhancedQuickActions({
       estimatedDuration: 45,
       difficulty: 'low' as const,
       openDialog: true
-    },
-    {
-      id: 'meditation',
-      title: 'Meditation & Recovery',
-      description: 'Restore your energy with mindful meditation sessions',
-      icon: Brain,
-      color: 'bg-gradient-to-r from-purple-500 to-pink-500',
-      textColor: 'text-purple-700',
-      bgColor: 'bg-purple-50',
-      rewards: { hp: 8, xp: 10, tokens: 10 },
-      recommended: hpPercentage < 60,
-      estimatedDuration: 10,
-      difficulty: 'low' as const,
-      openMeditation: true
     }
   ];
 
@@ -109,12 +94,6 @@ export function EnhancedQuickActions({
     // If action should open dialog, open it
     if (action.openDialog && action.id === 'social') {
       setSocialPlayDialogOpen(true);
-      return;
-    }
-
-    // If action should open meditation panel
-    if (action.openMeditation && action.id === 'meditation') {
-      setMeditationPanelOpen(true);
       return;
     }
 
@@ -143,20 +122,9 @@ export function EnhancedQuickActions({
     }
   };
 
-  if (meditationPanelOpen) {
+  if (recoveryCenterOpen) {
     return (
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <h2 className="text-xl font-semibold">Meditation & Recovery</h2>
-          <button
-            onClick={() => setMeditationPanelOpen(false)}
-            className="text-gray-500 hover:text-gray-700 text-sm"
-          >
-            ← Back to Quick Actions
-          </button>
-        </div>
-        <MeditationPanel />
-      </div>
+      <RecoveryCenter onBack={() => setRecoveryCenterOpen(false)} />
     );
   }
 
@@ -198,6 +166,13 @@ export function EnhancedQuickActions({
                 loading={loadingAction === action.id}
               />
             ))}
+            
+            {/* Recovery Center Action */}
+            <RecoveryQuickAction
+              onOpenRecoveryCenter={() => setRecoveryCenterOpen(true)}
+              disabled={loadingAction !== null}
+              loading={false}
+            />
           </div>
         </CardContent>
       </Card>

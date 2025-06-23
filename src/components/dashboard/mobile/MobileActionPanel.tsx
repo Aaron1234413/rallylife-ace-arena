@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -9,9 +8,11 @@ import {
   Coins, 
   Plus,
   Zap,
-  Activity
+  Activity,
+  Brain
 } from 'lucide-react';
 import { ActionButton } from '@/components/dashboard/player/ActionButton';
+import { RecoveryCenter } from '@/components/recovery';
 
 interface MobileActionPanelProps {
   hpData: any;
@@ -31,6 +32,7 @@ export function MobileActionPanel({
   className 
 }: MobileActionPanelProps) {
   const [activePanel, setActivePanel] = useState<'stats' | 'actions' | null>(null);
+  const [recoveryCenterOpen, setRecoveryCenterOpen] = useState(false);
 
   const currentHP = hpData?.current_hp || 0;
   const maxHP = hpData?.max_hp || 100;
@@ -38,7 +40,6 @@ export function MobileActionPanel({
   const currentXP = xpData?.current_xp || 0;
   const xpToNext = xpData?.xp_to_next_level || 100;
 
-  // Create action objects that match the ActionButton interface
   const quickActions = [
     {
       id: 'restore-hp',
@@ -83,27 +84,33 @@ export function MobileActionPanel({
       onClick: () => onAddTokens(5, 'regular', 'daily_bonus', 'Daily mobile bonus')
     },
     {
-      id: 'quick-session',
-      title: 'Quick Session',
-      description: 'Log practice',
-      icon: Zap,
+      id: 'recovery-center',
+      title: 'Recovery Center',
+      description: 'Meditation & stretching',
+      icon: Brain,
       color: 'bg-purple-500',
       textColor: 'text-purple-700',
       bgColor: 'border-purple-200',
-      rewards: { hp: 5, xp: 50, tokens: 0 },
+      rewards: { hp: 8, xp: 10, tokens: 0 },
       recommended: true,
-      estimatedDuration: 15,
-      difficulty: 'medium' as const,
-      onClick: () => {
-        onAddXP(50, 'practice', 'Quick practice session');
-        onRestoreHP(5, 'practice', 'Practice session health boost');
-      }
+      estimatedDuration: 10,
+      difficulty: 'low' as const,
+      onClick: () => setRecoveryCenterOpen(true)
     }
   ];
 
+  if (recoveryCenterOpen) {
+    return (
+      <div className="fixed inset-0 z-50 bg-background sm:hidden overflow-y-auto">
+        <div className="p-4">
+          <RecoveryCenter onBack={() => setRecoveryCenterOpen(false)} />
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`fixed bottom-0 left-0 right-0 z-50 sm:hidden ${className}`}>
-      {/* Quick Stats Bar */}
       <Card className="rounded-none border-t border-x-0 border-b-0">
         <CardContent className="p-3">
           <div className="flex items-center justify-between">
@@ -140,7 +147,6 @@ export function MobileActionPanel({
         </CardContent>
       </Card>
 
-      {/* Expandable Panels */}
       {activePanel === 'stats' && (
         <Card className="rounded-none border-b-0 border-x-0">
           <CardContent className="p-4">
