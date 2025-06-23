@@ -41,7 +41,7 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
   return (
     <div className={`p-4 rounded-lg border-2 border-purple-200 hover:border-purple-300 transition-colors ${className}`}>
       <div className="space-y-4">
-        {/* Header with icon, title and badge - same level as other cards */}
+        {/* Header - matches other cards */}
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
             <Heart className="h-5 w-5 text-red-500" />
@@ -53,21 +53,19 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
           </Badge>
         </div>
 
-        {/* Description - same level as other cards */}
+        {/* Description - matches other cards */}
         <p className="text-sm text-gray-600">Choose your recovery method to restore HP and improve wellbeing</p>
 
-        {/* Main Action Button - same level as other cards */}
-        <RecoveryModeSelector onModeSelect={handleModeSelect}>
-          <Button 
-            variant="outline" 
-            className="w-full justify-start bg-gradient-to-r from-purple-50 to-green-50 border-purple-200 hover:border-purple-300"
-          >
-            <Sparkles className="h-4 w-4 mr-2 text-purple-500" />
-            Choose Recovery Method
-          </Button>
-        </RecoveryModeSelector>
+        {/* Duration and Difficulty badges - matches other cards layout */}
+        <div className="flex items-center justify-between text-xs text-gray-500">
+          <div className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            <span>5-20 min</span>
+          </div>
+          <Badge variant="outline" className="text-xs">low intensity</Badge>
+        </div>
 
-        {/* Stats Grid - same level as rewards in other cards */}
+        {/* Rewards grid - matches other cards rewards layout */}
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="flex items-center gap-1 text-purple-600">
             <Brain className="h-3 w-3" />
@@ -79,7 +77,18 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
           </div>
         </div>
 
-        {/* Pro Tip - same level as description in other cards */}
+        {/* Main Action Button - matches other cards button position */}
+        <RecoveryModeSelector onModeSelect={handleModeSelect}>
+          <Button 
+            variant="outline" 
+            className="w-full justify-center bg-gradient-to-r from-purple-50 to-green-50 border-purple-200 hover:border-purple-300"
+          >
+            <Sparkles className="h-4 w-4 mr-2 text-purple-500" />
+            Choose Recovery Method
+          </Button>
+        </RecoveryModeSelector>
+
+        {/* Pro Tip - matches other cards description position */}
         <div className="text-xs text-gray-500 border-t pt-2">
           💡 Regular recovery boosts performance and reduces injury risk
         </div>
