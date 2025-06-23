@@ -153,7 +153,7 @@ export function EnhancedQuickActions({
         </CardContent>
       </Card>
 
-      {/* Enhanced Quick Actions */}
+      {/* Enhanced Quick Actions - Now includes Recovery as 4th quadrant */}
       <Card>
         <CardHeader className="pb-3">
           <CardTitle className="flex items-center gap-2">
@@ -173,10 +173,9 @@ export function EnhancedQuickActions({
               />
             ))}
             
-            {/* Recovery Center Action */}
+            {/* Recovery Center Action - Now part of the main grid */}
             <RecoveryQuickAction
               onModeSelect={handleRecoveryModeSelect}
-              className="lg:col-span-2"
             />
           </div>
         </CardContent>
