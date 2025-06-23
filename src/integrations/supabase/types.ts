@@ -2533,53 +2533,47 @@ export type Database = {
       stretching_sessions: {
         Row: {
           completed_at: string
-          completed_stretches: Json
+          completed_stretches: Json | null
           completion_percentage: number
           created_at: string
+          difficulty: string
+          duration_minutes: number
           hp_gained: number
           id: string
           notes: string | null
           routine_id: string
+          routine_name: string
           user_id: string
         }
         Insert: {
           completed_at?: string
-          completed_stretches?: Json
+          completed_stretches?: Json | null
           completion_percentage?: number
           created_at?: string
+          difficulty?: string
+          duration_minutes: number
           hp_gained?: number
           id?: string
           notes?: string | null
           routine_id: string
+          routine_name: string
           user_id: string
         }
         Update: {
           completed_at?: string
-          completed_stretches?: Json
+          completed_stretches?: Json | null
           completion_percentage?: number
           created_at?: string
+          difficulty?: string
+          duration_minutes?: number
           hp_gained?: number
           id?: string
           notes?: string | null
           routine_id?: string
+          routine_name?: string
           user_id?: string
         }
-        Relationships: [
-          {
-            foreignKeyName: "stretching_sessions_routine_id_fkey"
-            columns: ["routine_id"]
-            isOneToOne: false
-            referencedRelation: "stretching_routines"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "stretching_sessions_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
+        Relationships: []
       }
       token_balances: {
         Row: {

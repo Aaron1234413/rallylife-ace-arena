@@ -7,6 +7,9 @@ interface StretchingSession {
   id: string;
   user_id: string;
   routine_id: string;
+  routine_name: string;
+  duration_minutes: number;
+  difficulty: string;
   hp_gained: number;
   completed_at: string;
   created_at: string;
