@@ -7,7 +7,9 @@ import { MeditationTimer } from './MeditationTimer';
 import { MeditationProgress } from './MeditationProgress';
 import { useCompleteMeditation } from '@/hooks/useMeditation';
 import { useMeditationAchievements } from '@/hooks/useMeditationAchievements';
+import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { Brain, Heart, Clock, Sparkles } from 'lucide-react';
+import { toast } from 'sonner';
 
 const MEDITATION_DURATIONS = [
   { minutes: 5, hp: 5, label: 'Quick Reset', description: 'Perfect for busy schedules' },
@@ -20,6 +22,7 @@ export function MeditationPanel() {
   const [isTimerActive, setIsTimerActive] = useState(false);
   const completeMeditation = useCompleteMeditation();
   const { checkMeditationAchievements } = useMeditationAchievements();
+  const { refreshData } = useActivityLogs();
 
   const handleStartMeditation = (duration: number) => {
     setSelectedDuration(duration);
@@ -29,17 +32,35 @@ export function MeditationPanel() {
   const handleMeditationComplete = async () => {
     if (selectedDuration) {
       try {
-        await completeMeditation.mutateAsync({ 
+        console.log('Starting meditation completion for duration:', selectedDuration);
+        
+        const result = await completeMeditation.mutateAsync({ 
           duration_minutes: selectedDuration,
           session_type: 'guided' 
         });
         
-        // Check for meditation achievements after completion
-        setTimeout(() => {
-          checkMeditationAchievements();
-        }, 1000);
+        console.log('Meditation completion result:', result);
+        
+        if (result?.hp_gained) {
+          toast.success(`🧘 Meditation complete! +${result.hp_gained} HP restored`);
+        }
+        
+        // Refresh all data to ensure UI updates
+        await refreshData();
+        
+        // Check for meditation achievements after completion (with delay to ensure data is updated)
+        setTimeout(async () => {
+          try {
+            await checkMeditationAchievements();
+          } catch (error) {
+            console.error('Error checking meditation achievements:', error);
+            // Don't show error to user since this is secondary functionality
+          }
+        }, 1500);
+        
       } catch (error) {
         console.error('Error completing meditation:', error);
+        toast.error('Failed to complete meditation. Please try again.');
       }
     }
     setIsTimerActive(false);
