@@ -38,7 +38,7 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
   };
 
   return (
-    <div className={`p-4 rounded-lg border-2 border-purple-200 hover:border-purple-300 transition-colors ${className}`}>
+    <div className={`p-4 rounded-lg border-2 border-red-200 hover:border-red-300 transition-colors bg-red-50 ${className}`}>
       <div className="space-y-3">
         {/* Header - matches other cards */}
         <div className="flex items-center gap-2">
@@ -75,9 +75,9 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
           <RecoveryModeSelector onModeSelect={handleModeSelect}>
             <Button 
               variant="outline" 
-              className="w-full justify-center bg-gradient-to-r from-purple-50 to-green-50 border-purple-200 hover:border-purple-300"
+              className="w-full justify-center bg-gradient-to-r from-red-50 to-pink-50 border-red-200 hover:border-red-300"
             >
-              <Sparkles className="h-4 w-4 mr-2 text-purple-500" />
+              <Sparkles className="h-4 w-4 mr-2 text-red-500" />
               Choose Recovery Method
             </Button>
           </RecoveryModeSelector>
