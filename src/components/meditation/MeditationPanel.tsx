@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -51,27 +50,23 @@ export function MeditationPanel() {
           toast.success(`🧘 Meditation complete! +${result.hp_gained} HP restored`);
         }
         
-        // Force refresh all meditation and achievement related data
-        console.log('Refreshing all data after meditation completion...');
+        // Force refresh HP data first for immediate UI update
+        console.log('Refreshing HP data after meditation completion...');
+        await refreshHP();
         
+        // Then refresh other data in parallel
         await Promise.all([
-          // Refresh HP data directly
-          refreshHP(),
-          // Refresh activity logs
           refreshData(),
-          // Refresh achievement data
           refreshAchievements(),
-          // Invalidate and refetch meditation data
           queryClient.invalidateQueries({ queryKey: ['meditation-progress'] }),
           queryClient.invalidateQueries({ queryKey: ['meditation-sessions'] }),
-          // Force refetch achievement data
           queryClient.refetchQueries({ queryKey: ['player-achievements'] }),
           queryClient.refetchQueries({ queryKey: ['achievement-progress'] })
         ]);
         
         console.log('All data refreshed, now checking achievements...');
         
-        // Wait a bit for data to be fully updated, then check achievements
+        // Check achievements after data refresh
         setTimeout(async () => {
           try {
             await checkMeditationAchievements();
@@ -79,7 +74,7 @@ export function MeditationPanel() {
           } catch (error) {
             console.error('Error checking meditation achievements:', error);
           }
-        }, 2000);
+        }, 1000);
         
       } catch (error) {
         console.error('Error completing meditation:', error);

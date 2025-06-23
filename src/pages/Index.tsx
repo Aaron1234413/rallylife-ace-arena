@@ -34,7 +34,7 @@ import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPla
 
 const Index = () => {
   const { user } = useAuth();
-  const { hpData, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
+  const { hpData, loading: hpLoading, restoreHP, initializeHP, refreshHP } = usePlayerHP();
   const { xpData, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
   const { tokenData, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
   const { equippedItems, loading: avatarLoading, initializeAvatar, checkLevelUnlocks } = usePlayerAvatar();
@@ -119,20 +119,31 @@ const Index = () => {
     await checkAllAchievements();
   };
 
-  // Enhanced HP restoration function that checks for achievements
+  // Enhanced HP restoration function that checks for achievements and refreshes data
   const handleRestoreHP = async (amount: number, activityType: string, description?: string) => {
+    console.log('Index: Starting HP restoration...', { amount, activityType, description });
+    
     await restoreHP(amount, activityType, description);
+    
+    // Force refresh HP data immediately for UI updates
+    console.log('Index: Refreshing HP data after restoration...');
+    await refreshHP();
+    
     // Check for achievement unlocks
     await checkAllAchievements();
+    
+    console.log('Index: HP restoration and refresh completed');
   };
 
   const vitalsLoading = hpLoading || xpLoading || tokensLoading;
 
-  // Refresh function for pull-to-refresh
+  // Enhanced refresh function for pull-to-refresh
   const handleRefresh = async () => {
+    console.log('Index: Starting full refresh...');
+    
     if (isPlayer) {
       await Promise.all([
-        initializeHP(),
+        refreshHP(), // Use refreshHP instead of initializeHP for better performance
         initializeXP(),
         initializeTokens(),
         checkAllAchievements()
@@ -144,6 +155,8 @@ const Index = () => {
         initializeCRP()
       ]);
     }
+    
+    console.log('Index: Full refresh completed');
   };
 
   return (
