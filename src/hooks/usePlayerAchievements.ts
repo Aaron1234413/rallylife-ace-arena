@@ -126,8 +126,8 @@ export function usePlayerAchievements() {
 
       console.log('Achievement check result:', data);
       
-      // Type assertion for the RPC response
-      const result = data as AchievementCheckResult;
+      // Convert JSON to unknown first, then to our interface
+      const result = data as unknown as AchievementCheckResult;
       
       if (result?.unlocked) {
         toast.success(`🏆 Achievement unlocked: ${result.achievement_name}!`);
