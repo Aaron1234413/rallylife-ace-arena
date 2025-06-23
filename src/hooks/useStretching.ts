@@ -7,12 +7,12 @@ interface StretchingSession {
   id: string;
   user_id: string;
   routine_id: string;
-  routine_name: string;
-  duration_minutes: number;
   hp_gained: number;
-  difficulty: string;
   completed_at: string;
   created_at: string;
+  notes: string;
+  completed_stretches: any; // Json type from database
+  completion_percentage: number;
 }
 
 interface StretchingProgress {
