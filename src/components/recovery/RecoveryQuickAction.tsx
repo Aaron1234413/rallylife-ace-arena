@@ -8,8 +8,7 @@ import {
   Sparkles, 
   Brain, 
   Dumbbell,
-  Clock,
-  Zap
+  Clock
 } from 'lucide-react';
 import { RecoveryModeSelector } from './RecoveryModeSelector';
 
@@ -40,17 +39,11 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
 
   return (
     <div className={`p-4 rounded-lg border-2 border-purple-200 hover:border-purple-300 transition-colors ${className}`}>
-      <div className="space-y-4">
+      <div className="space-y-3">
         {/* Header - matches other cards */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Heart className="h-5 w-5 text-red-500" />
-            <h3 className="font-semibold">Quick Recovery</h3>
-          </div>
-          <Badge variant="outline" className="text-xs">
-            <Zap className="h-3 w-3 mr-1" />
-            HP Restore
-          </Badge>
+        <div className="flex items-center gap-2">
+          <Heart className="h-5 w-5 text-red-500" />
+          <h3 className="font-semibold">Quick Recovery</h3>
         </div>
 
         {/* Description - matches other cards */}
@@ -78,7 +71,7 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
         </div>
 
         {/* Main Action Button - matches other cards button position exactly */}
-        <div className="pt-2">
+        <div className="pt-1">
           <RecoveryModeSelector onModeSelect={handleModeSelect}>
             <Button 
               variant="outline" 
