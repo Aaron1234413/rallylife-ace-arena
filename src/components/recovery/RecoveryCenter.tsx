@@ -46,9 +46,43 @@ export function RecoveryCenter({ onBack }: RecoveryCenterProps) {
     
     // Navigate to the appropriate tab based on mode
     if (mode.id === 'meditation') {
+      console.log('Switching to meditation tab');
       setActiveTab('meditation');
     } else if (mode.id === 'stretching') {
+      console.log('Switching to stretching tab');
       setActiveTab('stretching');
+    }
+  };
+
+  const handleDirectModeSelect = (modeId: string) => {
+    const modeData = {
+      meditation: {
+        id: 'meditation',
+        title: 'Meditation',
+        description: 'Mindful breathing and relaxation',
+        icon: Brain,
+        color: 'text-purple-600',
+        bgColor: 'bg-purple-50',
+        duration: '5-15 min',
+        hp: 10,
+        difficulty: 'easy' as const
+      },
+      stretching: {
+        id: 'stretching',
+        title: 'Stretching',
+        description: 'Tennis-focused muscle recovery',
+        icon: Dumbbell,
+        color: 'text-green-600',
+        bgColor: 'bg-green-50',
+        duration: '8-20 min',
+        hp: 12,
+        difficulty: 'medium' as const
+      }
+    };
+
+    const mode = modeData[modeId as keyof typeof modeData];
+    if (mode) {
+      handleModeSelect(mode);
     }
   };
 
@@ -104,17 +138,7 @@ export function RecoveryCenter({ onBack }: RecoveryCenterProps) {
 
                 <div 
                   className="p-4 rounded-lg border-2 border-green-200 hover:border-green-300 transition-colors cursor-pointer bg-gradient-to-r from-green-50 to-emerald-50"
-                  onClick={() => handleModeSelect({
-                    id: 'stretching',
-                    title: 'Stretching',
-                    description: 'Tennis-focused muscle recovery',
-                    icon: Dumbbell,
-                    color: 'text-green-600',
-                    bgColor: 'bg-green-50',
-                    duration: '8-20 min',
-                    hp: 12,
-                    difficulty: 'medium'
-                  })}
+                  onClick={() => handleDirectModeSelect('stretching')}
                 >
                   <div className="flex items-center gap-3 mb-2">
                     <Dumbbell className="h-6 w-6 text-green-500" />
