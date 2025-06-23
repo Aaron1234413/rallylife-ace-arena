@@ -42,6 +42,16 @@ interface AchievementProgress {
   last_updated: string;
 }
 
+interface AchievementCheckResult {
+  success: boolean;
+  unlocked: boolean;
+  current_progress: number;
+  required_progress: number;
+  achievement_name: string;
+  achievement_tier: string;
+  error?: string;
+}
+
 export function usePlayerAchievements() {
   const { user } = useAuth();
   const [achievements, setAchievements] = useState<Achievement[]>([]);
@@ -116,13 +126,16 @@ export function usePlayerAchievements() {
 
       console.log('Achievement check result:', data);
       
-      if (data?.unlocked) {
-        toast.success(`🏆 Achievement unlocked: ${data.achievement_name}!`);
+      // Type assertion for the RPC response
+      const result = data as AchievementCheckResult;
+      
+      if (result?.unlocked) {
+        toast.success(`🏆 Achievement unlocked: ${result.achievement_name}!`);
         // Refresh data after unlocking
         await refreshData();
       }
 
-      return data;
+      return result;
     } catch (error) {
       console.error('Error checking achievement unlock:', error);
       throw error;

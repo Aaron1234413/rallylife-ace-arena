@@ -3,6 +3,16 @@ import { useCallback } from 'react';
 import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
 import { useMeditationProgress, useMeditationSessions } from '@/hooks/useMeditation';
 
+interface AchievementCheckResult {
+  success: boolean;
+  unlocked: boolean;
+  current_progress: number;
+  required_progress: number;
+  achievement_name: string;
+  achievement_tier: string;
+  error?: string;
+}
+
 export function useMeditationAchievements() {
   const { checkAchievementUnlock, achievements, refreshData } = usePlayerAchievements();
   const { data: meditationProgress } = useMeditationProgress();
@@ -38,10 +48,10 @@ export function useMeditationAchievements() {
       console.log(`Checking achievement "${achievement.name}": ${currentValue}/${achievement.requirement_value}`);
 
       try {
-        const result = await checkAchievementUnlock(achievement.id);
+        const result = await checkAchievementUnlock(achievement.id) as AchievementCheckResult;
         console.log('Achievement check result for', achievement.name, ':', result);
         
-        if (result.unlocked) {
+        if (result?.unlocked) {
           console.log('🏆 Achievement unlocked:', achievement.name);
         }
       } catch (error) {

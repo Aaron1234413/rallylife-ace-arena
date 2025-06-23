@@ -17,7 +17,7 @@ export function AchievementDisplay({
   showRecent = true, 
   maxItems = 5 
 }: AchievementDisplayProps) {
-  const { playerAchievements, loading } = usePlayerAchievements();
+  const { achievements, playerAchievements, loading } = usePlayerAchievements();
 
   const recentAchievements = showRecent 
     ? playerAchievements.slice(0, maxItems)
@@ -69,7 +69,8 @@ export function AchievementDisplay({
         <ScrollArea className="h-80">
           <div className="space-y-3">
             {recentAchievements.map((playerAchievement) => {
-              const achievement = playerAchievement.achievement;
+              // Find the corresponding achievement data
+              const achievement = achievements.find(a => a.id === playerAchievement.achievement_id);
               if (!achievement) return null;
 
               return (
