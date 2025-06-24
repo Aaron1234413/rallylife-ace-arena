@@ -54,8 +54,8 @@ export function useUserSearch(query: string) {
 
       console.log('User search results:', data);
 
-      // Transform the results with explicit any typing to avoid TypeScript issues
-      const transformedResults: User[] = (data as any[] || []).map((user: any) => {
+      // Transform the results
+      const transformedResults: User[] = (data || []).map(user => {
         const playerProfile = Array.isArray(user.player_profiles) ? user.player_profiles[0] : null;
         const playerXP = Array.isArray(user.player_xp) ? user.player_xp[0] : null;
         

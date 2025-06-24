@@ -101,14 +101,11 @@ export function useMatchSessions() {
 
       console.log('Active session data:', data);
       
-      // Type cast the data to ensure proper typing
+      // Type cast the data to ensure match_type is properly typed
       if (data) {
         const typedData: ActiveMatchSession = {
           ...data,
-          match_type: data.match_type as 'singles' | 'doubles',
-          status: data.status as 'active' | 'paused' | 'completed',
-          sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }],
-          result: data.result as 'win' | 'loss' | undefined
+          match_type: data.match_type as 'singles' | 'doubles'
         };
         setActiveSession(typedData);
       } else {
@@ -159,10 +156,7 @@ export function useMatchSessions() {
       // Type cast the response
       const typedData: ActiveMatchSession = {
         ...data,
-        match_type: data.match_type as 'singles' | 'doubles',
-        status: data.status as 'active' | 'paused' | 'completed',
-        sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }],
-        result: data.result as 'win' | 'loss' | undefined
+        match_type: data.match_type as 'singles' | 'doubles'
       };
       setActiveSession(typedData);
       return typedData;
@@ -209,10 +203,7 @@ export function useMatchSessions() {
       // Type cast the response
       const typedData: ActiveMatchSession = {
         ...data,
-        match_type: data.match_type as 'singles' | 'doubles',
-        status: data.status as 'active' | 'paused' | 'completed',
-        sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }],
-        result: data.result as 'win' | 'loss' | undefined
+        match_type: data.match_type as 'singles' | 'doubles'
       };
       setActiveSession(typedData);
       return typedData;
@@ -255,10 +246,7 @@ export function useMatchSessions() {
       // Type cast the response
       const typedData: ActiveMatchSession = {
         ...data,
-        match_type: data.match_type as 'singles' | 'doubles',
-        status: data.status as 'active' | 'paused' | 'completed',
-        sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }],
-        result: data.result as 'win' | 'loss' | undefined
+        match_type: data.match_type as 'singles' | 'doubles'
       };
       return typedData;
     } catch (error) {
