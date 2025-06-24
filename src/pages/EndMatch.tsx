@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -154,11 +155,21 @@ const EndMatch = () => {
           console.error('Error restoring HP:', hpError);
         }
       } else {
-        // For HP loss, we'll update directly since there's no "lose_hp" function
+        // For HP loss, we need to get current HP first, then update it
+        const { data: currentHpData } = await supabase
+          .from('player_hp')
+          .select('current_hp')
+          .eq('player_id', user.id)
+          .single();
+
+        const currentHp = currentHpData?.current_hp || 100;
+        const newHp = Math.max(20, currentHp + hpChange);
+
+        // Update HP directly
         const { error: hpError } = await supabase
           .from('player_hp')
           .update({ 
-            current_hp: Math.max(20, supabase.raw(`current_hp + ${hpChange}`)),
+            current_hp: newHp,
             last_activity: new Date().toISOString(),
             updated_at: new Date().toISOString()
           })
@@ -166,20 +177,22 @@ const EndMatch = () => {
 
         if (hpError) {
           console.error('Error updating HP:', hpError);
-        }
+        } else {
+          // Log HP activity with required fields
+          const { error: hpLogError } = await supabase
+            .from('hp_activities')
+            .insert({
+              player_id: user.id,
+              activity_type: 'match',
+              hp_change: hpChange,
+              hp_before: currentHp,
+              hp_after: newHp,
+              description: `HP cost from match: ${activityTitle}`
+            });
 
-        // Log HP activity
-        const { error: hpLogError } = await supabase
-          .from('hp_activities')
-          .insert({
-            player_id: user.id,
-            activity_type: 'match',
-            hp_change: hpChange,
-            description: `HP cost from match: ${activityTitle}`
-          });
-
-        if (hpLogError) {
-          console.error('Error logging HP activity:', hpLogError);
+          if (hpLogError) {
+            console.error('Error logging HP activity:', hpLogError);
+          }
         }
       }
 
