@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -105,7 +106,8 @@ export function useMatchSessions() {
         const typedData: ActiveMatchSession = {
           ...data,
           match_type: data.match_type as 'singles' | 'doubles',
-          status: data.status as 'active' | 'paused' | 'completed'
+          status: data.status as 'active' | 'paused' | 'completed',
+          sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }]
         };
         setActiveSession(typedData);
       } else {
@@ -157,7 +159,8 @@ export function useMatchSessions() {
       const typedData: ActiveMatchSession = {
         ...data,
         match_type: data.match_type as 'singles' | 'doubles',
-        status: data.status as 'active' | 'paused' | 'completed'
+        status: data.status as 'active' | 'paused' | 'completed',
+        sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }]
       };
       setActiveSession(typedData);
       return typedData;
@@ -205,7 +208,8 @@ export function useMatchSessions() {
       const typedData: ActiveMatchSession = {
         ...data,
         match_type: data.match_type as 'singles' | 'doubles',
-        status: data.status as 'active' | 'paused' | 'completed'
+        status: data.status as 'active' | 'paused' | 'completed',
+        sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }]
       };
       setActiveSession(typedData);
       return typedData;
@@ -249,7 +253,8 @@ export function useMatchSessions() {
       const typedData: ActiveMatchSession = {
         ...data,
         match_type: data.match_type as 'singles' | 'doubles',
-        status: data.status as 'active' | 'paused' | 'completed'
+        status: data.status as 'active' | 'paused' | 'completed',
+        sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }]
       };
       return typedData;
     } catch (error) {

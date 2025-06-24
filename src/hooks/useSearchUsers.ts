@@ -29,6 +29,26 @@ export interface SearchResult {
   current_level?: number;
 }
 
+// Define explicit types for database responses to avoid infinite recursion
+interface ProfileData {
+  id: string;
+  full_name: string | null;
+  avatar_url: string | null;
+  role: string;
+  player_profiles: Array<{
+    skill_level: string | null;
+    location: string | null;
+  }> | null;
+  coach_profiles: Array<{
+    coaching_focus: string | null;
+    experience_years: number | null;
+    location: string | null;
+  }> | null;
+  player_xp: Array<{
+    current_level: number | null;
+  }> | null;
+}
+
 export function useSearchUsers({ query, userType, filters }: SearchParams) {
   return useQuery({
     queryKey: ['search-users', query, userType, filters],
@@ -55,12 +75,9 @@ export function useSearchUsers({ query, userType, filters }: SearchParams) {
             current_level
           )
         `)
-        .eq('role', userType);
-
-      // Add search query filter
-      if (query.trim()) {
-        baseQuery = baseQuery.ilike('full_name', `%${query}%`);
-      }
+        .eq('role', userType)
+        .ilike('full_name', `%${query}%`)
+        .limit(20);
 
       const { data, error } = await baseQuery;
 
@@ -72,7 +89,7 @@ export function useSearchUsers({ query, userType, filters }: SearchParams) {
       console.log('Raw search results:', data);
 
       // Transform and filter the results
-      const transformedResults: SearchResult[] = (data || []).map((user: any) => {
+      const transformedResults: SearchResult[] = (data as ProfileData[] || []).map((user) => {
         const playerProfile = Array.isArray(user.player_profiles) ? user.player_profiles[0] : null;
         const coachProfile = Array.isArray(user.coach_profiles) ? user.coach_profiles[0] : null;
         const playerXP = Array.isArray(user.player_xp) ? user.player_xp[0] : null;
@@ -83,12 +100,12 @@ export function useSearchUsers({ query, userType, filters }: SearchParams) {
         return {
           id: user.id,
           full_name: user.full_name || 'Unknown User',
-          avatar_url: user.avatar_url,
+          avatar_url: user.avatar_url || undefined,
           role: user.role,
-          skill_level: playerProfile?.skill_level,
-          location: playerProfile?.location || coachProfile?.location,
-          coaching_focus: coachProfile?.coaching_focus,
-          experience_years: coachProfile?.experience_years,
+          skill_level: playerProfile?.skill_level || undefined,
+          location: playerProfile?.location || coachProfile?.location || undefined,
+          coaching_focus: coachProfile?.coaching_focus || undefined,
+          experience_years: coachProfile?.experience_years || undefined,
           match_percentage: matchPercentage,
           current_level: playerXP?.current_level || 1
         };
