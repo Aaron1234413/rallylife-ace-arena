@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -10,6 +9,8 @@ import { CardWithAnimation } from '@/components/ui/card-with-animation';
 import { FormField } from '@/components/ui/form-field';
 import { MatchTypeToggle } from '@/components/ui/match-type-toggle';
 import { OpponentSearchSelector, SelectedOpponent } from '@/components/match/OpponentSearchSelector';
+import { StakesPreview } from '@/components/match/StakesPreview';
+import { useMatchRewards } from '@/hooks/useMatchRewards';
 import { getRandomMessage } from '@/utils/motivationalMessages';
 import { toast } from 'sonner';
 
@@ -29,6 +30,15 @@ const StartMatch = () => {
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
   const randomMessage = getRandomMessage('startMatch');
+
+  // Get match rewards calculation
+  const { rewards, opponentAnalysis, doublesAnalysis, loading: rewardsLoading } = useMatchRewards({
+    opponent,
+    isDoubles,
+    partner,
+    opponent1,
+    opponent2
+  });
 
   // Check for existing session on mount
   useEffect(() => {
@@ -318,6 +328,15 @@ const StartMatch = () => {
                 helpText="Auto-captured (modify if logging a past match)"
               />
             </div>
+
+            {/* Stakes Preview */}
+            <StakesPreview
+              rewards={rewards}
+              opponentAnalysis={opponentAnalysis}
+              doublesAnalysis={doublesAnalysis}
+              isDoubles={isDoubles}
+              loading={rewardsLoading}
+            />
 
             {/* Start Match Button */}
             <div className="pt-4">
