@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +10,8 @@ import {
   Sparkles,
   Clock,
   TrendingUp,
-  AlertTriangle
+  AlertTriangle,
+  Activity
 } from 'lucide-react';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { toast } from 'sonner';
@@ -112,7 +112,7 @@ export function EnhancedQuickActions({
     };
   }, [hpData, xpData, activities, hpPercentage]);
 
-  // Enhanced dynamic action configuration with contextual intelligence
+  // Enhanced quick actions with better visual configuration
   const quickActions = useMemo(() => {
     const baseActions = [
       {
@@ -120,11 +120,11 @@ export function EnhancedQuickActions({
         title: 'Tennis Match',
         baseDescription: 'Record a competitive tennis match with detailed scoring',
         icon: Zap,
-        color: 'bg-gradient-to-r from-blue-500 to-blue-600',
+        color: 'bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700',
         textColor: 'text-blue-700',
         bgColor: 'bg-blue-50',
         rewards: { hp: -15, xp: 50, tokens: 25 },
-        energyRequirement: 'high',
+        energyRequirement: 'high' as const,
         estimatedDuration: 90,
         difficulty: 'high' as const,
         navigateTo: '/start-match',
@@ -136,11 +136,11 @@ export function EnhancedQuickActions({
         title: 'Training Session',
         baseDescription: 'Practice drills, technique work, and skill development',
         icon: BookOpen,
-        color: 'bg-gradient-to-r from-green-500 to-green-600',
+        color: 'bg-gradient-to-br from-green-500 via-green-600 to-emerald-700',
         textColor: 'text-green-700',
         bgColor: 'bg-green-50',
         rewards: { hp: -8, xp: 30, tokens: 15 },
-        energyRequirement: 'medium',
+        energyRequirement: 'medium' as const,
         estimatedDuration: 60,
         difficulty: 'medium' as const,
         navigateTo: '/start-training',
@@ -152,11 +152,11 @@ export function EnhancedQuickActions({
         title: 'Social Play',
         baseDescription: 'Create a session and invite friends to play together',
         icon: Users,
-        color: 'bg-gradient-to-r from-purple-500 to-purple-600',
+        color: 'bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700',
         textColor: 'text-purple-700',
         bgColor: 'bg-purple-50',
         rewards: { hp: 5, xp: 15, tokens: 12 },
-        energyRequirement: 'low',
+        energyRequirement: 'low' as const,
         estimatedDuration: 45,
         difficulty: 'low' as const,
         openDialog: true,
@@ -261,7 +261,7 @@ export function EnhancedQuickActions({
         }
       };
     });
-  }, [contextualData, xpData]);
+  }, [contextualData, xpData, activities, hpPercentage]);
 
   const handleQuickAction = async (action: typeof quickActions[0]) => {
     if (!action.availability) {
@@ -348,23 +348,41 @@ export function EnhancedQuickActions({
 
   return (
     <div className="space-y-6">
-      {/* Enhanced Smart Recommendations with richer contextual data */}
-      <Card className="border-2 border-gradient-to-r from-purple-200 to-blue-200">
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2">
-            <Sparkles className="h-5 w-5 text-purple-500" />
-            Smart Recommendations
-            <div className="flex gap-2 ml-auto">
-              <Badge variant="secondary" className="text-xs">
+      {/* Enhanced Smart Recommendations with better visual hierarchy */}
+      <Card className="relative overflow-hidden border-2 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 border-purple-200/50 shadow-lg">
+        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-indigo-500/5"></div>
+        <CardHeader className="relative pb-3">
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 text-white shadow-lg">
+              <Sparkles className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
+                AI Smart Recommendations
+              </h2>
+              <p className="text-sm text-gray-600 font-normal mt-1">
+                Personalized suggestions based on your current state
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Badge 
+                variant="secondary" 
+                className="bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 border-purple-200 shadow-sm"
+              >
+                <Activity className="h-3 w-3 mr-1" />
                 {contextualData.playerState.energyLevel} energy
               </Badge>
-              <Badge variant="outline" className="text-xs">
+              <Badge 
+                variant="outline" 
+                className="border-blue-200 text-blue-700 bg-blue-50 shadow-sm"
+              >
+                <TrendingUp className="h-3 w-3 mr-1" />
                 {contextualData.recommendations.motivation} motivation
               </Badge>
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent>
+        <CardContent className="relative">
           <SmartRecommendations 
             hpData={hpData}
             xpData={xpData}
@@ -374,67 +392,107 @@ export function EnhancedQuickActions({
         </CardContent>
       </Card>
 
-      {/* Enhanced Contextual Activity Insights */}
-      <Card className="bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200">
+      {/* Enhanced Activity Intelligence Card */}
+      <Card className="bg-gradient-to-r from-slate-50 to-gray-50 border-slate-200 shadow-md">
         <CardContent className="p-4">
-          <div className="flex items-center justify-between text-sm">
-            <div className="flex items-center gap-2">
-              <Clock className="h-4 w-4 text-blue-500" />
-              <span className="font-medium">Activity Intelligence:</span>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md">
+                <Clock className="h-4 w-4" />
+              </div>
+              <div>
+                <span className="font-bold text-gray-800">Activity Intelligence</span>
+                <p className="text-xs text-gray-600 mt-0.5">
+                  AI-powered insights about your tennis journey
+                </p>
+              </div>
             </div>
-            <div className="flex gap-3 text-xs">
-              <span className="flex items-center gap-1">
-                <TrendingUp className="h-3 w-3" />
-                {contextualData.activity.recentActivityCount} this week
-              </span>
-              <span className="flex items-center gap-1">
-                <Sparkles className="h-3 w-3" />
-                {contextualData.playerState.energyLevel} energy
-              </span>
+            <div className="flex gap-4 text-sm">
+              <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 shadow-sm border">
+                <TrendingUp className="h-4 w-4 text-green-600" />
+                <div>
+                  <div className="text-xs text-gray-500">This Week</div>
+                  <div className="font-bold text-gray-800">{contextualData.activity.recentActivityCount}</div>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 shadow-sm border">
+                <Sparkles className="h-4 w-4 text-purple-600" />
+                <div>
+                  <div className="text-xs text-gray-500">Energy</div>
+                  <div className="font-bold text-gray-800 capitalize">{contextualData.playerState.energyLevel}</div>
+                </div>
+              </div>
               {contextualData.activity.hoursSinceLastActivity > 24 && (
-                <span className="flex items-center gap-1 text-orange-600">
-                  <AlertTriangle className="h-3 w-3" />
-                  {Math.round(contextualData.activity.hoursSinceLastActivity)}h since last
-                </span>
+                <div className="flex items-center gap-2 bg-orange-50 rounded-lg px-3 py-1.5 shadow-sm border border-orange-200">
+                  <AlertTriangle className="h-4 w-4 text-orange-600" />
+                  <div>
+                    <div className="text-xs text-orange-600">Last Activity</div>
+                    <div className="font-bold text-orange-800">{Math.round(contextualData.activity.hoursSinceLastActivity)}h ago</div>
+                  </div>
+                </div>
               )}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Enhanced Quick Actions with contextual priority and intelligence */}
-      <Card>
-        <CardHeader className="pb-3">
-          <CardTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            Smart Quick Actions
-            <div className="flex gap-2 ml-auto">
-              <Badge variant="outline" className="text-xs">
-                AI prioritized
+      {/* Enhanced Quick Actions with superior visual hierarchy */}
+      <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50">
+        <CardHeader className="pb-4 bg-gradient-to-r from-gray-50 to-white border-b border-gray-100">
+          <CardTitle className="flex items-center gap-3">
+            <div className="p-2 rounded-xl bg-gradient-to-br from-indigo-500 to-purple-600 text-white shadow-lg">
+              <Plus className="h-5 w-5" />
+            </div>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-gray-800">Smart Quick Actions</h2>
+              <p className="text-sm text-gray-600 font-normal mt-1">
+                Contextually prioritized activities tailored for you
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Badge 
+                className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0 shadow-md"
+              >
+                <Sparkles className="h-3 w-3 mr-1" />
+                AI Prioritized
               </Badge>
-              <Badge variant="secondary" className="text-xs">
+              <Badge 
+                variant="secondary" 
+                className="bg-purple-100 text-purple-700 border-purple-200 shadow-sm"
+              >
+                <Target className="h-3 w-3 mr-1" />
                 {sortedActions.filter(a => a.recommended).length} recommended
               </Badge>
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-            {sortedActions.map((action) => (
-              <ActionButton
+        <CardContent className="p-6">
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {sortedActions.map((action, index) => (
+              <div 
                 key={action.id}
-                action={action}
-                onClick={() => handleQuickAction(action)}
-                disabled={loadingAction !== null || !action.availability}
-                loading={loadingAction === action.id}
-                contextual={true}
-              />
+                className="animate-fade-in"
+                style={{ animationDelay: `${index * 100}ms` }}
+              >
+                <ActionButton
+                  action={action}
+                  onClick={() => handleQuickAction(action)}
+                  disabled={loadingAction !== null || !action.availability}
+                  loading={loadingAction === action.id}
+                  contextual={true}
+                />
+              </div>
             ))}
             
-            {/* Enhanced Recovery Center Action with contextual awareness */}
-            <RecoveryQuickAction
-              onOpenRecoveryCenter={handleOpenRecoveryCenter}
-            />
+            {/* Enhanced Recovery Center Action */}
+            <div 
+              className="animate-fade-in"
+              style={{ animationDelay: `${sortedActions.length * 100}ms` }}
+            >
+              <RecoveryQuickAction
+                onOpenRecoveryCenter={handleOpenRecoveryCenter}
+              />
+            </div>
           </div>
         </CardContent>
       </Card>
