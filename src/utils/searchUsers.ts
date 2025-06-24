@@ -31,13 +31,15 @@ interface SearchParams {
 export async function fetchSearchResults({ query, userType, filters }: SearchParams): Promise<SearchResult[]> {
   console.log('Searching users with:', { query, userType, filters });
   
-  // Get base profiles
-  const { data: profiles, error } = await supabase
+  // Get base profiles with explicit typing to avoid deep instantiation
+  const profilesQuery = supabase
     .from('profiles')
     .select('id, full_name, avatar_url, role')
     .eq('role', userType)
     .ilike('full_name', `%${query}%`)
     .limit(20);
+
+  const { data: profiles, error } = await profilesQuery;
 
   if (error) {
     console.error('Search error:', error);
@@ -54,30 +56,36 @@ export async function fetchSearchResults({ query, userType, filters }: SearchPar
   // Get player profiles if searching for players
   let playerProfiles: any[] = [];
   if (userType === 'player') {
-    const { data: playerData } = await supabase
+    const playerQuery = supabase
       .from('player_profiles')
       .select('player_id, skill_level, location')
       .in('player_id', profileIds);
+    
+    const { data: playerData } = await playerQuery;
     playerProfiles = playerData || [];
   }
 
   // Get coach profiles if searching for coaches
   let coachProfiles: any[] = [];
   if (userType === 'coach') {
-    const { data: coachData } = await supabase
+    const coachQuery = supabase
       .from('coach_profiles')
       .select('coach_id, coaching_focus, experience_years, location')
       .in('coach_id', profileIds);
+    
+    const { data: coachData } = await coachQuery;
     coachProfiles = coachData || [];
   }
 
   // Get player XP data
   let playerXPData: any[] = [];
   if (userType === 'player') {
-    const { data: xpData } = await supabase
+    const xpQuery = supabase
       .from('player_xp')
       .select('player_id, current_level')
       .in('player_id', profileIds);
+    
+    const { data: xpData } = await xpQuery;
     playerXPData = xpData || [];
   }
 

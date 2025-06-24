@@ -1,6 +1,7 @@
 
 import { useQuery } from '@tanstack/react-query';
-import { fetchSearchResults, SearchResult } from '@/utils/searchUsers';
+import { fetchSearchResults } from '@/utils/searchUsers';
+import type { SearchResult } from '@/utils/searchUsers';
 
 interface SearchFilters {
   level: string;
@@ -15,7 +16,7 @@ interface SearchParams {
   filters: SearchFilters;
 }
 
-export { SearchResult };
+export type { SearchResult };
 
 export function useSearchUsers({ query, userType, filters }: SearchParams) {
   return useQuery({
