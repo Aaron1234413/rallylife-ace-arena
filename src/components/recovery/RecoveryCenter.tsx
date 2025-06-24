@@ -3,51 +3,64 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Badge } from '@/components/ui/badge';
 import { 
   Brain, 
   Heart, 
   Sparkles, 
   Dumbbell,
-  ArrowLeft
+  ArrowLeft,
+  Clock
 } from 'lucide-react';
 import { MeditationPanel } from '@/components/meditation/MeditationPanel';
 import { MeditationProgress } from '@/components/meditation/MeditationProgress';
 import { MeditationAchievements } from '@/components/meditation/MeditationAchievements';
 import { StretchingPanel } from '@/components/stretching/StretchingPanel';
 import { StretchingProgress } from '@/components/stretching/StretchingProgress';
-import { RecoveryModeSelector } from './RecoveryModeSelector';
 
 interface RecoveryCenterProps {
   onBack: () => void;
 }
 
-interface RecoveryMode {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  color: string;
-  bgColor: string;
-  duration: string;
-  hp: number;
-  difficulty: 'easy' | 'medium' | 'hard';
-}
+const recoveryModes = [
+  {
+    id: 'meditation',
+    title: 'Meditation',
+    description: 'Mindful breathing and relaxation',
+    icon: Brain,
+    color: 'text-purple-600',
+    bgColor: 'bg-purple-50',
+    borderColor: 'border-purple-200 hover:border-purple-300',
+    duration: '5-15 min',
+    hp: 10,
+    difficulty: 'easy' as const
+  },
+  {
+    id: 'stretching',
+    title: 'Stretching',
+    description: 'Tennis-focused muscle recovery',
+    icon: Dumbbell,
+    color: 'text-green-600',
+    bgColor: 'bg-green-50',
+    borderColor: 'border-green-200 hover:border-green-300',
+    duration: '8-20 min',
+    hp: 12,
+    difficulty: 'medium' as const
+  }
+];
 
 export function RecoveryCenter({ onBack }: RecoveryCenterProps) {
   const [activeTab, setActiveTab] = useState('overview');
-  const [selectedMode, setSelectedMode] = useState<RecoveryMode | null>(null);
 
-  const handleModeSelect = (mode: RecoveryMode) => {
-    console.log('Recovery mode selected:', mode);
+  const handleModeSelect = (modeId: string) => {
+    console.log('Recovery mode selected:', modeId);
     
-    // Navigate to the appropriate tab based on mode
-    if (mode.id === 'meditation') {
+    // Navigate directly to the appropriate tab
+    if (modeId === 'meditation') {
       setActiveTab('meditation');
-    } else if (mode.id === 'stretching') {
+    } else if (modeId === 'stretching') {
       setActiveTab('stretching');
     }
-    
-    setSelectedMode(mode);
   };
 
   return (
@@ -77,42 +90,70 @@ export function RecoveryCenter({ onBack }: RecoveryCenterProps) {
         </TabsList>
 
         <TabsContent value="overview" className="space-y-6">
-          {/* Quick Recovery Actions with Mode Selector */}
+          {/* Direct Recovery Method Selection */}
           <Card>
             <CardHeader>
               <CardTitle className="flex items-center gap-2">
                 <Sparkles className="h-5 w-5 text-purple-500" />
-                Quick Recovery
+                Choose Your Recovery Method
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <RecoveryModeSelector onModeSelect={handleModeSelect}>
-                  <div className="p-4 rounded-lg border-2 border-purple-200 hover:border-purple-300 transition-colors cursor-pointer bg-gradient-to-r from-purple-50 to-pink-50">
-                    <div className="flex items-center gap-3 mb-2">
-                      <Brain className="h-6 w-6 text-purple-500" />
-                      <div>
-                        <h3 className="font-semibold">Quick Meditation</h3>
-                        <p className="text-sm text-gray-600">5-15 minutes</p>
-                      </div>
-                    </div>
-                    <p className="text-sm text-gray-600">Guided mindfulness sessions</p>
+              <div className="text-center mb-6">
+                <div className="flex justify-center mb-2">
+                  <div className="p-3 rounded-full bg-gradient-to-r from-purple-100 to-green-100">
+                    <Sparkles className="h-6 w-6 text-purple-600" />
                   </div>
-                </RecoveryModeSelector>
-
-                <div 
-                  className="p-4 rounded-lg border-2 border-green-200 hover:border-green-300 transition-colors cursor-pointer bg-gradient-to-r from-green-50 to-emerald-50"
-                  onClick={() => setActiveTab('stretching')}
-                >
-                  <div className="flex items-center gap-3 mb-2">
-                    <Dumbbell className="h-6 w-6 text-green-500" />
-                    <div>
-                      <h3 className="font-semibold">Targeted Stretching</h3>
-                      <p className="text-sm text-gray-600">8-20 minutes</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-gray-600">Tennis-focused routines</p>
                 </div>
+                <p className="text-sm text-gray-600">
+                  Choose your recovery method to restore HP and improve wellbeing
+                </p>
+              </div>
+
+              <div className="grid gap-4">
+                {recoveryModes.map((mode) => {
+                  const Icon = mode.icon;
+                  return (
+                    <Card 
+                      key={mode.id}
+                      className={`border-2 ${mode.borderColor} transition-colors cursor-pointer`}
+                      onClick={() => handleModeSelect(mode.id)}
+                    >
+                      <CardContent className="p-4">
+                        <div className="flex items-center gap-3">
+                          <div className={`p-2 rounded-lg ${mode.bgColor}`}>
+                            <Icon className={`h-5 w-5 ${mode.color}`} />
+                          </div>
+                          <div className="flex-1">
+                            <div className="flex items-center gap-2 mb-1">
+                              <h3 className="font-semibold">{mode.title}</h3>
+                              <Badge variant="outline" className="text-xs">
+                                {mode.difficulty}
+                              </Badge>
+                            </div>
+                            <p className="text-sm text-gray-600 mb-2">{mode.description}</p>
+                            <div className="flex items-center gap-3 text-xs text-gray-500">
+                              <div className="flex items-center gap-1">
+                                <Clock className="h-3 w-3" />
+                                <span>{mode.duration}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Heart className="h-3 w-3 text-red-500" />
+                                <span>+{mode.hp} HP</span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+              </div>
+
+              <div className="text-center mt-4">
+                <p className="text-xs text-gray-500">
+                  💡 Regular recovery sessions help maintain peak performance
+                </p>
               </div>
             </CardContent>
           </Card>

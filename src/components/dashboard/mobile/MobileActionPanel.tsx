@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,11 +8,9 @@ import {
   Star, 
   Coins, 
   Plus,
-  Zap,
   Activity,
   Brain
 } from 'lucide-react';
-import { ActionButton } from '@/components/dashboard/player/ActionButton';
 import { RecoveryCenter } from '@/components/recovery';
 
 interface MobileActionPanelProps {
@@ -38,7 +37,6 @@ export function MobileActionPanel({
   const maxHP = hpData?.max_hp || 100;
   const currentLevel = xpData?.current_level || 1;
   const currentXP = xpData?.current_xp || 0;
-  const xpToNext = xpData?.xp_to_next_level || 100;
 
   const quickActions = [
     {
@@ -46,13 +44,6 @@ export function MobileActionPanel({
       title: 'Restore HP',
       description: 'Quick health boost',
       icon: Heart,
-      color: 'bg-red-500',
-      textColor: 'text-red-700',
-      bgColor: 'border-red-200',
-      rewards: { hp: 10, xp: 0, tokens: 0 },
-      recommended: false,
-      estimatedDuration: 5,
-      difficulty: 'low' as const,
       onClick: () => onRestoreHP(10, 'rest', 'Quick mobile HP restore')
     },
     {
@@ -60,13 +51,6 @@ export function MobileActionPanel({
       title: 'Add XP',
       description: 'Log quick activity',
       icon: Star,
-      color: 'bg-yellow-500',
-      textColor: 'text-yellow-700',
-      bgColor: 'border-yellow-200',
-      rewards: { hp: 0, xp: 25, tokens: 0 },
-      recommended: false,
-      estimatedDuration: 10,
-      difficulty: 'low' as const,
       onClick: () => onAddXP(25, 'training', 'Quick mobile XP gain')
     },
     {
@@ -74,13 +58,6 @@ export function MobileActionPanel({
       title: 'Earn Tokens',
       description: 'Daily bonus',
       icon: Coins,
-      color: 'bg-blue-500',
-      textColor: 'text-blue-700',
-      bgColor: 'border-blue-200',
-      rewards: { hp: 0, xp: 0, tokens: 5 },
-      recommended: false,
-      estimatedDuration: 1,
-      difficulty: 'low' as const,
       onClick: () => onAddTokens(5, 'regular', 'daily_bonus', 'Daily mobile bonus')
     },
     {
@@ -88,13 +65,6 @@ export function MobileActionPanel({
       title: 'Recovery Center',
       description: 'Meditation & stretching',
       icon: Brain,
-      color: 'bg-purple-500',
-      textColor: 'text-purple-700',
-      bgColor: 'border-purple-200',
-      rewards: { hp: 8, xp: 10, tokens: 0 },
-      recommended: true,
-      estimatedDuration: 10,
-      difficulty: 'low' as const,
       onClick: () => setRecoveryCenterOpen(true)
     }
   ];
@@ -160,7 +130,7 @@ export function MobileActionPanel({
                 <div className="text-xs text-muted-foreground">Experience</div>
               </div>
               <div>
-                <div className="text-lg font-bold text-purple-600">{xpToNext}</div>
+                <div className="text-lg font-bold text-purple-600">{xpData?.xp_to_next_level || 100}</div>
                 <div className="text-xs text-muted-foreground">To Next Level</div>
               </div>
             </div>

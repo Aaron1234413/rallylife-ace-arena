@@ -1,6 +1,5 @@
 
 import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
@@ -10,30 +9,17 @@ import {
   Dumbbell,
   Clock
 } from 'lucide-react';
-import { RecoveryModeSelector } from './RecoveryModeSelector';
-
-interface RecoveryMode {
-  id: string;
-  title: string;
-  description: string;
-  icon: React.ElementType;
-  color: string;
-  bgColor: string;
-  duration: string;
-  hp: number;
-  difficulty: 'easy' | 'medium' | 'hard';
-}
 
 interface RecoveryQuickActionProps {
-  onModeSelect?: (mode: RecoveryMode) => void;
+  onOpenRecoveryCenter?: () => void;
   className?: string;
 }
 
-export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickActionProps) {
-  const handleModeSelect = (mode: RecoveryMode) => {
-    console.log('Quick recovery mode selected:', mode);
-    if (onModeSelect) {
-      onModeSelect(mode);
+export function RecoveryQuickAction({ onOpenRecoveryCenter, className }: RecoveryQuickActionProps) {
+  const handleClick = () => {
+    console.log('Opening Recovery Center directly');
+    if (onOpenRecoveryCenter) {
+      onOpenRecoveryCenter();
     }
   };
 
@@ -58,7 +44,7 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
           <Badge variant="outline" className="text-xs">low intensity</Badge>
         </div>
 
-        {/* Rewards grid - matches other cards rewards layout with right alignment for stretching */}
+        {/* Rewards grid - matches other cards rewards layout */}
         <div className="grid grid-cols-2 gap-2 text-xs">
           <div className="flex items-center gap-1 text-purple-600">
             <Brain className="h-3 w-3" />
@@ -70,17 +56,16 @@ export function RecoveryQuickAction({ onModeSelect, className }: RecoveryQuickAc
           </div>
         </div>
 
-        {/* Main Action Button - matches other cards button position exactly */}
+        {/* Main Action Button - simplified to just open Recovery Center */}
         <div className="pt-2">
-          <RecoveryModeSelector onModeSelect={handleModeSelect}>
-            <Button 
-              variant="outline" 
-              className="w-full justify-center bg-gradient-to-r from-red-50 to-pink-50 border-red-200 hover:border-red-300"
-            >
-              <Sparkles className="h-4 w-4 mr-2 text-red-500" />
-              Choose Recovery Method
-            </Button>
-          </RecoveryModeSelector>
+          <Button 
+            onClick={handleClick}
+            variant="outline" 
+            className="w-full justify-center bg-gradient-to-r from-red-50 to-pink-50 border-red-200 hover:border-red-300"
+          >
+            <Sparkles className="h-4 w-4 mr-2 text-red-500" />
+            Open Recovery Center
+          </Button>
         </div>
       </div>
     </div>
