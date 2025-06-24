@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -143,7 +144,7 @@ const Index = () => {
   // Show loading state while profile is being fetched
   if (profileLoading) {
     return (
-      <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6 pb-24 sm:pb-6">
+      <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
         <div className="animate-pulse">
           <div className="h-32 bg-gray-200 rounded mb-6"></div>
           <div className="h-48 bg-gray-200 rounded mb-6"></div>
@@ -153,101 +154,103 @@ const Index = () => {
   }
 
   return (
-    <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6 pb-24 sm:pb-6">
-      {/* Welcome Banner */}
-      <WelcomeBanner />
+    <div className="min-h-screen overflow-x-hidden">
+      <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-4 sm:space-y-6">
+        {/* Welcome Banner */}
+        <WelcomeBanner />
 
-      {/* Player-specific content */}
-      {isPlayer && (
-        <>
-          {/* Phase 1 & 2: Enhanced Player Vitals Hero Section with Recovery Integration */}
-          <PlayerVitalsHero
-            hpData={hpData}
-            xpData={xpData}
-            tokenData={tokenData}
-            loading={vitalsLoading}
-            onRestoreHP={handleRestoreHP}
-          />
+        {/* Player-specific content */}
+        {isPlayer && (
+          <>
+            {/* Phase 1 & 2: Enhanced Player Vitals Hero Section with Recovery Integration */}
+            <PlayerVitalsHero
+              hpData={hpData}
+              xpData={xpData}
+              tokenData={tokenData}
+              loading={vitalsLoading}
+              onRestoreHP={handleRestoreHP}
+            />
 
-          {/* Social Play Section - Always show quick actions for Phase 1 */}
-          <SocialPlayQuickActions />
+            {/* Social Play Section - Always show quick actions for Phase 1 */}
+            <SocialPlayQuickActions />
 
-          {/* Active Session Widgets */}
-          <ActiveSocialPlayWidget 
-            onAddXP={handleAddXP}
-            onRestoreHP={handleRestoreHP}
-          />
-          <ActiveMatchWidget />
-          <ActiveTrainingWidget />
+            {/* Active Session Widgets */}
+            <ActiveSocialPlayWidget 
+              onAddXP={handleAddXP}
+              onRestoreHP={handleRestoreHP}
+            />
+            <ActiveMatchWidget />
+            <ActiveTrainingWidget />
 
-          {/* 2. Enhanced Quick Actions - Contextual and Smart (Desktop) */}
-          <div className="hidden sm:block">
-            <EnhancedQuickActions
+            {/* 2. Enhanced Quick Actions - Contextual and Smart (Desktop) */}
+            <div className="hidden sm:block">
+              <EnhancedQuickActions
+                hpData={hpData}
+                xpData={xpData}
+                onAddXP={handleAddXP}
+                onRestoreHP={handleRestoreHP}
+                onAddTokens={handleAddTokens}
+              />
+            </div>
+
+            {/* Mobile Action Panel */}
+            <MobileActionPanel
               hpData={hpData}
               xpData={xpData}
               onAddXP={handleAddXP}
               onRestoreHP={handleRestoreHP}
               onAddTokens={handleAddTokens}
             />
-          </div>
+          </>
+        )}
 
-          {/* Mobile Action Panel */}
-          <MobileActionPanel
-            hpData={hpData}
-            xpData={xpData}
-            onAddXP={handleAddXP}
-            onRestoreHP={handleRestoreHP}
-            onAddTokens={handleAddTokens}
-          />
-        </>
-      )}
+        {/* Coach-specific content */}
+        {isCoach && (
+          <>
+            {/* Profile Card for Coaches */}
+            <ProfileCard
+              profile={profile}
+              user={user}
+              profileLoading={profileLoading}
+              isPlayer={isPlayer}
+            />
 
-      {/* Coach-specific content */}
-      {isCoach && (
-        <>
-          {/* Profile Card for Coaches */}
-          <ProfileCard
-            profile={profile}
-            user={user}
-            profileLoading={profileLoading}
-            isPlayer={isPlayer}
-          />
+            {/* Coach Overview Cards */}
+            <CoachOverviewCards
+              cxpData={cxpData}
+              tokenData={coachTokenData}
+              crpData={crpData}
+              cxpLoading={cxpLoading}
+              tokensLoading={coachTokensLoading}
+              crpLoading={crpLoading}
+            />
 
-          {/* Coach Overview Cards */}
-          <CoachOverviewCards
-            cxpData={cxpData}
-            tokenData={coachTokenData}
-            crpData={crpData}
-            cxpLoading={cxpLoading}
-            tokensLoading={coachTokensLoading}
-            crpLoading={crpLoading}
-          />
+            {/* Coach Quick Actions */}
+            <CoachQuickActions />
 
-          {/* Coach Quick Actions */}
-          <CoachQuickActions />
+            {/* Coach Avatar Customization */}
+            <CoachAvatarCustomization />
 
-          {/* Coach Avatar Customization */}
-          <CoachAvatarCustomization />
+            {/* Coach Achievements */}
+            <CoachAchievementsDisplay />
 
-          {/* Coach Achievements */}
-          <CoachAchievementsDisplay />
+            {/* CXP Earning Actions */}
+            <CXPEarnActions />
 
-          {/* CXP Earning Actions */}
-          <CXPEarnActions />
+            {/* CTK Earning Actions */}
+            <CTKEarnActions />
 
-          {/* CTK Earning Actions */}
-          <CTKEarnActions />
+            {/* CTK Store */}
+            <CTKStore />
 
-          {/* CTK Store */}
-          <CTKStore />
-
-          {/* Activity Logs */}
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-            <CXPActivityLog />
-            <CTKTransactionHistory />
-          </div>
-        </>
-      )}
+            {/* Activity Logs */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              <CXPActivityLog />
+              <CTKTransactionHistory />
+            </div>
+          </>
+        )}
+      </div>
     </div>
   );
 };

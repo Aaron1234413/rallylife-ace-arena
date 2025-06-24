@@ -22,8 +22,10 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen bg-background">
       {user && <AppNavigation />}
       
-      <main className={`${user ? 'pt-16' : ''} pb-16 sm:pb-0`}>
-        {children}
+      <main className={`${user ? 'pt-20 sm:pt-16' : ''} pb-20 sm:pb-6 min-h-screen`}>
+        <div className="safe-area-inset">
+          {children}
+        </div>
       </main>
       
       {user && <FloatingCheckInButton />}

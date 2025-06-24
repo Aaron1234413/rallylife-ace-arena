@@ -3,100 +3,66 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. */
-
 @layer base {
   :root {
     --background: 0 0% 100%;
-    --foreground: 142 69% 15%;
-
+    --foreground: 222.2 84% 4.9%;
     --card: 0 0% 100%;
-    --card-foreground: 142 69% 15%;
-
+    --card-foreground: 222.2 84% 4.9%;
     --popover: 0 0% 100%;
-    --popover-foreground: 142 69% 15%;
-
-    --primary: 142 69% 15%;
-    --primary-foreground: 0 0% 98%;
-
-    --secondary: 142 31% 85%;
-    --secondary-foreground: 142 69% 15%;
-
-    --muted: 142 31% 90%;
-    --muted-foreground: 142 20% 40%;
-
-    --accent: 142 48% 25%;
-    --accent-foreground: 0 0% 98%;
-
+    --popover-foreground: 222.2 84% 4.9%;
+    --primary: 222.2 47.4% 11.2%;
+    --primary-foreground: 210 40% 98%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222.2 84% 4.9%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215.4 16.3% 46.9%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222.2 84% 4.9%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
-
-    --border: 142 31% 85%;
-    --input: 142 31% 85%;
-    --ring: 142 69% 15%;
-
+    --border: 214.3 31.8% 91.4%;
+    --input: 214.3 31.8% 91.4%;
+    --ring: 222.2 84% 4.9%;
     --radius: 0.5rem;
+    --chart-1: 12 76% 61%;
+    --chart-2: 173 58% 39%;
+    --chart-3: 197 37% 24%;
+    --chart-4: 43 74% 66%;
+    --chart-5: 27 87% 67%;
 
-    /* Tennis/RallyLife specific colors */
-    --tennis-green-dark: 142 69% 15%;    /* #2D5016 - Headers, primary buttons */
-    --tennis-green-medium: 142 48% 35%;   /* #4A7C59 - Secondary elements */
-    --tennis-green-light: 142 40% 65%;    /* #7FB069 - Light backgrounds */
-    --tennis-green-bg: 142 31% 90%;       /* Light green backgrounds */
-    --tennis-yellow: 48 89% 70%;          /* #F7DC6F - Tokens, achievements */
-    --tennis-court: 142 31% 85%;          /* Court-like green */
-    
-    /* HP/XP colors */
-    --hp-red: 0 84% 60%;
-    --hp-green: 142 48% 35%;
-    --xp-blue: 217 91% 60%;
-
-    --sidebar-background: 142 31% 95%;
-    --sidebar-foreground: 142 69% 15%;
-    --sidebar-primary: 142 69% 15%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 142 31% 90%;
-    --sidebar-accent-foreground: 142 69% 15%;
-    --sidebar-border: 142 31% 85%;
-    --sidebar-ring: 142 48% 35%;
+    /* Tennis green theme colors */
+    --tennis-green-light: 120 50% 70%;
+    --tennis-green: 120 60% 50%;
+    --tennis-green-dark: 120 70% 30%;
+    --tennis-green-bg: 120 20% 95%;
   }
 
   .dark {
-    --background: 142 69% 8%;
-    --foreground: 142 31% 90%;
-
-    --card: 142 69% 8%;
-    --card-foreground: 142 31% 90%;
-
-    --popover: 142 69% 8%;
-    --popover-foreground: 142 31% 90%;
-
-    --primary: 142 31% 90%;
-    --primary-foreground: 142 69% 15%;
-
-    --secondary: 142 48% 15%;
-    --secondary-foreground: 142 31% 90%;
-
-    --muted: 142 48% 15%;
-    --muted-foreground: 142 31% 70%;
-
-    --accent: 142 48% 15%;
-    --accent-foreground: 142 31% 90%;
-
+    --background: 222.2 84% 4.9%;
+    --foreground: 210 40% 98%;
+    --card: 222.2 84% 4.9%;
+    --card-foreground: 210 40% 98%;
+    --popover: 222.2 84% 4.9%;
+    --popover-foreground: 210 40% 98%;
+    --primary: 210 40% 98%;
+    --primary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 217.2 32.6% 17.5%;
+    --secondary-foreground: 210 40% 98%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 210 40% 98%;
-
-    --border: 142 48% 15%;
-    --input: 142 48% 15%;
-    --ring: 142 31% 80%;
-    
-    --sidebar-background: 142 69% 8%;
-    --sidebar-foreground: 142 31% 90%;
-    --sidebar-primary: 142 31% 90%;
-    --sidebar-primary-foreground: 142 69% 15%;
-    --sidebar-accent: 142 48% 15%;
-    --sidebar-accent-foreground: 142 31% 90%;
-    --sidebar-border: 142 48% 15%;
-    --sidebar-ring: 142 48% 35%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 212.7 26.8% 83.9%;
+    --chart-1: 220 70% 50%;
+    --chart-2: 160 60% 45%;
+    --chart-3: 30 80% 55%;
+    --chart-4: 280 65% 60%;
+    --chart-5: 340 75% 55%;
   }
 }
 
@@ -104,682 +70,67 @@
   * {
     @apply border-border;
   }
-
+  
   body {
     @apply bg-background text-foreground;
-    /* Improve touch interactions on mobile */
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
-  }
-
-  /* Mobile-first optimizations */
-  html {
-    /* Prevent zoom on double tap */
-    touch-action: manipulation;
-  }
-
-  /* Better touch targets for mobile - increased minimum size */
-  button, 
-  [role="button"], 
-  input[type="submit"], 
-  input[type="button"],
-  .touch-target {
-    min-height: 48px;
-    min-width: 48px;
-  }
-
-  /* Enhanced mobile touch targets */
-  .mobile-touch-target {
-    min-height: 52px;
-    min-width: 52px;
-    padding: 12px;
-  }
-
-  /* Improve scroll performance on mobile */
-  * {
+    /* Improve mobile scrolling */
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: none;
   }
 
-  /* Better text rendering on mobile */
-  body {
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-  }
-
-  /* High contrast mode support */
-  @media (prefers-contrast: high) {
-    .animate-pulse,
-    .animate-pulse-slow {
-      animation: none;
-    }
-    
-    .bg-gradient-to-br {
-      background: var(--background);
-    }
-
-    /* Enhanced borders for high contrast */
-    .card-high-contrast {
-      border: 2px solid hsl(var(--border));
-      box-shadow: 0 0 0 1px hsl(var(--foreground));
-    }
-
-    /* Better text contrast */
-    .text-high-contrast {
-      color: hsl(var(--foreground));
-      font-weight: 600;
-    }
-  }
-
-  /* Focus visible improvements for accessibility */
-  *:focus-visible {
-    outline: 3px solid hsl(var(--ring));
-    outline-offset: 2px;
-    border-radius: 4px;
-  }
-
-  /* Enhanced focus for interactive elements */
-  button:focus-visible,
-  [role="button"]:focus-visible {
-    outline: 3px solid hsl(var(--ring));
-    outline-offset: 3px;
-    box-shadow: 0 0 0 2px hsl(var(--background)), 0 0 0 5px hsl(var(--ring));
-  }
-
-  /* Skip link for screen readers */
-  .skip-link {
-    position: absolute;
-    top: -40px;
-    left: 6px;
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-    padding: 8px;
-    z-index: 1000;
-    text-decoration: none;
-    border-radius: 4px;
-  }
-
-  .skip-link:focus {
-    top: 6px;
-  }
-
-  /* Screen reader only class */
-  .sr-only {
-    position: absolute;
-    width: 1px;
-    height: 1px;
-    padding: 0;
-    margin: -1px;
-    overflow: hidden;
-    clip: rect(0, 0, 0, 0);
-    white-space: nowrap;
-    border: 0;
-  }
-
-  /* Accessible focus indicators for cards */
-  .focus-card:focus-within {
-    ring: 2px;
-    ring-color: hsl(var(--ring));
-    ring-offset: 2px;
-  }
-}
-
-/* Tennis-specific utility classes */
-@layer utilities {
-  .bg-tennis-green {
-    background-color: hsl(var(--tennis-green-dark));
-  }
-  
-  .bg-tennis-green-medium {
-    background-color: hsl(var(--tennis-green-medium));
-  }
-  
-  .bg-tennis-green-light {
-    background-color: hsl(var(--tennis-green-light));
-  }
-  
-  .bg-tennis-yellow {
-    background-color: hsl(var(--tennis-yellow));
-  }
-  
-  .text-tennis-green {
-    color: hsl(var(--tennis-green-dark));
-  }
-  
-  .text-tennis-yellow {
-    color: hsl(var(--tennis-yellow));
-  }
-  
-  .border-tennis-green {
-    border-color: hsl(var(--tennis-green-dark));
-  }
-
-  /* Mobile-specific utilities */
-  .touch-none {
-    touch-action: none;
-  }
-  
-  .touch-pan-x {
-    touch-action: pan-x;
-  }
-  
-  .touch-pan-y {
-    touch-action: pan-y;
-  }
-  
-  .touch-manipulation {
-    touch-action: manipulation;
-  }
-
-  /* Safe area utilities for mobile devices */
-  .safe-top {
-    padding-top: env(safe-area-inset-top);
-  }
-  
-  .safe-bottom {
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-  
-  .safe-left {
+  /* Safe area handling for mobile devices */
+  .safe-area-inset {
     padding-left: env(safe-area-inset-left);
-  }
-  
-  .safe-right {
     padding-right: env(safe-area-inset-right);
   }
 
-  /* Mobile responsive grid utilities */
-  .mobile-grid-1 {
-    grid-template-columns: 1fr;
-  }
-
-  .mobile-grid-auto {
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  }
-
-  .mobile-gap-4 {
-    gap: 1rem;
-  }
-
-  .mobile-gap-6 {
-    gap: 1.5rem;
-  }
-
-  /* Player Vitals Animations - Accessible and Performance Optimized */
-  .animate-pulse-slow {
-    animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
-  }
-
-  .animate-number-change {
-    animation: number-change 0.6s ease-out;
-  }
-
-  .animate-progress-smooth {
-    animation: progress-smooth 1s ease-out;
-  }
-
-  .animate-progress-urgent {
-    animation: progress-urgent 1s ease-out, pulse-subtle 2s ease-in-out infinite;
-  }
-
-  .animate-fade-in {
-    animation: fade-in 0.8s ease-out;
-  }
-
-  /* Enhanced Phase 3 Animations */
-  .animate-stagger-in {
-    animation: stagger-fade-in 0.6s ease-out both;
-  }
-
-  .animate-slide-up {
-    animation: slide-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
-  }
-
-  .animate-bounce-gentle {
-    animation: bounce-gentle 0.8s ease-out both;
-  }
-
-  .animate-scale-in-bounce {
-    animation: scale-in-bounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
-  }
-
-  .animate-shimmer {
-    animation: shimmer 2s linear infinite;
-  }
-
-  .animate-pulse-glow {
-    animation: pulse-glow 2s ease-in-out infinite;
-  }
-
-  .animate-float {
-    animation: float 3s ease-in-out infinite;
-  }
-
-  .animate-spin-slow {
-    animation: spin 3s linear infinite;
-  }
-
-  .animate-wiggle {
-    animation: wiggle 0.5s ease-in-out;
-  }
-
-  .animate-success-bounce {
-    animation: success-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
-  }
-
-  .animate-loading-dots {
-    animation: loading-dots 1.5s ease-in-out infinite;
-  }
-
-  /* Mobile-optimized animations */
-  .animate-mobile-fade {
-    animation: mobile-fade 0.4s ease-out;
-  }
-
-  .animate-mobile-slide {
-    animation: mobile-slide 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .animate-mobile-scale {
-    animation: mobile-scale 0.2s ease-out;
-  }
-
-  /* Hover and interaction utilities */
-  .hover-lift {
-    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .hover-lift:hover {
-    transform: translateY(-4px) scale(1.02);
-    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
-  }
-
-  .hover-glow {
-    transition: all 0.3s ease;
-  }
-
-  .hover-glow:hover {
-    box-shadow: 0 0 20px rgba(139, 69, 19, 0.3);
-  }
-
-  .interactive-icon {
-    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  }
-
-  .interactive-icon:hover {
-    transform: scale(1.1) rotate(5deg);
-  }
-
-  /* Mobile-friendly hover effects */
-  .mobile-hover-scale {
-    transition: transform 0.2s ease-out;
-  }
-
-  .mobile-hover-scale:active {
-    transform: scale(0.98);
-  }
-
-  /* Touch feedback */
-  .touch-feedback {
-    transition: all 0.15s ease-out;
-  }
-
-  .touch-feedback:active {
-    transform: scale(0.97);
-    opacity: 0.9;
-  }
-
-  .progress-bar-animated {
-    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
-    background-size: 200% 100%;
-    animation: progress-shimmer 1.5s ease-in-out;
-  }
-
-  .rotate-y-180 {
-    transform: rotateY(180deg);
-  }
-
-  /* Accessibility: Respect reduced motion preferences */
-  @media (prefers-reduced-motion: reduce) {
-    .motion-reduce\:animate-none {
-      animation: none !important;
-    }
-    
-    .motion-reduce\:transition-none {
-      transition: none !important;
-    }
-    
-    .motion-reduce\:transform-none {
-      transform: none !important;
-    }
-    
-    .motion-reduce\:animate-progress-smooth {
-      animation: progress-smooth-reduced 0.3s ease-out;
-    }
-
-    .hover-lift:hover {
-      transform: none;
-    }
-
-    .interactive-icon:hover {
-      transform: scale(1.05);
-    }
-
-    /* Disable mobile animations for reduced motion */
-    .animate-mobile-fade,
-    .animate-mobile-slide,
-    .animate-mobile-scale {
-      animation: none;
-    }
-
-    .mobile-hover-scale:active,
-    .touch-feedback:active {
-      transform: none;
-    }
-  }
-
-  /* High contrast mode adjustments */
-  @media (prefers-contrast: high) {
-    .bg-gradient-to-br {
-      background: hsl(var(--background)) !important;
-    }
-    
-    .shadow-lg,
-    .shadow-md,
-    .shadow-xl {
-      box-shadow: 0 0 0 2px hsl(var(--border));
-    }
-
-    .animate-shimmer,
-    .animate-pulse-glow {
-      animation: none;
-    }
-
-    /* Enhanced contrast borders */
-    .card,
-    .button {
-      border: 2px solid hsl(var(--border));
-    }
-
-    /* Better text visibility */
-    .text-white {
-      color: hsl(var(--foreground)) !important;
-    }
-  }
-}
-
-/* Mobile-specific scroll improvements */
-@media (max-width: 768px) {
-  .scroll-smooth {
+  /* Smooth scrolling for the entire app */
+  html {
     scroll-behavior: smooth;
   }
-  
-  /* Improve scroll momentum on iOS */
-  .overflow-auto,
-  .overflow-scroll,
-  .overflow-y-auto,
-  .overflow-y-scroll {
-    -webkit-overflow-scrolling: touch;
-  }
 
-  /* Optimize touch interactions */
-  .hover\:scale-105:hover {
-    transform: none; /* Disable hover scale on mobile */
-  }
-  
-  .group:hover .group-hover\:scale-110 {
-    transform: none; /* Disable hover scale on mobile */
-  }
-  
-  .group:hover .group-hover\:rotate-12 {
-    transform: none; /* Disable hover rotate on mobile */
-  }
-
-  .hover-lift:hover {
-    transform: none;
-  }
-
-  /* Mobile-specific grid layouts */
-  .mobile-responsive-grid {
-    grid-template-columns: 1fr;
-    gap: 1rem;
-  }
-
-  /* Better spacing on mobile */
-  .mobile-spacing {
-    padding: 1rem;
-    margin: 0.5rem 0;
-  }
-
-  /* Touch-friendly buttons */
-  .mobile-button {
-    min-height: 48px;
-    padding: 12px 16px;
-    font-size: 16px; /* Prevent zoom on iOS */
+  /* Prevent horizontal overflow on mobile */
+  body, #root {
+    overflow-x: hidden;
+    width: 100%;
   }
 }
 
-/* Tablet-specific adjustments */
-@media (min-width: 769px) and (max-width: 1024px) {
-  .tablet-grid-2 {
-    grid-template-columns: repeat(2, 1fr);
-  }
-
-  .tablet-spacing {
-    padding: 1.5rem;
-  }
+/* Tennis theme colors */
+.tennis-green-light {
+  color: hsl(var(--tennis-green-light));
 }
 
-/* Enhanced Keyframes for Phase 3 Micro-interactions */
-@keyframes pulse-slow {
-  0%, 100% {
-    opacity: 1;
-  }
-  50% {
-    opacity: 0.8;
-  }
+.bg-tennis-green-light {
+  background-color: hsl(var(--tennis-green-light));
 }
 
-@keyframes number-change {
-  0% {
-    transform: scale(1.05);
-    opacity: 0.9;
-  }
-  50% {
-    transform: scale(1.02);
-    opacity: 0.95;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
+.tennis-green {
+  color: hsl(var(--tennis-green));
 }
 
-@keyframes progress-smooth {
-  0% {
-    transform: scaleX(0);
-    opacity: 0.8;
-  }
-  100% {
-    transform: scaleX(1);
-    opacity: 1;
-  }
+.bg-tennis-green {
+  background-color: hsl(var(--tennis-green));
 }
 
-@keyframes progress-smooth-reduced {
-  0% {
-    opacity: 0.8;
-  }
-  100% {
-    opacity: 1;
-  }
+.tennis-green-dark {
+  color: hsl(var(--tennis-green-dark));
 }
 
-@keyframes progress-urgent {
-  0% {
-    transform: scaleX(0);
-    background-color: hsl(0, 84%, 60%);
-    opacity: 0.7;
-  }
-  50% {
-    opacity: 0.9;
-  }
-  100% {
-    transform: scaleX(1);
-    opacity: 1;
-  }
+.bg-tennis-green-dark {
+  background-color: hsl(var(--tennis-green-dark));
 }
 
-@keyframes pulse-subtle {
-  0%, 100% {
-    box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.1);
-  }
+.tennis-green-bg {
+  color: hsl(var(--tennis-green-bg));
 }
 
+.bg-tennis-green-bg {
+  background-color: hsl(var(--tennis-green-bg));
+}
+
+/* Custom animations */
 @keyframes fade-in {
-  0% {
-    opacity: 0;
-    transform: translateY(8px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-/* New Phase 3 Keyframes */
-@keyframes stagger-fade-in {
-  0% {
-    opacity: 0;
-    transform: translateY(20px) scale(0.95);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0) scale(1);
-  }
-}
-
-@keyframes slide-up {
-  0% {
-    opacity: 0;
-    transform: translateY(30px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes bounce-gentle {
-  0% {
-    transform: translateY(0);
-  }
-  50% {
-    transform: translateY(-10px);
-  }
-  100% {
-    transform: translateY(0);
-  }
-}
-
-@keyframes scale-in-bounce {
-  0% {
-    opacity: 0;
-    transform: scale(0.3);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.05);
-  }
-  70% {
-    transform: scale(0.9);
-  }
-  100% {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
-}
-
-@keyframes pulse-glow {
-  0%, 100% {
-    box-shadow: 0 0 5px rgba(139, 69, 19, 0.3);
-  }
-  50% {
-    box-shadow: 0 0 20px rgba(139, 69, 19, 0.6), 0 0 30px rgba(139, 69, 19, 0.4);
-  }
-}
-
-@keyframes float {
-  0%, 100% {
-    transform: translateY(0px);
-  }
-  50% {
-    transform: translateY(-6px);
-  }
-}
-
-@keyframes wiggle {
-  0%, 100% {
-    transform: rotate(0deg);
-  }
-  25% {
-    transform: rotate(-3deg);
-  }
-  75% {
-    transform: rotate(3deg);
-  }
-}
-
-@keyframes success-bounce {
-  0% {
-    transform: scale(1);
-  }
-  50% {
-    transform: scale(1.2);
-  }
-  100% {
-    transform: scale(1);
-  }
-}
-
-@keyframes loading-dots {
-  0%, 20% {
-    opacity: 0;
-    transform: scale(1);
-  }
-  50% {
-    opacity: 1;
-    transform: scale(1.2);
-  }
-  100% {
-    opacity: 0;
-    transform: scale(1);
-  }
-}
-
-@keyframes progress-shimmer {
-  0% {
-    background-position: -200% 0;
-  }
-  100% {
-    background-position: 200% 0;
-  }
-}
-
-/* Mobile-optimized keyframes */
-@keyframes mobile-fade {
   0% {
     opacity: 0;
     transform: translateY(10px);
@@ -790,18 +141,9 @@
   }
 }
 
-@keyframes mobile-slide {
+@keyframes scale-in {
   0% {
-    transform: translateX(-100%);
-  }
-  100% {
-    transform: translateX(0);
-  }
-}
-
-@keyframes mobile-scale {
-  0% {
-    transform: scale(0.9);
+    transform: scale(0.95);
     opacity: 0;
   }
   100% {
@@ -810,31 +152,109 @@
   }
 }
 
-/* Performance optimization: Use will-change for animated elements */
-.animate-pulse,
-.animate-pulse-slow,
-.animate-number-change,
-.animate-progress-smooth,
-.animate-progress-urgent,
-.animate-fade-in,
-.animate-stagger-in,
-.animate-slide-up,
-.animate-bounce-gentle,
-.animate-scale-in-bounce,
-.animate-shimmer,
-.animate-pulse-glow,
-.animate-float,
-.animate-wiggle,
-.animate-success-bounce,
-.animate-loading-dots,
-.animate-mobile-fade,
-.animate-mobile-slide,
-.animate-mobile-scale {
-  will-change: transform, opacity;
+@keyframes slide-up {
+  0% {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
 }
 
-/* Remove will-change after animation completes for better performance */
-.animate-pulse:not(:hover),
-.animate-pulse-slow:not(:hover) {
-  will-change: auto;
+@keyframes pulse-slow {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes progress-smooth {
+  0% {
+    transform: scaleX(0);
+  }
+  100% {
+    transform: scaleX(1);
+  }
+}
+
+@keyframes progress-urgent {
+  0%, 100% {
+    transform: scaleX(1);
+  }
+  50% {
+    transform: scaleX(1.02);
+  }
+}
+
+@keyframes number-change {
+  0% {
+    transform: translateY(-2px);
+    opacity: 0.8;
+  }
+  100% {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+.animate-fade-in {
+  animation: fade-in 0.3s ease-out;
+}
+
+.animate-scale-in {
+  animation: scale-in 0.2s ease-out;
+}
+
+.animate-slide-up {
+  animation: slide-up 0.4s ease-out;
+}
+
+.animate-pulse-slow {
+  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-progress-smooth {
+  animation: progress-smooth 1s ease-out;
+}
+
+.animate-progress-urgent {
+  animation: progress-urgent 2s ease-in-out infinite;
+}
+
+.animate-number-change {
+  animation: number-change 0.3s ease-out;
+}
+
+/* Touch-friendly improvements */
+@media (max-width: 768px) {
+  button, .button, [role="button"] {
+    min-height: 44px;
+    min-width: 44px;
+  }
+  
+  input, textarea, select {
+    font-size: 16px; /* Prevents zoom on iOS */
+  }
+}
+
+/* Improve focus visibility */
+*:focus-visible {
+  outline: 2px solid hsl(var(--ring));
+  outline-offset: 2px;
+}
+
+/* Reduce motion for users who prefer it */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
 }
