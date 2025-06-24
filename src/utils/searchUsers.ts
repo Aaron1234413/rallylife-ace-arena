@@ -31,26 +31,10 @@ export interface SearchResult {
 export async function fetchSearchResults({ query, userType, filters }: SearchParams): Promise<SearchResult[]> {
   console.log('Searching users with:', { query, userType, filters });
   
+  // Simple base query without complex joins
   let baseQuery = supabase
     .from('profiles')
-    .select(`
-      id,
-      full_name,
-      avatar_url,
-      role,
-      player_profiles (
-        skill_level,
-        location
-      ),
-      coach_profiles (
-        coaching_focus,
-        experience_years,
-        location
-      ),
-      player_xp (
-        current_level
-      )
-    `)
+    .select('id, full_name, avatar_url, role')
     .eq('role', userType);
 
   // Add search query filter
@@ -58,39 +42,68 @@ export async function fetchSearchResults({ query, userType, filters }: SearchPar
     baseQuery = baseQuery.ilike('full_name', `%${query}%`);
   }
 
-  const { data, error } = await baseQuery;
+  const { data: profiles, error } = await baseQuery;
 
   if (error) {
     console.error('Search error:', error);
     throw error;
   }
 
-  console.log('Raw search results:', data);
+  console.log('Raw search results:', profiles);
 
-  // Transform the results with explicit typing
-  const transformedResults: SearchResult[] = (data || []).map((user: any) => {
-    const playerProfile = Array.isArray(user.player_profiles) ? user.player_profiles[0] : null;
-    const coachProfile = Array.isArray(user.coach_profiles) ? user.coach_profiles[0] : null;
-    const playerXP = Array.isArray(user.player_xp) ? user.player_xp[0] : null;
+  if (!profiles || profiles.length === 0) {
+    return [];
+  }
+
+  // Get additional profile data separately to avoid complex joins
+  const profileIds = profiles.map(p => p.id);
+  
+  let additionalData: any[] = [];
+  
+  if (userType === 'player') {
+    const { data: playerData } = await supabase
+      .from('player_profiles')
+      .select('id, skill_level, location')
+      .in('id', profileIds);
     
-    // Calculate a simple match percentage (placeholder logic)
-    const matchPercentage = Math.floor(Math.random() * 40) + 60; // 60-100%
+    const { data: xpData } = await supabase
+      .from('player_xp')
+      .select('id, current_level')
+      .in('id', profileIds);
+      
+    additionalData = (playerData || []).map((player: any) => ({
+      ...player,
+      current_level: (xpData || []).find((xp: any) => xp.id === player.id)?.current_level || 1
+    }));
+  } else {
+    const { data: coachData } = await supabase
+      .from('coach_profiles')
+      .select('id, coaching_focus, experience_years, location')
+      .in('id', profileIds);
+    
+    additionalData = coachData || [];
+  }
+
+  // Transform results
+  const transformedResults = profiles.map(profile => {
+    const additional = additionalData.find(data => data.id === profile.id);
+    const matchPercentage = Math.floor(Math.random() * 40) + 60;
 
     return {
-      id: user.id,
-      full_name: user.full_name || 'Unknown User',
-      avatar_url: user.avatar_url,
-      role: user.role,
-      skill_level: playerProfile?.skill_level,
-      location: playerProfile?.location || coachProfile?.location,
-      coaching_focus: coachProfile?.coaching_focus,
-      experience_years: coachProfile?.experience_years,
+      id: profile.id,
+      full_name: profile.full_name || 'Unknown User',
+      avatar_url: profile.avatar_url,
+      role: profile.role,
+      skill_level: additional?.skill_level,
+      location: additional?.location,
+      coaching_focus: additional?.coaching_focus,
+      experience_years: additional?.experience_years,
       match_percentage: matchPercentage,
-      current_level: playerXP?.current_level || 1
+      current_level: additional?.current_level || 1
     };
   });
 
-  // Apply additional filters
+  // Apply filters
   let filteredResults = transformedResults;
 
   if (filters.skillLevel !== 'all' && userType === 'player') {
@@ -112,5 +125,5 @@ export async function fetchSearchResults({ query, userType, filters }: SearchPar
   }
 
   console.log('Filtered search results:', filteredResults);
-  return filteredResults as SearchResult[];
+  return filteredResults;
 }
