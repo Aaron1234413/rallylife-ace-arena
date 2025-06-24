@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -80,6 +81,50 @@ const castMatchStatus = (status: string): 'active' | 'paused' | 'completed' => {
   return 'active';
 };
 
+// Helper function to parse sets from JSON
+const parseSets = (sets: any): { playerScore: string; opponentScore: string; completed: boolean; }[] => {
+  if (!sets) return [];
+  if (typeof sets === 'string') {
+    try {
+      return JSON.parse(sets);
+    } catch {
+      return [];
+    }
+  }
+  if (Array.isArray(sets)) return sets;
+  return [];
+};
+
+// Helper function to convert Supabase row to ActiveMatchSession
+const toActiveMatchSession = (row: any): ActiveMatchSession => {
+  return {
+    id: row.id,
+    player_id: row.player_id,
+    opponent_name: row.opponent_name,
+    opponent_id: row.opponent_id,
+    is_doubles: row.is_doubles,
+    partner_name: row.partner_name,
+    partner_id: row.partner_id,
+    opponent_1_name: row.opponent_1_name,
+    opponent_1_id: row.opponent_1_id,
+    opponent_2_name: row.opponent_2_name,
+    opponent_2_id: row.opponent_2_id,
+    match_type: row.match_type as 'singles' | 'doubles',
+    start_time: row.start_time,
+    status: castMatchStatus(row.status),
+    sets: parseSets(row.sets),
+    current_set: row.current_set,
+    mid_match_mood: row.mid_match_mood,
+    mid_match_notes: row.mid_match_notes,
+    final_score: row.final_score,
+    end_mood: row.end_mood,
+    match_notes: row.match_notes,
+    result: row.result,
+    created_at: row.created_at,
+    updated_at: row.updated_at
+  };
+};
+
 export function useMatchSessions() {
   const { user } = useAuth();
   const [activeSession, setActiveSession] = useState<ActiveMatchSession | null>(null);
@@ -109,14 +154,8 @@ export function useMatchSessions() {
 
       console.log('Active session data:', data);
       
-      // Type cast the data to ensure proper typing
       if (data) {
-        const typedData: ActiveMatchSession = {
-          ...data,
-          match_type: data.match_type as 'singles' | 'doubles',
-          status: castMatchStatus(data.status)
-        };
-        setActiveSession(typedData);
+        setActiveSession(toActiveMatchSession(data));
       } else {
         setActiveSession(null);
       }
@@ -162,12 +201,7 @@ export function useMatchSessions() {
 
       console.log('Match session created successfully:', data);
       
-      // Type cast the response
-      const typedData: ActiveMatchSession = {
-        ...data,
-        match_type: data.match_type as 'singles' | 'doubles',
-        status: castMatchStatus(data.status)
-      };
+      const typedData = toActiveMatchSession(data);
       setActiveSession(typedData);
       return typedData;
     } catch (error) {
@@ -210,12 +244,7 @@ export function useMatchSessions() {
 
       console.log('Match session updated successfully:', data);
       
-      // Type cast the response
-      const typedData: ActiveMatchSession = {
-        ...data,
-        match_type: data.match_type as 'singles' | 'doubles',
-        status: castMatchStatus(data.status)
-      };
+      const typedData = toActiveMatchSession(data);
       setActiveSession(typedData);
       return typedData;
     } catch (error) {
@@ -254,13 +283,7 @@ export function useMatchSessions() {
       console.log('Match session completed successfully:', data);
       setActiveSession(null); // Clear the active session
       
-      // Type cast the response
-      const typedData: ActiveMatchSession = {
-        ...data,
-        match_type: data.match_type as 'singles' | 'doubles',
-        status: castMatchStatus(data.status)
-      };
-      return typedData;
+      return toActiveMatchSession(data);
     } catch (error) {
       console.error('Error in completeMatchSession:', error);
       throw error;
