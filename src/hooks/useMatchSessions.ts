@@ -107,7 +107,8 @@ export function useMatchSessions() {
           ...data,
           match_type: data.match_type as 'singles' | 'doubles',
           status: data.status as 'active' | 'paused' | 'completed',
-          sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }]
+          sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }],
+          result: data.result as 'win' | 'loss' | undefined
         };
         setActiveSession(typedData);
       } else {
@@ -160,7 +161,8 @@ export function useMatchSessions() {
         ...data,
         match_type: data.match_type as 'singles' | 'doubles',
         status: data.status as 'active' | 'paused' | 'completed',
-        sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }]
+        sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }],
+        result: data.result as 'win' | 'loss' | undefined
       };
       setActiveSession(typedData);
       return typedData;
@@ -209,7 +211,8 @@ export function useMatchSessions() {
         ...data,
         match_type: data.match_type as 'singles' | 'doubles',
         status: data.status as 'active' | 'paused' | 'completed',
-        sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }]
+        sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }],
+        result: data.result as 'win' | 'loss' | undefined
       };
       setActiveSession(typedData);
       return typedData;
@@ -254,7 +257,8 @@ export function useMatchSessions() {
         ...data,
         match_type: data.match_type as 'singles' | 'doubles',
         status: data.status as 'active' | 'paused' | 'completed',
-        sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }]
+        sets: (data.sets as any) || [{ playerScore: '', opponentScore: '', completed: false }],
+        result: data.result as 'win' | 'loss' | undefined
       };
       return typedData;
     } catch (error) {
