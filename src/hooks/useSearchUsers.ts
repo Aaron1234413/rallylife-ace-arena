@@ -35,44 +35,63 @@ export function useSearchUsers({ query, userType, filters }: SearchParams) {
     queryFn: async (): Promise<SearchResult[]> => {
       console.log('Searching users with:', { query, userType, filters });
       
-      let baseQuery = supabase
+      // Split the query into simpler parts to avoid type inference issues
+      const { data: profiles, error } = await supabase
         .from('profiles')
-        .select(`
-          id,
-          full_name,
-          avatar_url,
-          role,
-          player_profiles (
-            skill_level,
-            location
-          ),
-          coach_profiles (
-            coaching_focus,
-            experience_years,
-            location
-          ),
-          player_xp (
-            current_level
-          )
-        `)
+        .select('id, full_name, avatar_url, role')
         .eq('role', userType)
         .ilike('full_name', `%${query}%`)
         .limit(20);
-
-      const { data, error } = await baseQuery;
 
       if (error) {
         console.error('Search error:', error);
         throw error;
       }
 
-      console.log('Raw search results:', data);
+      if (!profiles || profiles.length === 0) {
+        return [];
+      }
 
-      // Transform and filter the results with explicit any typing to avoid TypeScript issues
-      const transformedResults: SearchResult[] = (data as any[] || []).map((user: any) => {
-        const playerProfile = Array.isArray(user.player_profiles) ? user.player_profiles[0] : null;
-        const coachProfile = Array.isArray(user.coach_profiles) ? user.coach_profiles[0] : null;
-        const playerXP = Array.isArray(user.player_xp) ? user.player_xp[0] : null;
+      // Get additional data for each profile
+      const profileIds = profiles.map(p => p.id);
+      
+      // Get player profiles if searching for players
+      let playerProfiles: any[] = [];
+      if (userType === 'player') {
+        const { data: playerData } = await supabase
+          .from('player_profiles')
+          .select('player_id, skill_level, location')
+          .in('player_id', profileIds);
+        playerProfiles = playerData || [];
+      }
+
+      // Get coach profiles if searching for coaches
+      let coachProfiles: any[] = [];
+      if (userType === 'coach') {
+        const { data: coachData } = await supabase
+          .from('coach_profiles')
+          .select('coach_id, coaching_focus, experience_years, location')
+          .in('coach_id', profileIds);
+        coachProfiles = coachData || [];
+      }
+
+      // Get player XP data
+      let playerXPData: any[] = [];
+      if (userType === 'player') {
+        const { data: xpData } = await supabase
+          .from('player_xp')
+          .select('player_id, current_level')
+          .in('player_id', profileIds);
+        playerXPData = xpData || [];
+      }
+
+      console.log('Raw search results:', { profiles, playerProfiles, coachProfiles, playerXPData });
+
+      // Transform and filter the results
+      const transformedResults: SearchResult[] = profiles.map((user) => {
+        const playerProfile = playerProfiles.find(pp => pp.player_id === user.id);
+        const coachProfile = coachProfiles.find(cp => cp.coach_id === user.id);
+        const playerXP = playerXPData.find(xp => xp.player_id === user.id);
         
         // Calculate a simple match percentage (placeholder logic)
         const matchPercentage = Math.floor(Math.random() * 40) + 60; // 60-100%
