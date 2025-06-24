@@ -4,12 +4,16 @@ import { useAuth } from '@/hooks/useAuth';
 import { SelectedOpponent } from '@/components/match/OpponentSearchSelector';
 import { analyzeOpponent, analyzeDoublesOpponents, estimateDifficulty, OpponentAnalysis, DoublesOpponentAnalysis } from '@/services/opponentAnalyzer';
 import { calculateMatchRewards, RewardCalculation } from '@/utils/rewardCalculator';
+import { analyzeTennisMatch, calculateTennisMultiplier, TennisAnalysis } from '@/services/tennisScoreAnalyzer';
+import { trackMomentum, MomentumState } from '@/services/momentumTracker';
 import { supabase } from '@/integrations/supabase/client';
 
 interface MatchRewardsState {
   rewards: RewardCalculation | null;
   opponentAnalysis: OpponentAnalysis | null;
   doublesAnalysis: DoublesOpponentAnalysis | null;
+  tennisAnalysis: TennisAnalysis | null;
+  momentum: MomentumState | null;
   playerLevel: number;
   playerSkill: string;
   loading: boolean;
@@ -22,6 +26,8 @@ interface UseMatchRewardsParams {
   partner?: SelectedOpponent | null;
   opponent1?: SelectedOpponent | null;
   opponent2?: SelectedOpponent | null;
+  sets?: Array<{playerScore: string; opponentScore: string; completed: boolean}>;
+  currentSet?: number;
 }
 
 export function useMatchRewards({
@@ -29,13 +35,17 @@ export function useMatchRewards({
   isDoubles = false,
   partner,
   opponent1,
-  opponent2
+  opponent2,
+  sets = [],
+  currentSet = 0
 }: UseMatchRewardsParams = {}) {
   const { user } = useAuth();
   const [state, setState] = useState<MatchRewardsState>({
     rewards: null,
     opponentAnalysis: null,
     doublesAnalysis: null,
+    tennisAnalysis: null,
+    momentum: null,
     playerLevel: 1,
     playerSkill: 'intermediate',
     loading: false,
@@ -65,11 +75,15 @@ export function useMatchRewards({
       const playerLevel = xpData.data?.current_level || 1;
       const playerSkill = playerData.data?.skill_level || 'intermediate';
 
+      // Analyze tennis-specific factors
+      const tennisAnalysis = analyzeTennisMatch(sets, currentSet, isDoubles);
+      const momentum = trackMomentum(sets, currentSet, tennisAnalysis);
+
       if (isDoubles && (opponent1 || opponent2)) {
         // Doubles analysis
         const doublesAnalysis = await analyzeDoublesOpponents(partner, opponent1, opponent2);
         
-        const rewards = calculateMatchRewards(
+        let rewards = calculateMatchRewards(
           playerLevel,
           doublesAnalysis.averageOpponentLevel,
           playerSkill,
@@ -77,10 +91,16 @@ export function useMatchRewards({
           true // isDoubles
         );
 
+        // Apply tennis-specific multipliers
+        const tennisMultiplier = calculateTennisMultiplier(tennisAnalysis);
+        rewards = applyTennisMultiplier(rewards, tennisMultiplier);
+
         setState(prev => ({
           ...prev,
           rewards,
           doublesAnalysis,
+          tennisAnalysis,
+          momentum,
           playerLevel,
           playerSkill,
           loading: false
@@ -93,7 +113,7 @@ export function useMatchRewards({
         // Add difficulty estimation
         opponentAnalysis.estimatedDifficulty = estimateDifficulty(playerLevel, opponentAnalysis.level);
         
-        const rewards = calculateMatchRewards(
+        let rewards = calculateMatchRewards(
           playerLevel,
           opponentAnalysis.level,
           playerSkill,
@@ -101,10 +121,16 @@ export function useMatchRewards({
           false // isDoubles
         );
 
+        // Apply tennis-specific multipliers
+        const tennisMultiplier = calculateTennisMultiplier(tennisAnalysis);
+        rewards = applyTennisMultiplier(rewards, tennisMultiplier);
+
         setState(prev => ({
           ...prev,
           rewards,
           opponentAnalysis,
+          tennisAnalysis,
+          momentum,
           playerLevel,
           playerSkill,
           loading: false
@@ -117,6 +143,8 @@ export function useMatchRewards({
           rewards: null,
           opponentAnalysis: null,
           doublesAnalysis: null,
+          tennisAnalysis,
+          momentum,
           playerLevel,
           playerSkill,
           loading: false
@@ -133,9 +161,21 @@ export function useMatchRewards({
     }
   };
 
+  const applyTennisMultiplier = (rewards: RewardCalculation, tennisMultiplier: number): RewardCalculation => {
+    return {
+      ...rewards,
+      winXP: Math.round(rewards.winXP * tennisMultiplier),
+      winHP: Math.round(rewards.winHP * Math.min(tennisMultiplier, 1.5)), // Cap HP multiplier
+      winTokens: Math.round(rewards.winTokens * tennisMultiplier),
+      loseXP: Math.round(rewards.loseXP * Math.min(tennisMultiplier, 1.3)), // Cap lose XP multiplier
+      loseTokens: Math.round(rewards.loseTokens * Math.min(tennisMultiplier, 1.2)), // Cap lose token multiplier
+      difficultyMultiplier: rewards.difficultyMultiplier * tennisMultiplier
+    };
+  };
+
   useEffect(() => {
     calculateRewards();
-  }, [user, opponent, isDoubles, partner, opponent1, opponent2]);
+  }, [user, opponent, isDoubles, partner, opponent1, opponent2, sets, currentSet]);
 
   return {
     ...state,

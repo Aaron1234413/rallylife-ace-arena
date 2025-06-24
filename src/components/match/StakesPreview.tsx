@@ -2,16 +2,22 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { TrendingUp, TrendingDown, Target, Users, AlertCircle } from 'lucide-react';
+import { TrendingUp, TrendingDown, Target, Users, AlertCircle, Zap } from 'lucide-react';
 import { RewardCalculation } from '@/utils/rewardCalculator';
 import { OpponentAnalysis, DoublesOpponentAnalysis } from '@/services/opponentAnalyzer';
+import { TennisAnalysis } from '@/services/tennisScoreAnalyzer';
+import { MomentumState } from '@/services/momentumTracker';
+import { MomentumMeter } from './MomentumMeter';
 
 interface StakesPreviewProps {
   rewards: RewardCalculation | null;
   opponentAnalysis?: OpponentAnalysis | null;
   doublesAnalysis?: DoublesOpponentAnalysis | null;
+  tennisAnalysis?: TennisAnalysis | null;
+  momentum?: MomentumState | null;
   isDoubles?: boolean;
   loading?: boolean;
+  showMomentum?: boolean;
 }
 
 const getDifficultyColor = (difficulty: string) => {
@@ -42,8 +48,11 @@ export const StakesPreview: React.FC<StakesPreviewProps> = ({
   rewards,
   opponentAnalysis,
   doublesAnalysis,
+  tennisAnalysis,
+  momentum,
   isDoubles = false,
-  loading = false
+  loading = false,
+  showMomentum = false
 }) => {
   if (loading) {
     return (
@@ -78,6 +87,20 @@ export const StakesPreview: React.FC<StakesPreviewProps> = ({
     ? `${rewards.difficultyMultiplier.toFixed(1)}x`
     : '';
 
+  // Get active tennis bonuses
+  const getActiveBonuses = () => {
+    if (!tennisAnalysis) return [];
+    
+    const bonuses = [];
+    if (tennisAnalysis.doubleBreakBonus) bonuses.push({ name: 'Double Break', bonus: '+50%', color: 'bg-green-100 text-green-800' });
+    if (tennisAnalysis.comebackBonus) bonuses.push({ name: 'Comeback', bonus: '+30%', color: 'bg-blue-100 text-blue-800' });
+    if (tennisAnalysis.clutchBonus) bonuses.push({ name: 'Clutch', bonus: '2x', color: 'bg-red-100 text-red-800' });
+    
+    return bonuses;
+  };
+
+  const activeBonuses = getActiveBonuses();
+
   return (
     <Card className="border-tennis-green-light bg-gradient-to-r from-tennis-green-light/5 to-tennis-green-dark/5">
       <CardHeader className="pb-3">
@@ -85,6 +108,7 @@ export const StakesPreview: React.FC<StakesPreviewProps> = ({
           <div className="flex items-center gap-2">
             {isDoubles ? <Users className="h-4 w-4" /> : <Target className="h-4 w-4" />}
             Match Stakes
+            {activeBonuses.length > 0 && <Zap className="h-4 w-4 text-yellow-500" />}
           </div>
           {multiplierText && (
             <Badge variant="secondary" className="text-xs">
@@ -95,6 +119,29 @@ export const StakesPreview: React.FC<StakesPreviewProps> = ({
       </CardHeader>
 
       <CardContent className="space-y-4">
+        {/* Tennis Bonuses */}
+        {activeBonuses.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-gray-700">Active Bonuses:</h4>
+            <div className="flex flex-wrap gap-2">
+              {activeBonuses.map((bonus, index) => (
+                <Badge 
+                  key={index}
+                  variant="outline" 
+                  className={`text-xs ${bonus.color}`}
+                >
+                  {bonus.name} {bonus.bonus}
+                </Badge>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Momentum Meter */}
+        {showMomentum && momentum && (
+          <MomentumMeter momentum={momentum} compact={true} />
+        )}
+
         {/* Difficulty Assessment */}
         {analysis && (
           <div className="flex items-center justify-between">
@@ -123,6 +170,15 @@ export const StakesPreview: React.FC<StakesPreviewProps> = ({
               ? `+${rewards.levelDifference} levels higher → Bonus rewards!`
               : `${Math.abs(rewards.levelDifference)} levels lower → Reduced rewards`
             }
+          </div>
+        )}
+
+        {/* Tennis Analysis Description */}
+        {tennisAnalysis?.description && tennisAnalysis.description !== 'Standard Match' && (
+          <div className="text-center">
+            <Badge variant="outline" className="text-xs bg-tennis-green-light/20 text-tennis-green-dark">
+              {tennisAnalysis.description}
+            </Badge>
           </div>
         )}
 
