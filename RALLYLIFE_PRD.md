@@ -1,9 +1,9 @@
 
-# RallyLife Summarized Product Requirements Document (PRD)
+# Rako Summarized Product Requirements Document (PRD)
 
 ## 1. Introduction
 
-This document provides a high-level overview of the RallyLife gamified tennis system, encompassing both player and coach experiences. It outlines the core functionalities, gamification mechanics, and the integrated ecosystem designed to enhance engagement and skill development.
+This document provides a high-level overview of the Rako gamified tennis system, encompassing both player and coach experiences. It outlines the core functionalities, gamification mechanics, and the integrated ecosystem designed to enhance engagement and skill development.
 
 ## 2. Player Gamification System
 

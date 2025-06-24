@@ -1,7 +1,7 @@
 
-# RallyLife User-Centric Implementation To-Do List
+# Rako User-Centric Implementation To-Do List
 
-This document outlines a phase-by-phase, step-by-step plan for implementing the RallyLife project, reorganized from a user's perspective, starting from their initial interaction with the platform.
+This document outlines a phase-by-phase, step-by-step plan for implementing the Rako project, reorganized from a user's perspective, starting from their initial interaction with the platform.
 
 ## Phase 1: User Onboarding & Authentication
 
