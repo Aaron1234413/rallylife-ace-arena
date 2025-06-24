@@ -40,7 +40,7 @@ export function usePlayerXP() {
   const [activities, setActivities] = useState<XPActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
-  const subscriptionStatusRef = useRef<string>('unsubscribed');
+  const subscriptionInitialized = useRef(false);
 
   const fetchXP = async () => {
     if (!user) return;
@@ -143,16 +143,17 @@ export function usePlayerXP() {
     }
   };
 
-  useEffect(() => {
-    const cleanupChannel = () => {
-      if (channelRef.current && subscriptionStatusRef.current !== 'unsubscribed') {
-        channelRef.current.unsubscribe();
-        subscriptionStatusRef.current = 'unsubscribed';
-        channelRef.current = null;
-      }
-    };
+  const cleanupChannel = () => {
+    if (channelRef.current) {
+      console.log('Cleaning up XP channel subscription');
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+      subscriptionInitialized.current = false;
+    }
+  };
 
-    if (user) {
+  useEffect(() => {
+    if (user && !subscriptionInitialized.current) {
       const loadData = async () => {
         setLoading(true);
         await fetchXP();
@@ -166,7 +167,7 @@ export function usePlayerXP() {
       cleanupChannel();
 
       // Set up real-time subscription for XP changes with unique channel name
-      const channelName = `xp-${user.id}-${Date.now()}-${Math.random()}`;
+      const channelName = `xp-${user.id}-${Date.now()}`;
       const channel = supabase.channel(channelName);
       
       channel
@@ -193,22 +194,20 @@ export function usePlayerXP() {
           () => {
             fetchActivities();
           }
-        );
-
-      // Only subscribe if not already subscribed
-      if (subscriptionStatusRef.current === 'unsubscribed') {
-        subscriptionStatusRef.current = 'subscribing';
-        channel.subscribe((status) => {
-          subscriptionStatusRef.current = status;
+        )
+        .subscribe((status) => {
           console.log('XP Channel subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            subscriptionInitialized.current = true;
+          }
         });
-        channelRef.current = channel;
-      }
+
+      channelRef.current = channel;
 
       return () => {
         cleanupChannel();
       };
-    } else {
+    } else if (!user) {
       // Clean up when no user
       cleanupChannel();
       setXpData(null);

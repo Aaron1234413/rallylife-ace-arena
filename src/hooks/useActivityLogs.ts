@@ -81,7 +81,7 @@ export function useActivityLogs() {
   const [stats, setStats] = useState<ActivityStats | null>(null);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
-  const isSubscribedRef = useRef(false);
+  const subscriptionInitialized = useRef(false);
 
   const fetchActivities = async (
     limit = 20,
@@ -189,16 +189,16 @@ export function useActivityLogs() {
   };
 
   const cleanupChannel = () => {
-    if (channelRef.current && isSubscribedRef.current) {
+    if (channelRef.current) {
       console.log('Cleaning up activity channel subscription');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
-      isSubscribedRef.current = false;
+      subscriptionInitialized.current = false;
     }
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && !subscriptionInitialized.current) {
       const loadData = async () => {
         setLoading(true);
         await fetchActivities();
@@ -212,41 +212,37 @@ export function useActivityLogs() {
       cleanupChannel();
 
       // Set up real-time subscription for activity changes with unique channel name
-      if (!isSubscribedRef.current) {
-        const channelName = `activities-${user.id}-${Date.now()}`;
-        const channel = supabase.channel(channelName);
-        
-        channel.on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'activity_logs',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => {
-            console.log('Activity updated');
-            fetchActivities();
-            fetchStats();
-          }
-        );
+      const channelName = `activities-${user.id}-${Date.now()}`;
+      const channel = supabase.channel(channelName);
+      
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'activity_logs',
+          filter: `player_id=eq.${user.id}`
+        },
+        () => {
+          console.log('Activity updated');
+          fetchActivities();
+          fetchStats();
+        }
+      );
 
-        channel.subscribe((status) => {
-          console.log('Activity Channel subscription status:', status);
-          if (status === 'SUBSCRIBED') {
-            isSubscribedRef.current = true;
-          } else if (status === 'CLOSED') {
-            isSubscribedRef.current = false;
-          }
-        });
+      channel.subscribe((status) => {
+        console.log('Activity Channel subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          subscriptionInitialized.current = true;
+        }
+      });
 
-        channelRef.current = channel;
-      }
+      channelRef.current = channel;
 
       return () => {
         cleanupChannel();
       };
-    } else {
+    } else if (!user) {
       // Clean up when no user
       cleanupChannel();
       setActivities([]);

@@ -29,7 +29,7 @@ export function usePlayerHP() {
   const [activities, setActivities] = useState<HPActivity[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
-  const isSubscribedRef = useRef(false);
+  const subscriptionInitialized = useRef(false);
 
   const fetchHP = async () => {
     if (!user) return;
@@ -141,16 +141,16 @@ export function usePlayerHP() {
   };
 
   const cleanupChannel = () => {
-    if (channelRef.current && isSubscribedRef.current) {
+    if (channelRef.current) {
       console.log('Cleaning up HP channel subscription');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
-      isSubscribedRef.current = false;
+      subscriptionInitialized.current = false;
     }
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && !subscriptionInitialized.current) {
       const loadData = async () => {
         setLoading(true);
         await fetchHP();
@@ -163,54 +163,50 @@ export function usePlayerHP() {
       // Clean up any existing channel first
       cleanupChannel();
 
-      // Set up new real-time subscription only if not already subscribed
-      if (!isSubscribedRef.current) {
-        const channelName = `hp-updates-${user.id}-${Date.now()}`;
-        const channel = supabase.channel(channelName);
-        
-        channel
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'player_hp',
-              filter: `player_id=eq.${user.id}`
-            },
-            (payload) => {
-              console.log('HP real-time update received:', payload);
-              fetchHP();
-            }
-          )
-          .on(
-            'postgres_changes',
-            {
-              event: 'INSERT',
-              schema: 'public',
-              table: 'hp_activities',
-              filter: `player_id=eq.${user.id}`
-            },
-            (payload) => {
-              console.log('HP activity real-time update received:', payload);
-              fetchActivities();
-            }
-          )
-          .subscribe((status) => {
-            console.log('HP Channel subscription status:', status);
-            if (status === 'SUBSCRIBED') {
-              isSubscribedRef.current = true;
-            } else if (status === 'CLOSED') {
-              isSubscribedRef.current = false;
-            }
-          });
+      // Set up new real-time subscription
+      const channelName = `hp-updates-${user.id}-${Date.now()}`;
+      const channel = supabase.channel(channelName);
+      
+      channel
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'player_hp',
+            filter: `player_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('HP real-time update received:', payload);
+            fetchHP();
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'hp_activities',
+            filter: `player_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('HP activity real-time update received:', payload);
+            fetchActivities();
+          }
+        )
+        .subscribe((status) => {
+          console.log('HP Channel subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            subscriptionInitialized.current = true;
+          }
+        });
 
-        channelRef.current = channel;
-      }
+      channelRef.current = channel;
 
       return () => {
         cleanupChannel();
       };
-    } else {
+    } else if (!user) {
       // Clean up when no user
       cleanupChannel();
       setHpData(null);
