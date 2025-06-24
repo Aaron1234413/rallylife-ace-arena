@@ -64,6 +64,16 @@ export function useMatchSessions() {
   const channelRef = useRef<any>(null);
   const isSubscribedRef = useRef(false);
 
+  const parseSessionFromDatabase = (data: any): MatchSession => {
+    return {
+      ...data,
+      match_type: data.match_type as 'singles' | 'doubles',
+      status: data.status as 'active' | 'paused' | 'completed' | 'abandoned',
+      result: data.result as 'win' | 'loss' | undefined,
+      sets: JSON.parse(data.sets as string)
+    };
+  };
+
   const fetchActiveSession = async () => {
     if (!user) return;
 
@@ -82,7 +92,12 @@ export function useMatchSessions() {
         return;
       }
 
-      setActiveSession(data);
+      if (data) {
+        const session = parseSessionFromDatabase(data);
+        setActiveSession(session);
+      } else {
+        setActiveSession(null);
+      }
     } catch (error) {
       console.error('Error in fetchActiveSession:', error);
     }
@@ -118,12 +133,7 @@ export function useMatchSessions() {
         return null;
       }
 
-      // Parse the sets JSON back to object
-      const session = {
-        ...data,
-        sets: JSON.parse(data.sets as string)
-      } as MatchSession;
-
+      const session = parseSessionFromDatabase(data);
       setActiveSession(session);
       toast.success('Match session created successfully!');
       return session;
@@ -186,12 +196,7 @@ export function useMatchSessions() {
         return false;
       }
 
-      // Parse the sets JSON back to object
-      const updatedSession = {
-        ...data,
-        sets: JSON.parse(data.sets as string)
-      } as MatchSession;
-
+      const updatedSession = parseSessionFromDatabase(data);
       setActiveSession(updatedSession);
       return true;
     } catch (error) {
