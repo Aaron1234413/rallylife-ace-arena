@@ -122,9 +122,8 @@ export function EnhancedQuickActions({
     }
   };
 
-  const handleRecoveryModeSelect = (mode: any) => {
-    console.log('Recovery mode selected from quick actions:', mode);
-    // Navigate to the recovery center with the selected mode
+  const handleOpenRecoveryCenter = () => {
+    console.log('Opening Recovery Center from quick actions');
     setRecoveryCenterOpen(true);
   };
 
@@ -175,7 +174,7 @@ export function EnhancedQuickActions({
             
             {/* Recovery Center Action - Now part of the main grid */}
             <RecoveryQuickAction
-              onModeSelect={handleRecoveryModeSelect}
+              onOpenRecoveryCenter={handleOpenRecoveryCenter}
             />
           </div>
         </CardContent>
