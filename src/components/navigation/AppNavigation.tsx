@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -8,7 +9,8 @@ import {
   LogOut,
   Search,
   User,
-  Bolt
+  Bolt,
+  Store
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -23,6 +25,7 @@ export function AppNavigation() {
     { path: '/search', label: 'Search', icon: Search },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
     { path: '/feed', label: 'Feed', icon: Rss },
+    { path: '/store', label: 'Store', icon: Store },
     { path: '/profile', label: 'Profile', icon: User },
   ];
 
