@@ -257,6 +257,83 @@
     animation: fade-in 0.8s ease-out;
   }
 
+  /* Enhanced Phase 3 Animations */
+  .animate-stagger-in {
+    animation: stagger-fade-in 0.6s ease-out both;
+  }
+
+  .animate-slide-up {
+    animation: slide-up 0.5s cubic-bezier(0.4, 0, 0.2, 1) both;
+  }
+
+  .animate-bounce-gentle {
+    animation: bounce-gentle 0.8s ease-out both;
+  }
+
+  .animate-scale-in-bounce {
+    animation: scale-in-bounce 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+  }
+
+  .animate-shimmer {
+    animation: shimmer 2s linear infinite;
+  }
+
+  .animate-pulse-glow {
+    animation: pulse-glow 2s ease-in-out infinite;
+  }
+
+  .animate-float {
+    animation: float 3s ease-in-out infinite;
+  }
+
+  .animate-spin-slow {
+    animation: spin 3s linear infinite;
+  }
+
+  .animate-wiggle {
+    animation: wiggle 0.5s ease-in-out;
+  }
+
+  .animate-success-bounce {
+    animation: success-bounce 0.6s cubic-bezier(0.68, -0.55, 0.265, 1.55) both;
+  }
+
+  .animate-loading-dots {
+    animation: loading-dots 1.5s ease-in-out infinite;
+  }
+
+  /* Hover and interaction utilities */
+  .hover-lift {
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .hover-lift:hover {
+    transform: translateY(-4px) scale(1.02);
+    box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  }
+
+  .hover-glow {
+    transition: all 0.3s ease;
+  }
+
+  .hover-glow:hover {
+    box-shadow: 0 0 20px rgba(139, 69, 19, 0.3);
+  }
+
+  .interactive-icon {
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  }
+
+  .interactive-icon:hover {
+    transform: scale(1.1) rotate(5deg);
+  }
+
+  .progress-bar-animated {
+    background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.3), transparent);
+    background-size: 200% 100%;
+    animation: progress-shimmer 1.5s ease-in-out;
+  }
+
   .rotate-y-180 {
     transform: rotateY(180deg);
   }
@@ -278,6 +355,14 @@
     .motion-reduce\:animate-progress-smooth {
       animation: progress-smooth-reduced 0.3s ease-out;
     }
+
+    .hover-lift:hover {
+      transform: none;
+    }
+
+    .interactive-icon:hover {
+      transform: scale(1.05);
+    }
   }
 
   /* High contrast mode adjustments */
@@ -290,6 +375,11 @@
     .shadow-md,
     .shadow-xl {
       box-shadow: 0 0 0 2px hsl(var(--border));
+    }
+
+    .animate-shimmer,
+    .animate-pulse-glow {
+      animation: none;
     }
   }
 }
@@ -320,9 +410,13 @@
   .group:hover .group-hover\:rotate-12 {
     transform: none; /* Disable hover rotate on mobile */
   }
+
+  .hover-lift:hover {
+    transform: none;
+  }
 }
 
-/* Custom Keyframes for Player Vitals - Accessible and Optimized */
+/* Enhanced Keyframes for Phase 3 Micro-interactions */
 @keyframes pulse-slow {
   0%, 100% {
     opacity: 1;
@@ -402,13 +496,151 @@
   }
 }
 
+/* New Phase 3 Keyframes */
+@keyframes stagger-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(20px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes bounce-gentle {
+  0% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-10px);
+  }
+  100% {
+    transform: translateY(0);
+  }
+}
+
+@keyframes scale-in-bounce {
+  0% {
+    opacity: 0;
+    transform: scale(0.3);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(0.9);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
+@keyframes pulse-glow {
+  0%, 100% {
+    box-shadow: 0 0 5px rgba(139, 69, 19, 0.3);
+  }
+  50% {
+    box-shadow: 0 0 20px rgba(139, 69, 19, 0.6), 0 0 30px rgba(139, 69, 19, 0.4);
+  }
+}
+
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+@keyframes wiggle {
+  0%, 100% {
+    transform: rotate(0deg);
+  }
+  25% {
+    transform: rotate(-3deg);
+  }
+  75% {
+    transform: rotate(3deg);
+  }
+}
+
+@keyframes success-bounce {
+  0% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.2);
+  }
+  100% {
+    transform: scale(1);
+  }
+}
+
+@keyframes loading-dots {
+  0%, 20% {
+    opacity: 0;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.2);
+  }
+  100% {
+    opacity: 0;
+    transform: scale(1);
+  }
+}
+
+@keyframes progress-shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
 /* Performance optimization: Use will-change for animated elements */
 .animate-pulse,
 .animate-pulse-slow,
 .animate-number-change,
 .animate-progress-smooth,
 .animate-progress-urgent,
-.animate-fade-in {
+.animate-fade-in,
+.animate-stagger-in,
+.animate-slide-up,
+.animate-bounce-gentle,
+.animate-scale-in-bounce,
+.animate-shimmer,
+.animate-pulse-glow,
+.animate-float,
+.animate-wiggle,
+.animate-success-bounce,
+.animate-loading-dots {
   will-change: transform, opacity;
 }
 
