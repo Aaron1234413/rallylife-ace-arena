@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -34,7 +35,7 @@ import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPla
 
 const Index = () => {
   const { user } = useAuth();
-  const { hpData, loading: hpLoading, restoreHP, initializeHP, refreshHP } = usePlayerHP();
+  const { hpData, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
   const { xpData, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
   const { tokenData, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
   const { equippedItems, loading: avatarLoading, initializeAvatar, checkLevelUnlocks } = usePlayerAvatar();
@@ -50,6 +51,7 @@ const Index = () => {
   
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
+  const [dataInitialized, setDataInitialized] = useState(false);
 
   // Derive user role flags from profile
   const isPlayer = profile?.role === 'player';
@@ -62,18 +64,24 @@ const Index = () => {
   }, [user]);
 
   useEffect(() => {
-    // Initialize data based on user role
-    if (user && profile?.role === 'player') {
-      if (!hpLoading && !hpData) initializeHP();
-      if (!xpLoading && !xpData) initializeXP();
-      if (!tokensLoading && !tokenData) initializeTokens();
-      if (!avatarLoading && equippedItems.length === 0) initializeAvatar();
-    } else if (user && profile?.role === 'coach') {
-      if (!cxpLoading && !cxpData) initializeCXP();
-      if (!coachTokensLoading && !coachTokenData) initializeCoachTokens();
-      if (!crpLoading && !crpData) initializeCRP();
+    // Initialize data based on user role - only once
+    if (user && profile && !dataInitialized) {
+      console.log('Index: Initializing data for role:', profile.role);
+      
+      if (profile.role === 'player') {
+        if (!hpData) initializeHP();
+        if (!xpData) initializeXP();
+        if (!tokenData) initializeTokens();
+        if (equippedItems.length === 0) initializeAvatar();
+      } else if (profile.role === 'coach') {
+        if (!cxpData) initializeCXP();
+        if (!coachTokenData) initializeCoachTokens();
+        if (!crpData) initializeCRP();
+      }
+      
+      setDataInitialized(true);
     }
-  }, [user, profile, hpLoading, hpData, xpLoading, xpData, tokensLoading, tokenData, avatarLoading, equippedItems, cxpLoading, cxpData, coachTokensLoading, coachTokenData, crpLoading, crpData]);
+  }, [user, profile, dataInitialized, hpData, xpData, tokenData, equippedItems, cxpData, coachTokenData, crpData]);
 
   const fetchProfile = async () => {
     try {
@@ -119,45 +127,31 @@ const Index = () => {
     await checkAllAchievements();
   };
 
-  // Enhanced HP restoration function that checks for achievements and refreshes data
+  // Enhanced HP restoration function that checks for achievements
   const handleRestoreHP = async (amount: number, activityType: string, description?: string) => {
     console.log('Index: Starting HP restoration...', { amount, activityType, description });
     
     await restoreHP(amount, activityType, description);
     
-    // Force refresh HP data immediately for UI updates
-    console.log('Index: Refreshing HP data after restoration...');
-    await refreshHP();
-    
     // Check for achievement unlocks
     await checkAllAchievements();
     
-    console.log('Index: HP restoration and refresh completed');
+    console.log('Index: HP restoration completed');
   };
 
   const vitalsLoading = hpLoading || xpLoading || tokensLoading;
 
-  // Enhanced refresh function for pull-to-refresh
-  const handleRefresh = async () => {
-    console.log('Index: Starting full refresh...');
-    
-    if (isPlayer) {
-      await Promise.all([
-        refreshHP(), // Use refreshHP instead of initializeHP for better performance
-        initializeXP(),
-        initializeTokens(),
-        checkAllAchievements()
-      ]);
-    } else if (isCoach) {
-      await Promise.all([
-        initializeCXP(),
-        initializeCoachTokens(),
-        initializeCRP()
-      ]);
-    }
-    
-    console.log('Index: Full refresh completed');
-  };
+  // Show loading state while profile is being fetched
+  if (profileLoading) {
+    return (
+      <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6 pb-24 sm:pb-6">
+        <div className="animate-pulse">
+          <div className="h-32 bg-gray-200 rounded mb-6"></div>
+          <div className="h-48 bg-gray-200 rounded mb-6"></div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6 pb-24 sm:pb-6">
