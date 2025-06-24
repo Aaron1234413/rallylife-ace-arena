@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -8,28 +7,18 @@ import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
 import { Trophy, Clock, Target, MessageCircle } from 'lucide-react';
-import { useActivityLogger } from '@/hooks/useActivityLogger';
 import { toast } from 'sonner';
 import { AnimatedButton } from '@/components/ui/animated-button';
 import { CardWithAnimation } from '@/components/ui/card-with-animation';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { getRandomMessage } from '@/utils/motivationalMessages';
-
-// Type for the RPC response
-interface ActivityLogResponse {
-  success: boolean;
-  activity_id: string;
-  activity_title: string;
-  hp_change: number;
-  xp_earned: number;
-  activity_type: string;
-  logged_at: string;
-}
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 const EndMatch = () => {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const { sessionData, clearSession } = useMatchSession();
-  const { logActivity } = useActivityLogger();
   
   const [finalScore, setFinalScore] = useState('');
   const [duration, setDuration] = useState('');
@@ -45,8 +34,8 @@ const EndMatch = () => {
   const moodEmojis = ['😄', '😊', '😐', '😤', '😩', '🤔', '💪', '🎯'];
 
   const handleSubmit = async () => {
-    if (!sessionData) {
-      console.error('No session data found');
+    if (!sessionData || !user) {
+      console.error('No session data or user found');
       toast.error('No match session found');
       return;
     }
@@ -90,60 +79,133 @@ const EndMatch = () => {
         combinedNotes += `Final notes: ${matchNotes}`;
       }
 
-      // Prepare mood information for metadata
-      let moodInfo = '';
-      if (sessionData.midMatchMood) {
-        moodInfo += `Mid-match mood: ${sessionData.midMatchMood}`;
-      }
-      if (endMood) {
-        if (moodInfo) moodInfo += ', ';
-        moodInfo += `End mood: ${endMood}`;
+      // Calculate rewards based on match result
+      const xpReward = result === 'win' ? 60 : 50;
+      const hpChange = result === 'win' ? 5 : -10;
+      const tokenReward = result === 'win' ? 30 : 20;
+
+      // Insert activity log directly into the database
+      const { data: activityData, error: activityError } = await supabase
+        .from('activity_logs')
+        .insert({
+          player_id: user.id,
+          activity_type: 'match',
+          activity_category: 'on_court',
+          title: activityTitle,
+          description: description,
+          duration_minutes: calculatedDuration,
+          intensity_level: 'high',
+          opponent_name: opponentDisplayName,
+          score: finalScore || null,
+          result: result,
+          notes: combinedNotes || null,
+          hp_impact: hpChange,
+          xp_earned: xpReward,
+          is_competitive: true,
+          is_official: false,
+          logged_at: sessionData.startTime.toISOString(),
+          metadata: {
+            match_type: sessionData.matchType,
+            is_doubles: sessionData.isDoubles,
+            partner_name: sessionData.partnerName || null,
+            opponent_1_name: sessionData.opponent1Name || null,
+            opponent_2_name: sessionData.opponent2Name || null,
+            mid_match_mood: sessionData.midMatchMood || null,
+            end_match_mood: endMood || null,
+            start_time: sessionData.startTime.toISOString(),
+            expected_rewards: {
+              xp: xpReward,
+              hp: hpChange,
+              tokens: tokenReward
+            }
+          }
+        })
+        .select()
+        .single();
+
+      if (activityError) {
+        console.error('Error logging match activity:', activityError);
+        throw activityError;
       }
 
-      // Call the activity logger with properly formatted payload
-      const data = await logActivity({
+      // Award XP using the existing function
+      const { data: xpData, error: xpError } = await supabase.rpc('add_xp', {
+        user_id: user.id,
+        xp_amount: xpReward,
         activity_type: 'match',
-        activity_category: 'on_court',
-        title: activityTitle,
-        description: description,
-        duration_minutes: calculatedDuration,
-        intensity_level: 'high',
-        opponent_name: opponentDisplayName,
-        score: finalScore || undefined,
-        result: result,
-        notes: combinedNotes || undefined,
-        is_competitive: true,
-        is_official: false,
-        logged_at: sessionData.startTime.toISOString(),
-        metadata: {
-          match_type: sessionData.matchType,
-          is_doubles: sessionData.isDoubles,
-          partner_name: sessionData.partnerName || null,
-          opponent_1_name: sessionData.opponent1Name || null,
-          opponent_2_name: sessionData.opponent2Name || null,
-          mid_match_mood: sessionData.midMatchMood || null,
-          end_match_mood: endMood || null,
-          start_time: sessionData.startTime.toISOString(),
-          mood_info: moodInfo || null
-        }
+        description: `Match completion reward: ${activityTitle}`
       });
 
-      console.log('Match activity logged successfully:', data);
+      if (xpError) {
+        console.error('Error awarding XP:', xpError);
+        // Don't throw here, continue with other rewards
+      }
+
+      // Handle HP change using the existing function
+      if (hpChange > 0) {
+        const { error: hpError } = await supabase.rpc('restore_hp', {
+          user_id: user.id,
+          restoration_amount: hpChange,
+          activity_type: 'match',
+          description: `HP bonus from winning match: ${activityTitle}`
+        });
+
+        if (hpError) {
+          console.error('Error restoring HP:', hpError);
+        }
+      } else {
+        // For HP loss, we'll update directly since there's no "lose_hp" function
+        const { error: hpError } = await supabase
+          .from('player_hp')
+          .update({ 
+            current_hp: Math.max(20, supabase.raw(`current_hp + ${hpChange}`)),
+            last_activity: new Date().toISOString(),
+            updated_at: new Date().toISOString()
+          })
+          .eq('player_id', user.id);
+
+        if (hpError) {
+          console.error('Error updating HP:', hpError);
+        }
+
+        // Log HP activity
+        const { error: hpLogError } = await supabase
+          .from('hp_activities')
+          .insert({
+            player_id: user.id,
+            activity_type: 'match',
+            hp_change: hpChange,
+            description: `HP cost from match: ${activityTitle}`
+          });
+
+        if (hpLogError) {
+          console.error('Error logging HP activity:', hpLogError);
+        }
+      }
+
+      // Award tokens using the existing function
+      const { error: tokenError } = await supabase.rpc('add_tokens', {
+        user_id: user.id,
+        amount: tokenReward,
+        token_type: 'regular',
+        source: 'match',
+        description: `Match completion reward: ${activityTitle}`
+      });
+
+      if (tokenError) {
+        console.error('Error awarding tokens:', tokenError);
+      }
+
+      console.log('Match activity logged successfully:', activityData);
       
       setIsSubmitted(true);
       
       // Show success message with rewards
-      const activityData = data as unknown as ActivityLogResponse;
       const successMessage = getRandomMessage('successSubmission');
-      
-      if (activityData && activityData.success) {
-        toast.success(successMessage, {
-          description: `XP: +${activityData.xp_earned}, HP: ${activityData.hp_change >= 0 ? '+' : ''}${activityData.hp_change}`,
-          duration: 3000
-        });
-      } else {
-        toast.success(successMessage, { duration: 3000 });
-      }
+      toast.success(successMessage, {
+        description: `XP: +${xpReward}, HP: ${hpChange >= 0 ? '+' : ''}${hpChange}, Tokens: +${tokenReward}`,
+        duration: 3000
+      });
 
       // Clear session and redirect to feed
       clearSession();
@@ -332,6 +394,7 @@ const EndMatch = () => {
               <div className="flex justify-between text-xs sm:text-sm">
                 <span>🎮 XP: +{result === 'win' ? '60' : '50'}</span>
                 <span>❤️ HP: {result === 'win' ? '+5' : '-10'}</span>
+                <span>🪙 Tokens: +{result === 'win' ? '30' : '20'}</span>
               </div>
             </div>
 
