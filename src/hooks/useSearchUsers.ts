@@ -32,7 +32,7 @@ export interface SearchResult {
 export function useSearchUsers({ query, userType, filters }: SearchParams) {
   return useQuery({
     queryKey: ['search-users', query, userType, filters],
-    queryFn: async () => {
+    queryFn: async (): Promise<SearchResult[]> => {
       console.log('Searching users with:', { query, userType, filters });
       
       let baseQuery = supabase
@@ -72,7 +72,7 @@ export function useSearchUsers({ query, userType, filters }: SearchParams) {
       console.log('Raw search results:', data);
 
       // Transform and filter the results
-      const transformedResults: SearchResult[] = (data || []).map(user => {
+      const transformedResults: SearchResult[] = (data || []).map((user: any) => {
         const playerProfile = Array.isArray(user.player_profiles) ? user.player_profiles[0] : null;
         const coachProfile = Array.isArray(user.coach_profiles) ? user.coach_profiles[0] : null;
         const playerXP = Array.isArray(user.player_xp) ? user.player_xp[0] : null;

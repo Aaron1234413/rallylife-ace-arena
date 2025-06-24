@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -101,11 +100,12 @@ export function useMatchSessions() {
 
       console.log('Active session data:', data);
       
-      // Type cast the data to ensure match_type is properly typed
+      // Type cast the data to ensure proper typing
       if (data) {
         const typedData: ActiveMatchSession = {
           ...data,
-          match_type: data.match_type as 'singles' | 'doubles'
+          match_type: data.match_type as 'singles' | 'doubles',
+          status: data.status as 'active' | 'paused' | 'completed'
         };
         setActiveSession(typedData);
       } else {
@@ -156,7 +156,8 @@ export function useMatchSessions() {
       // Type cast the response
       const typedData: ActiveMatchSession = {
         ...data,
-        match_type: data.match_type as 'singles' | 'doubles'
+        match_type: data.match_type as 'singles' | 'doubles',
+        status: data.status as 'active' | 'paused' | 'completed'
       };
       setActiveSession(typedData);
       return typedData;
@@ -203,7 +204,8 @@ export function useMatchSessions() {
       // Type cast the response
       const typedData: ActiveMatchSession = {
         ...data,
-        match_type: data.match_type as 'singles' | 'doubles'
+        match_type: data.match_type as 'singles' | 'doubles',
+        status: data.status as 'active' | 'paused' | 'completed'
       };
       setActiveSession(typedData);
       return typedData;
@@ -246,7 +248,8 @@ export function useMatchSessions() {
       // Type cast the response
       const typedData: ActiveMatchSession = {
         ...data,
-        match_type: data.match_type as 'singles' | 'doubles'
+        match_type: data.match_type as 'singles' | 'doubles',
+        status: data.status as 'active' | 'paused' | 'completed'
       };
       return typedData;
     } catch (error) {
