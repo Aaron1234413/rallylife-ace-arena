@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -7,8 +6,6 @@ import {
   MessageSquare, 
   Rss,
   LogOut,
-  Calendar,
-  MapPin,
   Search,
   User,
   Bolt
@@ -25,8 +22,6 @@ export function AppNavigation() {
     { path: '/pulse', label: 'Pulse', icon: Bolt },
     { path: '/search', label: 'Search', icon: Search },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
-    { path: '/scheduling', label: 'Scheduling', icon: Calendar },
-    { path: '/maps', label: 'Maps', icon: MapPin },
     { path: '/feed', label: 'Feed', icon: Rss },
     { path: '/profile', label: 'Profile', icon: User },
   ];
