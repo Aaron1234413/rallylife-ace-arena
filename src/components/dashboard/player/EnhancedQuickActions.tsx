@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -11,7 +12,8 @@ import {
   Clock,
   TrendingUp,
   AlertTriangle,
-  Activity
+  Activity,
+  Target
 } from 'lucide-react';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { toast } from 'sonner';
