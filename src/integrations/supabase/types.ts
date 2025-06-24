@@ -109,6 +109,92 @@ export type Database = {
           },
         ]
       }
+      active_match_sessions: {
+        Row: {
+          completed_at: string | null
+          created_at: string | null
+          current_set: number
+          end_mood: string | null
+          final_score: string | null
+          id: string
+          is_doubles: boolean | null
+          match_notes: string | null
+          match_type: string
+          mid_match_mood: string | null
+          mid_match_notes: string | null
+          opponent_1_name: string | null
+          opponent_2_name: string | null
+          opponent_name: string
+          partner_name: string | null
+          pause_start_time: string | null
+          player_id: string
+          result: string | null
+          sets: Json
+          start_time: string
+          status: string
+          total_paused_duration: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_set?: number
+          end_mood?: string | null
+          final_score?: string | null
+          id?: string
+          is_doubles?: boolean | null
+          match_notes?: string | null
+          match_type: string
+          mid_match_mood?: string | null
+          mid_match_notes?: string | null
+          opponent_1_name?: string | null
+          opponent_2_name?: string | null
+          opponent_name: string
+          partner_name?: string | null
+          pause_start_time?: string | null
+          player_id: string
+          result?: string | null
+          sets?: Json
+          start_time: string
+          status?: string
+          total_paused_duration?: number | null
+          updated_at?: string | null
+        }
+        Update: {
+          completed_at?: string | null
+          created_at?: string | null
+          current_set?: number
+          end_mood?: string | null
+          final_score?: string | null
+          id?: string
+          is_doubles?: boolean | null
+          match_notes?: string | null
+          match_type?: string
+          mid_match_mood?: string | null
+          mid_match_notes?: string | null
+          opponent_1_name?: string | null
+          opponent_2_name?: string | null
+          opponent_name?: string
+          partner_name?: string | null
+          pause_start_time?: string | null
+          player_id?: string
+          result?: string | null
+          sets?: Json
+          start_time?: string
+          status?: string
+          total_paused_duration?: number | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "active_match_sessions_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       activity_logs: {
         Row: {
           activity_category: string
