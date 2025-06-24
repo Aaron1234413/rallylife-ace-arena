@@ -4,26 +4,27 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface MatchSession {
+interface ActiveMatchSession {
   id: string;
   player_id: string;
   opponent_name: string;
+  opponent_id?: string;
   is_doubles: boolean;
   partner_name?: string;
+  partner_id?: string;
   opponent_1_name?: string;
+  opponent_1_id?: string;
   opponent_2_name?: string;
+  opponent_2_id?: string;
   match_type: 'singles' | 'doubles';
-  status: 'active' | 'paused' | 'completed' | 'abandoned';
-  current_set: number;
+  start_time: string;
+  status: 'active' | 'paused' | 'completed';
   sets: {
     playerScore: string;
     opponentScore: string;
     completed: boolean;
   }[];
-  start_time: string;
-  pause_start_time?: string;
-  total_paused_duration: number;
-  completed_at?: string;
+  current_set: number;
   mid_match_mood?: string;
   mid_match_notes?: string;
   final_score?: string;
@@ -36,19 +37,26 @@ interface MatchSession {
 
 interface CreateMatchSessionParams {
   opponentName: string;
+  opponentId?: string;
   isDoubles: boolean;
   partnerName?: string;
+  partnerId?: string;
   opponent1Name?: string;
+  opponent1Id?: string;
   opponent2Name?: string;
+  opponent2Id?: string;
   matchType: 'singles' | 'doubles';
   startTime: Date;
 }
 
 interface UpdateMatchSessionParams {
   sessionId: string;
-  sets?: any[];
+  sets?: {
+    playerScore: string;
+    opponentScore: string;
+    completed: boolean;
+  }[];
   currentSet?: number;
-  status?: 'active' | 'paused' | 'completed' | 'abandoned';
   midMatchMood?: string;
   midMatchNotes?: string;
   finalScore?: string;
@@ -57,27 +65,26 @@ interface UpdateMatchSessionParams {
   result?: 'win' | 'loss';
 }
 
+interface CompleteMatchSessionParams {
+  finalScore?: string;
+  endMood?: string;
+  matchNotes?: string;
+  result?: 'win' | 'loss';
+}
+
 export function useMatchSessions() {
   const { user } = useAuth();
-  const [activeSession, setActiveSession] = useState<MatchSession | null>(null);
+  const [activeSession, setActiveSession] = useState<ActiveMatchSession | null>(null);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
-  const isSubscribedRef = useRef(false);
-
-  const parseSessionFromDatabase = (data: any): MatchSession => {
-    return {
-      ...data,
-      match_type: data.match_type as 'singles' | 'doubles',
-      status: data.status as 'active' | 'paused' | 'completed' | 'abandoned',
-      result: data.result as 'win' | 'loss' | undefined,
-      sets: JSON.parse(data.sets as string)
-    };
-  };
+  const subscriptionInitialized = useRef(false);
 
   const fetchActiveSession = async () => {
     if (!user) return;
 
     try {
+      console.log('Fetching active match session for user:', user.id);
+      
       const { data, error } = await supabase
         .from('active_match_sessions')
         .select('*')
@@ -92,33 +99,35 @@ export function useMatchSessions() {
         return;
       }
 
-      if (data) {
-        const session = parseSessionFromDatabase(data);
-        setActiveSession(session);
-      } else {
-        setActiveSession(null);
-      }
+      console.log('Active session data:', data);
+      setActiveSession(data);
     } catch (error) {
       console.error('Error in fetchActiveSession:', error);
     }
   };
 
-  const createMatchSession = async (params: CreateMatchSessionParams): Promise<MatchSession | null> => {
-    if (!user) return null;
+  const createMatchSession = async (params: CreateMatchSessionParams) => {
+    if (!user) return;
 
     try {
+      console.log('Creating match session with params:', params);
+
       const sessionData = {
         player_id: user.id,
         opponent_name: params.opponentName,
+        opponent_id: params.opponentId,
         is_doubles: params.isDoubles,
         partner_name: params.partnerName,
+        partner_id: params.partnerId,
         opponent_1_name: params.opponent1Name,
+        opponent_1_id: params.opponent1Id,
         opponent_2_name: params.opponent2Name,
+        opponent_2_id: params.opponent2Id,
         match_type: params.matchType,
         start_time: params.startTime.toISOString(),
-        sets: JSON.stringify([{ playerScore: '', opponentScore: '', completed: false }]),
-        current_set: 0,
-        status: 'active'
+        status: 'active' as const,
+        sets: [{ playerScore: '', opponentScore: '', completed: false }],
+        current_set: 0
       };
 
       const { data, error } = await supabase
@@ -129,114 +138,106 @@ export function useMatchSessions() {
 
       if (error) {
         console.error('Error creating match session:', error);
-        toast.error('Failed to create match session');
-        return null;
+        throw error;
       }
 
-      const session = parseSessionFromDatabase(data);
-      setActiveSession(session);
-      toast.success('Match session created successfully!');
-      return session;
+      console.log('Match session created successfully:', data);
+      setActiveSession(data);
+      return data;
     } catch (error) {
       console.error('Error in createMatchSession:', error);
-      toast.error('An error occurred while creating match session');
-      return null;
+      throw error;
     }
   };
 
-  const updateMatchSession = async (params: UpdateMatchSessionParams): Promise<boolean> => {
-    if (!user || !activeSession) return false;
+  const updateMatchSession = async (params: UpdateMatchSessionParams) => {
+    if (!user) return;
 
     try {
+      console.log('Updating match session with params:', params);
+
       const updateData: any = {
         updated_at: new Date().toISOString()
       };
 
-      if (params.sets !== undefined) {
-        updateData.sets = JSON.stringify(params.sets);
-      }
-      if (params.currentSet !== undefined) {
-        updateData.current_set = params.currentSet;
-      }
-      if (params.status !== undefined) {
-        updateData.status = params.status;
-        if (params.status === 'completed') {
-          updateData.completed_at = new Date().toISOString();
-        }
-      }
-      if (params.midMatchMood !== undefined) {
-        updateData.mid_match_mood = params.midMatchMood;
-      }
-      if (params.midMatchNotes !== undefined) {
-        updateData.mid_match_notes = params.midMatchNotes;
-      }
-      if (params.finalScore !== undefined) {
-        updateData.final_score = params.finalScore;
-      }
-      if (params.endMood !== undefined) {
-        updateData.end_mood = params.endMood;
-      }
-      if (params.matchNotes !== undefined) {
-        updateData.match_notes = params.matchNotes;
-      }
-      if (params.result !== undefined) {
-        updateData.result = params.result;
-      }
+      if (params.sets !== undefined) updateData.sets = params.sets;
+      if (params.currentSet !== undefined) updateData.current_set = params.currentSet;
+      if (params.midMatchMood !== undefined) updateData.mid_match_mood = params.midMatchMood;
+      if (params.midMatchNotes !== undefined) updateData.mid_match_notes = params.midMatchNotes;
+      if (params.finalScore !== undefined) updateData.final_score = params.finalScore;
+      if (params.endMood !== undefined) updateData.end_mood = params.endMood;
+      if (params.matchNotes !== undefined) updateData.match_notes = params.matchNotes;
+      if (params.result !== undefined) updateData.result = params.result;
 
       const { data, error } = await supabase
         .from('active_match_sessions')
         .update(updateData)
         .eq('id', params.sessionId)
+        .eq('player_id', user.id)
         .select()
         .single();
 
       if (error) {
         console.error('Error updating match session:', error);
-        toast.error('Failed to update match session');
-        return false;
+        throw error;
       }
 
-      const updatedSession = parseSessionFromDatabase(data);
-      setActiveSession(updatedSession);
-      return true;
+      console.log('Match session updated successfully:', data);
+      setActiveSession(data);
+      return data;
     } catch (error) {
       console.error('Error in updateMatchSession:', error);
-      toast.error('An error occurred while updating match session');
-      return false;
+      throw error;
     }
   };
 
-  const completeMatchSession = async (sessionId: string, finalData: {
-    finalScore: string;
-    endMood?: string;
-    matchNotes?: string;
-    result: 'win' | 'loss';
-  }): Promise<boolean> => {
-    const success = await updateMatchSession({
-      sessionId,
-      status: 'completed',
-      ...finalData
-    });
+  const completeMatchSession = async (sessionId: string, params: CompleteMatchSessionParams = {}) => {
+    if (!user) return;
 
-    if (success) {
-      setActiveSession(null);
-      toast.success('Match completed successfully!');
+    try {
+      console.log('Completing match session:', sessionId, params);
+
+      const { data, error } = await supabase
+        .from('active_match_sessions')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          final_score: params.finalScore,
+          end_mood: params.endMood,
+          match_notes: params.matchNotes,
+          result: params.result,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', sessionId)
+        .eq('player_id', user.id)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Error completing match session:', error);
+        throw error;
+      }
+
+      console.log('Match session completed successfully:', data);
+      setActiveSession(null); // Clear the active session
+      return data;
+    } catch (error) {
+      console.error('Error in completeMatchSession:', error);
+      throw error;
     }
-
-    return success;
   };
 
   const cleanupChannel = () => {
-    if (channelRef.current && isSubscribedRef.current) {
-      console.log('Cleaning up match session channel subscription');
+    if (channelRef.current) {
+      console.log('Cleaning up match sessions channel subscription');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
-      isSubscribedRef.current = false;
+      subscriptionInitialized.current = false;
     }
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && !subscriptionInitialized.current) {
       const loadData = async () => {
         setLoading(true);
         await fetchActiveSession();
@@ -245,45 +246,40 @@ export function useMatchSessions() {
 
       loadData();
 
-      // Clean up any existing channel first
+      // Clean up any existing channel
       cleanupChannel();
 
-      // Set up real-time subscription for match session updates
-      if (!isSubscribedRef.current) {
-        const channelName = `match-session-${user.id}-${Date.now()}`;
-        const channel = supabase.channel(channelName);
-        
-        channel
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'active_match_sessions',
-              filter: `player_id=eq.${user.id}`
-            },
-            (payload) => {
-              console.log('Match session real-time update received:', payload);
-              fetchActiveSession();
-            }
-          )
-          .subscribe((status) => {
-            console.log('Match Session Channel subscription status:', status);
-            if (status === 'SUBSCRIBED') {
-              isSubscribedRef.current = true;
-            } else if (status === 'CLOSED') {
-              isSubscribedRef.current = false;
-            }
-          });
+      // Set up real-time subscription
+      const channelName = `match-sessions-${user.id}-${Date.now()}`;
+      const channel = supabase.channel(channelName);
+      
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'active_match_sessions',
+          filter: `player_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Match session real-time update:', payload);
+          fetchActiveSession();
+        }
+      );
 
-        channelRef.current = channel;
-      }
+      channel.subscribe((status) => {
+        console.log('Match sessions channel subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          subscriptionInitialized.current = true;
+        }
+      });
+
+      channelRef.current = channel;
 
       return () => {
         cleanupChannel();
       };
-    } else {
-      // Clean up when no user
+    } else if (!user) {
       cleanupChannel();
       setActiveSession(null);
       setLoading(false);

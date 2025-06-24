@@ -9,6 +9,7 @@ import { AnimatedButton } from '@/components/ui/animated-button';
 import { CardWithAnimation } from '@/components/ui/card-with-animation';
 import { FormField } from '@/components/ui/form-field';
 import { MatchTypeToggle } from '@/components/ui/match-type-toggle';
+import { OpponentSearchSelector, SelectedOpponent } from '@/components/match/OpponentSearchSelector';
 import { getRandomMessage } from '@/utils/motivationalMessages';
 import { toast } from 'sonner';
 
@@ -16,11 +17,12 @@ const StartMatch = () => {
   const navigate = useNavigate();
   const { sessionData, updateSessionData, isSessionActive, loading } = useMatchSession();
   
-  const [opponentName, setOpponentName] = useState('');
+  // Updated state to use SelectedOpponent objects
+  const [opponent, setOpponent] = useState<SelectedOpponent | null>(null);
   const [isDoubles, setIsDoubles] = useState(false);
-  const [partnerName, setPartnerName] = useState('');
-  const [opponent1Name, setOpponent1Name] = useState('');
-  const [opponent2Name, setOpponent2Name] = useState('');
+  const [partner, setPartner] = useState<SelectedOpponent | null>(null);
+  const [opponent1, setOpponent1] = useState<SelectedOpponent | null>(null);
+  const [opponent2, setOpponent2] = useState<SelectedOpponent | null>(null);
   const [startTime, setStartTime] = useState(new Date().toISOString().slice(0, 16));
   const [isStarting, setIsStarting] = useState(false);
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
@@ -38,20 +40,16 @@ const StartMatch = () => {
   const validateForm = () => {
     const errors: Record<string, string> = {};
     
-    if (!opponentName.trim()) {
-      if (isDoubles) {
-        errors.opponent1Name = 'First opponent name is required';
-      } else {
-        errors.opponentName = 'Opponent name is required';
+    if (!isDoubles) {
+      if (!opponent) {
+        errors.opponent = 'Opponent is required';
       }
-    }
-    
-    if (isDoubles) {
-      if (!partnerName.trim()) {
-        errors.partnerName = 'Partner name is required';
+    } else {
+      if (!partner) {
+        errors.partner = 'Partner is required';
       }
-      if (!opponent1Name.trim()) {
-        errors.opponent1Name = 'First opponent name is required';
+      if (!opponent1) {
+        errors.opponent1 = 'First opponent is required';
       }
     }
     
@@ -81,16 +79,34 @@ const StartMatch = () => {
       // Small delay for UX
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Save session data
-      await updateSessionData({
-        opponentName: isDoubles ? opponent1Name.trim() : opponentName.trim(),
+      // Prepare session data with opponent IDs and names
+      const sessionUpdate = {
+        matchType: (isDoubles ? 'doubles' : 'singles') as 'singles' | 'doubles',
         isDoubles,
-        partnerName: isDoubles ? partnerName.trim() : undefined,
-        opponent1Name: isDoubles ? opponent1Name.trim() : undefined,
-        opponent2Name: isDoubles ? opponent2Name.trim() : undefined,
-        matchType: isDoubles ? 'doubles' : 'singles',
         startTime: new Date(startTime)
-      });
+      };
+
+      if (isDoubles) {
+        // Doubles match data
+        Object.assign(sessionUpdate, {
+          partnerName: partner?.name,
+          partnerId: partner?.id,
+          opponentName: opponent1?.name || '', // Primary opponent name for backward compatibility
+          opponent1Name: opponent1?.name,
+          opponent1Id: opponent1?.id,
+          opponent2Name: opponent2?.name,
+          opponent2Id: opponent2?.id
+        });
+      } else {
+        // Singles match data
+        Object.assign(sessionUpdate, {
+          opponentName: opponent?.name || '',
+          opponentId: opponent?.id
+        });
+      }
+
+      // Save session data
+      await updateSessionData(sessionUpdate);
 
       toast.success('Match started! Good luck out there! 🎾');
       
@@ -236,18 +252,17 @@ const StartMatch = () => {
               {/* Singles Fields */}
               {!isDoubles && (
                 <div className="animate-fade-in">
-                  <FormField
-                    id="opponent"
-                    label="Opponent Name"
-                    placeholder="Enter opponent's name"
-                    value={opponentName}
-                    onChange={(e) => {
-                      setOpponentName(e.target.value);
-                      clearFieldError('opponentName');
+                  <OpponentSearchSelector
+                    label="Opponent"
+                    placeholder="Search for your opponent..."
+                    value={opponent}
+                    onChange={(newOpponent) => {
+                      setOpponent(newOpponent);
+                      clearFieldError('opponent');
                     }}
                     disabled={isStarting}
                     required
-                    error={validationErrors.opponentName}
+                    error={validationErrors.opponent}
                   />
                 </div>
               )}
@@ -255,40 +270,37 @@ const StartMatch = () => {
               {/* Doubles Fields */}
               {isDoubles && (
                 <div className="space-y-5 animate-fade-in">
-                  <FormField
-                    id="partner"
+                  <OpponentSearchSelector
                     label="Your Partner"
-                    placeholder="Enter partner's name"
-                    value={partnerName}
-                    onChange={(e) => {
-                      setPartnerName(e.target.value);
-                      clearFieldError('partnerName');
+                    placeholder="Search for your partner..."
+                    value={partner}
+                    onChange={(newPartner) => {
+                      setPartner(newPartner);
+                      clearFieldError('partner');
                     }}
                     disabled={isStarting}
                     required
-                    error={validationErrors.partnerName}
+                    error={validationErrors.partner}
                   />
                   
-                  <FormField
-                    id="opponent1"
+                  <OpponentSearchSelector
                     label="Opponent 1"
-                    placeholder="Enter first opponent's name"
-                    value={opponent1Name}
-                    onChange={(e) => {
-                      setOpponent1Name(e.target.value);
-                      clearFieldError('opponent1Name');
+                    placeholder="Search for first opponent..."
+                    value={opponent1}
+                    onChange={(newOpponent1) => {
+                      setOpponent1(newOpponent1);
+                      clearFieldError('opponent1');
                     }}
                     disabled={isStarting}
                     required
-                    error={validationErrors.opponent1Name}
+                    error={validationErrors.opponent1}
                   />
                   
-                  <FormField
-                    id="opponent2"
+                  <OpponentSearchSelector
                     label="Opponent 2"
-                    placeholder="Enter second opponent's name (optional)"
-                    value={opponent2Name}
-                    onChange={(e) => setOpponent2Name(e.target.value)}
+                    placeholder="Search for second opponent (optional)..."
+                    value={opponent2}
+                    onChange={setOpponent2}
                     disabled={isStarting}
                   />
                 </div>

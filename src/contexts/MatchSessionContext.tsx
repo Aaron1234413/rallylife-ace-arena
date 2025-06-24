@@ -5,10 +5,14 @@ import { useMatchSessions } from '@/hooks/useMatchSessions';
 interface MatchSessionData {
   // Start match data
   opponentName: string;
+  opponentId?: string; // New: Store opponent player ID
   isDoubles: boolean;
   partnerName?: string;
+  partnerId?: string; // New: Store partner player ID
   opponent1Name?: string;
+  opponent1Id?: string; // New: Store first opponent player ID
   opponent2Name?: string;
+  opponent2Id?: string; // New: Store second opponent player ID
   matchType: 'singles' | 'doubles';
   startTime: Date;
   
@@ -70,10 +74,14 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
   // Convert database session to context format
   const sessionData: MatchSessionData | null = activeSession ? {
     opponentName: activeSession.opponent_name,
+    opponentId: activeSession.opponent_id,
     isDoubles: activeSession.is_doubles,
     partnerName: activeSession.partner_name,
+    partnerId: activeSession.partner_id,
     opponent1Name: activeSession.opponent_1_name,
+    opponent1Id: activeSession.opponent_1_id,
     opponent2Name: activeSession.opponent_2_name,
+    opponent2Id: activeSession.opponent_2_id,
     matchType: activeSession.match_type,
     startTime: new Date(activeSession.start_time),
     sets: activeSession.sets,
@@ -92,10 +100,14 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
       if (data.opponentName && data.matchType && data.startTime) {
         await createMatchSession({
           opponentName: data.opponentName,
+          opponentId: data.opponentId,
           isDoubles: data.isDoubles || false,
           partnerName: data.partnerName,
+          partnerId: data.partnerId,
           opponent1Name: data.opponent1Name,
+          opponent1Id: data.opponent1Id,
           opponent2Name: data.opponent2Name,
+          opponent2Id: data.opponent2Id,
           matchType: data.matchType,
           startTime: data.startTime
         });

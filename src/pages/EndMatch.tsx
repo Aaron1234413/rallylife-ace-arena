@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -6,11 +7,13 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
-import { Trophy, Clock, Target, MessageCircle } from 'lucide-react';
+import { Trophy, Clock, Target, MessageCircle, User } from 'lucide-react';
 import { toast } from 'sonner';
 import { AnimatedButton } from '@/components/ui/animated-button';
 import { CardWithAnimation } from '@/components/ui/card-with-animation';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Badge } from '@/components/ui/badge';
 import { getRandomMessage } from '@/utils/motivationalMessages';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,6 +35,41 @@ const EndMatch = () => {
 
   // Mood emojis
   const moodEmojis = ['😄', '😊', '😐', '😤', '😩', '🤔', '💪', '🎯'];
+
+  // Helper function to create opponent display info
+  const getOpponentDisplayInfo = () => {
+    if (!sessionData) return null;
+
+    if (sessionData.isDoubles) {
+      const opponents = [];
+      if (sessionData.opponent1Name) {
+        opponents.push({
+          name: sessionData.opponent1Name,
+          id: sessionData.opponent1Id,
+          isManual: !sessionData.opponent1Id
+        });
+      }
+      if (sessionData.opponent2Name) {
+        opponents.push({
+          name: sessionData.opponent2Name,
+          id: sessionData.opponent2Id,
+          isManual: !sessionData.opponent2Id
+        });
+      }
+      return { isDoubles: true, opponents };
+    } else {
+      return {
+        isDoubles: false,
+        opponent: {
+          name: sessionData.opponentName,
+          id: sessionData.opponentId,
+          isManual: !sessionData.opponentId
+        }
+      };
+    }
+  };
+
+  const opponentInfo = getOpponentDisplayInfo();
 
   const handleSubmit = async () => {
     if (!sessionData || !user) {
@@ -84,6 +122,28 @@ const EndMatch = () => {
       const hpChange = result === 'win' ? 5 : -10;
       const tokenReward = result === 'win' ? 30 : 20;
 
+      // Prepare metadata with opponent information
+      const metadata = {
+        match_type: sessionData.matchType,
+        is_doubles: sessionData.isDoubles,
+        partner_name: sessionData.partnerName || null,
+        partner_id: sessionData.partnerId || null,
+        opponent_name: sessionData.opponentName || null,
+        opponent_id: sessionData.opponentId || null,
+        opponent_1_name: sessionData.opponent1Name || null,
+        opponent_1_id: sessionData.opponent1Id || null,
+        opponent_2_name: sessionData.opponent2Name || null,
+        opponent_2_id: sessionData.opponent2Id || null,
+        mid_match_mood: sessionData.midMatchMood || null,
+        end_match_mood: endMood || null,
+        start_time: sessionData.startTime.toISOString(),
+        expected_rewards: {
+          xp: xpReward,
+          hp: hpChange,
+          tokens: tokenReward
+        }
+      };
+
       // Insert activity log directly into the database
       const { data: activityData, error: activityError } = await supabase
         .from('activity_logs')
@@ -104,21 +164,7 @@ const EndMatch = () => {
           is_competitive: true,
           is_official: false,
           logged_at: sessionData.startTime.toISOString(),
-          metadata: {
-            match_type: sessionData.matchType,
-            is_doubles: sessionData.isDoubles,
-            partner_name: sessionData.partnerName || null,
-            opponent_1_name: sessionData.opponent1Name || null,
-            opponent_2_name: sessionData.opponent2Name || null,
-            mid_match_mood: sessionData.midMatchMood || null,
-            end_match_mood: endMood || null,
-            start_time: sessionData.startTime.toISOString(),
-            expected_rewards: {
-              xp: xpReward,
-              hp: hpChange,
-              tokens: tokenReward
-            }
-          }
+          metadata: metadata
         })
         .select()
         .single();
@@ -208,7 +254,7 @@ const EndMatch = () => {
         console.error('Error awarding tokens:', tokenError);
       }
 
-      // Option 4: Direct database cleanup - Complete ALL active match sessions for this user
+      // Complete ALL active match sessions for this user
       console.log('Completing all active match sessions for user:', user.id);
       
       const { data: activeSessions, error: queryError } = await supabase
@@ -244,6 +290,43 @@ const EndMatch = () => {
         }
       } else {
         console.log('No active sessions found to complete');
+      }
+
+      // Save match relationships for future reward calculations
+      if (sessionData.opponentId) {
+        // Save match relationship for singles or primary opponent in doubles
+        const { error: relationshipError } = await supabase
+          .from('match_relationships')
+          .insert({
+            player_1_id: user.id,
+            player_2_id: sessionData.opponentId,
+            match_result: result,
+            activity_log_id: activityData.id,
+            match_type: sessionData.matchType,
+            created_at: new Date().toISOString()
+          });
+
+        if (relationshipError) {
+          console.error('Error saving match relationship:', relationshipError);
+        }
+      }
+
+      // Save additional relationships for doubles opponents
+      if (sessionData.isDoubles && sessionData.opponent2Id) {
+        const { error: relationship2Error } = await supabase
+          .from('match_relationships')
+          .insert({
+            player_1_id: user.id,
+            player_2_id: sessionData.opponent2Id,
+            match_result: result,
+            activity_log_id: activityData.id,
+            match_type: sessionData.matchType,
+            created_at: new Date().toISOString()
+          });
+
+        if (relationship2Error) {
+          console.error('Error saving second opponent relationship:', relationship2Error);
+        }
       }
 
       console.log('Match activity logged successfully:', activityData);
@@ -305,17 +388,69 @@ const EndMatch = () => {
           </CardHeader>
         </CardWithAnimation>
 
-        {/* Match Summary */}
+        {/* Match Summary with Opponent Info */}
         <CardWithAnimation delay={100}>
           <CardContent className="pt-4 sm:pt-6">
-            <div className="text-center space-y-2">
+            <div className="text-center space-y-3">
               <h3 className="font-semibold text-base sm:text-lg">
                 {sessionData.matchType === 'doubles' ? 'Doubles Match' : 'Singles Match'}
               </h3>
-              <p className="text-gray-600 text-sm sm:text-base">
-                vs {sessionData.opponentName}
-                {sessionData.isDoubles && sessionData.opponent1Name && ` & ${sessionData.opponent1Name}`}
-              </p>
+              
+              {/* Opponent Display */}
+              {opponentInfo && (
+                <div className="space-y-2">
+                  {opponentInfo.isDoubles ? (
+                    <div className="space-y-2">
+                      <p className="text-gray-600 text-sm">vs</p>
+                      <div className="flex flex-col gap-2">
+                        {opponentInfo.opponents.map((opp, index) => (
+                          <div key={index} className="flex items-center justify-center gap-2">
+                            <Avatar className="h-6 w-6">
+                              <AvatarFallback>
+                                <User className="h-3 w-3" />
+                              </AvatarFallback>
+                            </Avatar>
+                            <span className="text-sm font-medium">{opp.name}</span>
+                            {opp.isManual && (
+                              <Badge variant="outline" className="text-xs">External</Badge>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <span className="text-gray-600 text-sm">vs</span>
+                      <Avatar className="h-6 w-6">
+                        <AvatarFallback>
+                          <User className="h-3 w-3" />
+                        </AvatarFallback>
+                      </Avatar>
+                      <span className="text-sm font-medium">{opponentInfo.opponent.name}</span>
+                      {opponentInfo.opponent.isManual && (
+                        <Badge variant="outline" className="text-xs">External</Badge>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Partner Info for Doubles */}
+              {sessionData.isDoubles && sessionData.partnerName && (
+                <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
+                  <span>with partner</span>
+                  <Avatar className="h-5 w-5">
+                    <AvatarFallback>
+                      <User className="h-3 w-3" />
+                    </AvatarFallback>
+                  </Avatar>
+                  <span className="font-medium">{sessionData.partnerName}</span>
+                  {!sessionData.partnerId && (
+                    <Badge variant="outline" className="text-xs">External</Badge>
+                  )}
+                </div>
+              )}
+              
               <p className="text-xs sm:text-sm text-gray-500">
                 Started: {sessionData.startTime.toLocaleTimeString()}
               </p>
