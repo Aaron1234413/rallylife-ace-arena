@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -80,7 +81,7 @@ export function useActivityLogs() {
   const [stats, setStats] = useState<ActivityStats | null>(null);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
-  const subscriptionStatusRef = useRef<string>('unsubscribed');
+  const isSubscribedRef = useRef(false);
 
   const fetchActivities = async (
     limit = 20,
@@ -187,15 +188,16 @@ export function useActivityLogs() {
     }
   };
 
-  useEffect(() => {
-    const cleanupChannel = () => {
-      if (channelRef.current && subscriptionStatusRef.current !== 'unsubscribed') {
-        channelRef.current.unsubscribe();
-        subscriptionStatusRef.current = 'unsubscribed';
-        channelRef.current = null;
-      }
-    };
+  const cleanupChannel = () => {
+    if (channelRef.current && isSubscribedRef.current) {
+      console.log('Cleaning up activity channel subscription');
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+      isSubscribedRef.current = false;
+    }
+  };
 
+  useEffect(() => {
     if (user) {
       const loadData = async () => {
         setLoading(true);
@@ -210,30 +212,34 @@ export function useActivityLogs() {
       cleanupChannel();
 
       // Set up real-time subscription for activity changes with unique channel name
-      const channelName = `activities-${user.id}-${Date.now()}-${Math.random()}`;
-      const channel = supabase.channel(channelName);
-      
-      channel.on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'activity_logs',
-          filter: `player_id=eq.${user.id}`
-        },
-        () => {
-          fetchActivities();
-          fetchStats();
-        }
-      );
+      if (!isSubscribedRef.current) {
+        const channelName = `activities-${user.id}-${Date.now()}`;
+        const channel = supabase.channel(channelName);
+        
+        channel.on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'activity_logs',
+            filter: `player_id=eq.${user.id}`
+          },
+          () => {
+            console.log('Activity updated');
+            fetchActivities();
+            fetchStats();
+          }
+        );
 
-      // Only subscribe if not already subscribed
-      if (subscriptionStatusRef.current === 'unsubscribed') {
-        subscriptionStatusRef.current = 'subscribing';
         channel.subscribe((status) => {
-          subscriptionStatusRef.current = status;
           console.log('Activity Channel subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            isSubscribedRef.current = true;
+          } else if (status === 'CLOSED') {
+            isSubscribedRef.current = false;
+          }
         });
+
         channelRef.current = channel;
       }
 

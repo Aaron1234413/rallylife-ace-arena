@@ -199,6 +199,8 @@ export function usePlayerHP() {
             console.log('HP Channel subscription status:', status);
             if (status === 'SUBSCRIBED') {
               isSubscribedRef.current = true;
+            } else if (status === 'CLOSED') {
+              isSubscribedRef.current = false;
             }
           });
 
