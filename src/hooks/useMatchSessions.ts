@@ -100,7 +100,17 @@ export function useMatchSessions() {
       }
 
       console.log('Active session data:', data);
-      setActiveSession(data);
+      
+      // Type cast the data to ensure match_type is properly typed
+      if (data) {
+        const typedData: ActiveMatchSession = {
+          ...data,
+          match_type: data.match_type as 'singles' | 'doubles'
+        };
+        setActiveSession(typedData);
+      } else {
+        setActiveSession(null);
+      }
     } catch (error) {
       console.error('Error in fetchActiveSession:', error);
     }
@@ -142,8 +152,14 @@ export function useMatchSessions() {
       }
 
       console.log('Match session created successfully:', data);
-      setActiveSession(data);
-      return data;
+      
+      // Type cast the response
+      const typedData: ActiveMatchSession = {
+        ...data,
+        match_type: data.match_type as 'singles' | 'doubles'
+      };
+      setActiveSession(typedData);
+      return typedData;
     } catch (error) {
       console.error('Error in createMatchSession:', error);
       throw error;
@@ -183,8 +199,14 @@ export function useMatchSessions() {
       }
 
       console.log('Match session updated successfully:', data);
-      setActiveSession(data);
-      return data;
+      
+      // Type cast the response
+      const typedData: ActiveMatchSession = {
+        ...data,
+        match_type: data.match_type as 'singles' | 'doubles'
+      };
+      setActiveSession(typedData);
+      return typedData;
     } catch (error) {
       console.error('Error in updateMatchSession:', error);
       throw error;
@@ -220,7 +242,13 @@ export function useMatchSessions() {
 
       console.log('Match session completed successfully:', data);
       setActiveSession(null); // Clear the active session
-      return data;
+      
+      // Type cast the response
+      const typedData: ActiveMatchSession = {
+        ...data,
+        match_type: data.match_type as 'singles' | 'doubles'
+      };
+      return typedData;
     } catch (error) {
       console.error('Error in completeMatchSession:', error);
       throw error;

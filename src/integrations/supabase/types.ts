@@ -122,9 +122,13 @@ export type Database = {
           match_type: string
           mid_match_mood: string | null
           mid_match_notes: string | null
+          opponent_1_id: string | null
           opponent_1_name: string | null
+          opponent_2_id: string | null
           opponent_2_name: string | null
+          opponent_id: string | null
           opponent_name: string
+          partner_id: string | null
           partner_name: string | null
           pause_start_time: string | null
           player_id: string
@@ -147,9 +151,13 @@ export type Database = {
           match_type: string
           mid_match_mood?: string | null
           mid_match_notes?: string | null
+          opponent_1_id?: string | null
           opponent_1_name?: string | null
+          opponent_2_id?: string | null
           opponent_2_name?: string | null
+          opponent_id?: string | null
           opponent_name: string
+          partner_id?: string | null
           partner_name?: string | null
           pause_start_time?: string | null
           player_id: string
@@ -172,9 +180,13 @@ export type Database = {
           match_type?: string
           mid_match_mood?: string | null
           mid_match_notes?: string | null
+          opponent_1_id?: string | null
           opponent_1_name?: string | null
+          opponent_2_id?: string | null
           opponent_2_name?: string | null
+          opponent_id?: string | null
           opponent_name?: string
+          partner_id?: string | null
           partner_name?: string | null
           pause_start_time?: string | null
           player_id?: string
@@ -186,6 +198,34 @@ export type Database = {
           updated_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "active_match_sessions_opponent_1_id_fkey"
+            columns: ["opponent_1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "active_match_sessions_opponent_2_id_fkey"
+            columns: ["opponent_2_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "active_match_sessions_opponent_id_fkey"
+            columns: ["opponent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "active_match_sessions_partner_id_fkey"
+            columns: ["partner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "active_match_sessions_player_id_fkey"
             columns: ["player_id"]
@@ -1660,6 +1700,58 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      match_relationships: {
+        Row: {
+          activity_log_id: string | null
+          created_at: string | null
+          id: string
+          match_result: string
+          match_type: string
+          player_1_id: string
+          player_2_id: string
+        }
+        Insert: {
+          activity_log_id?: string | null
+          created_at?: string | null
+          id?: string
+          match_result: string
+          match_type: string
+          player_1_id: string
+          player_2_id: string
+        }
+        Update: {
+          activity_log_id?: string | null
+          created_at?: string | null
+          id?: string
+          match_result?: string
+          match_type?: string
+          player_1_id?: string
+          player_2_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_relationships_activity_log_id_fkey"
+            columns: ["activity_log_id"]
+            isOneToOne: false
+            referencedRelation: "activity_logs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_relationships_player_1_id_fkey"
+            columns: ["player_1_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_relationships_player_2_id_fkey"
+            columns: ["player_2_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       meditation_progress: {
         Row: {
