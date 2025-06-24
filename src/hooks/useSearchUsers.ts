@@ -29,26 +29,6 @@ export interface SearchResult {
   current_level?: number;
 }
 
-// Define explicit types for database responses to avoid infinite recursion
-interface ProfileData {
-  id: string;
-  full_name: string | null;
-  avatar_url: string | null;
-  role: string;
-  player_profiles: Array<{
-    skill_level: string | null;
-    location: string | null;
-  }> | null;
-  coach_profiles: Array<{
-    coaching_focus: string | null;
-    experience_years: number | null;
-    location: string | null;
-  }> | null;
-  player_xp: Array<{
-    current_level: number | null;
-  }> | null;
-}
-
 export function useSearchUsers({ query, userType, filters }: SearchParams) {
   return useQuery({
     queryKey: ['search-users', query, userType, filters],
@@ -88,8 +68,8 @@ export function useSearchUsers({ query, userType, filters }: SearchParams) {
 
       console.log('Raw search results:', data);
 
-      // Transform and filter the results
-      const transformedResults: SearchResult[] = (data as ProfileData[] || []).map((user) => {
+      // Transform and filter the results with explicit any typing to avoid TypeScript issues
+      const transformedResults: SearchResult[] = (data as any[] || []).map((user: any) => {
         const playerProfile = Array.isArray(user.player_profiles) ? user.player_profiles[0] : null;
         const coachProfile = Array.isArray(user.coach_profiles) ? user.coach_profiles[0] : null;
         const playerXP = Array.isArray(user.player_xp) ? user.player_xp[0] : null;
