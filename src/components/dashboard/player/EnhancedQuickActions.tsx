@@ -294,7 +294,7 @@ export function EnhancedQuickActions({
         timing: contextualData.timeOfDay 
       });
       
-      // Use real activity logging function
+      // Use real activity logging function - removed hp_impact since it's calculated by backend
       const result = await logActivity({
         activity_type: action.id,
         activity_category: 'quick_action',
@@ -302,13 +302,12 @@ export function EnhancedQuickActions({
         description: action.description,
         duration_minutes: action.estimatedDuration,
         intensity_level: action.difficulty,
-        hp_impact: action.rewards.hp,
-        xp_earned: action.rewards.xp,
         is_competitive: action.id === 'match',
         metadata: {
           contextual_recommendations: action.contextualInfo,
           energy_level: contextualData.playerState.energyLevel,
-          time_context: contextualData.timeOfDay.currentHour
+          time_context: contextualData.timeOfDay.currentHour,
+          expected_rewards: action.rewards
         }
       });
 
