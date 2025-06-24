@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -7,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
+import { useMatchSessions } from '@/hooks/useMatchSessions';
 import { Trophy, Clock, Target, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { AnimatedButton } from '@/components/ui/animated-button';
@@ -19,7 +19,8 @@ import { useAuth } from '@/hooks/useAuth';
 const EndMatch = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { sessionData, clearSession } = useMatchSession();
+  const { sessionData, loading } = useMatchSession();
+  const { completeMatchSession } = useMatchSessions();
   
   const [finalScore, setFinalScore] = useState('');
   const [duration, setDuration] = useState('');
@@ -209,6 +210,26 @@ const EndMatch = () => {
         console.error('Error awarding tokens:', tokenError);
       }
 
+      // Complete the match session in the database
+      if (sessionData && sessionData.sets && sessionData.sets.length > 0) {
+        // Get the session ID from the active session
+        const { data: activeSessionData } = await supabase
+          .from('active_match_sessions')
+          .select('id')
+          .eq('player_id', user.id)
+          .in('status', ['active', 'paused'])
+          .single();
+
+        if (activeSessionData) {
+          await completeMatchSession(activeSessionData.id, {
+            finalScore: finalScore || '',
+            endMood: endMood,
+            matchNotes: matchNotes,
+            result: result
+          });
+        }
+      }
+
       console.log('Match activity logged successfully:', activityData);
       
       setIsSubmitted(true);
@@ -220,9 +241,6 @@ const EndMatch = () => {
         duration: 3000
       });
 
-      // Clear session and redirect to feed
-      clearSession();
-      
       // Delay to ensure toast is visible and animation completes
       setTimeout(() => {
         navigate('/feed', { replace: true });
