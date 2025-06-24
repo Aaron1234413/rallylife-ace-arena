@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,11 +6,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Clock, Users, MessageCircle, Square, Save, Plus } from 'lucide-react';
+import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, RefreshCw, AlertCircle } from 'lucide-react';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
 import { MidMatchCheckInModal } from './MidMatchCheckInModal';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { LoadingSpinner } from '@/components/ui/loading-spinner';
 
 export const ActiveMatchWidget = () => {
   const { 
@@ -18,7 +20,8 @@ export const ActiveMatchWidget = () => {
     startNextSet, 
     isSessionActive, 
     getCurrentSetDisplay, 
-    getOpponentSetDisplay 
+    getOpponentSetDisplay,
+    loading 
   } = useMatchSession();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -26,7 +29,32 @@ export const ActiveMatchWidget = () => {
   const [playerSetScore, setPlayerSetScore] = useState('');
   const [opponentSetScore, setOpponentSetScore] = useState('');
   const [showNextSetPrompt, setShowNextSetPrompt] = useState(false);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [isSyncing, setIsSyncing] = useState(false);
+  const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
   const navigate = useNavigate();
+
+  // Monitor online status
+  useEffect(() => {
+    const handleOnline = () => {
+      setIsOnline(true);
+      setLastSyncTime(new Date());
+      toast.success('Connection restored - syncing data...');
+    };
+    
+    const handleOffline = () => {
+      setIsOnline(false);
+      toast.warning('You\'re offline - changes will sync when reconnected');
+    };
+
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, []);
 
   // Update match duration every minute
   useEffect(() => {
@@ -54,24 +82,53 @@ export const ActiveMatchWidget = () => {
     }
   }, [sessionData]);
 
+  if (loading) {
+    return (
+      <Card className="border-tennis-green-light bg-gradient-to-r from-tennis-green-light/5 to-tennis-green-dark/5">
+        <CardContent className="flex items-center justify-center py-8">
+          <div className="text-center space-y-3">
+            <LoadingSpinner size="lg" />
+            <p className="text-sm text-gray-600">Loading match session...</p>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   if (!isSessionActive || !sessionData) {
     return null;
   }
 
-  const handleLogSetScore = () => {
+  const handleLogSetScore = async () => {
     if (!playerSetScore.trim() || !opponentSetScore.trim()) {
       toast.error('Please enter both set scores');
       return;
     }
 
-    logSetScore(playerSetScore.trim(), opponentSetScore.trim());
-    toast.success(`Set ${sessionData.currentSet + 1} logged!`);
+    setIsSyncing(true);
+    try {
+      await logSetScore(playerSetScore.trim(), opponentSetScore.trim());
+      setLastSyncTime(new Date());
+      toast.success(`Set ${sessionData.currentSet + 1} logged!`);
+    } catch (error) {
+      toast.error('Failed to save set score. Please try again.');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
-  const handleStartNextSet = () => {
-    startNextSet();
-    setShowNextSetPrompt(false);
-    toast.success('Starting next set');
+  const handleStartNextSet = async () => {
+    setIsSyncing(true);
+    try {
+      await startNextSet();
+      setShowNextSetPrompt(false);
+      setLastSyncTime(new Date());
+      toast.success('Starting next set');
+    } catch (error) {
+      toast.error('Failed to start next set. Please try again.');
+    } finally {
+      setIsSyncing(false);
+    }
   };
 
   const handleEndMatch = () => {
@@ -96,15 +153,40 @@ export const ActiveMatchWidget = () => {
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-tennis-green-dark" />
               <span className="text-lg">Active Match</span>
+              {isSyncing && <LoadingSpinner size="sm" />}
             </div>
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {matchDuration}m
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="flex items-center gap-1">
+                <Clock className="h-3 w-3" />
+                {matchDuration}m
+              </Badge>
+              {!isOnline && (
+                <Badge variant="destructive" className="flex items-center gap-1">
+                  <WifiOff className="h-3 w-3" />
+                  Offline
+                </Badge>
+              )}
+              {isOnline && lastSyncTime && (
+                <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                  <Wifi className="h-3 w-3" />
+                  Synced
+                </Badge>
+              )}
+            </div>
           </CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {/* Connection Status Alert */}
+          {!isOnline && (
+            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-center gap-2">
+              <AlertCircle className="h-4 w-4 text-yellow-600" />
+              <p className="text-sm text-yellow-800">
+                You're offline. Changes will sync automatically when connection is restored.
+              </p>
+            </div>
+          )}
+
           {/* Table-Style Scoreboard */}
           <div className="bg-white rounded-lg border-2 border-tennis-green-light overflow-hidden">
             {completedSets.length > 0 ? (
@@ -154,9 +236,10 @@ export const ActiveMatchWidget = () => {
                 <Button
                   onClick={handleStartNextSet}
                   className="flex-1 bg-tennis-green-dark hover:bg-tennis-green text-white"
+                  disabled={isSyncing || !isOnline}
                 >
                   <Plus className="h-4 w-4 mr-2" />
-                  Yes, Next Set
+                  {isSyncing ? 'Starting...' : 'Yes, Next Set'}
                 </Button>
                 <Button
                   onClick={handleEndMatch}
@@ -187,6 +270,7 @@ export const ActiveMatchWidget = () => {
                     onChange={(e) => setPlayerSetScore(e.target.value)}
                     placeholder="e.g., 6"
                     className="text-center"
+                    disabled={isSyncing}
                   />
                 </div>
                 <div className="space-y-2">
@@ -199,6 +283,7 @@ export const ActiveMatchWidget = () => {
                     onChange={(e) => setOpponentSetScore(e.target.value)}
                     placeholder="e.g., 4"
                     className="text-center"
+                    disabled={isSyncing}
                   />
                 </div>
               </div>
@@ -206,10 +291,19 @@ export const ActiveMatchWidget = () => {
                 onClick={handleLogSetScore}
                 className="w-full bg-tennis-green-dark hover:bg-tennis-green text-white"
                 size="sm"
-                disabled={!playerSetScore.trim() || !opponentSetScore.trim()}
+                disabled={!playerSetScore.trim() || !opponentSetScore.trim() || isSyncing}
               >
-                <Save className="h-4 w-4 mr-2" />
-                Log Set Score
+                {isSyncing ? (
+                  <>
+                    <RefreshCw className="h-4 w-4 mr-2 animate-spin" />
+                    Saving...
+                  </>
+                ) : (
+                  <>
+                    <Save className="h-4 w-4 mr-2" />
+                    Log Set Score
+                  </>
+                )}
               </Button>
             </div>
           )}
@@ -221,6 +315,7 @@ export const ActiveMatchWidget = () => {
               variant="outline"
               className="flex-1"
               size="sm"
+              disabled={isSyncing}
             >
               <MessageCircle className="h-4 w-4 mr-2" />
               Check-In
@@ -235,6 +330,13 @@ export const ActiveMatchWidget = () => {
               End Match
             </Button>
           </div>
+
+          {/* Sync Status */}
+          {lastSyncTime && isOnline && (
+            <div className="text-center text-xs text-gray-500">
+              Last synced: {lastSyncTime.toLocaleTimeString()}
+            </div>
+          )}
         </CardContent>
       </Card>
 
