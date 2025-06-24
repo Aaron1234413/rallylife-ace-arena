@@ -42,7 +42,7 @@ export function AppNavigation() {
             </Link>
           </div>
 
-          {/* Navigation Links */}
+          {/* Desktop Navigation Links */}
           <div className="hidden md:flex items-center space-x-1">
             {navItems.map((item) => {
               const Icon = item.icon;
@@ -63,35 +63,49 @@ export function AppNavigation() {
             })}
           </div>
 
-          {/* Sign Out Button */}
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={signOut}
-            className="text-red-600 hover:text-red-700 hover:bg-red-50"
-          >
-            <LogOut className="h-4 w-4 mr-2" />
-            Sign Out
-          </Button>
+          {/* Desktop Sign Out Button */}
+          <div className="hidden md:block">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Sign Out
+            </Button>
+          </div>
+
+          {/* Mobile Sign Out Button */}
+          <div className="md:hidden">
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={signOut}
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
+            >
+              <LogOut className="h-4 w-4" />
+            </Button>
+          </div>
         </div>
 
-        {/* Mobile Navigation */}
+        {/* Mobile Navigation - Grid Layout */}
         <div className="md:hidden pb-3 pt-2">
-          <div className="flex flex-wrap gap-2">
+          <div className="grid grid-cols-4 gap-2">
             {navItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`px-3 py-2 rounded-md text-xs font-medium transition-colors flex items-center gap-1 ${
+                  className={`flex flex-col items-center justify-center p-3 rounded-lg text-xs font-medium transition-colors min-h-[60px] ${
                     isActive(item.path)
                       ? 'bg-tennis-green-light text-white'
                       : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gray-100'
                   }`}
                 >
-                  <Icon className="h-3 w-3" />
-                  {item.label}
+                  <Icon className="h-4 w-4 mb-1" />
+                  <span className="text-center leading-tight">{item.label}</span>
                 </Link>
               );
             })}
