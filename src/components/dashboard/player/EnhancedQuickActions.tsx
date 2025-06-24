@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -68,7 +67,7 @@ export function EnhancedQuickActions({
     ).length || 0;
     
     const isActiveStreak = recentActivityCount >= 3;
-    const needsRecovery = hpPercentage < 40 || hoursSinceLastActivity > 12;
+    const needsRecovery = hpPercentage <= 5 || hoursSinceLastActivity > 12; // Updated: Only block at 5% HP or below
     const nearLevelUp = xpData && xpData.xp_to_next_level < 50;
     
     // Real player state analysis based on actual HP data
@@ -175,14 +174,14 @@ export function EnhancedQuickActions({
       let urgency: 'low' | 'medium' | 'high' = 'low';
       let availability = true;
       
-      // Real energy-based recommendations using actual HP data
+      // Updated energy-based recommendations using actual HP data
       const playerEnergyLevel = contextualData.recommendations.energy;
       if (action.energyRequirement === 'high' && playerEnergyLevel === 'high') {
         contextualMessage = `Perfect energy level for ${action.title.toLowerCase()}! Your HP (${Math.round(contextualData.playerState.hpPercentage)}%) is optimal for intense activity.`;
         recommended = true;
         urgency = 'high';
-      } else if (action.energyRequirement === 'high' && playerEnergyLevel === 'low') {
-        contextualMessage = `Consider recovery first - your current HP (${Math.round(contextualData.playerState.hpPercentage)}%) is too low for intense activity`;
+      } else if (action.energyRequirement === 'high' && hpPercentage <= 5) {
+        contextualMessage = `Recovery needed first - your HP (${Math.round(contextualData.playerState.hpPercentage)}%) is critically low for intense activity`;
         availability = false;
       } else if (action.energyRequirement === 'low' && playerEnergyLevel === 'low') {
         contextualMessage = `Great low-energy option for your current state (${Math.round(contextualData.playerState.hpPercentage)}% HP)`;
@@ -263,11 +262,11 @@ export function EnhancedQuickActions({
         }
       };
     });
-  }, [contextualData, xpData, activities]);
+  }, [contextualData, xpData, activities, hpPercentage]);
 
   const handleQuickAction = async (action: typeof quickActions[0]) => {
     if (!action.availability) {
-      toast.error(`This activity is not recommended with your current energy level (${Math.round(contextualData.playerState.hpPercentage)}% HP)`);
+      toast.error(`This activity is not recommended with your current energy level (${Math.round(contextualData.playerState.hpPercentage)}% HP). Consider recovery first.`);
       return;
     }
 
@@ -456,7 +455,7 @@ export function EnhancedQuickActions({
               </div>
               <div>
                 <span className={`font-bold text-gray-800 ${isMobile ? 'text-sm' : ''}`}>Activity Intelligence</span>
-                <p className={`text-gray-600 mt-0.5 ${isMobile ? 'text-xs' : 'text-xs'}`}>
+                <p className={`text-gray-600 mt-0.5 ${isMobile ? 'text-xs' : 'text-sm'}`}>
                   Real-time insights from your tennis data
                 </p>
               </div>
