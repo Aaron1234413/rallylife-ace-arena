@@ -7,7 +7,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Search, User, X, Check } from 'lucide-react';
-import { useUserSearch } from '@/hooks/useUserSearch';
+import { useSearchUsers, SearchResult } from '@/hooks/useSearchUsers';
 import { cn } from '@/lib/utils';
 
 export interface SelectedOpponent {
@@ -29,6 +29,16 @@ interface OpponentSearchSelectorProps {
   error?: string;
 }
 
+// Helper function to convert SearchResult to SelectedOpponent
+const searchResultToOpponent = (result: SearchResult): SelectedOpponent => ({
+  id: result.id,
+  name: result.full_name,
+  isManual: false,
+  skillLevel: result.skill_level,
+  currentLevel: result.current_level,
+  avatarUrl: result.avatar_url || undefined
+});
+
 export const OpponentSearchSelector: React.FC<OpponentSearchSelectorProps> = ({
   label,
   placeholder,
@@ -43,17 +53,19 @@ export const OpponentSearchSelector: React.FC<OpponentSearchSelectorProps> = ({
   const [manualEntry, setManualEntry] = useState('');
   const [showManualInput, setShowManualInput] = useState(false);
 
-  const { users, isLoading } = useUserSearch(searchQuery);
+  const { data: searchResults, isLoading } = useSearchUsers({
+    query: searchQuery,
+    userType: 'player',
+    filters: {
+      level: 'all',
+      location: '',
+      skillLevel: 'all',
+      coachingFocus: 'all'
+    }
+  });
 
-  const handleUserSelect = useCallback((user: any) => {
-    const selectedOpponent: SelectedOpponent = {
-      id: user.id,
-      name: user.full_name,
-      isManual: false,
-      skillLevel: user.skill_level,
-      currentLevel: user.current_level,
-      avatarUrl: user.avatar_url
-    };
+  const handleUserSelect = useCallback((result: SearchResult) => {
+    const selectedOpponent = searchResultToOpponent(result);
     onChange(selectedOpponent);
     setSearchQuery('');
     setShowResults(false);
@@ -134,6 +146,8 @@ export const OpponentSearchSelector: React.FC<OpponentSearchSelectorProps> = ({
       </div>
     );
   }
+
+  const users = searchResults || [];
 
   return (
     <div className="space-y-2">

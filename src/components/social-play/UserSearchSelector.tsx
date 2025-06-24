@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Search, X, Users } from 'lucide-react';
-import { useUserSearch } from '@/hooks/useUserSearch';
+import { useSearchUsers, SearchResult } from '@/hooks/useSearchUsers';
 
 interface User {
   id: string;
@@ -23,6 +23,15 @@ interface UserSearchSelectorProps {
   sessionType: 'singles' | 'doubles';
 }
 
+// Helper function to convert SearchResult to User
+const searchResultToUser = (result: SearchResult): User => ({
+  id: result.id,
+  full_name: result.full_name,
+  avatar_url: result.avatar_url,
+  skill_level: result.skill_level,
+  location: result.location
+});
+
 export const UserSearchSelector: React.FC<UserSearchSelectorProps> = ({
   selectedUsers,
   onUserSelect,
@@ -31,18 +40,29 @@ export const UserSearchSelector: React.FC<UserSearchSelectorProps> = ({
   sessionType,
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { users, isLoading, error } = useUserSearch(searchQuery);
+  
+  const { data: searchResults, isLoading, error } = useSearchUsers({
+    query: searchQuery,
+    userType: 'player',
+    filters: {
+      level: 'all',
+      location: '',
+      skillLevel: 'all',
+      coachingFocus: 'all'
+    }
+  });
 
-  const handleUserSelect = (user: User) => {
+  const handleUserSelect = (result: SearchResult) => {
     if (selectedUsers.length >= maxSelection) return;
-    if (selectedUsers.some(u => u.id === user.id)) return;
+    if (selectedUsers.some(u => u.id === result.id)) return;
     
+    const user = searchResultToUser(result);
     onUserSelect(user);
     setSearchQuery(''); // Clear search after selection
   };
 
-  const availableUsers = users.filter(user => 
-    !selectedUsers.some(selected => selected.id === user.id)
+  const availableUsers = (searchResults || []).filter(result => 
+    !selectedUsers.some(selected => selected.id === result.id)
   );
 
   return (
@@ -128,29 +148,29 @@ export const UserSearchSelector: React.FC<UserSearchSelectorProps> = ({
               
               {!isLoading && !error && availableUsers.length > 0 && (
                 <div className="divide-y">
-                  {availableUsers.slice(0, 8).map((user) => (
+                  {availableUsers.slice(0, 8).map((result) => (
                     <div
-                      key={user.id}
+                      key={result.id}
                       className="p-3 hover:bg-gray-50 cursor-pointer flex items-center gap-3"
-                      onClick={() => handleUserSelect(user)}
+                      onClick={() => handleUserSelect(result)}
                     >
                       <Avatar className="h-8 w-8">
-                        <AvatarImage src={user.avatar_url || ''} />
+                        <AvatarImage src={result.avatar_url || ''} />
                         <AvatarFallback>
-                          {user.full_name?.charAt(0) || 'U'}
+                          {result.full_name?.charAt(0) || 'U'}
                         </AvatarFallback>
                       </Avatar>
                       
                       <div className="flex-1">
-                        <p className="font-medium">{user.full_name}</p>
+                        <p className="font-medium">{result.full_name}</p>
                         <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                          {user.skill_level && (
+                          {result.skill_level && (
                             <Badge variant="outline" className="text-xs">
-                              {user.skill_level}
+                              {result.skill_level}
                             </Badge>
                           )}
-                          {user.location && (
-                            <span>{user.location}</span>
+                          {result.location && (
+                            <span>{result.location}</span>
                           )}
                         </div>
                       </div>

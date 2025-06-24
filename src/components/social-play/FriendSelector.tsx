@@ -6,7 +6,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Search, UserPlus, X } from 'lucide-react';
-import { useProfiles } from '@/hooks/useProfiles';
+import { useSearchUsers, SearchResult } from '@/hooks/useSearchUsers';
 import { useAuth } from '@/hooks/useAuth';
 
 interface Player {
@@ -22,6 +22,13 @@ interface FriendSelectorProps {
   maxSelection?: number;
 }
 
+// Helper function to convert SearchResult to Player
+const searchResultToPlayer = (result: SearchResult): Player => ({
+  id: result.id,
+  full_name: result.full_name,
+  avatar_url: result.avatar_url
+});
+
 export const FriendSelector: React.FC<FriendSelectorProps> = ({
   selectedFriends,
   onFriendSelect,
@@ -29,16 +36,32 @@ export const FriendSelector: React.FC<FriendSelectorProps> = ({
   maxSelection = 3
 }) => {
   const [searchQuery, setSearchQuery] = useState('');
-  const { data: players, isLoading } = useProfiles();
   const { user } = useAuth();
 
-  const filteredPlayers = (players || []).filter(player => 
-    player.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
-    !selectedFriends.some(selected => selected.id === player.id) &&
-    player.id !== user?.id // Exclude the current user (session creator)
+  const { data: searchResults, isLoading } = useSearchUsers({
+    query: searchQuery,
+    userType: 'player',
+    filters: {
+      level: 'all',
+      location: '',
+      skillLevel: 'all',
+      coachingFocus: 'all'
+    }
+  });
+
+  const filteredPlayers = (searchResults || []).filter(result => 
+    result.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) &&
+    !selectedFriends.some(selected => selected.id === result.id) &&
+    result.id !== user?.id // Exclude the current user (session creator)
   );
 
   const canAddMore = selectedFriends.length < maxSelection;
+
+  const handlePlayerSelect = (result: SearchResult) => {
+    if (!canAddMore) return;
+    const player = searchResultToPlayer(result);
+    onFriendSelect(player);
+  };
 
   return (
     <Card>
@@ -105,24 +128,24 @@ export const FriendSelector: React.FC<FriendSelectorProps> = ({
             </div>
           ) : filteredPlayers.length === 0 ? (
             <div className="text-center py-4 text-muted-foreground">
-              {searchQuery ? 'No players found matching your search' : 'No players available'}
+              {searchQuery ? 'No players found matching your search' : 'Start typing to search for players'}
             </div>
           ) : (
             <div className="space-y-2 max-h-40 overflow-y-auto">
-              {filteredPlayers.map((player) => (
+              {filteredPlayers.map((result) => (
                 <div
-                  key={player.id}
+                  key={result.id}
                   className="flex items-center justify-between p-2 rounded-lg border hover:bg-muted/50 transition-colors"
                 >
                   <div className="flex items-center gap-3">
                     <Avatar className="h-8 w-8">
-                      <AvatarImage src={player.avatar_url || ''} />
+                      <AvatarImage src={result.avatar_url || ''} />
                       <AvatarFallback className="text-sm">
-                        {player.full_name?.charAt(0) || 'P'}
+                        {result.full_name?.charAt(0) || 'P'}
                       </AvatarFallback>
                     </Avatar>
                     <div>
-                      <p className="font-medium text-sm">{player.full_name}</p>
+                      <p className="font-medium text-sm">{result.full_name}</p>
                       <p className="text-xs text-muted-foreground">
                         Player on RallyLife
                       </p>
@@ -131,7 +154,7 @@ export const FriendSelector: React.FC<FriendSelectorProps> = ({
                   
                   <Button
                     size="sm"
-                    onClick={() => onFriendSelect(player)}
+                    onClick={() => handlePlayerSelect(result)}
                     disabled={!canAddMore}
                     className="h-8"
                   >
