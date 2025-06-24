@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -72,6 +71,15 @@ interface CompleteMatchSessionParams {
   result?: 'win' | 'loss';
 }
 
+// Helper function to safely cast status field
+const castMatchStatus = (status: string): 'active' | 'paused' | 'completed' => {
+  if (status === 'active' || status === 'paused' || status === 'completed') {
+    return status;
+  }
+  console.warn(`Invalid match status: ${status}, defaulting to 'active'`);
+  return 'active';
+};
+
 export function useMatchSessions() {
   const { user } = useAuth();
   const [activeSession, setActiveSession] = useState<ActiveMatchSession | null>(null);
@@ -101,11 +109,12 @@ export function useMatchSessions() {
 
       console.log('Active session data:', data);
       
-      // Type cast the data to ensure match_type is properly typed
+      // Type cast the data to ensure proper typing
       if (data) {
         const typedData: ActiveMatchSession = {
           ...data,
-          match_type: data.match_type as 'singles' | 'doubles'
+          match_type: data.match_type as 'singles' | 'doubles',
+          status: castMatchStatus(data.status)
         };
         setActiveSession(typedData);
       } else {
@@ -156,7 +165,8 @@ export function useMatchSessions() {
       // Type cast the response
       const typedData: ActiveMatchSession = {
         ...data,
-        match_type: data.match_type as 'singles' | 'doubles'
+        match_type: data.match_type as 'singles' | 'doubles',
+        status: castMatchStatus(data.status)
       };
       setActiveSession(typedData);
       return typedData;
@@ -203,7 +213,8 @@ export function useMatchSessions() {
       // Type cast the response
       const typedData: ActiveMatchSession = {
         ...data,
-        match_type: data.match_type as 'singles' | 'doubles'
+        match_type: data.match_type as 'singles' | 'doubles',
+        status: castMatchStatus(data.status)
       };
       setActiveSession(typedData);
       return typedData;
@@ -246,7 +257,8 @@ export function useMatchSessions() {
       // Type cast the response
       const typedData: ActiveMatchSession = {
         ...data,
-        match_type: data.match_type as 'singles' | 'doubles'
+        match_type: data.match_type as 'singles' | 'doubles',
+        status: castMatchStatus(data.status)
       };
       return typedData;
     } catch (error) {
