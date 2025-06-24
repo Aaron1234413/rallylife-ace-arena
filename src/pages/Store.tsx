@@ -2,6 +2,7 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
+import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { TokenEconomy } from '@/components/dashboard/TokenEconomy';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Store as StoreIcon, ShoppingCart, Coins } from 'lucide-react';
@@ -9,6 +10,7 @@ import { Store as StoreIcon, ShoppingCart, Coins } from 'lucide-react';
 const Store = () => {
   const { user } = useAuth();
   const { tokenData, loading, spendTokens, convertPremiumTokens } = usePlayerTokens();
+  const { restoreHP } = usePlayerHP();
 
   if (loading) {
     return (
@@ -60,6 +62,7 @@ const Store = () => {
           tokenData={tokenData}
           onSpendTokens={spendTokens}
           onConvertTokens={convertPremiumTokens}
+          onRestoreHP={restoreHP}
         />
       )}
     </div>

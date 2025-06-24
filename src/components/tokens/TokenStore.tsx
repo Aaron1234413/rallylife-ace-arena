@@ -12,11 +12,13 @@ import {
   Coins,
   ShoppingCart
 } from 'lucide-react';
+import { toast } from 'sonner';
 
 interface TokenStoreProps {
   onSpendTokens: (amount: number, tokenType: string, source: string, description?: string) => Promise<boolean>;
   regularTokens: number;
   premiumTokens: number;
+  onRestoreHP?: (amount: number, activityType: string, description?: string) => Promise<void>;
   className?: string;
 }
 
@@ -28,7 +30,8 @@ const storeItems = [
     icon: Heart,
     cost: 20,
     tokenType: 'regular',
-    color: 'bg-red-500 hover:bg-red-600'
+    color: 'bg-red-500 hover:bg-red-600',
+    hpRestore: 25
   },
   {
     id: 'health_pack_large',
@@ -37,7 +40,8 @@ const storeItems = [
     icon: Heart,
     cost: 35,
     tokenType: 'regular',
-    color: 'bg-red-600 hover:bg-red-700'
+    color: 'bg-red-600 hover:bg-red-700',
+    hpRestore: 50
   },
   {
     id: 'avatar_hat',
@@ -77,19 +81,30 @@ const storeItems = [
   }
 ];
 
-export function TokenStore({ onSpendTokens, regularTokens, premiumTokens, className }: TokenStoreProps) {
+export function TokenStore({ onSpendTokens, regularTokens, premiumTokens, onRestoreHP, className }: TokenStoreProps) {
   const handlePurchase = async (item: typeof storeItems[0]) => {
     const currentBalance = item.tokenType === 'premium' ? premiumTokens : regularTokens;
     
     if (currentBalance < item.cost) {
+      toast.error('Insufficient tokens');
       return;
     }
 
     const success = await onSpendTokens(item.cost, item.tokenType, item.id, item.description);
     
     if (success) {
-      // Here you could trigger the actual effect (restore HP, unlock avatar, etc.)
-      console.log(`Purchased: ${item.name}`);
+      // Handle HP restoration for health packs
+      if (item.hpRestore && onRestoreHP) {
+        try {
+          await onRestoreHP(item.hpRestore, 'health_pack', `Used ${item.name}`);
+          toast.success(`${item.name} purchased and used! +${item.hpRestore} HP`);
+        } catch (error) {
+          console.error('Error restoring HP:', error);
+          toast.error('Item purchased but HP restoration failed');
+        }
+      } else {
+        toast.success(`${item.name} purchased successfully!`);
+      }
     }
   };
 
