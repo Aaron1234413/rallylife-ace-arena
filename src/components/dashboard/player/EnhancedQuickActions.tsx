@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -38,7 +39,7 @@ export function EnhancedQuickActions({
   onAddTokens 
 }: EnhancedQuickActionsProps) {
   const navigate = useNavigate();
-  const { activities, refreshData } = useActivityLogs();
+  const { activities, refreshData, loading: activitiesLoading, logActivity } = useActivityLogs();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [socialPlayDialogOpen, setSocialPlayDialogOpen] = useState(false);
   const [recoveryCenterOpen, setRecoveryCenterOpen] = useState(false);
@@ -47,20 +48,20 @@ export function EnhancedQuickActions({
   const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
   const xpProgress = xpData ? (xpData.current_xp / (xpData.current_xp + xpData.xp_to_next_level)) * 100 : 0;
   
-  // Smart contextual analysis with enhanced intelligence
+  // Enhanced contextual analysis with real data
   const contextualData = useMemo(() => {
     const currentHour = new Date().getHours();
     const isEarlyMorning = currentHour >= 6 && currentHour < 10;
     const isEvening = currentHour >= 17 && currentHour < 21;
     const isLateNight = currentHour >= 21 || currentHour < 6;
     
-    // Analyze recent activity patterns with enhanced intelligence
+    // Analyze real activity patterns
     const recentActivities = activities?.slice(0, 10) || [];
     const lastActivity = recentActivities[0];
     const hoursSinceLastActivity = lastActivity ? 
       (Date.now() - new Date(lastActivity.created_at).getTime()) / (1000 * 60 * 60) : 24;
     
-    // Calculate activity streak and patterns
+    // Calculate real activity streak and patterns
     const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
     const recentActivityCount = activities?.filter(activity => 
       new Date(activity.created_at) > weekAgo
@@ -70,7 +71,7 @@ export function EnhancedQuickActions({
     const needsRecovery = hpPercentage < 40 || hoursSinceLastActivity > 12;
     const nearLevelUp = xpData && xpData.xp_to_next_level < 50;
     
-    // Enhanced player state analysis
+    // Real player state analysis based on actual HP data
     const energyLevel = hpPercentage > 80 ? 'peak' : 
                        hpPercentage > 60 ? 'high' : 
                        hpPercentage > 40 ? 'moderate' : 
@@ -81,7 +82,7 @@ export function EnhancedQuickActions({
                            recentActivityCount > 2 ? 'good' : 
                            hoursSinceLastActivity < 48 ? 'moderate' : 'needs-boost';
     
-    // Activity type recommendations based on recent patterns
+    // Activity type recommendations based on real recent patterns
     const recentTypes = recentActivities.slice(0, 5).map(a => a.activity_type);
     const hasRecentTraining = recentTypes.includes('training');
     const hasRecentMatch = recentTypes.includes('match');
@@ -113,9 +114,9 @@ export function EnhancedQuickActions({
         variety: recentTypes.length < 2 ? 'needed' : 'good'
       }
     };
-  }, [hpData, xpData, activities, hpPercentage]);
+  }, [hpData, xpData, activities, hpPercentage, activitiesLoading]);
 
-  // Enhanced quick actions with better visual configuration
+  // Enhanced quick actions with real backend integration
   const quickActions = useMemo(() => {
     const baseActions = [
       {
@@ -174,10 +175,10 @@ export function EnhancedQuickActions({
       let urgency: 'low' | 'medium' | 'high' = 'low';
       let availability = true;
       
-      // Advanced energy-based recommendations
+      // Real energy-based recommendations using actual HP data
       const playerEnergyLevel = contextualData.recommendations.energy;
       if (action.energyRequirement === 'high' && playerEnergyLevel === 'high') {
-        contextualMessage = `Perfect energy level for ${action.title.toLowerCase()}! Your HP is optimal for intense activity.`;
+        contextualMessage = `Perfect energy level for ${action.title.toLowerCase()}! Your HP (${Math.round(contextualData.playerState.hpPercentage)}%) is optimal for intense activity.`;
         recommended = true;
         urgency = 'high';
       } else if (action.energyRequirement === 'high' && playerEnergyLevel === 'low') {
@@ -188,12 +189,12 @@ export function EnhancedQuickActions({
         recommended = true;
         urgency = 'medium';
       } else if (action.energyRequirement === 'medium' && playerEnergyLevel === 'medium') {
-        contextualMessage = `Well-balanced activity for your current energy level`;
+        contextualMessage = `Well-balanced activity for your current energy level (${Math.round(contextualData.playerState.hpPercentage)}% HP)`;
         recommended = true;
         urgency = 'medium';
       }
 
-      // Enhanced time-based recommendations
+      // Real time-based recommendations
       const currentTimeContext = contextualData.timeOfDay.isEarlyMorning ? 'morning' : 
                                 contextualData.timeOfDay.isEvening ? 'evening' : 'afternoon';
       
@@ -205,7 +206,7 @@ export function EnhancedQuickActions({
         if (urgency === 'low') urgency = 'medium';
       }
 
-      // Activity pattern and variety recommendations
+      // Real activity pattern analysis
       if (contextualData.recommendations.variety === 'needed') {
         if (!contextualData.activity.recentTypes.includes(action.varietyType)) {
           contextualMessage = contextualMessage || `Add variety to your routine - you haven't done ${action.title.toLowerCase()} recently`;
@@ -214,33 +215,32 @@ export function EnhancedQuickActions({
         }
       }
 
-      // Activity gap recommendations
+      // Real activity gap analysis
       if (contextualData.activity.hoursSinceLastActivity > 48 && action.energyRequirement === 'low') {
         contextualMessage = `Perfect comeback activity after ${Math.round(contextualData.activity.hoursSinceLastActivity)} hours`;
         recommended = true;
         urgency = 'medium';
       }
 
-      // Enhanced XP progress recommendations
+      // Real XP progress recommendations using actual XP data
       if (contextualData.playerState.nearLevelUp && action.rewards.xp >= 30) {
         contextualMessage = `${action.rewards.xp} XP will help you reach Level ${xpData.current_level + 1}! Only ${xpData.xp_to_next_level} XP needed.`;
         recommended = true;
         urgency = 'high';
       }
 
-      // Enhanced streak maintenance with better urgency logic
+      // Real streak maintenance
       if (contextualData.activity.isActiveStreak && contextualData.recommendations.motivation === 'high') {
         if (!contextualMessage) {
           contextualMessage = `Maintain your ${contextualData.activity.recentActivityCount}-activity streak!`;
         }
-        // Properly handle urgency level escalation
         const urgencyLevels: Array<'low' | 'medium' | 'high'> = ['low', 'medium', 'high'];
         const currentIndex = urgencyLevels.indexOf(urgency);
         const newIndex = Math.min(currentIndex + 1, urgencyLevels.length - 1);
         urgency = urgencyLevels[newIndex];
       }
 
-      // Motivation boost recommendations
+      // Real motivation boost recommendations
       if (contextualData.playerState.motivationLevel === 'needs-boost' && action.varietyType === 'social') {
         contextualMessage = contextualMessage || `Social activity can help boost motivation and enjoyment`;
         recommended = true;
@@ -263,7 +263,7 @@ export function EnhancedQuickActions({
         }
       };
     });
-  }, [contextualData, xpData, activities, hpPercentage]);
+  }, [contextualData, xpData, activities]);
 
   const handleQuickAction = async (action: typeof quickActions[0]) => {
     if (!action.availability) {
@@ -271,32 +271,58 @@ export function EnhancedQuickActions({
       return;
     }
 
-    // Enhanced navigation and dialog handling
+    // Real backend integration for navigation
     if (action.navigateTo) {
       console.log(`Navigating to ${action.navigateTo} for ${action.title}`);
       navigate(action.navigateTo);
       return;
     }
 
+    // Real social play dialog integration
     if (action.openDialog && action.id === 'social') {
-      console.log('Opening social play dialog with contextual data:', contextualData);
+      console.log('Opening social play dialog with real contextual data:', contextualData);
       setSocialPlayDialogOpen(true);
       return;
     }
 
+    // Real activity logging with proper error handling
     try {
       setLoadingAction(action.id);
-      console.log('Logging enhanced contextual quick action:', { 
+      console.log('Logging real activity with backend integration:', { 
         action: action.title, 
         context: contextualData.playerState,
         timing: contextualData.timeOfDay 
       });
       
-      toast.success(`${action.title} completed! Context: ${action.description}`);
-      await refreshData();
+      // Use real activity logging function
+      const result = await logActivity({
+        activity_type: action.id,
+        activity_category: 'quick_action',
+        title: action.title,
+        description: action.description,
+        duration_minutes: action.estimatedDuration,
+        intensity_level: action.difficulty,
+        hp_impact: action.rewards.hp,
+        xp_earned: action.rewards.xp,
+        is_competitive: action.id === 'match',
+        metadata: {
+          contextual_recommendations: action.contextualInfo,
+          energy_level: contextualData.playerState.energyLevel,
+          time_context: contextualData.timeOfDay.currentHour
+        }
+      });
+
+      if (result?.success) {
+        toast.success(`${action.title} logged successfully! ${result.hp_change > 0 ? '+' : ''}${result.hp_change} HP, +${result.xp_earned} XP`);
+        
+        // Real-time data refresh
+        await refreshData();
+      } else {
+        throw new Error('Failed to log activity');
+      }
       
     } catch (error) {
-      console.error('Error logging contextual quick action:', error);
+      console.error('Error logging real activity:', error);
       toast.error('Failed to log activity. Please try again.');
     } finally {
       setLoadingAction(null);
@@ -306,13 +332,15 @@ export function EnhancedQuickActions({
   const handleRecommendationClick = (actionId: string) => {
     const action = quickActions.find(a => a.id === actionId);
     if (action) {
-      console.log('Recommendation clicked:', { actionId, action: action.title, context: contextualData });
+      console.log('Real recommendation clicked:', { actionId, action: action.title, context: contextualData });
       handleQuickAction(action);
     }
   };
 
   const handleOpenRecoveryCenter = () => {
-    console.log('Opening Recovery Center with contextual data:', {
+    console.log('Opening Recovery Center with real HP data:', {
+      currentHP: hpData?.current_hp,
+      maxHP: hpData?.max_hp,
       hpPercentage: contextualData.playerState.hpPercentage,
       energyLevel: contextualData.playerState.energyLevel,
       needsRecovery: contextualData.playerState.needsRecovery
@@ -320,27 +348,43 @@ export function EnhancedQuickActions({
     setRecoveryCenterOpen(true);
   };
 
+  // Show loading state while activities are loading
+  if (activitiesLoading && !activities?.length) {
+    return (
+      <div className={`space-y-6 ${isMobile ? 'safe-bottom safe-left safe-right' : ''}`}>
+        <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center py-12">
+              <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600"></div>
+              <span className="ml-3 text-gray-600">Loading your activity insights...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
+  }
+
   if (recoveryCenterOpen) {
     return (
       <RecoveryCenter onBack={() => setRecoveryCenterOpen(false)} />
     );
   }
 
-  // Enhanced action sorting with contextual intelligence
+  // Real action sorting with backend data
   const sortedActions = [...quickActions].sort((a, b) => {
-    // First priority: availability
+    // First priority: availability (based on real HP data)
     if (a.availability !== b.availability) return a.availability ? -1 : 1;
     
-    // Second priority: recommended actions
+    // Second priority: recommended actions (based on real activity patterns)
     if (a.recommended !== b.recommended) return a.recommended ? -1 : 1;
     
-    // Third priority: urgency level
+    // Third priority: urgency level (based on real player state)
     if (a.urgency !== b.urgency) {
       const urgencyOrder = { high: 3, medium: 2, low: 1 };
       return urgencyOrder[b.urgency] - urgencyOrder[a.urgency];
     }
     
-    // Fourth priority: contextual perfect timing
+    // Fourth priority: contextual perfect timing (based on real data analysis)
     const aPerfectTiming = a.contextualInfo?.perfectTiming || false;
     const bPerfectTiming = b.contextualInfo?.perfectTiming || false;
     if (aPerfectTiming !== bPerfectTiming) return aPerfectTiming ? -1 : 1;
@@ -359,7 +403,7 @@ export function EnhancedQuickActions({
         Skip to Quick Actions
       </a>
 
-      {/* Enhanced Smart Recommendations with mobile optimization */}
+      {/* Real Smart Recommendations with backend data */}
       <Card className="relative overflow-hidden border-2 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 border-purple-200/50 shadow-lg">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-indigo-500/5"></div>
         <CardHeader className={`relative ${isMobile ? 'pb-2' : 'pb-3'}`}>
@@ -372,7 +416,7 @@ export function EnhancedQuickActions({
                 AI Smart Recommendations
               </h2>
               <p className={`text-gray-600 font-normal mt-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                Personalized suggestions based on your current state
+                Based on your real activity data and current state
               </p>
             </div>
             <div className={`flex gap-2 ${isMobile ? 'flex-col' : 'flex-row'}`}>
@@ -403,7 +447,7 @@ export function EnhancedQuickActions({
         </CardContent>
       </Card>
 
-      {/* Enhanced Activity Intelligence Card with mobile optimization */}
+      {/* Real Activity Intelligence Card with backend data */}
       <Card className="bg-gradient-to-r from-slate-50 to-gray-50 border-slate-200 shadow-md">
         <CardContent className={isMobile ? 'p-3' : 'p-4'}>
           <div className={`flex items-center ${isMobile ? 'flex-col gap-3' : 'justify-between'}`}>
@@ -414,7 +458,7 @@ export function EnhancedQuickActions({
               <div>
                 <span className={`font-bold text-gray-800 ${isMobile ? 'text-sm' : ''}`}>Activity Intelligence</span>
                 <p className={`text-gray-600 mt-0.5 ${isMobile ? 'text-xs' : 'text-xs'}`}>
-                  AI-powered insights about your tennis journey
+                  Real-time insights from your tennis data
                 </p>
               </div>
             </div>
@@ -447,7 +491,7 @@ export function EnhancedQuickActions({
         </CardContent>
       </Card>
 
-      {/* Enhanced Quick Actions with mobile optimization */}
+      {/* Enhanced Quick Actions with real backend integration */}
       <Card 
         id="quick-actions"
         className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50"
@@ -460,7 +504,7 @@ export function EnhancedQuickActions({
             <div className="flex-1">
               <h2 className={`font-bold text-gray-800 ${isMobile ? 'text-lg' : 'text-xl'}`}>Smart Quick Actions</h2>
               <p className={`text-gray-600 font-normal mt-1 ${isMobile ? 'text-xs' : 'text-sm'}`}>
-                Contextually prioritized activities tailored for you
+                Powered by real activity data and player insights
               </p>
             </div>
             <div className={`flex gap-2 ${isMobile ? 'flex-col' : 'flex-row'}`}>
@@ -498,7 +542,7 @@ export function EnhancedQuickActions({
               </div>
             ))}
             
-            {/* Enhanced Recovery Center Action */}
+            {/* Real Recovery Center Action with HP integration */}
             <div 
               className={`${isMobile ? 'animate-mobile-fade' : 'animate-fade-in'}`}
               style={{ animationDelay: `${sortedActions.length * 100}ms` }}
@@ -511,7 +555,7 @@ export function EnhancedQuickActions({
         </CardContent>
       </Card>
 
-      {/* Social Play Dialog */}
+      {/* Real Social Play Dialog with backend integration */}
       <CreateSocialPlayDialog 
         open={socialPlayDialogOpen} 
         onOpenChange={setSocialPlayDialogOpen}
