@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -182,19 +181,8 @@ const Index = () => {
             <ActiveMatchWidget />
             <ActiveTrainingWidget />
 
-            {/* 2. Enhanced Quick Actions - Contextual and Smart (Desktop) */}
-            <div className="hidden sm:block">
-              <EnhancedQuickActions
-                hpData={hpData}
-                xpData={xpData}
-                onAddXP={handleAddXP}
-                onRestoreHP={handleRestoreHP}
-                onAddTokens={handleAddTokens}
-              />
-            </div>
-
-            {/* Mobile Action Panel */}
-            <MobileActionPanel
+            {/* Enhanced Quick Actions - Now Available on All Devices */}
+            <EnhancedQuickActions
               hpData={hpData}
               xpData={xpData}
               onAddXP={handleAddXP}
