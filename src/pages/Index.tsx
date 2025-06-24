@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -161,14 +160,13 @@ const Index = () => {
       {/* Player-specific content */}
       {isPlayer && (
         <>
-          {/* Phase 1: Enhanced Information Hierarchy */}
-          
-          {/* 1. Player Vitals Hero Section - Most Prominent */}
+          {/* Phase 1 & 2: Enhanced Player Vitals Hero Section with Recovery Integration */}
           <PlayerVitalsHero
             hpData={hpData}
             xpData={xpData}
             tokenData={tokenData}
             loading={vitalsLoading}
+            onRestoreHP={handleRestoreHP}
           />
 
           {/* Social Play Section - Always show quick actions for Phase 1 */}
