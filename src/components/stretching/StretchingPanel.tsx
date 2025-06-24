@@ -12,9 +12,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { useCompleteStretching } from '@/hooks/useStretching';
-import { useStretchingAchievements } from '@/hooks/useStretchingAchievements';
 import { StretchingTimer } from './StretchingTimer';
-import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { toast } from 'sonner';
 
 const STRETCHING_ROUTINES = [
@@ -61,13 +59,12 @@ export function StretchingPanel() {
   const [isStretching, setIsStretching] = useState(false);
   
   const completeStretching = useCompleteStretching();
-  const { checkStretchingAchievements } = useStretchingAchievements();
-  const { restoreHP, refreshHP } = usePlayerHP();
 
   const handleStartStretching = (routineId: string) => {
     const routine = STRETCHING_ROUTINES.find(r => r.id === routineId);
     if (!routine) return;
 
+    console.log('Starting stretching routine:', routine);
     setSelectedRoutine(routineId);
     setIsStretching(true);
     
@@ -83,9 +80,8 @@ export function StretchingPanel() {
     if (!routine) return;
 
     try {
-      console.log('Starting stretching completion process...');
+      console.log('Completing stretching session:', routine);
       
-      // Complete stretching session through backend
       const result = await completeStretching.mutateAsync({
         routine_id: routine.id,
         routine_name: routine.name,
@@ -94,18 +90,6 @@ export function StretchingPanel() {
       });
       
       console.log('Stretching completion result:', result);
-      
-      // Restore HP through backend
-      await restoreHP(routine.hp, 'stretching', `Completed ${routine.name} stretching routine`);
-      
-      // Force refresh HP data to ensure UI updates
-      console.log('Refreshing HP data after stretching...');
-      await refreshHP();
-      
-      // Check for stretching achievements after completion
-      setTimeout(() => {
-        checkStretchingAchievements();
-      }, 1000);
 
       toast.success('Stretching session completed!', {
         description: `+${routine.hp} HP restored! Great work on your recovery.`
@@ -123,6 +107,7 @@ export function StretchingPanel() {
 
   const handleCancelStretching = () => {
     const routine = STRETCHING_ROUTINES.find(r => r.id === selectedRoutine);
+    console.log('Canceling stretching session:', routine);
     setIsStretching(false);
     setSelectedRoutine(null);
     

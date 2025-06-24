@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -5,13 +6,8 @@ import { Badge } from '@/components/ui/badge';
 import { MeditationTimer } from './MeditationTimer';
 import { MeditationProgress } from './MeditationProgress';
 import { useCompleteMeditation } from '@/hooks/useMeditation';
-import { useMeditationAchievements } from '@/hooks/useMeditationAchievements';
-import { useActivityLogs } from '@/hooks/useActivityLogs';
-import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
-import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { Brain, Heart, Clock, Sparkles } from 'lucide-react';
 import { toast } from 'sonner';
-import { useQueryClient } from '@tanstack/react-query';
 
 const MEDITATION_DURATIONS = [
   { minutes: 5, hp: 5, label: 'Quick Reset', description: 'Perfect for busy schedules' },
@@ -23,13 +19,9 @@ export function MeditationPanel() {
   const [selectedDuration, setSelectedDuration] = useState<number | null>(null);
   const [isTimerActive, setIsTimerActive] = useState(false);
   const completeMeditation = useCompleteMeditation();
-  const { checkMeditationAchievements } = useMeditationAchievements();
-  const { refreshData } = useActivityLogs();
-  const { refreshData: refreshAchievements } = usePlayerAchievements();
-  const { refreshHP } = usePlayerHP();
-  const queryClient = useQueryClient();
 
   const handleStartMeditation = (duration: number) => {
+    console.log('Starting meditation with duration:', duration);
     setSelectedDuration(duration);
     setIsTimerActive(true);
   };
@@ -37,7 +29,7 @@ export function MeditationPanel() {
   const handleMeditationComplete = async () => {
     if (selectedDuration) {
       try {
-        console.log('Starting meditation completion for duration:', selectedDuration);
+        console.log('Completing meditation session with duration:', selectedDuration);
         
         const result = await completeMeditation.mutateAsync({ 
           duration_minutes: selectedDuration,
@@ -50,32 +42,6 @@ export function MeditationPanel() {
           toast.success(`🧘 Meditation complete! +${result.hp_gained} HP restored`);
         }
         
-        // Force refresh HP data first for immediate UI update
-        console.log('Refreshing HP data after meditation completion...');
-        await refreshHP();
-        
-        // Then refresh other data in parallel
-        await Promise.all([
-          refreshData(),
-          refreshAchievements(),
-          queryClient.invalidateQueries({ queryKey: ['meditation-progress'] }),
-          queryClient.invalidateQueries({ queryKey: ['meditation-sessions'] }),
-          queryClient.refetchQueries({ queryKey: ['player-achievements'] }),
-          queryClient.refetchQueries({ queryKey: ['achievement-progress'] })
-        ]);
-        
-        console.log('All data refreshed, now checking achievements...');
-        
-        // Check achievements after data refresh
-        setTimeout(async () => {
-          try {
-            await checkMeditationAchievements();
-            console.log('Meditation achievements check completed');
-          } catch (error) {
-            console.error('Error checking meditation achievements:', error);
-          }
-        }, 1000);
-        
       } catch (error) {
         console.error('Error completing meditation:', error);
         toast.error('Failed to complete meditation. Please try again.');
@@ -86,6 +52,7 @@ export function MeditationPanel() {
   };
 
   const handleMeditationCancel = () => {
+    console.log('Canceling meditation session');
     setIsTimerActive(false);
     setSelectedDuration(null);
   };
