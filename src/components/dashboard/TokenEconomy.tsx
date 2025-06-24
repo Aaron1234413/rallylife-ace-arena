@@ -7,6 +7,8 @@ import { Coins, TrendingUp } from 'lucide-react';
 
 interface TokenEconomyProps {
   tokenData: any;
+  transactions: any[];
+  transactionsLoading: boolean;
   onSpendTokens: (amount: number, tokenType: string, source: string, description?: string) => Promise<boolean>;
   onConvertTokens: (amount: number) => Promise<boolean>;
   onRestoreHP?: (amount: number, activityType: string, description?: string) => Promise<void>;
@@ -14,6 +16,8 @@ interface TokenEconomyProps {
 
 export function TokenEconomy({ 
   tokenData, 
+  transactions,
+  transactionsLoading,
   onSpendTokens, 
   onConvertTokens,
   onRestoreHP 
@@ -77,7 +81,10 @@ export function TokenEconomy({
       />
 
       {/* Transaction History */}
-      <TokenTransactionHistory />
+      <TokenTransactionHistory 
+        transactions={transactions}
+        loading={transactionsLoading}
+      />
     </div>
   );
 }

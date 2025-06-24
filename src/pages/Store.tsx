@@ -9,7 +9,7 @@ import { Store as StoreIcon, ShoppingCart, Coins } from 'lucide-react';
 
 const Store = () => {
   const { user } = useAuth();
-  const { tokenData, loading, spendTokens, convertPremiumTokens } = usePlayerTokens();
+  const { tokenData, transactions, loading, spendTokens, convertPremiumTokens } = usePlayerTokens();
   const { restoreHP } = usePlayerHP();
 
   if (loading) {
@@ -60,6 +60,8 @@ const Store = () => {
       {tokenData && (
         <TokenEconomy
           tokenData={tokenData}
+          transactions={transactions}
+          transactionsLoading={loading}
           onSpendTokens={spendTokens}
           onConvertTokens={convertPremiumTokens}
           onRestoreHP={restoreHP}
