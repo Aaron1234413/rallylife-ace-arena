@@ -6,7 +6,6 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
-import { useMatchSessions } from '@/hooks/useMatchSessions';
 import { Trophy, Clock, Target, MessageCircle } from 'lucide-react';
 import { toast } from 'sonner';
 import { AnimatedButton } from '@/components/ui/animated-button';
@@ -20,7 +19,6 @@ const EndMatch = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { sessionData, loading } = useMatchSession();
-  const { completeMatchSession } = useMatchSessions();
   
   const [finalScore, setFinalScore] = useState('');
   const [duration, setDuration] = useState('');
@@ -210,24 +208,42 @@ const EndMatch = () => {
         console.error('Error awarding tokens:', tokenError);
       }
 
-      // Complete the match session in the database
-      if (sessionData && sessionData.sets && sessionData.sets.length > 0) {
-        // Get the session ID from the active session
-        const { data: activeSessionData } = await supabase
-          .from('active_match_sessions')
-          .select('id')
-          .eq('player_id', user.id)
-          .in('status', ['active', 'paused'])
-          .single();
+      // Option 4: Direct database cleanup - Complete ALL active match sessions for this user
+      console.log('Completing all active match sessions for user:', user.id);
+      
+      const { data: activeSessions, error: queryError } = await supabase
+        .from('active_match_sessions')
+        .select('id')
+        .eq('player_id', user.id)
+        .in('status', ['active', 'paused']);
 
-        if (activeSessionData) {
-          await completeMatchSession(activeSessionData.id, {
-            finalScore: finalScore || '',
-            endMood: endMood,
-            matchNotes: matchNotes,
-            result: result
-          });
+      if (queryError) {
+        console.error('Error querying active sessions:', queryError);
+      } else if (activeSessions && activeSessions.length > 0) {
+        console.log(`Found ${activeSessions.length} active sessions to complete`);
+        
+        // Update all active sessions to completed
+        const { error: updateError } = await supabase
+          .from('active_match_sessions')
+          .update({
+            status: 'completed',
+            completed_at: new Date().toISOString(),
+            final_score: finalScore || '',
+            end_mood: endMood,
+            match_notes: matchNotes,
+            result: result,
+            updated_at: new Date().toISOString()
+          })
+          .eq('player_id', user.id)
+          .in('status', ['active', 'paused']);
+
+        if (updateError) {
+          console.error('Error completing match sessions:', updateError);
+        } else {
+          console.log('Successfully completed all active match sessions');
         }
+      } else {
+        console.log('No active sessions found to complete');
       }
 
       console.log('Match activity logged successfully:', activityData);
