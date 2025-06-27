@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
+import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 import { Play, RefreshCw, AlertCircle } from 'lucide-react';
 import { AnimatedButton } from '@/components/ui/animated-button';
 import { CardWithAnimation } from '@/components/ui/card-with-animation';
@@ -17,6 +18,7 @@ import { toast } from 'sonner';
 const StartMatch = () => {
   const navigate = useNavigate();
   const { sessionData, updateSessionData, isSessionActive, loading } = useMatchSession();
+  const { createInvitation } = useMatchInvitations();
   
   // Updated state to use SelectedOpponent objects
   const [opponent, setOpponent] = useState<SelectedOpponent | null>(null);
@@ -127,14 +129,66 @@ const StartMatch = () => {
         });
       }
 
-      // Save session data
-      await updateSessionData(sessionUpdate);
+      // Save session data (this will create the match session and participants)
+      const createdSession = await updateSessionData(sessionUpdate);
 
-      toast.success('Match started! Good luck out there! 🎾');
+      // Create invitations for internal players
+      if (createdSession?.id) {
+        try {
+          if (!isDoubles && opponent?.id) {
+            // Singles opponent invitation
+            await createInvitation({
+              matchSessionId: createdSession.id,
+              inviteeName: opponent.name,
+              inviteeId: opponent.id,
+              invitationType: 'singles_opponent',
+              message: `Let's play a singles match!`
+            });
+          } else if (isDoubles) {
+            // Doubles invitations
+            if (partner?.id) {
+              await createInvitation({
+                matchSessionId: createdSession.id,
+                inviteeName: partner.name,
+                inviteeId: partner.id,
+                invitationType: 'doubles_partner',
+                message: `Want to be my partner in a doubles match?`
+              });
+            }
+            
+            if (opponent1?.id) {
+              await createInvitation({
+                matchSessionId: createdSession.id,
+                inviteeName: opponent1.name,
+                inviteeId: opponent1.id,
+                invitationType: 'doubles_opponent_1',
+                message: `Let's play a doubles match!`
+              });
+            }
+            
+            if (opponent2?.id) {
+              await createInvitation({
+                matchSessionId: createdSession.id,
+                inviteeName: opponent2.name,
+                inviteeId: opponent2.id,
+                invitationType: 'doubles_opponent_2',
+                message: `Let's play a doubles match!`
+              });
+            }
+          }
+        } catch (invitationError) {
+          console.error('Error creating invitations:', invitationError);
+          // Don't fail the match creation if invitations fail
+          toast.warning('Match created, but some invitations could not be sent');
+        }
+      }
+
+      toast.success('Match started! Invitations sent to participants! 🎾');
       
       // Navigate to dashboard
       navigate('/');
     } catch (error) {
+      console.error('Error starting match:', error);
       toast.error('Failed to start match. Please try again.');
     } finally {
       setIsStarting(false);
@@ -286,6 +340,11 @@ const StartMatch = () => {
                     required
                     error={validationErrors.opponent}
                   />
+                  {opponent?.id && (
+                    <p className="text-xs text-green-600 mt-1 font-orbitron">
+                      ✓ Invitation will be sent to {opponent.name}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -304,6 +363,11 @@ const StartMatch = () => {
                     required
                     error={validationErrors.partner}
                   />
+                  {partner?.id && (
+                    <p className="text-xs text-green-600 mt-1 font-orbitron">
+                      ✓ Invitation will be sent to {partner.name}
+                    </p>
+                  )}
                   
                   <OpponentSearchSelector
                     label="Opponent 1"
@@ -317,6 +381,11 @@ const StartMatch = () => {
                     required
                     error={validationErrors.opponent1}
                   />
+                  {opponent1?.id && (
+                    <p className="text-xs text-green-600 mt-1 font-orbitron">
+                      ✓ Invitation will be sent to {opponent1.name}
+                    </p>
+                  )}
                   
                   <OpponentSearchSelector
                     label="Opponent 2"
@@ -325,6 +394,11 @@ const StartMatch = () => {
                     onChange={setOpponent2}
                     disabled={isStarting}
                   />
+                  {opponent2?.id && (
+                    <p className="text-xs text-green-600 mt-1 font-orbitron">
+                      ✓ Invitation will be sent to {opponent2.name}
+                    </p>
+                  )}
                 </div>
               )}
 
@@ -359,7 +433,7 @@ const StartMatch = () => {
                 className="w-full h-14 text-lg bg-tennis-green-dark hover:bg-tennis-green text-white font-semibold"
               >
                 <Play className="h-5 w-5 mr-2" />
-                {isStarting ? 'Starting Match...' : 'Start Match'}
+                {isStarting ? 'Starting Match...' : 'Start Match & Send Invitations'}
               </AnimatedButton>
             </div>
           </CardContent>

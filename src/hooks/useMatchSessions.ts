@@ -132,17 +132,81 @@ export function useMatchSessions() {
   const channelRef = useRef<any>(null);
   const subscriptionInitialized = useRef(false);
 
+  const createMatchParticipants = async (sessionId: string, params: CreateMatchSessionParams) => {
+    try {
+      // Always create the match creator as a participant
+      await supabase.from('match_participants').insert({
+        match_session_id: sessionId,
+        user_id: user?.id,
+        participant_name: 'You',
+        participant_role: 'creator',
+        is_external: false,
+        can_edit_score: true
+      });
+
+      if (!params.isDoubles) {
+        // Singles match - create opponent participant
+        await supabase.from('match_participants').insert({
+          match_session_id: sessionId,
+          user_id: params.opponentId || null,
+          participant_name: params.opponentName,
+          participant_role: 'opponent',
+          is_external: !params.opponentId,
+          can_edit_score: !!params.opponentId // Only internal users can edit scores initially
+        });
+      } else {
+        // Doubles match - create all participants
+        if (params.partnerName) {
+          await supabase.from('match_participants').insert({
+            match_session_id: sessionId,
+            user_id: params.partnerId || null,
+            participant_name: params.partnerName,
+            participant_role: 'partner',
+            is_external: !params.partnerId,
+            can_edit_score: !!params.partnerId
+          });
+        }
+
+        if (params.opponent1Name) {
+          await supabase.from('match_participants').insert({
+            match_session_id: sessionId,
+            user_id: params.opponent1Id || null,
+            participant_name: params.opponent1Name,
+            participant_role: 'opponent_1',
+            is_external: !params.opponent1Id,
+            can_edit_score: !!params.opponent1Id
+          });
+        }
+
+        if (params.opponent2Name) {
+          await supabase.from('match_participants').insert({
+            match_session_id: sessionId,
+            user_id: params.opponent2Id || null,
+            participant_name: params.opponent2Name,
+            participant_role: 'opponent_2',
+            is_external: !params.opponent2Id,
+            can_edit_score: !!params.opponent2Id
+          });
+        }
+      }
+    } catch (error) {
+      console.error('Error creating match participants:', error);
+      throw error;
+    }
+  };
+
   const fetchActiveSession = async () => {
     if (!user) return;
 
     try {
       console.log('Fetching active match session for user:', user.id);
       
+      // Updated query to include sessions where user is a participant
       const { data, error } = await supabase
         .from('active_match_sessions')
         .select('*')
-        .eq('player_id', user.id)
-        .eq('status', 'active') // Only fetch truly active sessions, not completed ones
+        .or(`player_id.eq.${user.id},id.in.(${await getUserMatchSessions()})`)
+        .eq('status', 'active')
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
@@ -161,6 +225,26 @@ export function useMatchSessions() {
       }
     } catch (error) {
       console.error('Error in fetchActiveSession:', error);
+    }
+  };
+
+  // Helper function to get match session IDs where user is a participant
+  const getUserMatchSessions = async (): Promise<string> => {
+    if (!user) return '';
+    
+    try {
+      const { data, error } = await supabase
+        .from('match_participants')
+        .select('match_session_id')
+        .eq('user_id', user.id);
+
+      if (error) throw error;
+      
+      const sessionIds = data?.map(p => p.match_session_id) || [];
+      return sessionIds.length > 0 ? sessionIds.join(',') : 'none';
+    } catch (error) {
+      console.error('Error getting user match sessions:', error);
+      return '';
     }
   };
 
@@ -200,6 +284,9 @@ export function useMatchSessions() {
       }
 
       console.log('Match session created successfully:', data);
+      
+      // Create match participants
+      await createMatchParticipants(data.id, params);
       
       const typedData = toActiveMatchSession(data);
       setActiveSession(typedData);
@@ -312,20 +399,35 @@ export function useMatchSessions() {
       // Clean up any existing channel
       cleanupChannel();
 
-      // Set up real-time subscription
+      // Set up real-time subscription - now includes participant-based matches
       const channelName = `match-sessions-${user.id}-${Date.now()}`;
       const channel = supabase.channel(channelName);
       
+      // Listen to active_match_sessions changes
       channel.on(
         'postgres_changes',
         {
           event: '*',
           schema: 'public',
-          table: 'active_match_sessions',
-          filter: `player_id=eq.${user.id}`
+          table: 'active_match_sessions'
         },
         (payload) => {
           console.log('Match session real-time update:', payload);
+          fetchActiveSession();
+        }
+      );
+
+      // Also listen to match_participants changes
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'match_participants',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Match participant real-time update:', payload);
           fetchActiveSession();
         }
       );
