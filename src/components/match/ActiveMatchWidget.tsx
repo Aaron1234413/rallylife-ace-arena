@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,7 +5,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, RefreshCw, AlertCircle, UserPlus } from 'lucide-react';
+import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, RefreshCw, AlertCircle } from 'lucide-react';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
 import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 import { MidMatchCheckInModal } from './MidMatchCheckInModal';
@@ -200,23 +199,6 @@ export const ActiveMatchWidget = () => {
               <p className="text-sm text-yellow-800">
                 You're offline. Changes will sync automatically when connection is restored.
               </p>
-            </div>
-          )}
-
-          {/* Participants Section */}
-          {participants.length > 0 && (
-            <div className="bg-white rounded-lg border p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <UserPlus className="h-4 w-4 text-tennis-green-dark" />
-                <span className="font-medium text-tennis-green-dark font-orbitron">Match Participants</span>
-              </div>
-              <div className="flex flex-wrap gap-2">
-                {participants.map((participant) => (
-                  <Badge key={participant.id} variant="outline" className="font-orbitron">
-                    {participant.user_name || 'Unknown Player'}
-                  </Badge>
-                ))}
-              </div>
             </div>
           )}
 

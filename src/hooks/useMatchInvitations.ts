@@ -93,6 +93,22 @@ export function useMatchInvitations() {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
 
+      // Get invitee name if we have an ID
+      let inviteeName = 'Unknown Player';
+      if (inviteeId) {
+        const { data: inviteeProfile } = await supabase
+          .from('profiles')
+          .select('full_name')
+          .eq('id', inviteeId)
+          .single();
+        
+        if (inviteeProfile) {
+          inviteeName = inviteeProfile.full_name || 'Unknown Player';
+        }
+      } else if (inviteeEmail) {
+        inviteeName = inviteeEmail;
+      }
+
       const { error } = await supabase
         .from('match_invitations')
         .insert({
@@ -100,6 +116,8 @@ export function useMatchInvitations() {
           inviter_id: user.id,
           invitee_id: inviteeId,
           invitee_email: inviteeEmail,
+          invitee_name: inviteeName,
+          invitation_type: 'match',
           message,
           status: 'pending',
           expires_at: expiresAt.toISOString()
@@ -141,12 +159,23 @@ export function useMatchInvitations() {
         return;
       }
 
+      // Get user's full name for participant record
+      const { data: userProfile } = await supabase
+        .from('profiles')
+        .select('full_name')
+        .eq('id', user.id)
+        .single();
+
+      const userName = userProfile?.full_name || 'Unknown Player';
+
       // Add to match participants
       const { error: participantError } = await supabase
         .from('match_participants')
         .insert({
           match_session_id: invitation.match_session_id,
-          user_id: user.id
+          user_id: user.id,
+          participant_name: userName,
+          participant_role: 'player'
         });
 
       if (participantError) {
