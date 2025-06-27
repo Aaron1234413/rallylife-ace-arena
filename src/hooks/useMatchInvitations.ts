@@ -3,12 +3,13 @@ import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useQueryClient } from '@tanstack/react-query';
 import type { MatchInvitation, MatchParticipant, SendInvitationParams } from '@/types/match-invitations';
 
 export function useMatchInvitations() {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [invitations, setInvitations] = useState<MatchInvitation[]>([]);
-  const [participants, setParticipants] = useState<MatchParticipant[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
   const subscriptionInitialized = useRef(false);
@@ -25,7 +26,7 @@ export function useMatchInvitations() {
           invitee:profiles!match_invitations_invitee_id_fkey(full_name),
           session:active_match_sessions(opponent_name)
         `)
-        .or(`inviter_id.eq.${user.id},invitee_id.eq.${user.id}`)
+        .eq('invitee_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
 
@@ -53,36 +54,6 @@ export function useMatchInvitations() {
       setInvitations(typedInvitations);
     } catch (error) {
       console.error('Error in fetchInvitations:', error);
-    }
-  };
-
-  const fetchParticipants = async (sessionId: string) => {
-    if (!user) return [];
-
-    try {
-      const { data, error } = await supabase
-        .from('match_participants')
-        .select(`
-          *,
-          user:profiles(full_name)
-        `)
-        .eq('match_session_id', sessionId);
-
-      if (error) {
-        console.error('Error fetching participants:', error);
-        return [];
-      }
-
-      return (data || []).map(p => ({
-        id: p.id,
-        match_session_id: p.match_session_id,
-        user_id: p.user_id,
-        joined_at: p.joined_at,
-        user_name: p.user?.full_name
-      }));
-    } catch (error) {
-      console.error('Error in fetchParticipants:', error);
-      return [];
     }
   };
 
@@ -130,6 +101,11 @@ export function useMatchInvitations() {
       }
 
       toast.success('Invitation sent successfully!');
+      
+      // Invalidate React Query caches
+      queryClient.invalidateQueries({ queryKey: ['match-invitations'] });
+      queryClient.invalidateQueries({ queryKey: ['match-sessions'] });
+      
       await fetchInvitations();
     } catch (error) {
       console.error('Error in sendInvitation:', error);
@@ -187,7 +163,11 @@ export function useMatchInvitations() {
       // Update invitation status
       const { error: updateError } = await supabase
         .from('match_invitations')
-        .update({ status: 'accepted', updated_at: new Date().toISOString() })
+        .update({ 
+          status: 'accepted', 
+          responded_at: new Date().toISOString(),
+          updated_at: new Date().toISOString() 
+        })
         .eq('id', inviteId);
 
       if (updateError) {
@@ -195,6 +175,12 @@ export function useMatchInvitations() {
       }
 
       toast.success('Invitation accepted! You\'ve joined the match.');
+      
+      // Invalidate React Query caches
+      queryClient.invalidateQueries({ queryKey: ['match-invitations'] });
+      queryClient.invalidateQueries({ queryKey: ['match-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['match-participants'] });
+      
       await fetchInvitations();
     } catch (error) {
       console.error('Error in acceptInvitation:', error);
@@ -208,7 +194,11 @@ export function useMatchInvitations() {
     try {
       const { error } = await supabase
         .from('match_invitations')
-        .update({ status: 'declined', updated_at: new Date().toISOString() })
+        .update({ 
+          status: 'declined', 
+          responded_at: new Date().toISOString(),
+          updated_at: new Date().toISOString() 
+        })
         .eq('id', inviteId);
 
       if (error) {
@@ -218,6 +208,11 @@ export function useMatchInvitations() {
       }
 
       toast.success('Invitation declined');
+      
+      // Invalidate React Query caches
+      queryClient.invalidateQueries({ queryKey: ['match-invitations'] });
+      queryClient.invalidateQueries({ queryKey: ['match-sessions'] });
+      
       await fetchInvitations();
     } catch (error) {
       console.error('Error in declineInvitation:', error);
@@ -250,26 +245,21 @@ export function useMatchInvitations() {
 
       loadData();
 
-      // Set up real-time subscription
+      // Set up real-time subscription - only for invitations where current user is invitee
       const channelName = `match-invitations-${user.id}-${Date.now()}`;
       const channel = supabase.channel(channelName);
       
       channel.on(
         'postgres_changes',
         {
-          event: '*',
+          event: 'INSERT',
           schema: 'public',
           table: 'match_invitations',
-          filter: `or(inviter_id.eq.${user.id},invitee_id.eq.${user.id})`
+          filter: `invitee_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Match invitation real-time update:', payload);
-          
-          // Show toast for new invitations
-          if (payload.eventType === 'INSERT' && payload.new.invitee_id === user.id) {
-            toast.info('🎾 New match invitation received!');
-          }
-          
+          console.log('New match invitation received:', payload);
+          toast.info('🎾 New match invitation received!');
           fetchInvitations();
         }
       );
@@ -294,9 +284,39 @@ export function useMatchInvitations() {
     }
   }, [user]);
 
+  // Legacy function for backward compatibility
+  const fetchParticipants = async (sessionId: string): Promise<MatchParticipant[]> => {
+    if (!user) return [];
+
+    try {
+      const { data, error } = await supabase
+        .from('match_participants')
+        .select(`
+          *,
+          user:profiles(full_name)
+        `)
+        .eq('match_session_id', sessionId);
+
+      if (error) {
+        console.error('Error fetching participants:', error);
+        return [];
+      }
+
+      return (data || []).map(p => ({
+        id: p.id,
+        match_session_id: p.match_session_id,
+        user_id: p.user_id,
+        joined_at: p.joined_at,
+        user_name: p.user?.full_name
+      }));
+    } catch (error) {
+      console.error('Error in fetchParticipants:', error);
+      return [];
+    }
+  };
+
   return {
     invitations,
-    participants,
     loading,
     sendInvitation,
     acceptInvitation,
