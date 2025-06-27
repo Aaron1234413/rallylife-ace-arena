@@ -4010,6 +4010,18 @@ export type Database = {
         Args: { user_id: string }
         Returns: undefined
       }
+      is_session_invitee: {
+        Args: { session_id: string }
+        Returns: boolean
+      }
+      is_session_owner: {
+        Args: { session_id: string }
+        Returns: boolean
+      }
+      is_session_participant: {
+        Args: { session_id: string }
+        Returns: boolean
+      }
       json: {
         Args: { "": unknown }
         Returns: Json

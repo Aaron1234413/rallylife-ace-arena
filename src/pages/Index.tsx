@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -31,6 +32,7 @@ import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget
 import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
 import { useSocialPlaySession } from "@/contexts/SocialPlaySessionContext";
 import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
+import { MatchInvitations } from "@/components/match/MatchInvitations";
 
 const Index = () => {
   const { user } = useAuth();
@@ -157,6 +159,9 @@ const Index = () => {
       <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Welcome Banner */}
         <WelcomeBanner />
+
+        {/* Match Invitations - Show for all authenticated users */}
+        <MatchInvitations />
 
         {/* Player-specific content */}
         {isPlayer && (
