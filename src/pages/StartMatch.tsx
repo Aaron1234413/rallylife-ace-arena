@@ -24,7 +24,16 @@ const StartMatch = () => {
   const [partner, setPartner] = useState<SelectedOpponent | null>(null);
   const [opponent1, setOpponent1] = useState<SelectedOpponent | null>(null);
   const [opponent2, setOpponent2] = useState<SelectedOpponent | null>(null);
-  const [startTime, setStartTime] = useState(new Date().toISOString().slice(0, 16));
+  
+  // Fix timezone issue by using local timezone
+  const getLocalDateTimeString = () => {
+    const now = new Date();
+    // Get local timezone offset and adjust
+    const localDateTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+    return localDateTime.toISOString().slice(0, 16);
+  };
+  
+  const [startTime, setStartTime] = useState(getLocalDateTimeString());
   const [isStarting, setIsStarting] = useState(false);
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -89,11 +98,14 @@ const StartMatch = () => {
       // Small delay for UX
       await new Promise(resolve => setTimeout(resolve, 800));
 
+      // Convert local datetime string to proper Date object
+      const startDateTime = new Date(startTime);
+
       // Prepare session data with opponent IDs and names
       const sessionUpdate = {
         matchType: (isDoubles ? 'doubles' : 'singles') as 'singles' | 'doubles',
         isDoubles,
-        startTime: new Date(startTime)
+        startTime: startDateTime
       };
 
       if (isDoubles) {
@@ -325,7 +337,7 @@ const StartMatch = () => {
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
                 disabled={isStarting}
-                helpText="Auto-captured (modify if logging a past match)"
+                helpText="Auto-captured in your local timezone (modify if logging a past match)"
               />
             </div>
 
