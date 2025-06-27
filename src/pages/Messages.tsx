@@ -22,6 +22,7 @@ import { PlayerStatusCard } from '@/components/messages/PlayerStatusCard';
 import { ChallengeCard } from '@/components/messages/ChallengeCard';
 import { AchievementShareCard } from '@/components/messages/AchievementShareCard';
 import { NewConversationDialog } from '@/components/messages/NewConversationDialog';
+import { MatchInvitations } from '@/components/match/MatchInvitations';
 
 export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -66,6 +67,11 @@ export default function Messages() {
         <div className={`w-full md:w-80 border-r bg-background flex flex-col ${
           showMobileConversation ? 'hidden md:flex' : 'flex'
         }`}>
+          {/* Match Invitations */}
+          <div className="p-4 border-b">
+            <MatchInvitations />
+          </div>
+
           {/* Search */}
           <div className="p-4 border-b">
             <div className="relative">
