@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +15,54 @@ import { useMatchRewards } from '@/hooks/useMatchRewards';
 import { getRandomMessage } from '@/utils/motivationalMessages';
 import { toast } from 'sonner';
 
+// Helper function to format date for datetime-local input in EST
+const formatDateForInput = (date: Date): string => {
+  // Convert to EST (UTC-5) or EDT (UTC-4) depending on daylight saving time
+  const estOffset = -5; // EST is UTC-5
+  const edtOffset = -4; // EDT is UTC-4
+  
+  // Check if it's daylight saving time (rough approximation)
+  const isDST = (date: Date): boolean => {
+    const jan = new Date(date.getFullYear(), 0, 1).getTimezoneOffset();
+    const jul = new Date(date.getFullYear(), 6, 1).getTimezoneOffset();
+    return Math.max(jan, jul) !== date.getTimezoneOffset();
+  };
+  
+  const offset = isDST(date) ? edtOffset : estOffset;
+  const estDate = new Date(date.getTime() + (offset * 60 * 60 * 1000));
+  
+  // Format as YYYY-MM-DDTHH:MM for datetime-local input
+  const year = estDate.getUTCFullYear();
+  const month = String(estDate.getUTCMonth() + 1).padStart(2, '0');
+  const day = String(estDate.getUTCDate()).padStart(2, '0');
+  const hours = String(estDate.getUTCHours()).padStart(2, '0');
+  const minutes = String(estDate.getUTCMinutes()).padStart(2, '0');
+  
+  return `${year}-${month}-${day}T${hours}:${minutes}`;
+};
+
+// Helper function to parse datetime-local input as EST and convert to UTC
+const parseInputDateAsEST = (inputValue: string): Date => {
+  if (!inputValue) return new Date();
+  
+  // Parse the input value as if it's in EST
+  const localDate = new Date(inputValue);
+  
+  // Get the current timezone offset
+  const now = new Date();
+  const isDST = (date: Date): boolean => {
+    const jan = new Date(date.getFullYear(), 0, 1).getTimezoneOffset();
+    const jul = new Date(date.getFullYear(), 6, 1).getTimezoneOffset();
+    return Math.max(jan, jul) !== date.getTimezoneOffset();
+  };
+  
+  // EST/EDT offset in minutes
+  const estOffset = isDST(now) ? 4 * 60 : 5 * 60; // EDT is UTC-4, EST is UTC-5
+  
+  // Convert to UTC by adding the EST offset
+  return new Date(localDate.getTime() + (estOffset * 60 * 1000));
+};
+
 const StartMatch = () => {
   const navigate = useNavigate();
   const { sessionData, updateSessionData, isSessionActive, loading } = useMatchSession();
@@ -24,7 +73,7 @@ const StartMatch = () => {
   const [partner, setPartner] = useState<SelectedOpponent | null>(null);
   const [opponent1, setOpponent1] = useState<SelectedOpponent | null>(null);
   const [opponent2, setOpponent2] = useState<SelectedOpponent | null>(null);
-  const [startTime, setStartTime] = useState(new Date().toISOString().slice(0, 16));
+  const [startTime, setStartTime] = useState(() => formatDateForInput(new Date()));
   const [isStarting, setIsStarting] = useState(false);
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -89,11 +138,14 @@ const StartMatch = () => {
       // Small delay for UX
       await new Promise(resolve => setTimeout(resolve, 800));
 
+      // Parse the start time as EST and convert to proper Date object
+      const matchStartTime = parseInputDateAsEST(startTime);
+
       // Prepare session data with opponent IDs and names
       const sessionUpdate = {
         matchType: (isDoubles ? 'doubles' : 'singles') as 'singles' | 'doubles',
         isDoubles,
-        startTime: new Date(startTime)
+        startTime: matchStartTime
       };
 
       if (isDoubles) {
@@ -319,13 +371,13 @@ const StartMatch = () => {
               {/* Start Time Override */}
               <FormField
                 id="startTime"
-                label="Start Time"
+                label="Start Time (EST)"
                 type="datetime-local"
                 placeholder=""
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
                 disabled={isStarting}
-                helpText="Auto-captured (modify if logging a past match)"
+                helpText="Auto-captured in EST (modify if logging a past match)"
               />
             </div>
 

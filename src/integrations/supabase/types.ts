@@ -1701,6 +1701,127 @@ export type Database = {
         }
         Relationships: []
       }
+      match_invitations: {
+        Row: {
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          invitation_type: string
+          invitee_email: string | null
+          invitee_id: string | null
+          invitee_name: string
+          inviter_id: string
+          match_session_id: string
+          message: string | null
+          responded_at: string | null
+          status: string
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          invitation_type: string
+          invitee_email?: string | null
+          invitee_id?: string | null
+          invitee_name: string
+          inviter_id: string
+          match_session_id: string
+          message?: string | null
+          responded_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          invitation_type?: string
+          invitee_email?: string | null
+          invitee_id?: string | null
+          invitee_name?: string
+          inviter_id?: string
+          match_session_id?: string
+          message?: string | null
+          responded_at?: string | null
+          status?: string
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_invitations_invitee_id_fkey"
+            columns: ["invitee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_invitations_inviter_id_fkey"
+            columns: ["inviter_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_invitations_match_session_id_fkey"
+            columns: ["match_session_id"]
+            isOneToOne: false
+            referencedRelation: "active_match_sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      match_participants: {
+        Row: {
+          can_edit_score: boolean | null
+          created_at: string | null
+          id: string
+          is_external: boolean | null
+          joined_at: string | null
+          match_session_id: string
+          participant_name: string
+          participant_role: string
+          user_id: string | null
+        }
+        Insert: {
+          can_edit_score?: boolean | null
+          created_at?: string | null
+          id?: string
+          is_external?: boolean | null
+          joined_at?: string | null
+          match_session_id: string
+          participant_name: string
+          participant_role: string
+          user_id?: string | null
+        }
+        Update: {
+          can_edit_score?: boolean | null
+          created_at?: string | null
+          id?: string
+          is_external?: boolean | null
+          joined_at?: string | null
+          match_session_id?: string
+          participant_name?: string
+          participant_role?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "match_participants_match_session_id_fkey"
+            columns: ["match_session_id"]
+            isOneToOne: false
+            referencedRelation: "active_match_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_participants_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       match_relationships: {
         Row: {
           activity_log_id: string | null
