@@ -168,16 +168,15 @@ const StartMatch = () => {
         });
       }
 
-      // Save session data
+      // Save session data and get the created session with ID
       const createdSession = await updateSessionData(sessionUpdate);
       
-      // Get the session ID from the context after update
-      if (sessionData?.id) {
-        // Send invitations to opponents if they have IDs
+      // Send invitations to opponents if they have IDs and we have a session ID
+      if (createdSession?.id) {
         if (!isDoubles && opponent?.id) {
           // Singles: invite the opponent
           await sendInvitation({
-            sessionId: sessionData.id,
+            sessionId: createdSession.id,
             inviteeId: opponent.id,
             inviteeName: opponent.name,
             message: `I'd like to play a tennis match with you!`
@@ -186,7 +185,7 @@ const StartMatch = () => {
           // Doubles: invite partner and opponents
           if (partner?.id) {
             await sendInvitation({
-              sessionId: sessionData.id,
+              sessionId: createdSession.id,
               inviteeId: partner.id,
               inviteeName: partner.name,
               message: `Want to be my partner for a doubles match?`
@@ -194,7 +193,7 @@ const StartMatch = () => {
           }
           if (opponent1?.id) {
             await sendInvitation({
-              sessionId: sessionData.id,
+              sessionId: createdSession.id,
               inviteeId: opponent1.id,
               inviteeName: opponent1.name,
               message: `I'd like to play a doubles match against you!`
@@ -202,7 +201,7 @@ const StartMatch = () => {
           }
           if (opponent2?.id) {
             await sendInvitation({
-              sessionId: sessionData.id,
+              sessionId: createdSession.id,
               inviteeId: opponent2.id,
               inviteeName: opponent2.name,
               message: `I'd like to play a doubles match against you!`

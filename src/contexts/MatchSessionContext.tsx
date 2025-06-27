@@ -1,8 +1,9 @@
-
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useMatchSessions } from '@/hooks/useMatchSessions';
 
 interface MatchSessionData {
+  // Add the id field
+  id: string;
   // Start match data
   opponentName: string;
   opponentId?: string; // New: Store opponent player ID
@@ -38,7 +39,7 @@ interface MatchSessionData {
 
 interface MatchSessionContextType {
   sessionData: MatchSessionData | null;
-  updateSessionData: (data: Partial<MatchSessionData>) => Promise<void>;
+  updateSessionData: (data: Partial<MatchSessionData>) => Promise<MatchSessionData | void>;
   logSetScore: (playerScore: string, opponentScore: string) => Promise<void>;
   startNextSet: () => Promise<void>;
   clearSession: () => void;
@@ -73,6 +74,7 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
 
   // Convert database session to context format
   const sessionData: MatchSessionData | null = activeSession ? {
+    id: activeSession.id, // Include the id from the database
     opponentName: activeSession.opponent_name,
     opponentId: activeSession.opponent_id,
     isDoubles: activeSession.is_doubles,
@@ -98,7 +100,7 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
     if (!activeSession) {
       // Create new session
       if (data.opponentName && data.matchType && data.startTime) {
-        await createMatchSession({
+        const createdSession = await createMatchSession({
           opponentName: data.opponentName,
           opponentId: data.opponentId,
           isDoubles: data.isDoubles || false,
@@ -111,12 +113,34 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
           matchType: data.matchType,
           startTime: data.startTime
         });
+        return createdSession ? {
+          id: createdSession.id,
+          opponentName: createdSession.opponent_name,
+          opponentId: createdSession.opponent_id,
+          isDoubles: createdSession.is_doubles,
+          partnerName: createdSession.partner_name,
+          partnerId: createdSession.partner_id,
+          opponent1Name: createdSession.opponent_1_name,
+          opponent1Id: createdSession.opponent_1_id,
+          opponent2Name: createdSession.opponent_2_name,
+          opponent2Id: createdSession.opponent_2_id,
+          matchType: createdSession.match_type,
+          startTime: new Date(createdSession.start_time),
+          sets: createdSession.sets,
+          currentSet: createdSession.current_set,
+          midMatchMood: createdSession.mid_match_mood,
+          midMatchNotes: createdSession.mid_match_notes,
+          finalScore: createdSession.final_score,
+          endMood: createdSession.end_mood,
+          matchNotes: createdSession.match_notes,
+          result: createdSession.result
+        } : undefined;
       }
       return;
     }
 
     // Update existing session
-    await updateMatchSession({
+    const updatedSession = await updateMatchSession({
       sessionId: activeSession.id,
       sets: data.sets,
       currentSet: data.currentSet,
@@ -127,6 +151,29 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
       matchNotes: data.matchNotes,
       result: data.result
     });
+
+    return updatedSession ? {
+      id: updatedSession.id,
+      opponentName: updatedSession.opponent_name,
+      opponentId: updatedSession.opponent_id,
+      isDoubles: updatedSession.is_doubles,
+      partnerName: updatedSession.partner_name,
+      partnerId: updatedSession.partner_id,
+      opponent1Name: updatedSession.opponent_1_name,
+      opponent1Id: updatedSession.opponent_1_id,
+      opponent2Name: updatedSession.opponent_2_name,
+      opponent2Id: updatedSession.opponent_2_id,
+      matchType: updatedSession.match_type,
+      startTime: new Date(updatedSession.start_time),
+      sets: updatedSession.sets,
+      currentSet: updatedSession.current_set,
+      midMatchMood: updatedSession.mid_match_mood,
+      midMatchNotes: updatedSession.mid_match_notes,
+      finalScore: updatedSession.final_score,
+      endMood: updatedSession.end_mood,
+      matchNotes: updatedSession.match_notes,
+      result: updatedSession.result
+    } : undefined;
   };
 
   const logSetScore = async (playerScore: string, opponentScore: string) => {
