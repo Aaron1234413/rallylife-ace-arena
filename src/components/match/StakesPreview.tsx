@@ -84,10 +84,10 @@ export const StakesPreview: React.FC<StakesPreviewProps> = ({
         <CardTitle className="flex items-center justify-between text-base">
           <div className="flex items-center gap-2">
             {isDoubles ? <Users className="h-4 w-4" /> : <Target className="h-4 w-4" />}
-            Match Stakes
+            <span className="font-orbitron font-bold">Match Stakes</span>
           </div>
           {multiplierText && (
-            <Badge variant="secondary" className="text-xs">
+            <Badge variant="secondary" className="text-xs font-orbitron font-bold">
               {multiplierText} Multiplier
             </Badge>
           )}
@@ -101,7 +101,7 @@ export const StakesPreview: React.FC<StakesPreviewProps> = ({
             <span className="text-sm text-gray-600">Difficulty:</span>
             <Badge 
               variant="outline" 
-              className={`text-xs flex items-center gap-1 ${
+              className={`text-xs flex items-center gap-1 font-orbitron font-medium ${
                 !isDoubles && opponentAnalysis?.estimatedDifficulty 
                   ? getDifficultyColor(opponentAnalysis.estimatedDifficulty)
                   : 'bg-blue-50 text-blue-700 border-blue-100'
@@ -130,22 +130,22 @@ export const StakesPreview: React.FC<StakesPreviewProps> = ({
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-green-50 border border-green-200 rounded-lg p-3">
             <div className="text-center">
-              <div className="text-xs font-medium text-green-800 mb-1">If You Win</div>
+              <div className="text-xs font-semibold text-green-800 mb-1 font-orbitron">If You Win</div>
               <div className="space-y-1">
-                <div className="text-xs text-green-700">🎮 +{rewards.winXP} XP</div>
-                <div className="text-xs text-green-700">❤️ +{rewards.winHP} HP</div>
-                <div className="text-xs text-green-700">🪙 +{rewards.winTokens} Tokens</div>
+                <div className="text-xs text-green-700 font-orbitron font-medium">🎮 +{rewards.winXP} XP</div>
+                <div className="text-xs text-green-700 font-orbitron font-medium">❤️ +{rewards.winHP} HP</div>
+                <div className="text-xs text-green-700 font-orbitron font-medium">🪙 +{rewards.winTokens} Tokens</div>
               </div>
             </div>
           </div>
 
           <div className="bg-red-50 border border-red-200 rounded-lg p-3">
             <div className="text-center">
-              <div className="text-xs font-medium text-red-800 mb-1">If You Lose</div>
+              <div className="text-xs font-semibold text-red-800 mb-1 font-orbitron">If You Lose</div>
               <div className="space-y-1">
-                <div className="text-xs text-red-700">🎮 +{rewards.loseXP} XP</div>
-                <div className="text-xs text-red-700">❤️ {rewards.loseHP} HP</div>
-                <div className="text-xs text-red-700">🪙 +{rewards.loseTokens} Tokens</div>
+                <div className="text-xs text-red-700 font-orbitron font-medium">🎮 +{rewards.loseXP} XP</div>
+                <div className="text-xs text-red-700 font-orbitron font-medium">❤️ {rewards.loseHP} HP</div>
+                <div className="text-xs text-red-700 font-orbitron font-medium">🪙 +{rewards.loseTokens} Tokens</div>
               </div>
             </div>
           </div>

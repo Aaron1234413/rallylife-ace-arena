@@ -152,22 +152,22 @@ export const ActiveMatchWidget = () => {
           <CardTitle className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Users className="h-5 w-5 text-tennis-green-dark" />
-              <span className="text-lg">Active Match</span>
+              <span className="text-lg font-orbitron font-bold">Active Match</span>
               {isSyncing && <LoadingSpinner size="sm" />}
             </div>
             <div className="flex items-center gap-2">
-              <Badge variant="outline" className="flex items-center gap-1">
+              <Badge variant="outline" className="flex items-center gap-1 font-orbitron font-medium">
                 <Clock className="h-3 w-3" />
                 {matchDuration}m
               </Badge>
               {!isOnline && (
-                <Badge variant="destructive" className="flex items-center gap-1">
+                <Badge variant="destructive" className="flex items-center gap-1 font-orbitron font-medium">
                   <WifiOff className="h-3 w-3" />
                   Offline
                 </Badge>
               )}
               {isOnline && lastSyncTime && (
-                <Badge variant="secondary" className="flex items-center gap-1 text-xs">
+                <Badge variant="secondary" className="flex items-center gap-1 text-xs font-orbitron font-medium">
                   <Wifi className="h-3 w-3" />
                   Synced
                 </Badge>
@@ -193,9 +193,9 @@ export const ActiveMatchWidget = () => {
               <Table>
                 <TableHeader>
                   <TableRow className="bg-tennis-green-dark hover:bg-tennis-green-dark">
-                    <TableHead className="text-white font-semibold">Score</TableHead>
-                    <TableHead className="text-white font-semibold text-center">You</TableHead>
-                    <TableHead className="text-white font-semibold text-center">Opponent</TableHead>
+                    <TableHead className="text-white font-semibold font-orbitron">Score</TableHead>
+                    <TableHead className="text-white font-semibold text-center font-orbitron">You</TableHead>
+                    <TableHead className="text-white font-semibold text-center font-orbitron">Opponent</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -205,12 +205,12 @@ export const ActiveMatchWidget = () => {
                         {getSetLabel(index)}
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="inline-flex items-center justify-center min-w-[32px] h-8 bg-tennis-green-dark text-white font-bold rounded text-sm">
+                        <span className="inline-flex items-center justify-center min-w-[32px] h-8 bg-tennis-green-dark text-white font-bold rounded text-sm font-orbitron">
                           {set.playerScore}
                         </span>
                       </TableCell>
                       <TableCell className="text-center">
-                        <span className="inline-flex items-center justify-center min-w-[32px] h-8 bg-gray-600 text-white font-bold rounded text-sm">
+                        <span className="inline-flex items-center justify-center min-w-[32px] h-8 bg-gray-600 text-white font-bold rounded text-sm font-orbitron">
                           {set.opponentScore}
                         </span>
                       </TableCell>
@@ -220,7 +220,7 @@ export const ActiveMatchWidget = () => {
               </Table>
             ) : (
               <div className="p-6 text-center text-tennis-green-dark">
-                <p className="text-lg font-medium">No sets completed yet</p>
+                <p className="text-lg font-medium font-orbitron">No sets completed yet</p>
                 <p className="text-sm text-gray-600 mt-1">Start playing and log your first set score below</p>
               </div>
             )}
@@ -229,13 +229,13 @@ export const ActiveMatchWidget = () => {
           {/* Next Set Prompt */}
           {showNextSetPrompt && (
             <div className="bg-tennis-green-light/10 rounded-lg p-4 text-center space-y-3">
-              <p className="font-medium text-tennis-green-dark">
+              <p className="font-medium text-tennis-green-dark font-orbitron">
                 Set {sessionData.currentSet + 1} completed! Are you playing another set?
               </p>
               <div className="flex gap-2">
                 <Button
                   onClick={handleStartNextSet}
-                  className="flex-1 bg-tennis-green-dark hover:bg-tennis-green text-white"
+                  className="flex-1 bg-tennis-green-dark hover:bg-tennis-green text-white font-orbitron font-semibold"
                   disabled={isSyncing || !isOnline}
                 >
                   <Plus className="h-4 w-4 mr-2" />
@@ -244,7 +244,7 @@ export const ActiveMatchWidget = () => {
                 <Button
                   onClick={handleEndMatch}
                   variant="outline"
-                  className="flex-1"
+                  className="flex-1 font-orbitron font-medium"
                 >
                   <Square className="h-4 w-4 mr-2" />
                   End Match
@@ -256,7 +256,7 @@ export const ActiveMatchWidget = () => {
           {/* Current Set Score Input */}
           {!currentSet?.completed && (
             <div className="bg-gray-50 rounded-lg p-4 space-y-4">
-              <h4 className="font-medium text-gray-900">
+              <h4 className="font-medium text-gray-900 font-orbitron">
                 Set {sessionData.currentSet + 1} Score
               </h4>
               <div className="grid grid-cols-2 gap-3">
@@ -269,7 +269,7 @@ export const ActiveMatchWidget = () => {
                     value={playerSetScore}
                     onChange={(e) => setPlayerSetScore(e.target.value)}
                     placeholder="e.g., 6"
-                    className="text-center"
+                    className="text-center font-orbitron font-semibold"
                     disabled={isSyncing}
                   />
                 </div>
@@ -282,14 +282,14 @@ export const ActiveMatchWidget = () => {
                     value={opponentSetScore}
                     onChange={(e) => setOpponentSetScore(e.target.value)}
                     placeholder="e.g., 4"
-                    className="text-center"
+                    className="text-center font-orbitron font-semibold"
                     disabled={isSyncing}
                   />
                 </div>
               </div>
               <Button
                 onClick={handleLogSetScore}
-                className="w-full bg-tennis-green-dark hover:bg-tennis-green text-white"
+                className="w-full bg-tennis-green-dark hover:bg-tennis-green text-white font-orbitron font-semibold"
                 size="sm"
                 disabled={!playerSetScore.trim() || !opponentSetScore.trim() || isSyncing}
               >
@@ -333,7 +333,7 @@ export const ActiveMatchWidget = () => {
 
           {/* Sync Status */}
           {lastSyncTime && isOnline && (
-            <div className="text-center text-xs text-gray-500">
+            <div className="text-center text-xs text-gray-500 font-orbitron">
               Last synced: {lastSyncTime.toLocaleTimeString()}
             </div>
           )}
