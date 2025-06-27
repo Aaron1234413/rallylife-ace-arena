@@ -142,7 +142,7 @@ export function useMatchSessions() {
         .from('active_match_sessions')
         .select('*')
         .eq('player_id', user.id)
-        .in('status', ['active', 'paused'])
+        .eq('status', 'active') // Only fetch truly active sessions, not completed ones
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
