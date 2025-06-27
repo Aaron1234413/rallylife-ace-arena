@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, RefreshCw, AlertCircle } from 'lucide-react';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
+import { useMatchSessions } from '@/hooks/useMatchSessions';
 import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 import { MidMatchCheckInModal } from './MidMatchCheckInModal';
 import { AvatarDisplay } from '@/components/avatar/AvatarDisplay';
@@ -25,6 +26,7 @@ export const ActiveMatchWidget = () => {
     loading 
   } = useMatchSession();
   
+  const { activeSession } = useMatchSessions();
   const { fetchParticipants } = useMatchInvitations();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -90,10 +92,10 @@ export const ActiveMatchWidget = () => {
   // Fetch participants when session data changes
   useEffect(() => {
     const loadParticipants = async () => {
-      if (sessionData?.id) {
+      if (activeSession?.id) {
         setParticipantsLoading(true);
         try {
-          const participantData = await fetchParticipants(sessionData.id);
+          const participantData = await fetchParticipants(activeSession.id);
           setParticipants(participantData);
         } catch (error) {
           console.error('Error fetching participants:', error);
@@ -104,7 +106,7 @@ export const ActiveMatchWidget = () => {
     };
 
     loadParticipants();
-  }, [sessionData?.id, fetchParticipants]);
+  }, [activeSession?.id, fetchParticipants]);
 
   if (loading) {
     return (
@@ -201,7 +203,6 @@ export const ActiveMatchWidget = () => {
         </CardHeader>
 
         <CardContent className="space-y-4">
-          {/* Connection Status Alert */}
           {!isOnline && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-yellow-600" />
@@ -211,7 +212,6 @@ export const ActiveMatchWidget = () => {
             </div>
           )}
 
-          {/* Table-Style Scoreboard */}
           <div className="bg-white rounded-lg border-2 border-tennis-green-light overflow-hidden">
             {completedSets.length > 0 ? (
               <Table>
@@ -282,7 +282,6 @@ export const ActiveMatchWidget = () => {
             )}
           </div>
 
-          {/* Next Set Prompt */}
           {showNextSetPrompt && (
             <div className="bg-tennis-green-light/10 rounded-lg p-4 text-center space-y-3">
               <p className="font-medium text-tennis-green-dark font-orbitron">
@@ -309,7 +308,6 @@ export const ActiveMatchWidget = () => {
             </div>
           )}
 
-          {/* Current Set Score Input */}
           {!currentSet?.completed && (
             <div className="bg-gray-50 rounded-lg p-4 space-y-4">
               <h4 className="font-medium text-gray-900 font-orbitron">
@@ -364,7 +362,6 @@ export const ActiveMatchWidget = () => {
             </div>
           )}
 
-          {/* Action Buttons */}
           <div className="flex gap-2">
             <Button
               onClick={() => setIsModalOpen(true)}
@@ -387,7 +384,6 @@ export const ActiveMatchWidget = () => {
             </Button>
           </div>
 
-          {/* Sync Status */}
           {lastSyncTime && isOnline && (
             <div className="text-center text-xs text-gray-500 font-orbitron">
               Last synced: {lastSyncTime.toLocaleTimeString()}
@@ -396,7 +392,6 @@ export const ActiveMatchWidget = () => {
         </CardContent>
       </Card>
 
-      {/* Mid-Match Check-In Modal */}
       <MidMatchCheckInModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}
