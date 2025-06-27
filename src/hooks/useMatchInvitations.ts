@@ -44,6 +44,7 @@ export function useMatchInvitations() {
         message: inv.message,
         status: inv.status as 'pending' | 'accepted' | 'declined',
         expires_at: inv.expires_at,
+        responded_at: inv.responded_at,
         created_at: inv.created_at,
         updated_at: inv.updated_at,
         inviter_name: inv.inviter?.full_name,
@@ -87,8 +88,6 @@ export function useMatchInvitations() {
           inviter_id: user.id,
           invitee_id: inviteeId,
           invitee_email: inviteeEmail,
-          invitee_name: inviteeName,
-          invitation_type: 'match',
           message,
           status: 'pending',
           expires_at: expiresAt.toISOString()
@@ -306,8 +305,9 @@ export function useMatchInvitations() {
         id: p.id,
         match_session_id: p.match_session_id,
         user_id: p.user_id,
-        joined_at: p.joined_at,
-        user_name: p.user?.full_name
+        participant_name: p.participant_name,
+        participant_role: p.participant_role,
+        joined_at: p.joined_at
       }));
     } catch (error) {
       console.error('Error in fetchParticipants:', error);

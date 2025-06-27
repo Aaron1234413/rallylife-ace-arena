@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,6 +13,7 @@ import { StakesPreview } from '@/components/match/StakesPreview';
 import { useMatchRewards } from '@/hooks/useMatchRewards';
 import { getRandomMessage } from '@/utils/motivationalMessages';
 import { toast } from 'sonner';
+import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 
 // Helper function to format date for datetime-local input in EST
 const formatDateForInput = (date: Date): string => {
@@ -66,6 +66,7 @@ const parseInputDateAsEST = (inputValue: string): Date => {
 const StartMatch = () => {
   const navigate = useNavigate();
   const { sessionData, updateSessionData, isSessionActive, loading } = useMatchSession();
+  const { sendInvitation } = useMatchInvitations();
   
   // Updated state to use SelectedOpponent objects
   const [opponent, setOpponent] = useState<SelectedOpponent | null>(null);
@@ -168,9 +169,44 @@ const StartMatch = () => {
       }
 
       // Save session data
-      await updateSessionData(sessionUpdate);
+      const createdSession = await updateSessionData(sessionUpdate);
 
-      toast.success('Match started! Good luck out there! 🎾');
+      // Send invitations to opponents if they have IDs
+      if (createdSession?.id) {
+        if (!isDoubles && opponent?.id) {
+          // Singles: invite the opponent
+          await sendInvitation({
+            sessionId: createdSession.id,
+            inviteeId: opponent.id,
+            message: `I'd like to play a tennis match with you!`
+          });
+        } else if (isDoubles) {
+          // Doubles: invite partner and opponents
+          if (partner?.id) {
+            await sendInvitation({
+              sessionId: createdSession.id,
+              inviteeId: partner.id,
+              message: `Want to be my partner for a doubles match?`
+            });
+          }
+          if (opponent1?.id) {
+            await sendInvitation({
+              sessionId: createdSession.id,
+              inviteeId: opponent1.id,
+              message: `I'd like to play a doubles match against you!`
+            });
+          }
+          if (opponent2?.id) {
+            await sendInvitation({
+              sessionId: createdSession.id,
+              inviteeId: opponent2.id,
+              message: `I'd like to play a doubles match against you!`
+            });
+          }
+        }
+      }
+
+      toast.success('Match started and invitations sent! 🎾');
       
       // Navigate to dashboard
       navigate('/');

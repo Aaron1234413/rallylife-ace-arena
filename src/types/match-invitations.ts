@@ -8,6 +8,7 @@ export interface MatchInvitation {
   message?: string;
   status: 'pending' | 'accepted' | 'declined';
   expires_at: string;
+  responded_at?: string;
   created_at: string;
   updated_at: string;
   inviter_name?: string;
@@ -19,8 +20,9 @@ export interface MatchParticipant {
   id: string;
   match_session_id: string;
   user_id: string;
+  participant_name?: string;
+  participant_role?: string;
   joined_at: string;
-  user_name?: string;
 }
 
 export interface SendInvitationParams {
