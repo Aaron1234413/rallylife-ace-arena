@@ -41,6 +41,24 @@ interface CreateInvitationParams {
   message?: string;
 }
 
+// Helper function to safely cast invitation type
+const castInvitationType = (type: string): MatchInvitation['invitation_type'] => {
+  const validTypes: MatchInvitation['invitation_type'][] = ['singles_opponent', 'doubles_partner', 'doubles_opponent_1', 'doubles_opponent_2'];
+  return validTypes.includes(type as any) ? type as MatchInvitation['invitation_type'] : 'singles_opponent';
+};
+
+// Helper function to safely cast participant role
+const castParticipantRole = (role: string): MatchParticipant['participant_role'] => {
+  const validRoles: MatchParticipant['participant_role'][] = ['creator', 'opponent', 'partner', 'opponent_1', 'opponent_2'];
+  return validRoles.includes(role as any) ? role as MatchParticipant['participant_role'] : 'opponent';
+};
+
+// Helper function to safely cast status
+const castInvitationStatus = (status: string): MatchInvitation['status'] => {
+  const validStatuses: MatchInvitation['status'][] = ['pending', 'accepted', 'declined', 'expired'];
+  return validStatuses.includes(status as any) ? status as MatchInvitation['status'] : 'pending';
+};
+
 export function useMatchInvitations() {
   const { user } = useAuth();
   const [pendingInvitations, setPendingInvitations] = useState<MatchInvitation[]>([]);
@@ -71,8 +89,41 @@ export function useMatchInvitations() {
 
       if (sentError) throw sentError;
 
-      setPendingInvitations(received || []);
-      setSentInvitations(sent || []);
+      // Transform and cast the data to match our interfaces
+      const transformedReceived: MatchInvitation[] = (received || []).map(item => ({
+        id: item.id,
+        match_session_id: item.match_session_id,
+        inviter_id: item.inviter_id,
+        invitee_id: item.invitee_id,
+        invitee_name: item.invitee_name,
+        invitee_email: item.invitee_email,
+        invitation_type: castInvitationType(item.invitation_type),
+        status: castInvitationStatus(item.status),
+        message: item.message,
+        expires_at: item.expires_at,
+        responded_at: item.responded_at,
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      }));
+
+      const transformedSent: MatchInvitation[] = (sent || []).map(item => ({
+        id: item.id,
+        match_session_id: item.match_session_id,
+        inviter_id: item.inviter_id,
+        invitee_id: item.invitee_id,
+        invitee_name: item.invitee_name,
+        invitee_email: item.invitee_email,
+        invitation_type: castInvitationType(item.invitation_type),
+        status: castInvitationStatus(item.status),
+        message: item.message,
+        expires_at: item.expires_at,
+        responded_at: item.responded_at,
+        created_at: item.created_at,
+        updated_at: item.updated_at
+      }));
+
+      setPendingInvitations(transformedReceived);
+      setSentInvitations(transformedSent);
     } catch (error) {
       console.error('Error fetching invitations:', error);
       toast.error('Failed to load match invitations');
@@ -194,7 +245,21 @@ export function useMatchInvitations() {
         .order('created_at', { ascending: true });
 
       if (error) throw error;
-      return data || [];
+      
+      // Transform and cast the data
+      const transformedData: MatchParticipant[] = (data || []).map(item => ({
+        id: item.id,
+        match_session_id: item.match_session_id,
+        user_id: item.user_id,
+        participant_name: item.participant_name,
+        participant_role: castParticipantRole(item.participant_role),
+        is_external: item.is_external,
+        can_edit_score: item.can_edit_score,
+        joined_at: item.joined_at,
+        created_at: item.created_at
+      }));
+
+      return transformedData;
     } catch (error) {
       console.error('Error fetching match participants:', error);
       return [];

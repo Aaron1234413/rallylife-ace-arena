@@ -17,7 +17,6 @@ const Index = () => {
     <AppLayout>
       <div className="space-y-6">
         <WelcomeBanner />
-        <PlayerStatsCards />
         
         {/* Match Invitations - appears at top for visibility */}
         <MatchInvitations />
@@ -26,12 +25,6 @@ const Index = () => {
         <ActiveMatchWidget />
         <ActiveTrainingWidget />
         <ActiveSocialPlayWidget />
-        
-        {/* Action Cards */}
-        <PlayerActionCards />
-        
-        {/* Activity Feed */}
-        <PlayerActivityLogs />
         
         {/* Floating Action Buttons */}
         <FloatingCheckInButton />

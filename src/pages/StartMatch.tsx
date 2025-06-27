@@ -1,8 +1,9 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { useMatchSession } from '@/contexts/MatchSessionContext';
+import { useMatchSessions } from '@/hooks/useMatchSessions';
 import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 import { Play, RefreshCw, AlertCircle } from 'lucide-react';
 import { AnimatedButton } from '@/components/ui/animated-button';
@@ -17,7 +18,7 @@ import { toast } from 'sonner';
 
 const StartMatch = () => {
   const navigate = useNavigate();
-  const { sessionData, updateSessionData, isSessionActive, loading } = useMatchSession();
+  const { activeSession, loading, createMatchSession } = useMatchSessions();
   const { createInvitation } = useMatchInvitations();
   
   // Updated state to use SelectedOpponent objects
@@ -53,10 +54,10 @@ const StartMatch = () => {
 
   // Check for existing session on mount
   useEffect(() => {
-    if (!loading && isSessionActive && sessionData) {
+    if (!loading && activeSession) {
       setShowRecoveryPrompt(true);
     }
-  }, [loading, isSessionActive, sessionData]);
+  }, [loading, activeSession]);
 
   const validateForm = () => {
     const errors: Record<string, string> = {};
@@ -103,34 +104,23 @@ const StartMatch = () => {
       // Convert local datetime string to proper Date object
       const startDateTime = new Date(startTime);
 
-      // Prepare session data with opponent IDs and names
-      const sessionUpdate = {
+      // Create the match session first
+      const sessionParams = {
         matchType: (isDoubles ? 'doubles' : 'singles') as 'singles' | 'doubles',
         isDoubles,
-        startTime: startDateTime
+        startTime: startDateTime,
+        opponentName: isDoubles ? (opponent1?.name || '') : (opponent?.name || ''),
+        opponentId: isDoubles ? opponent1?.id : opponent?.id,
+        partnerName: partner?.name,
+        partnerId: partner?.id,
+        opponent1Name: opponent1?.name,
+        opponent1Id: opponent1?.id,
+        opponent2Name: opponent2?.name,
+        opponent2Id: opponent2?.id
       };
 
-      if (isDoubles) {
-        // Doubles match data
-        Object.assign(sessionUpdate, {
-          partnerName: partner?.name,
-          partnerId: partner?.id,
-          opponentName: opponent1?.name || '', // Primary opponent name for backward compatibility
-          opponent1Name: opponent1?.name,
-          opponent1Id: opponent1?.id,
-          opponent2Name: opponent2?.name,
-          opponent2Id: opponent2?.id
-        });
-      } else {
-        // Singles match data
-        Object.assign(sessionUpdate, {
-          opponentName: opponent?.name || '',
-          opponentId: opponent?.id
-        });
-      }
-
-      // Save session data (this will create the match session and participants)
-      const createdSession = await updateSessionData(sessionUpdate);
+      // Create the match session and get the created session
+      const createdSession = await createMatchSession(sessionParams);
 
       // Create invitations for internal players
       if (createdSession?.id) {
@@ -206,8 +196,8 @@ const StartMatch = () => {
   };
 
   // Show session recovery prompt
-  if (showRecoveryPrompt && sessionData) {
-    const matchDuration = Math.floor((new Date().getTime() - sessionData.startTime.getTime()) / (1000 * 60));
+  if (showRecoveryPrompt && activeSession) {
+    const matchDuration = Math.floor((new Date().getTime() - new Date(activeSession.start_time).getTime()) / (1000 * 60));
     
     return (
       <div className="min-h-screen bg-tennis-green-bg p-3 sm:p-4">
@@ -235,25 +225,25 @@ const StartMatch = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Type:</span>
-                    <span className="font-medium capitalize">{sessionData.matchType}</span>
+                    <span className="font-medium capitalize">{activeSession.match_type}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Opponent:</span>
-                    <span className="font-medium">{sessionData.opponentName}</span>
+                    <span className="font-medium">{activeSession.opponent_name}</span>
                   </div>
-                  {sessionData.isDoubles && sessionData.partnerName && (
+                  {activeSession.is_doubles && activeSession.partner_name && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Partner:</span>
-                      <span className="font-medium">{sessionData.partnerName}</span>
+                      <span className="font-medium">{activeSession.partner_name}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-600">Started:</span>
-                    <span className="font-medium">{sessionData.startTime.toLocaleTimeString()}</span>
+                    <span className="font-medium">{new Date(activeSession.start_time).toLocaleTimeString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Sets Completed:</span>
-                    <span className="font-medium">{sessionData.sets.filter(s => s.completed).length}</span>
+                    <span className="font-medium">{activeSession.sets.filter(s => s.completed).length}</span>
                   </div>
                 </div>
               </div>

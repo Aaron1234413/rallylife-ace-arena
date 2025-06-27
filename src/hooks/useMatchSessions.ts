@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -248,8 +247,8 @@ export function useMatchSessions() {
     }
   };
 
-  const createMatchSession = async (params: CreateMatchSessionParams) => {
-    if (!user) return;
+  const createMatchSession = async (params: CreateMatchSessionParams): Promise<ActiveMatchSession> => {
+    if (!user) throw new Error('User not authenticated');
 
     try {
       console.log('Creating match session with params:', params);
