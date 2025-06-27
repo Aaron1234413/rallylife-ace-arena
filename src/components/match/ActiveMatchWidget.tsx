@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,10 +8,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, RefreshCw, AlertCircle } from 'lucide-react';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
-import { useMatchSessions } from '@/hooks/useMatchSessions';
-import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 import { MidMatchCheckInModal } from './MidMatchCheckInModal';
-import { AvatarDisplay } from '@/components/avatar/AvatarDisplay';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -26,9 +24,6 @@ export const ActiveMatchWidget = () => {
     loading 
   } = useMatchSession();
   
-  const { activeSession } = useMatchSessions();
-  const { fetchParticipants } = useMatchInvitations();
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [matchDuration, setMatchDuration] = useState(0);
   const [playerSetScore, setPlayerSetScore] = useState('');
@@ -37,8 +32,6 @@ export const ActiveMatchWidget = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
-  const [participants, setParticipants] = useState<any[]>([]);
-  const [participantsLoading, setParticipantsLoading] = useState(false);
   const navigate = useNavigate();
 
   // Monitor online status
@@ -88,25 +81,6 @@ export const ActiveMatchWidget = () => {
       }
     }
   }, [sessionData]);
-
-  // Fetch participants when session data changes
-  useEffect(() => {
-    const loadParticipants = async () => {
-      if (activeSession?.id) {
-        setParticipantsLoading(true);
-        try {
-          const participantData = await fetchParticipants(activeSession.id);
-          setParticipants(participantData);
-        } catch (error) {
-          console.error('Error fetching participants:', error);
-        } finally {
-          setParticipantsLoading(false);
-        }
-      }
-    };
-
-    loadParticipants();
-  }, [activeSession?.id, fetchParticipants]);
 
   if (loading) {
     return (
@@ -203,6 +177,7 @@ export const ActiveMatchWidget = () => {
         </CardHeader>
 
         <CardContent className="space-y-4">
+          {/* Connection Status Alert */}
           {!isOnline && (
             <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 flex items-center gap-2">
               <AlertCircle className="h-4 w-4 text-yellow-600" />
@@ -212,6 +187,7 @@ export const ActiveMatchWidget = () => {
             </div>
           )}
 
+          {/* Table-Style Scoreboard */}
           <div className="bg-white rounded-lg border-2 border-tennis-green-light overflow-hidden">
             {completedSets.length > 0 ? (
               <Table>
@@ -250,38 +226,7 @@ export const ActiveMatchWidget = () => {
             )}
           </div>
 
-          {/* Participants Section */}
-          <div className="bg-white rounded-lg border-2 border-tennis-green-light p-4">
-            <h4 className="font-medium text-tennis-green-dark font-orbitron mb-3 flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              Match Participants
-            </h4>
-            {participantsLoading ? (
-              <div className="flex items-center justify-center py-2">
-                <LoadingSpinner size="sm" />
-                <span className="ml-2 text-sm text-gray-600">Loading participants...</span>
-              </div>
-            ) : participants.length > 0 ? (
-              <div className="space-y-2">
-                {participants.map((participant) => (
-                  <div key={participant.id} className="flex items-center gap-3 p-2 bg-tennis-green-light/5 rounded-lg">
-                    <AvatarDisplay size="small" />
-                    <span className="text-sm font-medium text-tennis-green-dark">
-                      {participant.user_name || 'Unknown Player'}
-                    </span>
-                    <Badge variant="outline" className="text-xs font-orbitron">
-                      Player
-                    </Badge>
-                  </div>
-                ))}
-              </div>
-            ) : (
-              <p className="text-sm text-gray-600 text-center py-2">
-                No additional participants in this match
-              </p>
-            )}
-          </div>
-
+          {/* Next Set Prompt */}
           {showNextSetPrompt && (
             <div className="bg-tennis-green-light/10 rounded-lg p-4 text-center space-y-3">
               <p className="font-medium text-tennis-green-dark font-orbitron">
@@ -308,6 +253,7 @@ export const ActiveMatchWidget = () => {
             </div>
           )}
 
+          {/* Current Set Score Input */}
           {!currentSet?.completed && (
             <div className="bg-gray-50 rounded-lg p-4 space-y-4">
               <h4 className="font-medium text-gray-900 font-orbitron">
@@ -362,6 +308,7 @@ export const ActiveMatchWidget = () => {
             </div>
           )}
 
+          {/* Action Buttons */}
           <div className="flex gap-2">
             <Button
               onClick={() => setIsModalOpen(true)}
@@ -384,6 +331,7 @@ export const ActiveMatchWidget = () => {
             </Button>
           </div>
 
+          {/* Sync Status */}
           {lastSyncTime && isOnline && (
             <div className="text-center text-xs text-gray-500 font-orbitron">
               Last synced: {lastSyncTime.toLocaleTimeString()}
@@ -392,6 +340,7 @@ export const ActiveMatchWidget = () => {
         </CardContent>
       </Card>
 
+      {/* Mid-Match Check-In Modal */}
       <MidMatchCheckInModal
         isOpen={isModalOpen}
         onClose={() => setIsModalOpen(false)}

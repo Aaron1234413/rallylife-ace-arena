@@ -19,10 +19,13 @@ import { CTKTransactionHistory } from "@/components/ctk/CTKTransactionHistory";
 import { CoachAchievementsDisplay } from "@/components/achievements/CoachAchievementsDisplay";
 import { CoachOverviewCards } from "@/components/coach/dashboard/CoachOverviewCards";
 import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickActions";
+import { MobileActionPanel } from "@/components/dashboard/mobile";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
-import { LoadingSpinner } from "@/components/ui/loading-spinner";
+import { 
+  Activity
+} from 'lucide-react';
 
 import { ActiveMatchWidget } from "@/components/match/ActiveMatchWidget";
 import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
@@ -44,13 +47,12 @@ const Index = () => {
   const { tokenData: coachTokenData, loading: coachTokensLoading, addTokens: addCoachTokens, initializeTokens: initializeCoachTokens } = useCoachTokens();
   const { crpData, isLoading: crpLoading, initializeCRP } = useCoachCRP();
   
-  // Social Play Session Hook
+  // Social Play Session Hook - removed joinEvent as it doesn't exist
   const { loading } = useSocialPlaySession();
   
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [dataInitialized, setDataInitialized] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Derive user role flags from profile
   const isPlayer = profile?.role === 'player';
@@ -67,29 +69,23 @@ const Index = () => {
     if (user && profile && !dataInitialized) {
       console.log('Index: Initializing data for role:', profile.role);
       
-      try {
-        if (profile.role === 'player') {
-          if (!hpData) initializeHP();
-          if (!xpData) initializeXP();
-          if (!tokenData) initializeTokens();
-          if (equippedItems.length === 0) initializeAvatar();
-        } else if (profile.role === 'coach') {
-          if (!cxpData) initializeCXP();
-          if (!coachTokenData) initializeCoachTokens();
-          if (!crpData) initializeCRP();
-        }
-        
-        setDataInitialized(true);
-      } catch (err) {
-        console.error('Error initializing data:', err);
-        setError('Failed to initialize user data');
+      if (profile.role === 'player') {
+        if (!hpData) initializeHP();
+        if (!xpData) initializeXP();
+        if (!tokenData) initializeTokens();
+        if (equippedItems.length === 0) initializeAvatar();
+      } else if (profile.role === 'coach') {
+        if (!cxpData) initializeCXP();
+        if (!coachTokenData) initializeCoachTokens();
+        if (!crpData) initializeCRP();
       }
+      
+      setDataInitialized(true);
     }
   }, [user, profile, dataInitialized, hpData, xpData, tokenData, equippedItems, cxpData, coachTokenData, crpData]);
 
   const fetchProfile = async () => {
     try {
-      setError(null);
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
@@ -98,14 +94,12 @@ const Index = () => {
 
       if (error) {
         console.error('Error fetching profile:', error);
-        setError('Failed to load profile');
         return;
       }
 
       setProfile(data);
     } catch (error) {
       console.error('Error:', error);
-      setError('Failed to fetch profile');
     } finally {
       setProfileLoading(false);
     }
@@ -148,47 +142,13 @@ const Index = () => {
 
   const vitalsLoading = hpLoading || xpLoading || tokensLoading;
 
-  // Show error state
-  if (error) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <p className="text-red-600">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-tennis-green-dark text-white px-4 py-2 rounded hover:bg-tennis-green"
-          >
-            Retry
-          </button>
-        </div>
-      </div>
-    );
-  }
-
   // Show loading state while profile is being fetched
   if (profileLoading) {
     return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <LoadingSpinner size="lg" />
-          <p className="text-muted-foreground">Loading your dashboard...</p>
-        </div>
-      </div>
-    );
-  }
-
-  // Show fallback if no profile
-  if (!profile) {
-    return (
-      <div className="min-h-screen flex items-center justify-center">
-        <div className="text-center space-y-4">
-          <p>Unable to load profile. Please try refreshing the page.</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-tennis-green-dark text-white px-4 py-2 rounded hover:bg-tennis-green"
-          >
-            Refresh
-          </button>
+      <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
+        <div className="animate-pulse">
+          <div className="h-32 bg-gray-200 rounded mb-6"></div>
+          <div className="h-48 bg-gray-200 rounded mb-6"></div>
         </div>
       </div>
     );

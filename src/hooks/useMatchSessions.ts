@@ -130,13 +130,10 @@ export function useMatchSessions() {
   const [activeSession, setActiveSession] = useState<ActiveMatchSession | null>(null);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
-  const isSubscribedRef = useRef(false);
+  const subscriptionInitialized = useRef(false);
 
   const fetchActiveSession = async () => {
-    if (!user) {
-      setLoading(false);
-      return;
-    }
+    if (!user) return;
 
     try {
       console.log('Fetching active match session for user:', user.id);
@@ -145,14 +142,13 @@ export function useMatchSessions() {
         .from('active_match_sessions')
         .select('*')
         .eq('player_id', user.id)
-        .eq('status', 'active')
+        .eq('status', 'active') // Only fetch truly active sessions, not completed ones
         .order('created_at', { ascending: false })
         .limit(1)
         .maybeSingle();
 
       if (error) {
         console.error('Error fetching active session:', error);
-        setActiveSession(null);
         return;
       }
 
@@ -165,9 +161,6 @@ export function useMatchSessions() {
       }
     } catch (error) {
       console.error('Error in fetchActiveSession:', error);
-      setActiveSession(null);
-    } finally {
-      setLoading(false);
     }
   };
 
@@ -288,7 +281,7 @@ export function useMatchSessions() {
       }
 
       console.log('Match session completed successfully:', data);
-      setActiveSession(null);
+      setActiveSession(null); // Clear the active session
       
       return toActiveMatchSession(data);
     } catch (error) {
@@ -297,69 +290,64 @@ export function useMatchSessions() {
     }
   };
 
-  const cleanupSubscription = () => {
-    if (channelRef.current && isSubscribedRef.current) {
-      console.log('Cleaning up match sessions subscription');
+  const cleanupChannel = () => {
+    if (channelRef.current) {
+      console.log('Cleaning up match sessions channel subscription');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
-      isSubscribedRef.current = false;
+      subscriptionInitialized.current = false;
     }
   };
 
   useEffect(() => {
-    if (!user) {
-      cleanupSubscription();
+    if (user && !subscriptionInitialized.current) {
+      const loadData = async () => {
+        setLoading(true);
+        await fetchActiveSession();
+        setLoading(false);
+      };
+
+      loadData();
+
+      // Clean up any existing channel
+      cleanupChannel();
+
+      // Set up real-time subscription
+      const channelName = `match-sessions-${user.id}-${Date.now()}`;
+      const channel = supabase.channel(channelName);
+      
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'active_match_sessions',
+          filter: `player_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('Match session real-time update:', payload);
+          fetchActiveSession();
+        }
+      );
+
+      channel.subscribe((status) => {
+        console.log('Match sessions channel subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          subscriptionInitialized.current = true;
+        }
+      });
+
+      channelRef.current = channel;
+
+      return () => {
+        cleanupChannel();
+      };
+    } else if (!user) {
+      cleanupChannel();
       setActiveSession(null);
       setLoading(false);
-      return;
     }
-
-    // Only initialize once per user
-    if (isSubscribedRef.current) {
-      return;
-    }
-
-    const initializeData = async () => {
-      setLoading(true);
-      await fetchActiveSession();
-      
-      // Set up real-time subscription only if not already subscribed
-      if (!isSubscribedRef.current) {
-        const channelName = `match-sessions-${user.id}`;
-        const channel = supabase.channel(channelName);
-        
-        channel.on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'active_match_sessions',
-            filter: `player_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('Match session real-time update:', payload);
-            // Refresh data on any change
-            fetchActiveSession();
-          }
-        );
-
-        channel.subscribe((status) => {
-          console.log('Match sessions subscription status:', status);
-          if (status === 'SUBSCRIBED') {
-            isSubscribedRef.current = true;
-          }
-        });
-
-        channelRef.current = channel;
-      }
-    };
-
-    initializeData();
-
-    return () => {
-      cleanupSubscription();
-    };
-  }, [user?.id]); // Only depend on user.id, not the entire user object
+  }, [user]);
 
   return {
     activeSession,
