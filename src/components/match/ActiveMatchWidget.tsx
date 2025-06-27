@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -8,7 +7,9 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, RefreshCw, AlertCircle } from 'lucide-react';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
+import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 import { MidMatchCheckInModal } from './MidMatchCheckInModal';
+import { AvatarDisplay } from '@/components/avatar/AvatarDisplay';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -24,6 +25,8 @@ export const ActiveMatchWidget = () => {
     loading 
   } = useMatchSession();
   
+  const { fetchParticipants } = useMatchInvitations();
+  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [matchDuration, setMatchDuration] = useState(0);
   const [playerSetScore, setPlayerSetScore] = useState('');
@@ -32,6 +35,8 @@ export const ActiveMatchWidget = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
+  const [participants, setParticipants] = useState<any[]>([]);
+  const [participantsLoading, setParticipantsLoading] = useState(false);
   const navigate = useNavigate();
 
   // Monitor online status
@@ -81,6 +86,25 @@ export const ActiveMatchWidget = () => {
       }
     }
   }, [sessionData]);
+
+  // Fetch participants when session data changes
+  useEffect(() => {
+    const loadParticipants = async () => {
+      if (sessionData?.id) {
+        setParticipantsLoading(true);
+        try {
+          const participantData = await fetchParticipants(sessionData.id);
+          setParticipants(participantData);
+        } catch (error) {
+          console.error('Error fetching participants:', error);
+        } finally {
+          setParticipantsLoading(false);
+        }
+      }
+    };
+
+    loadParticipants();
+  }, [sessionData?.id, fetchParticipants]);
 
   if (loading) {
     return (
@@ -223,6 +247,38 @@ export const ActiveMatchWidget = () => {
                 <p className="text-lg font-medium font-orbitron">No sets completed yet</p>
                 <p className="text-sm text-gray-600 mt-1">Start playing and log your first set score below</p>
               </div>
+            )}
+          </div>
+
+          {/* Participants Section */}
+          <div className="bg-white rounded-lg border-2 border-tennis-green-light p-4">
+            <h4 className="font-medium text-tennis-green-dark font-orbitron mb-3 flex items-center gap-2">
+              <Users className="h-4 w-4" />
+              Match Participants
+            </h4>
+            {participantsLoading ? (
+              <div className="flex items-center justify-center py-2">
+                <LoadingSpinner size="sm" />
+                <span className="ml-2 text-sm text-gray-600">Loading participants...</span>
+              </div>
+            ) : participants.length > 0 ? (
+              <div className="space-y-2">
+                {participants.map((participant) => (
+                  <div key={participant.id} className="flex items-center gap-3 p-2 bg-tennis-green-light/5 rounded-lg">
+                    <AvatarDisplay size="small" />
+                    <span className="text-sm font-medium text-tennis-green-dark">
+                      {participant.user_name || 'Unknown Player'}
+                    </span>
+                    <Badge variant="outline" className="text-xs font-orbitron">
+                      Player
+                    </Badge>
+                  </div>
+                ))}
+              </div>
+            ) : (
+              <p className="text-sm text-gray-600 text-center py-2">
+                No additional participants in this match
+              </p>
             )}
           </div>
 
