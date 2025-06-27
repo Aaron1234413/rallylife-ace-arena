@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -23,7 +22,6 @@ export function useMatchInvitations() {
         .select(`
           *,
           inviter:profiles!match_invitations_inviter_id_fkey(full_name),
-          invitee:profiles!match_invitations_invitee_id_fkey(full_name),
           session:active_match_sessions(opponent_name)
         `)
         .eq('invitee_id', user.id)
@@ -41,6 +39,8 @@ export function useMatchInvitations() {
         inviter_id: inv.inviter_id,
         invitee_id: inv.invitee_id,
         invitee_email: inv.invitee_email,
+        invitee_name: inv.invitee_name,
+        invitation_type: inv.invitation_type,
         message: inv.message,
         status: inv.status as 'pending' | 'accepted' | 'declined',
         expires_at: inv.expires_at,
@@ -48,7 +48,6 @@ export function useMatchInvitations() {
         created_at: inv.created_at,
         updated_at: inv.updated_at,
         inviter_name: inv.inviter?.full_name,
-        invitee_name: inv.invitee?.full_name,
         session_opponent_name: inv.session?.opponent_name
       }));
 
@@ -58,28 +57,12 @@ export function useMatchInvitations() {
     }
   };
 
-  const sendInvitation = async ({ sessionId, inviteeId, inviteeEmail, message }: SendInvitationParams) => {
+  const sendInvitation = async ({ sessionId, inviteeId, inviteeEmail, inviteeName, message }: SendInvitationParams) => {
     if (!user) return;
 
     try {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
-
-      // Get invitee name if we have an ID
-      let inviteeName = 'Unknown Player';
-      if (inviteeId) {
-        const { data: inviteeProfile } = await supabase
-          .from('profiles')
-          .select('full_name')
-          .eq('id', inviteeId)
-          .single();
-        
-        if (inviteeProfile) {
-          inviteeName = inviteeProfile.full_name || 'Unknown Player';
-        }
-      } else if (inviteeEmail) {
-        inviteeName = inviteeEmail;
-      }
 
       const { error } = await supabase
         .from('match_invitations')
@@ -88,6 +71,8 @@ export function useMatchInvitations() {
           inviter_id: user.id,
           invitee_id: inviteeId,
           invitee_email: inviteeEmail,
+          invitee_name: inviteeName,
+          invitation_type: 'match',
           message,
           status: 'pending',
           expires_at: expiresAt.toISOString()

@@ -5,6 +5,8 @@ export interface MatchInvitation {
   inviter_id: string;
   invitee_id: string;
   invitee_email?: string;
+  invitee_name: string;
+  invitation_type: string;
   message?: string;
   status: 'pending' | 'accepted' | 'declined';
   expires_at: string;
@@ -12,7 +14,6 @@ export interface MatchInvitation {
   created_at: string;
   updated_at: string;
   inviter_name?: string;
-  invitee_name?: string;
   session_opponent_name?: string;
 }
 
@@ -29,5 +30,6 @@ export interface SendInvitationParams {
   sessionId: string;
   inviteeId?: string;
   inviteeEmail?: string;
+  inviteeName: string;
   message?: string;
 }

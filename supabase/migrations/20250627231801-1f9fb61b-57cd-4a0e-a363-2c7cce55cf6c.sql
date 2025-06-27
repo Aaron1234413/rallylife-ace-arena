@@ -6,6 +6,8 @@ CREATE TABLE IF NOT EXISTS public.match_invitations (
   inviter_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   invitee_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE,
   invitee_email TEXT,
+  invitee_name TEXT NOT NULL,
+  invitation_type TEXT NOT NULL DEFAULT 'match',
   message TEXT,
   status TEXT CHECK (status IN ('pending', 'accepted', 'declined')) DEFAULT 'pending',
   expires_at TIMESTAMPTZ NOT NULL,
