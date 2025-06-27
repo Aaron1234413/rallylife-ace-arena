@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -7,12 +8,10 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, RefreshCw, AlertCircle } from 'lucide-react';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
-import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 import { MidMatchCheckInModal } from './MidMatchCheckInModal';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
-import type { MatchParticipant } from '@/types/match-invitations';
 
 export const ActiveMatchWidget = () => {
   const { 
@@ -25,8 +24,6 @@ export const ActiveMatchWidget = () => {
     loading 
   } = useMatchSession();
   
-  const { fetchParticipants } = useMatchInvitations();
-  
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [matchDuration, setMatchDuration] = useState(0);
   const [playerSetScore, setPlayerSetScore] = useState('');
@@ -35,7 +32,6 @@ export const ActiveMatchWidget = () => {
   const [isOnline, setIsOnline] = useState(navigator.onLine);
   const [isSyncing, setIsSyncing] = useState(false);
   const [lastSyncTime, setLastSyncTime] = useState<Date | null>(null);
-  const [participants, setParticipants] = useState<MatchParticipant[]>([]);
   const navigate = useNavigate();
 
   // Monitor online status
@@ -73,17 +69,6 @@ export const ActiveMatchWidget = () => {
     const interval = setInterval(updateDuration, 60000);
     return () => clearInterval(interval);
   }, [isSessionActive, sessionData]);
-
-  // Load participants when session is active
-  useEffect(() => {
-    if (sessionData && sessionData.id) {
-      const loadParticipants = async () => {
-        const participantsList = await fetchParticipants(sessionData.id);
-        setParticipants(participantsList);
-      };
-      loadParticipants();
-    }
-  }, [sessionData, fetchParticipants]);
 
   // Check if current set is completed and show prompt
   useEffect(() => {
