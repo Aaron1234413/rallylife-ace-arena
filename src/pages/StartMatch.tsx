@@ -171,42 +171,45 @@ const StartMatch = () => {
       // Save session data and get the created session with ID
       const createdSession = await updateSessionData(sessionUpdate);
       
-      // Send invitations to opponents if they have IDs and we have a session ID
-      if (createdSession?.id) {
-        if (!isDoubles && opponent?.id) {
-          // Singles: invite the opponent
+      // Runtime check to ensure we have a session
+      if (!createdSession) {
+        throw new Error('Failed to create session');
+      }
+
+      // Send invitations to opponents if they have IDs
+      if (!isDoubles && opponent?.id) {
+        // Singles: invite the opponent
+        await sendInvitation({
+          sessionId: createdSession.id,
+          inviteeId: opponent.id,
+          inviteeName: opponent.name,
+          message: `I'd like to play a tennis match with you!`
+        });
+      } else if (isDoubles) {
+        // Doubles: invite partner and opponents
+        if (partner?.id) {
           await sendInvitation({
             sessionId: createdSession.id,
-            inviteeId: opponent.id,
-            inviteeName: opponent.name,
-            message: `I'd like to play a tennis match with you!`
+            inviteeId: partner.id,
+            inviteeName: partner.name,
+            message: `Want to be my partner for a doubles match?`
           });
-        } else if (isDoubles) {
-          // Doubles: invite partner and opponents
-          if (partner?.id) {
-            await sendInvitation({
-              sessionId: createdSession.id,
-              inviteeId: partner.id,
-              inviteeName: partner.name,
-              message: `Want to be my partner for a doubles match?`
-            });
-          }
-          if (opponent1?.id) {
-            await sendInvitation({
-              sessionId: createdSession.id,
-              inviteeId: opponent1.id,
-              inviteeName: opponent1.name,
-              message: `I'd like to play a doubles match against you!`
-            });
-          }
-          if (opponent2?.id) {
-            await sendInvitation({
-              sessionId: createdSession.id,
-              inviteeId: opponent2.id,
-              inviteeName: opponent2.name,
-              message: `I'd like to play a doubles match against you!`
-            });
-          }
+        }
+        if (opponent1?.id) {
+          await sendInvitation({
+            sessionId: createdSession.id,
+            inviteeId: opponent1.id,
+            inviteeName: opponent1.name,
+            message: `I'd like to play a doubles match against you!`
+          });
+        }
+        if (opponent2?.id) {
+          await sendInvitation({
+            sessionId: createdSession.id,
+            inviteeId: opponent2.id,
+            inviteeName: opponent2.name,
+            message: `I'd like to play a doubles match against you!`
+          });
         }
       }
 
@@ -215,6 +218,7 @@ const StartMatch = () => {
       // Navigate to dashboard
       navigate('/');
     } catch (error) {
+      console.error('Error starting match:', error);
       toast.error('Failed to start match. Please try again.');
     } finally {
       setIsStarting(false);

@@ -39,7 +39,7 @@ interface MatchSessionData {
 
 interface MatchSessionContextType {
   sessionData: MatchSessionData | null;
-  updateSessionData: (data: Partial<MatchSessionData>) => Promise<MatchSessionData | void>;
+  updateSessionData: (data: Partial<MatchSessionData>) => Promise<MatchSessionData>;
   logSetScore: (playerScore: string, opponentScore: string) => Promise<void>;
   startNextSet: () => Promise<void>;
   clearSession: () => void;
@@ -96,7 +96,7 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
     result: activeSession.result
   } : null;
 
-  const updateSessionData = async (data: Partial<MatchSessionData>) => {
+  const updateSessionData = async (data: Partial<MatchSessionData>): Promise<MatchSessionData> => {
     if (!activeSession) {
       // Create new session
       if (data.opponentName && data.matchType && data.startTime) {
@@ -113,7 +113,8 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
           matchType: data.matchType,
           startTime: data.startTime
         });
-        return createdSession ? {
+        
+        return {
           id: createdSession.id,
           opponentName: createdSession.opponent_name,
           opponentId: createdSession.opponent_id,
@@ -134,9 +135,9 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
           endMood: createdSession.end_mood,
           matchNotes: createdSession.match_notes,
           result: createdSession.result
-        } : undefined;
+        };
       }
-      return;
+      throw new Error('Missing required fields to create session');
     }
 
     // Update existing session
@@ -152,7 +153,7 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
       result: data.result
     });
 
-    return updatedSession ? {
+    return {
       id: updatedSession.id,
       opponentName: updatedSession.opponent_name,
       opponentId: updatedSession.opponent_id,
@@ -173,7 +174,7 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
       endMood: updatedSession.end_mood,
       matchNotes: updatedSession.match_notes,
       result: updatedSession.result
-    } : undefined;
+    };
   };
 
   const logSetScore = async (playerScore: string, opponentScore: string) => {
