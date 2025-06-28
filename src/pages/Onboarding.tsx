@@ -65,7 +65,7 @@ export default function Onboarding() {
         return;
       }
 
-      toast.success('Welcome to RallyLife!');
+      toast.success('Welcome to Rako!');
       navigate('/');
     } catch (error) {
       console.error('Error:', error);
@@ -75,7 +75,7 @@ export default function Onboarding() {
 
   if (loading || profileLoading) {
     return (
-      <div className="min-h-screen bg-tennis-green-dark flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light flex items-center justify-center">
         <div className="text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-white mx-auto"></div>
           <p className="mt-2 text-white">Loading...</p>
@@ -86,7 +86,7 @@ export default function Onboarding() {
 
   if (!userProfile) {
     return (
-      <div className="min-h-screen bg-tennis-green-dark flex items-center justify-center">
+      <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light flex items-center justify-center">
         <div className="text-center text-white">
           <p>Unable to load profile. Please try again.</p>
         </div>
@@ -95,26 +95,31 @@ export default function Onboarding() {
   }
 
   return (
-    <div className="min-h-screen bg-tennis-green-dark">
+    <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light">
       <div className="container mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-white mb-2">Welcome to RallyLife!</h1>
-          <p className="text-tennis-green-light">Let's set up your profile to get started</p>
+        <div className="text-center mb-8 space-y-4">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg">
+            <span className="text-2xl">🎾</span>
+          </div>
+          <h1 className="text-4xl font-bold text-white tracking-tight">Welcome to Rako!</h1>
+          <p className="text-tennis-green-bg/90 text-lg">Let's set up your profile to get started</p>
         </div>
 
-        {userProfile.role === 'player' ? (
-          <PlayerOnboarding 
-            user={user} 
-            profile={userProfile} 
-            onComplete={handleOnboardingComplete} 
-          />
-        ) : (
-          <CoachOnboarding 
-            user={user} 
-            profile={userProfile} 
-            onComplete={handleOnboardingComplete} 
-          />
-        )}
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 max-w-4xl mx-auto">
+          {userProfile.role === 'player' ? (
+            <PlayerOnboarding 
+              user={user} 
+              profile={userProfile} 
+              onComplete={handleOnboardingComplete} 
+            />
+          ) : (
+            <CoachOnboarding 
+              user={user} 
+              profile={userProfile} 
+              onComplete={handleOnboardingComplete} 
+            />
+          )}
+        </div>
       </div>
     </div>
   );

@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/useAuth';
-import { Loader2 } from 'lucide-react';
+import { Loader2, Mail, Lock, User, UserCheck, Users } from 'lucide-react';
 
 export function SignupForm() {
   const [email, setEmail] = useState('');
@@ -51,11 +51,12 @@ export function SignupForm() {
 
   if (success) {
     return (
-      <Card className="w-full max-w-md mx-auto">
+      <Card className="border-0 shadow-none bg-transparent">
         <CardContent className="pt-6">
-          <Alert>
-            <AlertDescription>
-              Account created successfully! You can now start using RallyLife.
+          <Alert className="border-tennis-green-light bg-tennis-green-bg/20">
+            <UserCheck className="h-4 w-4 text-tennis-green-dark" />
+            <AlertDescription className="text-tennis-green-dark font-medium">
+              Account created successfully! Welcome to Rako. Redirecting you to the dashboard...
             </AlertDescription>
           </Alert>
         </CardContent>
@@ -64,78 +65,109 @@ export function SignupForm() {
   }
 
   return (
-    <Card className="w-full max-w-md mx-auto">
-      <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">Join RallyLife</CardTitle>
-        <CardDescription>Create your account to get started</CardDescription>
+    <Card className="border-0 shadow-none bg-transparent">
+      <CardHeader className="text-center pb-6">
+        <CardTitle className="text-2xl font-bold text-tennis-green-dark">Join Rako</CardTitle>
+        <CardDescription className="text-gray-600">Create your account to get started</CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-6">
         <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
-            <Alert variant="destructive">
-              <AlertDescription>{error}</AlertDescription>
+            <Alert variant="destructive" className="border-red-200 bg-red-50">
+              <AlertDescription className="text-red-700">{error}</AlertDescription>
             </Alert>
           )}
           
           <div className="space-y-2">
-            <Label htmlFor="fullName">Full Name</Label>
-            <Input
-              id="fullName"
-              type="text"
-              value={fullName}
-              onChange={(e) => setFullName(e.target.value)}
-              required
-              placeholder="Enter your full name"
-            />
+            <Label htmlFor="fullName" className="text-gray-700 font-medium">Full Name</Label>
+            <div className="relative">
+              <User className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                placeholder="Enter your full name"
+                className="pl-10 h-12 border-gray-300 focus:border-tennis-green-medium focus:ring-tennis-green-medium"
+              />
+            </div>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
-            <Input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              required
-              placeholder="Enter your email"
-            />
+            <Label htmlFor="email" className="text-gray-700 font-medium">Email</Label>
+            <div className="relative">
+              <Mail className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                placeholder="Enter your email"
+                className="pl-10 h-12 border-gray-300 focus:border-tennis-green-medium focus:ring-tennis-green-medium"
+              />
+            </div>
           </div>
           
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
-            <Input
-              id="password"
-              type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
-              placeholder="Create a password (min 6 characters)"
-            />
+            <Label htmlFor="password" className="text-gray-700 font-medium">Password</Label>
+            <div className="relative">
+              <Lock className="absolute left-3 top-3 h-4 w-4 text-gray-400" />
+              <Input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                placeholder="Create a password (min 6 characters)"
+                className="pl-10 h-12 border-gray-300 focus:border-tennis-green-medium focus:ring-tennis-green-medium"
+              />
+            </div>
           </div>
           
           <div className="space-y-3">
-            <Label>I want to join as a:</Label>
+            <Label className="text-gray-700 font-medium">I want to join as a:</Label>
             <RadioGroup value={role} onValueChange={(value: 'player' | 'coach') => setRole(value)}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="player" id="player" />
-                <Label htmlFor="player">Player - Track my progress and find coaches</Label>
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-tennis-green-light transition-colors">
+                <RadioGroupItem value="player" id="player" className="text-tennis-green-dark" />
+                <Label htmlFor="player" className="flex items-center cursor-pointer flex-1">
+                  <User className="mr-2 h-4 w-4 text-tennis-green-dark" />
+                  <div>
+                    <div className="font-medium">Player</div>
+                    <div className="text-sm text-gray-500">Track progress and find coaches</div>
+                  </div>
+                </Label>
               </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="coach" id="coach" />
-                <Label htmlFor="coach">Coach - Teach and mentor players</Label>
+              <div className="flex items-center space-x-3 p-3 rounded-lg border border-gray-200 hover:border-tennis-green-light transition-colors">
+                <RadioGroupItem value="coach" id="coach" className="text-tennis-green-dark" />
+                <Label htmlFor="coach" className="flex items-center cursor-pointer flex-1">
+                  <Users className="mr-2 h-4 w-4 text-tennis-green-dark" />
+                  <div>
+                    <div className="font-medium">Coach</div>
+                    <div className="text-sm text-gray-500">Teach and mentor players</div>
+                  </div>
+                </Label>
               </div>
             </RadioGroup>
           </div>
           
-          <Button type="submit" className="w-full" disabled={loading}>
+          <Button 
+            type="submit" 
+            className="w-full h-12 bg-tennis-green-dark hover:bg-tennis-green-medium transition-colors font-medium" 
+            disabled={loading}
+          >
             {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             Create Account
           </Button>
           
-          <div className="text-center">
+          <div className="text-center pt-2">
             <div className="text-sm text-gray-600">
               Already have an account?{' '}
-              <Link to="/auth/login" className="text-blue-600 hover:underline">
+              <Link 
+                to="/auth/login" 
+                className="text-tennis-green-dark hover:text-tennis-green-medium font-medium transition-colors"
+              >
                 Sign in
               </Link>
             </div>
