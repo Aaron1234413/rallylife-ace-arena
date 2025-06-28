@@ -60,6 +60,7 @@ export function useMatchInvitations() {
   const [sentInvitations, setSentInvitations] = useState<MatchInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
+  const subscriptionInitialized = useRef(false);
 
   const fetchReceivedInvitations = async () => {
     if (!user) return;
@@ -298,6 +299,7 @@ export function useMatchInvitations() {
       console.log('Cleaning up match invitations channel subscription');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
+      subscriptionInitialized.current = false;
     }
   };
 
@@ -311,7 +313,7 @@ export function useMatchInvitations() {
   };
 
   useEffect(() => {
-    if (user) {
+    if (user && !subscriptionInitialized.current) {
       const loadData = async () => {
         setLoading(true);
         await Promise.all([
@@ -326,10 +328,13 @@ export function useMatchInvitations() {
       // Clean up any existing channel
       cleanupChannel();
 
-      // Set up real-time subscription for invitations
+      // Set up real-time subscription for invitations with unique channel name
       const channelName = `match-invitations-${user.id}-${Date.now()}`;
+      console.log('Setting up match invitations channel:', channelName);
+      
       const channel = supabase.channel(channelName);
       
+      // Listen for changes to invitations where user is the inviter (sent invitations)
       channel.on(
         'postgres_changes',
         {
@@ -344,6 +349,7 @@ export function useMatchInvitations() {
         }
       );
 
+      // Listen for changes to invitations where user is the invitee (received invitations)
       channel.on(
         'postgres_changes',
         {
@@ -358,8 +364,18 @@ export function useMatchInvitations() {
         }
       );
 
+      // Subscribe to the channel
       channel.subscribe((status) => {
         console.log('Match invitations channel subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          subscriptionInitialized.current = true;
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('Match invitations channel subscription error');
+          subscriptionInitialized.current = false;
+        } else if (status === 'TIMED_OUT') {
+          console.warn('Match invitations channel subscription timed out');
+          subscriptionInitialized.current = false;
+        }
       });
 
       channelRef.current = channel;
@@ -367,13 +383,21 @@ export function useMatchInvitations() {
       return () => {
         cleanupChannel();
       };
-    } else {
+    } else if (!user) {
+      // Clean up when user logs out
       cleanupChannel();
       setReceivedInvitations([]);
       setSentInvitations([]);
       setLoading(false);
     }
   }, [user]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      cleanupChannel();
+    };
+  }, []);
 
   return {
     receivedInvitations,
