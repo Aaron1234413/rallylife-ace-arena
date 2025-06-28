@@ -3,7 +3,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { BookOpen, ArrowRight } from 'lucide-react';
+import { BookOpen, ArrowRight, Sparkles } from 'lucide-react';
 import { useTrainingSession } from '@/contexts/TrainingSessionContext';
 import { TrainingGreeting } from '@/components/training/TrainingGreeting';
 import { SessionTypeSelector } from '@/components/training/SessionTypeSelector';
@@ -35,69 +35,98 @@ export default function StartTraining() {
     updateSessionData(sessionData);
     console.log('Starting training session with data:', sessionData);
     
-    // For now, navigate back to dashboard
-    // Later this will go to active training session view
     navigate('/');
   };
 
   const canStart = sessionType && intensity && estimatedDuration > 0;
 
   return (
-    <div className="container mx-auto px-4 py-6 max-w-2xl">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BookOpen className="h-6 w-6 text-green-600" />
-            Start Training Session
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <TrainingGreeting />
-          
-          <SessionTypeSelector 
-            value={sessionType}
-            onValueChange={setSessionType}
-          />
-          
-          <CoachSelector 
-            value={coachName}
-            onValueChange={setCoachName}
-          />
-          
-          <SkillsChipSelector 
-            value={skillsFocus}
-            onValueChange={setSkillsFocus}
-          />
-          
-          <IntensitySelector 
-            value={intensity}
-            onValueChange={setIntensity}
-          />
-          
-          <DurationEstimator 
-            value={estimatedDuration}
-            onValueChange={setEstimatedDuration}
-          />
-
-          <div className="flex gap-3 pt-4">
-            <Button 
-              variant="outline" 
-              onClick={() => navigate('/')}
-              className="flex-1"
-            >
-              Cancel
-            </Button>
-            <Button 
-              onClick={handleStartSession}
-              disabled={!canStart}
-              className="flex-1"
-            >
-              Start Training
-              <ArrowRight className="ml-2 h-4 w-4" />
-            </Button>
+    <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light">
+      {/* Header */}
+      <div className="bg-white/95 backdrop-blur-sm border-b border-white/20 shadow-lg">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-tennis-green-primary rounded-full flex items-center justify-center shadow-lg">
+              <BookOpen className="w-5 h-5 text-white" />
+            </div>
+            <div>
+              <h1 className="text-3xl font-bold text-tennis-green-dark">Start Training</h1>
+              <p className="text-tennis-green-dark/70">Let's get you ready for an amazing session</p>
+            </div>
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
+
+      <div className="container mx-auto px-4 py-6 max-w-2xl">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-white/20">
+          <Card className="border-0 shadow-none bg-transparent">
+            <CardHeader className="text-center pb-6">
+              <div className="flex justify-center mb-4">
+                <div className="w-16 h-16 bg-gradient-to-br from-tennis-green-primary to-tennis-green-medium rounded-full flex items-center justify-center shadow-lg">
+                  <Sparkles className="w-8 h-8 text-white" />
+                </div>
+              </div>
+              <CardTitle className="text-2xl text-tennis-green-dark">
+                Configure Your Session
+              </CardTitle>
+              <p className="text-tennis-green-dark/70 text-lg">
+                Set up your training parameters for the best experience
+              </p>
+            </CardHeader>
+            
+            <CardContent className="space-y-8">
+              <TrainingGreeting />
+              
+              <div className="space-y-6">
+                <SessionTypeSelector 
+                  value={sessionType}
+                  onValueChange={setSessionType}
+                />
+                
+                <CoachSelector 
+                  value={coachName}
+                  onValueChange={setCoachName}
+                />
+                
+                <SkillsChipSelector 
+                  value={skillsFocus}
+                  onValueChange={setSkillsFocus}
+                />
+                
+                <IntensitySelector 
+                  value={intensity}
+                  onValueChange={setIntensity}
+                />
+                
+                <DurationEstimator 
+                  value={estimatedDuration}
+                  onValueChange={setEstimatedDuration}
+                />
+              </div>
+
+              <div className="flex gap-4 pt-6">
+                <Button 
+                  variant="outline" 
+                  onClick={() => navigate('/')}
+                  className="flex-1 h-12 border-tennis-green-bg/30 text-tennis-green-dark hover:bg-tennis-green-bg/10"
+                  size="lg"
+                >
+                  Cancel
+                </Button>
+                <Button 
+                  onClick={handleStartSession}
+                  disabled={!canStart}
+                  className="flex-1 h-12 bg-gradient-to-r from-tennis-green-primary to-tennis-green-medium hover:from-tennis-green-medium hover:to-tennis-green-primary text-white shadow-lg hover:shadow-xl transition-all duration-200"
+                  size="lg"
+                >
+                  Start Training
+                  <ArrowRight className="ml-2 h-5 w-5" />
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   );
 }

@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, BookOpen, MessageCircle, Square, Play, Pause, Users } from 'lucide-react';
+import { Clock, BookOpen, MessageCircle, Square, Play, Pause, Users, Activity } from 'lucide-react';
 import { useTrainingSession } from '@/contexts/TrainingSessionContext';
 import { useNavigate } from 'react-router-dom';
 import { MidSessionModal } from './MidSessionModal';
@@ -86,59 +86,71 @@ export const ActiveTrainingWidget = () => {
 
   return (
     <>
-      <Card className="border-green-200 bg-gradient-to-r from-green-50/50 to-emerald-50/50">
-        <CardHeader className="pb-3">
+      <Card className="bg-gradient-to-br from-tennis-green-bg/20 to-white border-tennis-green-primary/20 shadow-lg hover:shadow-xl transition-all duration-300">
+        <CardHeader className="pb-4">
           <CardTitle className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <BookOpen className="h-5 w-5 text-green-600" />
-              <span className="text-lg">Active Training</span>
-            </div>
-            <Badge variant="outline" className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              {formatDuration(sessionDuration)}
-            </Badge>
-          </CardTitle>
-        </CardHeader>
-
-        <CardContent className="space-y-4">
-          {/* Session Info */}
-          <div className="bg-white rounded-lg border border-green-100 p-4 space-y-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <h4 className="font-semibold text-green-800">
-                  {getSessionTypeLabel(sessionData.sessionType || 'general')}
-                </h4>
-                <div className="flex items-center gap-3 mt-2">
-                  <Badge variant="outline" className={getIntensityColor(sessionData.intensity || 'medium')}>
-                    {sessionData.intensity?.charAt(0).toUpperCase() + sessionData.intensity?.slice(1) || 'Medium'} Intensity
-                  </Badge>
-                  {sessionData.estimatedDuration && (
-                    <span className="text-sm text-gray-600">
-                      Est. {sessionData.estimatedDuration} min
-                    </span>
-                  )}
-                </div>
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-gradient-to-br from-tennis-green-primary to-tennis-green-medium rounded-full flex items-center justify-center shadow-md">
+                <Activity className="h-5 w-5 text-white" />
               </div>
+              <div>
+                <span className="text-xl font-bold text-tennis-green-dark">Active Training</span>
+                <p className="text-sm text-tennis-green-dark/70">Session in progress</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Badge variant="outline" className="flex items-center gap-2 bg-white/50">
+                <Clock className="h-3 w-3" />
+                {formatDuration(sessionDuration)}
+              </Badge>
               {isPaused && (
-                <Badge variant="secondary" className="bg-yellow-100 text-yellow-700">
+                <Badge variant="secondary" className="bg-yellow-100 text-yellow-700 border-yellow-200">
                   Paused
                 </Badge>
               )}
             </div>
+          </CardTitle>
+        </CardHeader>
+
+        <CardContent className="space-y-6">
+          {/* Session Info Card */}
+          <div className="bg-white/70 backdrop-blur-sm rounded-xl border border-tennis-green-bg/30 p-5 space-y-4">
+            <div className="flex items-start justify-between">
+              <div className="space-y-3">
+                <h4 className="font-bold text-tennis-green-dark text-lg">
+                  {getSessionTypeLabel(sessionData.sessionType || 'general')}
+                </h4>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Badge 
+                    variant="outline" 
+                    className={`${getIntensityColor(sessionData.intensity || 'medium')} border-0 shadow-sm`}
+                  >
+                    {sessionData.intensity?.charAt(0).toUpperCase() + sessionData.intensity?.slice(1) || 'Medium'} Intensity
+                  </Badge>
+                  {sessionData.estimatedDuration && (
+                    <Badge variant="outline" className="bg-blue-50 text-blue-700 border-blue-200">
+                      Est. {sessionData.estimatedDuration} min
+                    </Badge>
+                  )}
+                </div>
+              </div>
+            </div>
 
             {sessionData.coachName && (
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Users className="h-4 w-4" />
-                <span>Coach: {sessionData.coachName}</span>
+              <div className="flex items-center gap-2 p-3 bg-tennis-green-bg/20 rounded-lg">
+                <Users className="h-4 w-4 text-tennis-green-medium" />
+                <span className="text-sm font-medium text-tennis-green-dark">
+                  Coach: {sessionData.coachName}
+                </span>
               </div>
             )}
 
             {sessionData.skillsFocus && sessionData.skillsFocus.length > 0 && (
-              <div>
-                <p className="text-sm text-gray-600 mb-2">Skills Focus:</p>
-                <div className="flex flex-wrap gap-1">
+              <div className="space-y-2">
+                <p className="text-sm font-medium text-tennis-green-dark">Skills Focus:</p>
+                <div className="flex flex-wrap gap-2">
                   {sessionData.skillsFocus.map((skill) => (
-                    <Badge key={skill} variant="outline" className="text-xs">
+                    <Badge key={skill} variant="secondary" className="bg-tennis-green-bg/30 text-tennis-green-dark border-tennis-green-bg text-xs">
                       {skill}
                     </Badge>
                   ))}
@@ -148,12 +160,12 @@ export const ActiveTrainingWidget = () => {
           </div>
 
           {/* Action Buttons */}
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-3 gap-3">
             <Button
               onClick={handlePauseResume}
               variant="outline"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 h-12 border-tennis-green-bg/30 text-tennis-green-dark hover:bg-tennis-green-bg/10"
             >
               {isPaused ? <Play className="h-4 w-4" /> : <Pause className="h-4 w-4" />}
               {isPaused ? 'Resume' : 'Pause'}
@@ -163,7 +175,7 @@ export const ActiveTrainingWidget = () => {
               onClick={() => setIsModalOpen(true)}
               variant="outline"
               size="sm"
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 h-12 border-tennis-green-bg/30 text-tennis-green-dark hover:bg-tennis-green-bg/10"
             >
               <MessageCircle className="h-4 w-4" />
               Check-In
@@ -171,9 +183,8 @@ export const ActiveTrainingWidget = () => {
             
             <Button
               onClick={handleEndSession}
-              variant="outline"
+              className="flex items-center gap-2 h-12 bg-gradient-to-r from-tennis-green-primary to-tennis-green-medium hover:from-tennis-green-medium hover:to-tennis-green-primary text-white shadow-md"
               size="sm"
-              className="flex items-center gap-2"
             >
               <Square className="h-4 w-4" />
               End Session
