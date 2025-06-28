@@ -17,9 +17,6 @@ export function useMatchInvitations() {
     if (!user) return;
 
     try {
-      console.log('=== fetchInvitations Debug ===');
-      console.log('Fetching invitations for user ID:', user.id);
-      
       const { data, error } = await supabase
         .from('match_invitations')
         .select(`
@@ -30,8 +27,6 @@ export function useMatchInvitations() {
         .eq('invitee_id', user.id)
         .eq('status', 'pending')
         .order('created_at', { ascending: false });
-
-      console.log('Raw Supabase query result:', { data, error });
 
       if (error) {
         console.error('Error fetching invitations:', error);
@@ -56,7 +51,6 @@ export function useMatchInvitations() {
         session_opponent_name: inv.session?.opponent_name
       }));
 
-      console.log('Processed invitations:', typedInvitations);
       setInvitations(typedInvitations);
     } catch (error) {
       console.error('Error in fetchInvitations:', error);
