@@ -9,6 +9,7 @@ export function useMatchInvitations() {
   const { user } = useAuth();
   const queryClient = useQueryClient();
   const [invitations, setInvitations] = useState<MatchInvitation[]>([]);
+  const [outgoingInvitations, setOutgoingInvitations] = useState<MatchInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
   const subscriptionInitialized = useRef(false);
@@ -22,7 +23,8 @@ export function useMatchInvitations() {
     console.log('🎾 [Match Invitations] Starting fetchInvitations for user:', user.id);
 
     try {
-      const { data, error } = await supabase
+      // Fetch incoming invitations (where I'm the invitee)
+      const { data: incomingData, error: incomingError } = await supabase
         .from('match_invitations')
         .select(`
           *,
@@ -34,35 +36,71 @@ export function useMatchInvitations() {
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
-      console.log('🎾 [Match Invitations] Supabase query result:', { data, error });
+      console.log('🎾 [Match Invitations] Incoming invitations result:', { data: incomingData, error: incomingError });
 
-      if (error) {
-        console.error('🎾 [Match Invitations] Error fetching invitations:', error);
-        return;
+      if (incomingError) {
+        console.error('🎾 [Match Invitations] Error fetching incoming invitations:', incomingError);
+      } else {
+        const typedIncoming: MatchInvitation[] = (incomingData || []).map(inv => ({
+          id: inv.id,
+          match_session_id: inv.match_session_id,
+          inviter_id: inv.inviter_id,
+          invitee_id: inv.invitee_id,
+          invitee_email: inv.invitee_email,
+          invitee_name: inv.invitee_name,
+          invitation_type: inv.invitation_type,
+          message: inv.message,
+          status: inv.status as 'pending' | 'accepted' | 'declined',
+          expires_at: inv.expires_at,
+          responded_at: inv.responded_at,
+          created_at: inv.created_at,
+          updated_at: inv.updated_at,
+          inviter_name: inv.inviter?.full_name,
+          session_opponent_name: inv.session?.opponent_name
+        }));
+
+        console.log('🎾 [Match Invitations] Processed incoming invitations:', typedIncoming);
+        setInvitations(typedIncoming);
       }
 
-      console.log('🎾 [Match Invitations] Raw invitations data:', data);
+      // Fetch outgoing invitations (where I'm the inviter)
+      const { data: outgoingData, error: outgoingError } = await supabase
+        .from('match_invitations')
+        .select(`
+          *,
+          invitee:profiles!match_invitations_invitee_id_fkey(full_name),
+          session:active_match_sessions(opponent_name)
+        `)
+        .eq('inviter_id', user.id)
+        .in('status', ['pending', 'accepted', 'declined'])
+        .order('created_at', { ascending: false });
 
-      const typedInvitations: MatchInvitation[] = (data || []).map(inv => ({
-        id: inv.id,
-        match_session_id: inv.match_session_id,
-        inviter_id: inv.inviter_id,
-        invitee_id: inv.invitee_id,
-        invitee_email: inv.invitee_email,
-        invitee_name: inv.invitee_name,
-        invitation_type: inv.invitation_type,
-        message: inv.message,
-        status: inv.status as 'pending' | 'accepted' | 'declined',
-        expires_at: inv.expires_at,
-        responded_at: inv.responded_at,
-        created_at: inv.created_at,
-        updated_at: inv.updated_at,
-        inviter_name: inv.inviter?.full_name,
-        session_opponent_name: inv.session?.opponent_name
-      }));
+      console.log('🎾 [Match Invitations] Outgoing invitations result:', { data: outgoingData, error: outgoingError });
 
-      console.log('🎾 [Match Invitations] Processed invitations:', typedInvitations);
-      setInvitations(typedInvitations);
+      if (outgoingError) {
+        console.error('🎾 [Match Invitations] Error fetching outgoing invitations:', outgoingError);
+      } else {
+        const typedOutgoing: MatchInvitation[] = (outgoingData || []).map(inv => ({
+          id: inv.id,
+          match_session_id: inv.match_session_id,
+          inviter_id: inv.inviter_id,
+          invitee_id: inv.invitee_id,
+          invitee_email: inv.invitee_email,
+          invitee_name: inv.invitee_name,
+          invitation_type: inv.invitation_type,
+          message: inv.message,
+          status: inv.status as 'pending' | 'accepted' | 'declined',
+          expires_at: inv.expires_at,
+          responded_at: inv.responded_at,
+          created_at: inv.created_at,
+          updated_at: inv.updated_at,
+          invitee_name: inv.invitee?.full_name || inv.invitee_name,
+          session_opponent_name: inv.session?.opponent_name
+        }));
+
+        console.log('🎾 [Match Invitations] Processed outgoing invitations:', typedOutgoing);
+        setOutgoingInvitations(typedOutgoing);
+      }
     } catch (error) {
       console.error('🎾 [Match Invitations] Error in fetchInvitations:', error);
     }
@@ -160,7 +198,6 @@ export function useMatchInvitations() {
       console.log('🎾 [Accept Invitation] Successfully accepted invitation');
       toast.success('Invitation accepted! Match session is now active.');
       
-      // Force refresh of all related data
       queryClient.invalidateQueries({ queryKey: ['match-invitations'] });
       queryClient.invalidateQueries({ queryKey: ['match-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['match-participants'] });
@@ -236,17 +273,32 @@ export function useMatchInvitations() {
       
       const channel = supabase.channel(channelName);
       
+      // Listen for invitations where I'm the invitee
       channel.on(
         'postgres_changes',
         {
-          event: 'INSERT',
+          event: '*',
           schema: 'public',
           table: 'match_invitations',
           filter: `invitee_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('🎾 [Match Invitations] Real-time: New match invitation received:', payload);
-          toast.info('🎾 New match invitation received!');
+          console.log('🎾 [Match Invitations] Real-time: Incoming invitation change:', payload);
+          fetchInvitations();
+        }
+      );
+
+      // Listen for invitations where I'm the inviter
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'match_invitations',
+          filter: `inviter_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🎾 [Match Invitations] Real-time: Outgoing invitation change:', payload);
           fetchInvitations();
         }
       );
@@ -270,6 +322,7 @@ export function useMatchInvitations() {
     } else if (!user) {
       console.log('🎾 [Match Invitations] No user, clearing invitations');
       setInvitations([]);
+      setOutgoingInvitations([]);
       setLoading(false);
     }
   }, [user]);
@@ -306,13 +359,15 @@ export function useMatchInvitations() {
   };
 
   console.log('🎾 [Match Invitations] Hook state:', {
-    invitationsCount: invitations.length,
+    incomingCount: invitations.length,
+    outgoingCount: outgoingInvitations.length,
     loading,
     userLoggedIn: !!user
   });
 
   return {
     invitations,
+    outgoingInvitations,
     loading,
     sendInvitation,
     acceptInvitation,
