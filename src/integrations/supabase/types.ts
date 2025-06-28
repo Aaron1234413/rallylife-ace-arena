@@ -1711,7 +1711,7 @@ export type Database = {
           invitee_id: string | null
           invitee_name: string
           inviter_id: string
-          match_session_id: string
+          match_session_id: string | null
           message: string | null
           responded_at: string | null
           status: string
@@ -1726,7 +1726,7 @@ export type Database = {
           invitee_id?: string | null
           invitee_name: string
           inviter_id: string
-          match_session_id: string
+          match_session_id?: string | null
           message?: string | null
           responded_at?: string | null
           status?: string
@@ -1741,7 +1741,7 @@ export type Database = {
           invitee_id?: string | null
           invitee_name?: string
           inviter_id?: string
-          match_session_id?: string
+          match_session_id?: string | null
           message?: string | null
           responded_at?: string | null
           status?: string

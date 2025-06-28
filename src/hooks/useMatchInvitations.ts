@@ -10,7 +10,7 @@ interface MatchInvitation {
   invitee_name: string;
   invitee_email?: string;
   invitation_type: string;
-  match_session_id: string;
+  match_session_id: string | null;
   status: 'pending' | 'accepted' | 'declined' | 'expired';
   message?: string;
   created_at: string;
@@ -142,17 +142,14 @@ export function useMatchInvitations() {
         isDoubles: params.isDoubles
       });
 
-      // Generate a unique session ID for this invitation
-      const sessionId = crypto.randomUUID();
-      
-      // Create invitation data with proper field mapping
+      // Create invitation data WITHOUT a session ID (will be added when accepted)
       const invitationData = {
         inviter_id: user.id,
         invitee_id: params.invitedUserId || null,
         invitee_name: params.invitedUserName,
         invitee_email: params.invitedUserEmail || null,
         invitation_type: params.matchType, // Use matchType directly ('singles' or 'doubles')
-        match_session_id: sessionId,
+        match_session_id: null, // NULL initially - session created on acceptance
         message: params.message || null,
         status: 'pending' as const
       };
@@ -181,7 +178,8 @@ export function useMatchInvitations() {
         inviter_id: data.inviter_id,
         invitee_name: data.invitee_name,
         invitation_type: data.invitation_type,
-        status: data.status
+        status: data.status,
+        match_session_id: data.match_session_id // Should be null initially
       });
       
       // Force refresh sent invitations immediately to update UI
@@ -199,7 +197,7 @@ export function useMatchInvitations() {
     if (!user) return;
 
     try {
-      console.log('Accepting invitation:', invitationId);
+      console.log('✅ [DATA FLOW] Accepting invitation:', invitationId);
 
       // Get the invitation details first
       const { data: invitation, error: fetchError } = await supabase
@@ -210,24 +208,11 @@ export function useMatchInvitations() {
         .single();
 
       if (fetchError || !invitation) {
-        console.error('Error fetching invitation:', fetchError);
+        console.error('❌ [DATA FLOW] Error fetching invitation:', fetchError);
         throw new Error('Invitation not found');
       }
 
-      // Update the invitation status to accepted
-      const { error: updateError } = await supabase
-        .from('match_invitations')
-        .update({ 
-          status: 'accepted',
-          responded_at: new Date().toISOString()
-        })
-        .eq('id', invitationId)
-        .eq('invitee_id', user.id);
-
-      if (updateError) {
-        console.error('Error updating invitation:', updateError);
-        throw updateError;
-      }
+      console.log('🎾 [DATA FLOW] Creating match session for accepted invitation...');
 
       // Create an active match session based on the invitation
       const sessionData = {
@@ -242,7 +227,7 @@ export function useMatchInvitations() {
         current_set: 0
       };
 
-      console.log('Creating match session:', sessionData);
+      console.log('📝 [DATA FLOW] Creating match session with data:', sessionData);
 
       const { data: session, error: sessionError } = await supabase
         .from('active_match_sessions')
@@ -251,11 +236,32 @@ export function useMatchInvitations() {
         .single();
 
       if (sessionError) {
-        console.error('Error creating match session:', sessionError);
+        console.error('❌ [DATA FLOW] Error creating match session:', sessionError);
         throw sessionError;
       }
 
-      console.log('Match session created successfully:', session);
+      console.log('✅ [DATA FLOW] Match session created successfully:', session);
+
+      // Update the invitation status to accepted AND link it to the new session
+      const { error: updateError } = await supabase
+        .from('match_invitations')
+        .update({ 
+          status: 'accepted',
+          match_session_id: session.id, // Link the invitation to the new session
+          responded_at: new Date().toISOString()
+        })
+        .eq('id', invitationId)
+        .eq('invitee_id', user.id);
+
+      if (updateError) {
+        console.error('❌ [DATA FLOW] Error updating invitation:', updateError);
+        throw updateError;
+      }
+
+      console.log('✅ [DATA FLOW] Invitation accepted and linked to session:', {
+        invitationId,
+        sessionId: session.id
+      });
       
       // Refresh invitations
       await fetchReceivedInvitations();
@@ -263,7 +269,7 @@ export function useMatchInvitations() {
       
       return session;
     } catch (error) {
-      console.error('Error in acceptInvitation:', error);
+      console.error('💥 [DATA FLOW] Error in acceptInvitation:', error);
       throw error;
     }
   };
