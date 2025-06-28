@@ -86,7 +86,7 @@ export function useMatchInvitations() {
           inviter_id: inv.inviter_id,
           invitee_id: inv.invitee_id,
           invitee_email: inv.invitee_email,
-          invitee_name: inv.invitee_name,
+          invitee_name: inv.invitee?.full_name || inv.invitee_name,
           invitation_type: inv.invitation_type,
           message: inv.message,
           status: inv.status as 'pending' | 'accepted' | 'declined',
@@ -94,7 +94,6 @@ export function useMatchInvitations() {
           responded_at: inv.responded_at,
           created_at: inv.created_at,
           updated_at: inv.updated_at,
-          invitee_name: inv.invitee?.full_name || inv.invitee_name,
           session_opponent_name: inv.session?.opponent_name
         }));
 
