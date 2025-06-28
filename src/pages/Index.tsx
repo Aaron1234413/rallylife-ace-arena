@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -5,6 +6,7 @@ import { usePlayerXP } from "@/hooks/usePlayerXP";
 import { usePlayerAvatar } from "@/hooks/usePlayerAvatar";
 import { usePlayerAchievements } from "@/hooks/usePlayerAchievements";
 import { usePlayerTokens } from "@/hooks/usePlayerTokens";
+import { useMatchInvitations } from "@/hooks/useMatchInvitations";
 import { supabase } from "@/integrations/supabase/client";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
@@ -173,7 +175,7 @@ const Index = () => {
             {/* Social Play Section - Always show quick actions for Phase 1 */}
             <SocialPlayQuickActions />
 
-            {/* Active Session Widgets */}
+            {/* Active Session Widgets - Now includes match invitations */}
             <ActiveSocialPlayWidget 
               onAddXP={handleAddXP}
               onRestoreHP={handleRestoreHP}

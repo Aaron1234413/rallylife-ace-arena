@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -6,9 +5,12 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
-import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, RefreshCw, AlertCircle } from 'lucide-react';
+import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, RefreshCw, AlertCircle, Mail } from 'lucide-react';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
+import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 import { MidMatchCheckInModal } from './MidMatchCheckInModal';
+import { MatchInvitationCard } from './MatchInvitationCard';
+import { PendingInvitationCard } from './PendingInvitationCard';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -21,8 +23,14 @@ export const ActiveMatchWidget = () => {
     isSessionActive, 
     getCurrentSetDisplay, 
     getOpponentSetDisplay,
-    loading 
+    loading: matchLoading 
   } = useMatchSession();
+  
+  const { 
+    receivedInvitations, 
+    sentInvitations, 
+    loading: invitationsLoading 
+  } = useMatchInvitations();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [matchDuration, setMatchDuration] = useState(0);
@@ -82,21 +90,57 @@ export const ActiveMatchWidget = () => {
     }
   }, [sessionData]);
 
-  if (loading) {
+  if (matchLoading || invitationsLoading) {
     return (
       <Card className="border-tennis-green-light bg-gradient-to-r from-tennis-green-light/5 to-tennis-green-dark/5">
         <CardContent className="flex items-center justify-center py-8">
           <div className="text-center space-y-3">
             <LoadingSpinner size="lg" />
-            <p className="text-sm text-gray-600">Loading match session...</p>
+            <p className="text-sm text-gray-600">Loading match data...</p>
           </div>
         </CardContent>
       </Card>
     );
   }
 
+  // Show invitations if no active match
   if (!isSessionActive || !sessionData) {
-    return null;
+    const hasReceivedInvitations = receivedInvitations.length > 0;
+    const hasSentInvitations = sentInvitations.length > 0;
+
+    if (!hasReceivedInvitations && !hasSentInvitations) {
+      return null;
+    }
+
+    return (
+      <div className="space-y-4">
+        {/* Received Invitations */}
+        {hasReceivedInvitations && (
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Mail className="h-5 w-5 text-blue-600" />
+              Match Invitations ({receivedInvitations.length})
+            </h3>
+            {receivedInvitations.map((invitation) => (
+              <MatchInvitationCard key={invitation.id} invitation={invitation} />
+            ))}
+          </div>
+        )}
+
+        {/* Sent Invitations */}
+        {hasSentInvitations && (
+          <div className="space-y-3">
+            <h3 className="text-lg font-semibold flex items-center gap-2">
+              <Clock className="h-5 w-5 text-orange-600" />
+              Pending Invitations ({sentInvitations.length})
+            </h3>
+            {sentInvitations.map((invitation) => (
+              <PendingInvitationCard key={invitation.id} invitation={invitation} />
+            ))}
+          </div>
+        )}
+      </div>
+    );
   }
 
   const handleLogSetScore = async () => {
