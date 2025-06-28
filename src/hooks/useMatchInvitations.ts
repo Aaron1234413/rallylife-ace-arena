@@ -6,26 +6,18 @@ import { toast } from 'sonner';
 
 interface MatchInvitation {
   id: string;
-  created_by: string;
-  invited_user_id?: string;
-  invited_user_name: string;
-  invited_user_email?: string;
-  match_type: 'singles' | 'doubles';
-  is_doubles: boolean;
-  start_time: string;
-  opponent_name?: string;
-  opponent_id?: string;
-  partner_name?: string;
-  partner_id?: string;
-  opponent_1_name?: string;
-  opponent_1_id?: string;
-  opponent_2_name?: string;
-  opponent_2_id?: string;
+  inviter_id: string;
+  invitee_id?: string;
+  invitee_name: string;
+  invitee_email?: string;
+  invitation_type: string;
+  match_session_id: string;
   status: 'pending' | 'accepted' | 'declined' | 'expired';
   message?: string;
   created_at: string;
   expires_at: string;
   responded_at?: string;
+  updated_at: string;
 }
 
 interface CreateInvitationParams {
@@ -60,7 +52,7 @@ export function useMatchInvitations() {
       const { data, error } = await supabase
         .from('match_invitations')
         .select('*')
-        .eq('invited_user_id', user.id)
+        .eq('invitee_id', user.id)
         .in('status', ['pending'])
         .order('created_at', { ascending: false });
 
@@ -82,7 +74,7 @@ export function useMatchInvitations() {
       const { data, error } = await supabase
         .from('match_invitations')
         .select('*')
-        .eq('created_by', user.id)
+        .eq('inviter_id', user.id)
         .in('status', ['pending'])
         .order('created_at', { ascending: false });
 
@@ -101,22 +93,16 @@ export function useMatchInvitations() {
     if (!user) return;
 
     try {
+      // First create a temporary match session ID (we'll use this pattern)
+      const tempSessionId = crypto.randomUUID();
+      
       const invitationData = {
-        created_by: user.id,
-        invited_user_id: params.invitedUserId,
-        invited_user_name: params.invitedUserName,
-        invited_user_email: params.invitedUserEmail,
-        match_type: params.matchType,
-        is_doubles: params.isDoubles,
-        start_time: params.startTime.toISOString(),
-        opponent_name: params.opponentName,
-        opponent_id: params.opponentId,
-        partner_name: params.partnerName,
-        partner_id: params.partnerId,
-        opponent_1_name: params.opponent1Name,
-        opponent_1_id: params.opponent1Id,
-        opponent_2_name: params.opponent2Name,
-        opponent_2_id: params.opponent2Id,
+        inviter_id: user.id,
+        invitee_id: params.invitedUserId,
+        invitee_name: params.invitedUserName,
+        invitee_email: params.invitedUserEmail,
+        invitation_type: params.matchType,
+        match_session_id: tempSessionId,
         message: params.message,
         status: 'pending' as const
       };
@@ -153,7 +139,7 @@ export function useMatchInvitations() {
         .from('match_invitations')
         .update({ status: 'accepted' })
         .eq('id', invitationId)
-        .eq('invited_user_id', user.id)
+        .eq('invitee_id', user.id)
         .select()
         .single();
 
@@ -162,20 +148,15 @@ export function useMatchInvitations() {
         throw updateError;
       }
 
-      // Now create the active match session
+      // For now, we'll create a basic active match session
+      // This should be enhanced based on the invitation type
       const sessionData = {
-        player_id: invitation.created_by, // The original creator becomes the session owner
-        opponent_name: invitation.invited_user_name,
-        opponent_id: invitation.invited_user_id,
-        is_doubles: invitation.is_doubles,
-        partner_name: invitation.partner_name,
-        partner_id: invitation.partner_id,
-        opponent_1_name: invitation.opponent_1_name,
-        opponent_1_id: invitation.opponent_1_id,
-        opponent_2_name: invitation.opponent_2_name,
-        opponent_2_id: invitation.opponent_2_id,
-        match_type: invitation.match_type,
-        start_time: invitation.start_time,
+        player_id: invitation.inviter_id,
+        opponent_name: invitation.invitee_name,
+        opponent_id: invitation.invitee_id,
+        is_doubles: invitation.invitation_type === 'doubles',
+        match_type: invitation.invitation_type,
+        start_time: new Date().toISOString(),
         status: 'active' as const,
         sets: [{ playerScore: '', opponentScore: '', completed: false }],
         current_set: 0
@@ -213,7 +194,7 @@ export function useMatchInvitations() {
         .from('match_invitations')
         .update({ status: 'declined' })
         .eq('id', invitationId)
-        .eq('invited_user_id', user.id);
+        .eq('invitee_id', user.id);
 
       if (error) {
         console.error('Error declining invitation:', error);
@@ -239,7 +220,7 @@ export function useMatchInvitations() {
         .from('match_invitations')
         .update({ status: 'expired' })
         .eq('id', invitationId)
-        .eq('created_by', user.id);
+        .eq('inviter_id', user.id);
 
       if (error) {
         console.error('Error canceling invitation:', error);
@@ -291,7 +272,7 @@ export function useMatchInvitations() {
           event: '*',
           schema: 'public',
           table: 'match_invitations',
-          filter: `created_by=eq.${user.id}`
+          filter: `inviter_id=eq.${user.id}`
         },
         (payload) => {
           console.log('Match invitation update (sent):', payload);
@@ -305,7 +286,7 @@ export function useMatchInvitations() {
           event: '*',
           schema: 'public',
           table: 'match_invitations',
-          filter: `invited_user_id=eq.${user.id}`
+          filter: `invitee_id=eq.${user.id}`
         },
         (payload) => {
           console.log('Match invitation update (received):', payload);
