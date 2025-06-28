@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, RefreshCw, AlertCircle, Mail } from 'lucide-react';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
+import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 import { MidMatchCheckInModal } from './MidMatchCheckInModal';
 import { MatchInvitationCard } from './MatchInvitationCard';
 import { PendingInvitationCard } from './PendingInvitationCard';
@@ -22,11 +23,14 @@ export const ActiveMatchWidget = () => {
     isSessionActive, 
     getCurrentSetDisplay, 
     getOpponentSetDisplay,
-    loading: matchLoading,
+    loading: matchLoading
+  } = useMatchSession();
+  
+  const {
     receivedInvitations,
     sentInvitations,
-    invitationsLoading
-  } = useMatchSession();
+    loading: invitationsLoading
+  } = useMatchInvitations();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [matchDuration, setMatchDuration] = useState(0);
@@ -86,6 +90,17 @@ export const ActiveMatchWidget = () => {
     }
   }, [sessionData]);
 
+  // Debug logging
+  useEffect(() => {
+    console.log('ActiveMatchWidget render state:', {
+      isSessionActive,
+      matchLoading,
+      invitationsLoading,
+      receivedInvitations: receivedInvitations?.length || 0,
+      sentInvitations: sentInvitations?.length || 0
+    });
+  }, [isSessionActive, matchLoading, invitationsLoading, receivedInvitations, sentInvitations]);
+
   if (matchLoading || invitationsLoading) {
     return (
       <Card className="border-tennis-green-light bg-gradient-to-r from-tennis-green-light/5 to-tennis-green-dark/5">
@@ -101,8 +116,10 @@ export const ActiveMatchWidget = () => {
 
   // Show invitations if no active match
   if (!isSessionActive || !sessionData) {
-    const hasReceivedInvitations = receivedInvitations.length > 0;
-    const hasSentInvitations = sentInvitations.length > 0;
+    const hasReceivedInvitations = receivedInvitations && receivedInvitations.length > 0;
+    const hasSentInvitations = sentInvitations && sentInvitations.length > 0;
+
+    console.log('Checking invitations:', { hasReceivedInvitations, hasSentInvitations, receivedInvitations, sentInvitations });
 
     if (!hasReceivedInvitations && !hasSentInvitations) {
       return null;

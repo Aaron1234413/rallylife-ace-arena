@@ -1,247 +1,226 @@
-
-import React, { createContext, useContext, ReactNode, useEffect } from 'react';
-import { useMatchSessions } from '@/hooks/useMatchSessions';
+import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { useAuth } from '@/hooks/useAuth';
 import { useMatchInvitations } from '@/hooks/useMatchInvitations';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
-interface MatchSessionData {
-  // Start match data
-  opponentName: string;
-  opponentId?: string; // New: Store opponent player ID
-  isDoubles: boolean;
-  partnerName?: string;
-  partnerId?: string; // New: Store partner player ID
-  opponent1Name?: string;
-  opponent1Id?: string; // New: Store first opponent player ID
-  opponent2Name?: string;
-  opponent2Id?: string; // New: Store second opponent player ID
-  matchType: 'singles' | 'doubles';
-  startTime: Date;
-  
-  // Progressive scoring system
-  sets: {
-    playerScore: string;
-    opponentScore: string;
-    completed: boolean;
-  }[];
-  currentSet: number; // 0-indexed
-  
-  // Mid-match check-in data
-  midMatchMood?: string;
-  midMatchNotes?: string;
-  
-  // End match data
-  finalScore?: string;
-  duration?: number;
-  endMood?: string;
-  matchNotes?: string;
-  result?: 'win' | 'loss';
+interface SetData {
+  playerScore: string;
+  opponentScore: string;
+  completed: boolean;
 }
 
-interface MatchInvitation {
+interface MatchSessionData {
   id: string;
-  inviter_id: string;
-  invitee_id?: string;
-  invitee_name: string;
-  invitee_email?: string;
-  invitation_type: string;
-  match_session_id: string;
-  status: 'pending' | 'accepted' | 'declined' | 'expired';
-  message?: string;
-  created_at: string;
-  expires_at: string;
-  responded_at?: string;
-  updated_at: string;
+  player_id: string;
+  opponent_name: string;
+  opponent_id: string;
+  is_doubles: boolean;
+  match_type: string;
+  start_time: Date;
+  end_time?: Date;
+  status: 'active' | 'completed' | 'abandoned';
+  sets: SetData[];
+  current_set: number;
+  final_notes?: string;
+  end_mood?: string;
 }
 
 interface MatchSessionContextType {
-  // Session management
   sessionData: MatchSessionData | null;
-  updateSessionData: (data: Partial<MatchSessionData>) => Promise<void>;
+  isSessionActive: boolean;
+  loading: boolean;
+  error: string | null;
+  updateSessionData: (data: Partial<MatchSessionData>) => void;
   logSetScore: (playerScore: string, opponentScore: string) => Promise<void>;
   startNextSet: () => Promise<void>;
-  clearSession: () => void;
-  isSessionActive: boolean;
-  getCurrentSetDisplay: () => string;
-  getOpponentSetDisplay: () => string;
-  loading: boolean;
-  
-  // Invitation management
-  receivedInvitations: MatchInvitation[];
-  sentInvitations: MatchInvitation[];
+  endMatch: (finalNotes?: string, endMood?: string) => Promise<void>;
+  createInvitation: (params: any) => Promise<any>;
+  refreshInvitations: () => Promise<void>;
+  receivedInvitations: any[];
+  sentInvitations: any[];
   invitationsLoading: boolean;
-  createInvitation: (params: any) => Promise<MatchInvitation | undefined>;
-  acceptInvitation: (invitationId: string) => Promise<any>;
-  declineInvitation: (invitationId: string) => Promise<void>;
-  cancelInvitation: (invitationId: string) => Promise<void>;
-  refreshInvitations: () => void;
 }
 
 const MatchSessionContext = createContext<MatchSessionContextType | undefined>(undefined);
 
 export const useMatchSession = () => {
   const context = useContext(MatchSessionContext);
-  if (context === undefined) {
+  if (!context) {
     throw new Error('useMatchSession must be used within a MatchSessionProvider');
   }
   return context;
 };
 
-interface MatchSessionProviderProps {
-  children: ReactNode;
-}
-
-export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ children }) => {
-  const { 
-    activeSession, 
-    loading, 
-    createMatchSession, 
-    updateMatchSession, 
-    completeMatchSession 
-  } = useMatchSessions();
-
+export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
+  const { user } = useAuth();
+  const [sessionData, setSessionData] = useState<MatchSessionData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  
+  // Use the match invitations hook
   const {
     receivedInvitations,
     sentInvitations,
     loading: invitationsLoading,
     createInvitation,
-    acceptInvitation,
-    declineInvitation,
-    cancelInvitation,
     refreshInvitations
   } = useMatchInvitations();
 
-  // Convert database session to context format
-  const sessionData: MatchSessionData | null = activeSession ? {
-    opponentName: activeSession.opponent_name,
-    opponentId: activeSession.opponent_id,
-    isDoubles: activeSession.is_doubles,
-    partnerName: activeSession.partner_name,
-    partnerId: activeSession.partner_id,
-    opponent1Name: activeSession.opponent_1_name,
-    opponent1Id: activeSession.opponent_1_id,
-    opponent2Name: activeSession.opponent_2_name,
-    opponent2Id: activeSession.opponent_2_id,
-    matchType: activeSession.match_type,
-    startTime: new Date(activeSession.start_time),
-    sets: activeSession.sets,
-    currentSet: activeSession.current_set,
-    midMatchMood: activeSession.mid_match_mood,
-    midMatchNotes: activeSession.mid_match_notes,
-    finalScore: activeSession.final_score,
-    endMood: activeSession.end_mood,
-    matchNotes: activeSession.match_notes,
-    result: activeSession.result
-  } : null;
-
-  const updateSessionData = async (data: Partial<MatchSessionData>) => {
-    if (!activeSession) {
-      // Create new session
-      if (data.opponentName && data.matchType && data.startTime) {
-        await createMatchSession({
-          opponentName: data.opponentName,
-          opponentId: data.opponentId,
-          isDoubles: data.isDoubles || false,
-          partnerName: data.partnerName,
-          partnerId: data.partnerId,
-          opponent1Name: data.opponent1Name,
-          opponent1Id: data.opponent1Id,
-          opponent2Name: data.opponent2Name,
-          opponent2Id: data.opponent2Id,
-          matchType: data.matchType,
-          startTime: data.startTime
-        });
+  useEffect(() => {
+    const fetchActiveSession = async () => {
+      if (!user) {
+        setLoading(false);
+        return;
       }
-      return;
-    }
 
-    // Update existing session
-    await updateMatchSession({
-      sessionId: activeSession.id,
-      sets: data.sets,
-      currentSet: data.currentSet,
-      midMatchMood: data.midMatchMood,
-      midMatchNotes: data.midMatchNotes,
-      finalScore: data.finalScore,
-      endMood: data.endMood,
-      matchNotes: data.matchNotes,
-      result: data.result
+      setLoading(true);
+      setError(null);
+
+      try {
+        const { data, error } = await supabase
+          .from('active_match_sessions')
+          .select('*')
+          .eq('player_id', user.id)
+          .eq('status', 'active')
+          .single();
+
+        if (error) {
+          console.error('Error fetching active match session:', error);
+          setError(error.message);
+        }
+
+        if (data) {
+          // Convert the start_time to a Date object
+          const session = {
+            ...data,
+            start_time: new Date(data.start_time),
+          } as MatchSessionData;
+          setSessionData(session);
+        } else {
+          setSessionData(null);
+        }
+      } catch (err: any) {
+        console.error('Unexpected error fetching active match session:', err);
+        setError(err.message);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchActiveSession();
+  }, [user]);
+
+  const updateSessionData = (data: Partial<MatchSessionData>) => {
+    setSessionData((prevSessionData) => {
+      if (!prevSessionData) return prevSessionData;
+      return { ...prevSessionData, ...data };
     });
   };
 
   const logSetScore = async (playerScore: string, opponentScore: string) => {
-    if (!activeSession || !sessionData) return;
+    if (!sessionData) {
+      console.error('No active session to log score.');
+      return;
+    }
 
     const updatedSets = [...sessionData.sets];
-    updatedSets[sessionData.currentSet] = {
+    updatedSets[sessionData.current_set] = {
       playerScore,
       opponentScore,
-      completed: true
+      completed: true,
     };
 
-    await updateSessionData({ sets: updatedSets });
+    try {
+      const { error } = await supabase
+        .from('active_match_sessions')
+        .update({ sets: updatedSets })
+        .eq('id', sessionData.id);
+
+      if (error) {
+        console.error('Error logging set score:', error);
+        throw error;
+      }
+
+      updateSessionData({ sets: updatedSets });
+    } catch (error) {
+      console.error('Error in logSetScore:', error);
+      toast.error('Failed to save set score. Please try again.');
+      throw error;
+    }
   };
 
   const startNextSet = async () => {
-    if (!sessionData) return;
+    if (!sessionData) {
+      console.error('No active session to start next set.');
+      return;
+    }
 
-    const newSets = [...sessionData.sets, { playerScore: '', opponentScore: '', completed: false }];
-    await updateSessionData({
-      sets: newSets,
-      currentSet: sessionData.currentSet + 1
-    });
+    const nextSetIndex = sessionData.current_set + 1;
+    const updatedSets = [...sessionData.sets, { playerScore: '', opponentScore: '', completed: false }];
+
+    try {
+      const { error } = await supabase
+        .from('active_match_sessions')
+        .update({ sets: updatedSets, current_set: nextSetIndex })
+        .eq('id', sessionData.id);
+
+      if (error) {
+        console.error('Error starting next set:', error);
+        throw error;
+      }
+
+      updateSessionData({ sets: updatedSets, current_set: nextSetIndex });
+    } catch (error) {
+      console.error('Error in startNextSet:', error);
+      toast.error('Failed to start next set. Please try again.');
+      throw error;
+    }
   };
 
-  const getCurrentSetDisplay = () => {
-    if (!sessionData || !sessionData.sets) return '';
-    
-    return sessionData.sets
-      .filter(set => set.completed)
-      .map(set => set.playerScore)
-      .join(', ');
+  const endMatch = async (finalNotes?: string, endMood?: string) => {
+    if (!sessionData) {
+      console.error('No active session to end.');
+      return;
+    }
+
+    try {
+      const { error } = await supabase
+        .from('active_match_sessions')
+        .update({ status: 'completed', end_time: new Date().toISOString(), final_notes: finalNotes, end_mood: endMood })
+        .eq('id', sessionData.id);
+
+      if (error) {
+        console.error('Error ending match:', error);
+        throw error;
+      }
+
+      setSessionData(null);
+    } catch (error) {
+      console.error('Error in endMatch:', error);
+      toast.error('Failed to end match. Please try again.');
+      throw error;
+    }
   };
 
-  const getOpponentSetDisplay = () => {
-    if (!sessionData || !sessionData.sets) return '';
-    
-    return sessionData.sets
-      .filter(set => set.completed)
-      .map(set => set.opponentScore)
-      .join(', ');
+  const value = {
+    sessionData,
+    isSessionActive: !!sessionData,
+    loading,
+    error,
+    updateSessionData,
+    logSetScore,
+    startNextSet,
+    endMatch,
+    createInvitation,
+    refreshInvitations,
+    receivedInvitations,
+    sentInvitations,
+    invitationsLoading
   };
-
-  const clearSession = () => {
-    // This will be handled by completing the session
-    // The session will be marked as completed in the database
-    console.log('Session cleared - this should be handled by completing the match');
-  };
-
-  const isSessionActive = sessionData !== null;
 
   return (
-    <MatchSessionContext.Provider 
-      value={{ 
-        // Session management
-        sessionData, 
-        updateSessionData, 
-        logSetScore,
-        startNextSet,
-        clearSession, 
-        isSessionActive,
-        getCurrentSetDisplay,
-        getOpponentSetDisplay,
-        loading,
-        
-        // Invitation management
-        receivedInvitations,
-        sentInvitations,
-        invitationsLoading,
-        createInvitation,
-        acceptInvitation,
-        declineInvitation,
-        cancelInvitation,
-        refreshInvitations
-      }}
-    >
+    <MatchSessionContext.Provider value={value}>
       {children}
     </MatchSessionContext.Provider>
   );
