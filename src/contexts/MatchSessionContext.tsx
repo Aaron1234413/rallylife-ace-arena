@@ -1,6 +1,7 @@
 
 import React, { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useMatchSessions } from '@/hooks/useMatchSessions';
+import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 
 interface MatchSessionData {
   // Start match data
@@ -36,7 +37,24 @@ interface MatchSessionData {
   result?: 'win' | 'loss';
 }
 
+interface MatchInvitation {
+  id: string;
+  inviter_id: string;
+  invitee_id?: string;
+  invitee_name: string;
+  invitee_email?: string;
+  invitation_type: string;
+  match_session_id: string;
+  status: 'pending' | 'accepted' | 'declined' | 'expired';
+  message?: string;
+  created_at: string;
+  expires_at: string;
+  responded_at?: string;
+  updated_at: string;
+}
+
 interface MatchSessionContextType {
+  // Session management
   sessionData: MatchSessionData | null;
   updateSessionData: (data: Partial<MatchSessionData>) => Promise<void>;
   logSetScore: (playerScore: string, opponentScore: string) => Promise<void>;
@@ -46,6 +64,16 @@ interface MatchSessionContextType {
   getCurrentSetDisplay: () => string;
   getOpponentSetDisplay: () => string;
   loading: boolean;
+  
+  // Invitation management
+  receivedInvitations: MatchInvitation[];
+  sentInvitations: MatchInvitation[];
+  invitationsLoading: boolean;
+  createInvitation: (params: any) => Promise<MatchInvitation | undefined>;
+  acceptInvitation: (invitationId: string) => Promise<any>;
+  declineInvitation: (invitationId: string) => Promise<void>;
+  cancelInvitation: (invitationId: string) => Promise<void>;
+  refreshInvitations: () => void;
 }
 
 const MatchSessionContext = createContext<MatchSessionContextType | undefined>(undefined);
@@ -70,6 +98,17 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
     updateMatchSession, 
     completeMatchSession 
   } = useMatchSessions();
+
+  const {
+    receivedInvitations,
+    sentInvitations,
+    loading: invitationsLoading,
+    createInvitation,
+    acceptInvitation,
+    declineInvitation,
+    cancelInvitation,
+    refreshInvitations
+  } = useMatchInvitations();
 
   // Convert database session to context format
   const sessionData: MatchSessionData | null = activeSession ? {
@@ -181,6 +220,7 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
   return (
     <MatchSessionContext.Provider 
       value={{ 
+        // Session management
         sessionData, 
         updateSessionData, 
         logSetScore,
@@ -189,7 +229,17 @@ export const MatchSessionProvider: React.FC<MatchSessionProviderProps> = ({ chil
         isSessionActive,
         getCurrentSetDisplay,
         getOpponentSetDisplay,
-        loading
+        loading,
+        
+        // Invitation management
+        receivedInvitations,
+        sentInvitations,
+        invitationsLoading,
+        createInvitation,
+        acceptInvitation,
+        declineInvitation,
+        cancelInvitation,
+        refreshInvitations
       }}
     >
       {children}

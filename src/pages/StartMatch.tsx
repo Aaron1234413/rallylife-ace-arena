@@ -1,10 +1,8 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
-import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 import { Play, RefreshCw, AlertCircle, Send } from 'lucide-react';
 import { AnimatedButton } from '@/components/ui/animated-button';
 import { CardWithAnimation } from '@/components/ui/card-with-animation';
@@ -18,8 +16,13 @@ import { toast } from 'sonner';
 
 const StartMatch = () => {
   const navigate = useNavigate();
-  const { sessionData, updateSessionData, isSessionActive, loading } = useMatchSession();
-  const { createInvitation } = useMatchInvitations();
+  const { 
+    sessionData, 
+    updateSessionData, 
+    isSessionActive, 
+    loading,
+    createInvitation 
+  } = useMatchSession();
   
   // Updated state to use SelectedOpponent objects
   const [opponent, setOpponent] = useState<SelectedOpponent | null>(null);
@@ -111,7 +114,7 @@ const StartMatch = () => {
           await createInvitation({
             invitedUserName: opponent1.name,
             invitedUserId: opponent1.id,
-            invitedUserEmail: opponent1.email || undefined,
+            invitedUserEmail: opponent1.email,
             matchType: 'doubles',
             isDoubles: true,
             startTime: startDateTime,
@@ -130,7 +133,7 @@ const StartMatch = () => {
           await createInvitation({
             invitedUserName: opponent.name,
             invitedUserId: opponent.id,
-            invitedUserEmail: opponent.email || undefined,
+            invitedUserEmail: opponent.email,
             matchType: 'singles',
             isDoubles: false,
             startTime: startDateTime,
