@@ -66,7 +66,7 @@ export function useMatchInvitations() {
     if (!user) return;
 
     try {
-      console.log('Fetching received invitations for user:', user.id);
+      console.log('🔍 [DATA FLOW] Fetching received invitations for user:', user.id);
       const { data, error } = await supabase
         .from('match_invitations')
         .select('*')
@@ -75,14 +75,24 @@ export function useMatchInvitations() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching received invitations:', error);
+        console.error('❌ [DATA FLOW] Error fetching received invitations:', error);
         return;
       }
 
-      console.log('Fetched received invitations:', data);
-      setReceivedInvitations((data || []).map(toMatchInvitation));
+      const invitations = (data || []).map(toMatchInvitation);
+      console.log('✅ [DATA FLOW] Fetched received invitations:', {
+        count: invitations.length,
+        invitations: invitations.map(i => ({
+          id: i.id,
+          from: i.invitee_name,
+          type: i.invitation_type,
+          status: i.status
+        }))
+      });
+      
+      setReceivedInvitations(invitations);
     } catch (error) {
-      console.error('Error in fetchReceivedInvitations:', error);
+      console.error('💥 [DATA FLOW] Error in fetchReceivedInvitations:', error);
     }
   };
 
@@ -90,7 +100,7 @@ export function useMatchInvitations() {
     if (!user) return;
 
     try {
-      console.log('Fetching sent invitations for user:', user.id);
+      console.log('🔍 [DATA FLOW] Fetching sent invitations for user:', user.id);
       const { data, error } = await supabase
         .from('match_invitations')
         .select('*')
@@ -99,14 +109,24 @@ export function useMatchInvitations() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('Error fetching sent invitations:', error);
+        console.error('❌ [DATA FLOW] Error fetching sent invitations:', error);
         return;
       }
 
-      console.log('Fetched sent invitations:', data);
-      setSentInvitations((data || []).map(toMatchInvitation));
+      const invitations = (data || []).map(toMatchInvitation);
+      console.log('✅ [DATA FLOW] Fetched sent invitations:', {
+        count: invitations.length,
+        invitations: invitations.map(i => ({
+          id: i.id,
+          to: i.invitee_name,
+          type: i.invitation_type,
+          status: i.status
+        }))
+      });
+      
+      setSentInvitations(invitations);
     } catch (error) {
-      console.error('Error in fetchSentInvitations:', error);
+      console.error('💥 [DATA FLOW] Error in fetchSentInvitations:', error);
     }
   };
 
@@ -116,6 +136,12 @@ export function useMatchInvitations() {
     }
 
     try {
+      console.log('🚀 [DATA FLOW] Creating invitation with params:', {
+        invitedUserName: params.invitedUserName,
+        matchType: params.matchType,
+        isDoubles: params.isDoubles
+      });
+
       // Generate a unique session ID for this invitation
       const sessionId = crypto.randomUUID();
       
@@ -131,7 +157,7 @@ export function useMatchInvitations() {
         status: 'pending' as const
       };
 
-      console.log('Creating invitation with data:', invitationData);
+      console.log('📤 [DATA FLOW] Sending invitation data to database:', invitationData);
 
       const { data, error } = await supabase
         .from('match_invitations')
@@ -140,7 +166,7 @@ export function useMatchInvitations() {
         .single();
 
       if (error) {
-        console.error('Detailed error creating invitation:', {
+        console.error('❌ [DATA FLOW] Database error creating invitation:', {
           error,
           code: error.code,
           message: error.message,
@@ -150,14 +176,21 @@ export function useMatchInvitations() {
         throw new Error(`Failed to create invitation: ${error.message}`);
       }
 
-      console.log('Match invitation created successfully:', data);
+      console.log('✅ [DATA FLOW] Match invitation created successfully:', {
+        id: data.id,
+        inviter_id: data.inviter_id,
+        invitee_name: data.invitee_name,
+        invitation_type: data.invitation_type,
+        status: data.status
+      });
       
-      // Force refresh sent invitations immediately
+      // Force refresh sent invitations immediately to update UI
+      console.log('🔄 [DATA FLOW] Refreshing sent invitations after creation...');
       await fetchSentInvitations();
       
       return toMatchInvitation(data);
     } catch (error) {
-      console.error('Error in createInvitation:', error);
+      console.error('💥 [DATA FLOW] Error in createInvitation:', error);
       throw error;
     }
   };
@@ -296,7 +329,7 @@ export function useMatchInvitations() {
 
   const cleanupChannel = () => {
     if (channelRef.current) {
-      console.log('Cleaning up match invitations channel subscription');
+      console.log('🧹 [DATA FLOW] Cleaning up match invitations channel subscription');
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
       subscriptionInitialized.current = false;
@@ -305,22 +338,25 @@ export function useMatchInvitations() {
 
   // Manual refresh function that can be called from components
   const refreshInvitations = async () => {
-    console.log('Manually refreshing invitations...');
+    console.log('🔄 [DATA FLOW] Manually refreshing all invitations...');
     await Promise.all([
       fetchReceivedInvitations(),
       fetchSentInvitations()
     ]);
+    console.log('✅ [DATA FLOW] Manual refresh completed');
   };
 
   useEffect(() => {
     if (user && !subscriptionInitialized.current) {
       const loadData = async () => {
+        console.log('🏗️ [DATA FLOW] Initial data load started for user:', user.id);
         setLoading(true);
         await Promise.all([
           fetchReceivedInvitations(),
           fetchSentInvitations()
         ]);
         setLoading(false);
+        console.log('✅ [DATA FLOW] Initial data load completed');
       };
 
       loadData();
@@ -330,7 +366,7 @@ export function useMatchInvitations() {
 
       // Set up real-time subscription for invitations with unique channel name
       const channelName = `match-invitations-${user.id}-${Date.now()}`;
-      console.log('Setting up match invitations channel:', channelName);
+      console.log('📡 [DATA FLOW] Setting up real-time channel:', channelName);
       
       const channel = supabase.channel(channelName);
       
@@ -344,7 +380,11 @@ export function useMatchInvitations() {
           filter: `inviter_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Match invitation update (sent):', payload);
+          console.log('📨 [DATA FLOW] Real-time update for sent invitations:', {
+            event: payload.eventType,
+            id: payload.new?.id || payload.old?.id,
+            status: payload.new?.status || 'deleted'
+          });
           fetchSentInvitations();
         }
       );
@@ -359,21 +399,26 @@ export function useMatchInvitations() {
           filter: `invitee_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('Match invitation update (received):', payload);
+          console.log('📨 [DATA FLOW] Real-time update for received invitations:', {
+            event: payload.eventType,
+            id: payload.new?.id || payload.old?.id,
+            status: payload.new?.status || 'deleted'
+          });
           fetchReceivedInvitations();
         }
       );
 
       // Subscribe to the channel
       channel.subscribe((status) => {
-        console.log('Match invitations channel subscription status:', status);
+        console.log('📡 [DATA FLOW] Channel subscription status:', status);
         if (status === 'SUBSCRIBED') {
           subscriptionInitialized.current = true;
+          console.log('✅ [DATA FLOW] Real-time subscription active');
         } else if (status === 'CHANNEL_ERROR') {
-          console.error('Match invitations channel subscription error');
+          console.error('❌ [DATA FLOW] Channel subscription error');
           subscriptionInitialized.current = false;
         } else if (status === 'TIMED_OUT') {
-          console.warn('Match invitations channel subscription timed out');
+          console.warn('⏰ [DATA FLOW] Channel subscription timed out');
           subscriptionInitialized.current = false;
         }
       });
@@ -385,6 +430,7 @@ export function useMatchInvitations() {
       };
     } else if (!user) {
       // Clean up when user logs out
+      console.log('👋 [DATA FLOW] User logged out, cleaning up data');
       cleanupChannel();
       setReceivedInvitations([]);
       setSentInvitations([]);
@@ -395,9 +441,25 @@ export function useMatchInvitations() {
   // Cleanup on unmount
   useEffect(() => {
     return () => {
+      console.log('🏁 [DATA FLOW] Component unmounting, cleaning up');
       cleanupChannel();
     };
   }, []);
+
+  // Debug state changes
+  useEffect(() => {
+    console.log('📊 [DATA FLOW] State update - Received invitations:', {
+      count: receivedInvitations.length,
+      ids: receivedInvitations.map(i => i.id)
+    });
+  }, [receivedInvitations]);
+
+  useEffect(() => {
+    console.log('📊 [DATA FLOW] State update - Sent invitations:', {
+      count: sentInvitations.length,
+      ids: sentInvitations.map(i => i.id)
+    });
+  }, [sentInvitations]);
 
   return {
     receivedInvitations,

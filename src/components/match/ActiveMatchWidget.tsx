@@ -88,21 +88,35 @@ export const ActiveMatchWidget = () => {
     }
   }, [sessionData]);
 
-  // Enhanced debug logging
+  // Enhanced debug logging for data flow verification
   useEffect(() => {
-    console.log('ActiveMatchWidget render state:', {
+    console.log('🎾 [WIDGET] ActiveMatchWidget render state:', {
       isSessionActive,
       matchLoading,
       invitationsLoading,
-      receivedInvitations: receivedInvitations?.length || 0,
-      sentInvitations: sentInvitations?.length || 0,
-      receivedInvitationsData: receivedInvitations,
-      sentInvitationsData: sentInvitations
+      receivedInvitations: {
+        count: receivedInvitations?.length || 0,
+        data: receivedInvitations?.map(i => ({
+          id: i.id,
+          from: i.invitee_name,
+          type: i.invitation_type,
+          status: i.status
+        }))
+      },
+      sentInvitations: {
+        count: sentInvitations?.length || 0,
+        data: sentInvitations?.map(i => ({
+          id: i.id,
+          to: i.invitee_name,
+          type: i.invitation_type,
+          status: i.status
+        }))
+      }
     });
   }, [isSessionActive, matchLoading, invitationsLoading, receivedInvitations, sentInvitations]);
 
   if (matchLoading || invitationsLoading) {
-    console.log('ActiveMatchWidget: Loading state', { matchLoading, invitationsLoading });
+    console.log('🎾 [WIDGET] Loading state', { matchLoading, invitationsLoading });
     return (
       <Card className="border-tennis-green-light bg-gradient-to-r from-tennis-green-light/5 to-tennis-green-dark/5">
         <CardContent className="flex items-center justify-center py-8">
@@ -120,15 +134,18 @@ export const ActiveMatchWidget = () => {
   const hasSentInvitations = sentInvitations && sentInvitations.length > 0;
   const hasAnyInvitations = hasReceivedInvitations || hasSentInvitations;
 
-  console.log('ActiveMatchWidget: Render decision', {
+  console.log('🎾 [WIDGET] Render decision:', {
     isSessionActive,
     hasReceivedInvitations,
     hasSentInvitations,
-    hasAnyInvitations
+    hasAnyInvitations,
+    willShowActiveMatch: isSessionActive && sessionData,
+    willShowInvitations: !isSessionActive
   });
 
   // Show active match if there is one
   if (isSessionActive && sessionData) {
+    console.log('🎾 [WIDGET] Rendering active match session');
     const handleLogSetScore = async () => {
       if (!playerSetScore.trim() || !opponentSetScore.trim()) {
         toast.error('Please enter both set scores');
@@ -380,12 +397,18 @@ export const ActiveMatchWidget = () => {
   }
 
   // Show invitations section - ALWAYS VISIBLE even if empty
+  console.log('🎾 [WIDGET] Rendering invitations section');
   return (
     <Card className="border-tennis-green-light bg-gradient-to-r from-tennis-green-light/5 to-tennis-green-dark/5">
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2">
           <Mail className="h-5 w-5 text-tennis-green-dark" />
           <span className="text-lg font-orbitron font-bold">Match Invitations</span>
+          {(hasReceivedInvitations || hasSentInvitations) && (
+            <Badge variant="secondary" className="ml-2">
+              {(receivedInvitations?.length || 0) + (sentInvitations?.length || 0)}
+            </Badge>
+          )}
         </CardTitle>
       </CardHeader>
       
@@ -399,9 +422,12 @@ export const ActiveMatchWidget = () => {
                   <Mail className="h-5 w-5 text-blue-600" />
                   Received ({receivedInvitations.length})
                 </h3>
-                {receivedInvitations.map((invitation) => (
-                  <MatchInvitationCard key={invitation.id} invitation={invitation} />
-                ))}
+                {receivedInvitations.map((invitation) => {
+                  console.log('🎾 [WIDGET] Rendering received invitation:', invitation.id);
+                  return (
+                    <MatchInvitationCard key={invitation.id} invitation={invitation} />
+                  );
+                })}
               </div>
             )}
 
@@ -412,9 +438,12 @@ export const ActiveMatchWidget = () => {
                   <Clock className="h-5 w-5 text-orange-600" />
                   Sent ({sentInvitations.length})
                 </h3>
-                {sentInvitations.map((invitation) => (
-                  <PendingInvitationCard key={invitation.id} invitation={invitation} />
-                ))}
+                {sentInvitations.map((invitation) => {
+                  console.log('🎾 [WIDGET] Rendering sent invitation:', invitation.id);
+                  return (
+                    <PendingInvitationCard key={invitation.id} invitation={invitation} />
+                  );
+                })}
               </div>
             )}
           </div>

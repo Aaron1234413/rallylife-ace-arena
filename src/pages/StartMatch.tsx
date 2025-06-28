@@ -103,20 +103,25 @@ const StartMatch = () => {
     setIsCreatingInvitation(true);
 
     try {
+      console.log('📝 [CREATE] Starting invitation creation process...');
+      
       // Small delay for UX
       await new Promise(resolve => setTimeout(resolve, 800));
 
       // Convert local datetime string to proper Date object
       const startDateTime = new Date(startTime);
 
+      let invitationParams;
+
       if (isDoubles) {
+        console.log('📝 [CREATE] Creating doubles invitation');
         // For doubles, create invitation to first opponent
         if (opponent1) {
-          await createInvitation({
+          invitationParams = {
             invitedUserName: opponent1.name,
             invitedUserId: opponent1.id,
             invitedUserEmail: opponent1.email,
-            matchType: 'doubles',
+            matchType: 'doubles' as const,
             isDoubles: true,
             startTime: startDateTime,
             partnerName: partner?.name,
@@ -126,34 +131,50 @@ const StartMatch = () => {
             opponent2Name: opponent2?.name,
             opponent2Id: opponent2?.id,
             message: message.trim() || undefined
-          });
+          };
         }
       } else {
+        console.log('📝 [CREATE] Creating singles invitation');
         // For singles, create invitation to opponent
         if (opponent) {
-          await createInvitation({
+          invitationParams = {
             invitedUserName: opponent.name,
             invitedUserId: opponent.id,
             invitedUserEmail: opponent.email,
-            matchType: 'singles',
+            matchType: 'singles' as const,
             isDoubles: false,
             startTime: startDateTime,
             opponentName: opponent.name,
             opponentId: opponent.id,
             message: message.trim() || undefined
-          });
+          };
         }
       }
 
-      toast.success('Match invitation sent! 🎾');
-      
-      // Force refresh invitations to update the dashboard
-      await refreshInvitations();
-      
-      // Navigate to dashboard
-      navigate('/');
+      if (invitationParams) {
+        console.log('📝 [CREATE] Sending invitation with params:', {
+          invitedUserName: invitationParams.invitedUserName,
+          matchType: invitationParams.matchType,
+          isDoubles: invitationParams.isDoubles
+        });
+
+        const createdInvitation = await createInvitation(invitationParams);
+        
+        console.log('✅ [CREATE] Invitation created successfully:', createdInvitation?.id);
+        toast.success('Match invitation sent! 🎾');
+        
+        // Force refresh invitations to update the dashboard
+        console.log('🔄 [CREATE] Refreshing invitations after creation...');
+        await refreshInvitations();
+        
+        // Navigate to dashboard
+        console.log('🏠 [CREATE] Navigating to dashboard...');
+        navigate('/');
+      } else {
+        throw new Error('Invalid invitation parameters');
+      }
     } catch (error) {
-      console.error('Error creating invitation:', error);
+      console.error('❌ [CREATE] Error creating invitation:', error);
       toast.error('Failed to send invitation. Please try again.');
     } finally {
       setIsCreatingInvitation(false);
