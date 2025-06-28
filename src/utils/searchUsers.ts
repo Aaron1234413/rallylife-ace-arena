@@ -17,6 +17,7 @@ interface SearchParams {
 export interface SearchResult {
   id: string;
   full_name: string;
+  email?: string;
   avatar_url?: string;
   role: string;
   level?: number;
@@ -31,10 +32,10 @@ export interface SearchResult {
 export async function fetchSearchResults({ query, userType, filters }: SearchParams): Promise<SearchResult[]> {
   console.log('Searching users with:', { query, userType, filters });
   
-  // Simple base query without complex joins
+  // Simple base query without complex joins - now includes email
   let baseQuery = supabase
     .from('profiles')
-    .select('id, full_name, avatar_url, role')
+    .select('id, full_name, email, avatar_url, role')
     .eq('role', userType);
 
   // Add search query filter
@@ -92,6 +93,7 @@ export async function fetchSearchResults({ query, userType, filters }: SearchPar
     return {
       id: profile.id,
       full_name: profile.full_name || 'Unknown User',
+      email: profile.email,
       avatar_url: profile.avatar_url,
       role: profile.role,
       skill_level: additional?.skill_level,
