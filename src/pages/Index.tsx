@@ -162,9 +162,6 @@ const Index = () => {
         {/* Player-specific content */}
         {isPlayer && (
           <>
-            {/* Match Invitations - Always show for players */}
-            <MatchInvitations />
-
             {/* Phase 1 & 2: Enhanced Player Vitals Hero Section with Recovery Integration */}
             <PlayerVitalsHero
               hpData={hpData}
@@ -174,7 +171,10 @@ const Index = () => {
               onRestoreHP={handleRestoreHP}
             />
 
-            {/* Social Play Section - Always show quick actions for Phase 1 */}
+            {/* Match Invitations - Now positioned directly under Player Vitals */}
+            <MatchInvitations />
+
+            {/* Social Play Section - Show quick actions for Phase 1 */}
             <SocialPlayQuickActions />
 
             {/* Active Session Widgets */}
@@ -199,9 +199,6 @@ const Index = () => {
         {/* Coach-specific content */}
         {isCoach && (
           <>
-            {/* Match Invitations for coaches too */}
-            <MatchInvitations />
-
             {/* Profile Card for Coaches */}
             <ProfileCard
               profile={profile}
@@ -209,6 +206,9 @@ const Index = () => {
               profileLoading={profileLoading}
               isPlayer={isPlayer}
             />
+
+            {/* Match Invitations for coaches too - positioned after profile */}
+            <MatchInvitations />
 
             {/* Coach Overview Cards */}
             <CoachOverviewCards
