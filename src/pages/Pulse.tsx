@@ -5,26 +5,19 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { ActivityTimeline } from '@/components/dashboard/activity/ActivityTimeline';
 import { AchievementDisplay } from '@/components/achievements/AchievementDisplay';
 import { LeaderboardWidget } from '@/components/leaderboards/LeaderboardWidget';
-import { PlayerActivityLogs } from '@/components/dashboard/PlayerActivityLogs';
-import { ActivityStats } from '@/components/activities/ActivityStats';
-import { UnifiedActivityActions } from '@/components/activities/UnifiedActivityActions';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
-import { Bolt, TrendingUp, Activity, BarChart3 } from 'lucide-react';
+import { Bolt } from 'lucide-react';
 
 const Pulse = () => {
   const [timeFilter, setTimeFilter] = useState('week');
   const [activityFilter, setActivityFilter] = useState('all');
   
   // Fetch activity data
-  const { activities, stats, loading: activityLoading, refreshData } = useActivityLogs();
+  const { activities, stats, loading: activityLoading } = useActivityLogs();
   
   // Fetch achievements data
   const { playerAchievements, loading: achievementsLoading } = usePlayerAchievements();
-
-  const handleActivityCompleted = async () => {
-    await refreshData();
-  };
 
   return (
     <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
@@ -36,7 +29,7 @@ const Pulse = () => {
             Pulse
           </CardTitle>
           <p className="text-muted-foreground">
-            Your complete activity dashboard - track, analyze, and log your tennis activities
+            Your activity timeline, achievements, and leaderboard standings
           </p>
         </CardHeader>
         <CardContent>
@@ -73,34 +66,6 @@ const Pulse = () => {
               </Select>
             </div>
           </div>
-        </CardContent>
-      </Card>
-
-      {/* Activity Intelligence Section */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Quick Activity Logging */}
-        <UnifiedActivityActions onActivityCompleted={handleActivityCompleted} />
-        
-        {/* Activity Statistics */}
-        <ActivityStats />
-      </div>
-
-      {/* Activity Analytics Dashboard */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <BarChart3 className="h-5 w-5" />
-            Activity Intelligence
-          </CardTitle>
-          <p className="text-sm text-muted-foreground">
-            Comprehensive breakdown of your HP, XP, and token activities
-          </p>
-        </CardHeader>
-        <CardContent>
-          <PlayerActivityLogs 
-            activities={activities} 
-            loading={activityLoading}
-          />
         </CardContent>
       </Card>
 
