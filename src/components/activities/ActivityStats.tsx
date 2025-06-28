@@ -50,10 +50,15 @@ export function ActivityStats({ className }: ActivityStatsProps) {
     );
   }
 
-  const totalActivities = stats.total_activities || 0;
-  const totalDuration = stats.total_duration_minutes || 0;
-  const totalXP = stats.total_xp_earned || 0;
-  const avgEnjoyment = stats.avg_enjoyment_rating || 0;
+  // Safely extract stats with defaults
+  const totalActivities = stats?.total_activities || 0;
+  const totalDuration = stats?.total_duration_minutes || 0;
+  const totalXP = stats?.total_xp_earned || 0;
+  const avgEnjoyment = stats?.avg_enjoyment_rating || 0;
+  const totalHP = stats?.total_hp_impact || 0;
+  const wins = stats?.wins || 0;
+  const losses = stats?.losses || 0;
+  const activitiesByType = stats?.activities_by_type || {};
 
   return (
     <Card className={className}>
@@ -100,12 +105,13 @@ export function ActivityStats({ className }: ActivityStatsProps) {
         </div>
 
         {/* Activity Breakdown */}
-        {stats.activities_by_type && Object.keys(stats.activities_by_type).length > 0 && (
+        {Object.keys(activitiesByType).length > 0 && (
           <div>
             <h4 className="font-medium mb-3">Activity Breakdown</h4>
             <div className="space-y-3">
-              {Object.entries(stats.activities_by_type).map(([type, count]: [string, any]) => {
-                const percentage = totalActivities > 0 ? (count / totalActivities) * 100 : 0;
+              {Object.entries(activitiesByType).map(([type, count]) => {
+                const numericCount = Number(count) || 0;
+                const percentage = totalActivities > 0 ? (numericCount / totalActivities) * 100 : 0;
                 return (
                   <div key={type} className="space-y-2">
                     <div className="flex justify-between items-center">
@@ -113,7 +119,7 @@ export function ActivityStats({ className }: ActivityStatsProps) {
                         {type}
                       </Badge>
                       <span className="text-sm font-medium">
-                        {count} ({percentage.toFixed(0)}%)
+                        {numericCount} ({percentage.toFixed(0)}%)
                       </span>
                     </div>
                     <Progress value={percentage} className="h-2" />
@@ -125,39 +131,39 @@ export function ActivityStats({ className }: ActivityStatsProps) {
         )}
 
         {/* HP Impact Summary */}
-        {stats.total_hp_impact !== undefined && (
+        {totalHP !== 0 && (
           <div>
             <h4 className="font-medium mb-2">Total HP Impact</h4>
             <div className={`text-lg font-bold ${
-              stats.total_hp_impact > 0 ? 'text-green-600' : 
-              stats.total_hp_impact < 0 ? 'text-red-600' : 
+              totalHP > 0 ? 'text-green-600' : 
+              totalHP < 0 ? 'text-red-600' : 
               'text-gray-600'
             }`}>
-              {stats.total_hp_impact > 0 ? '+' : ''}{stats.total_hp_impact} HP
+              {totalHP > 0 ? '+' : ''}{totalHP} HP
             </div>
           </div>
         )}
 
         {/* Competitive Performance */}
-        {(stats.wins > 0 || stats.losses > 0) && (
+        {(wins > 0 || losses > 0) && (
           <div>
             <h4 className="font-medium mb-3">Competitive Performance</h4>
             <div className="space-y-2">
               <div className="flex justify-between items-center">
                 <span>Win Rate</span>
                 <span className="font-semibold">
-                  {stats.wins + stats.losses > 0 
-                    ? ((stats.wins / (stats.wins + stats.losses)) * 100).toFixed(1)
+                  {wins + losses > 0 
+                    ? ((wins / (wins + losses)) * 100).toFixed(1)
                     : 0}%
                 </span>
               </div>
               <Progress 
-                value={stats.wins + stats.losses > 0 ? (stats.wins / (stats.wins + stats.losses)) * 100 : 0} 
+                value={wins + losses > 0 ? (wins / (wins + losses)) * 100 : 0} 
                 className="h-3" 
               />
               <div className="flex justify-between text-sm text-muted-foreground">
-                <span>{stats.wins} wins</span>
-                <span>{stats.losses} losses</span>
+                <span>{wins} wins</span>
+                <span>{losses} losses</span>
               </div>
             </div>
           </div>
