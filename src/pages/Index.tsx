@@ -31,7 +31,6 @@ import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget
 import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
 import { useSocialPlaySession } from "@/contexts/SocialPlaySessionContext";
 import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
-import { MatchInvitations } from "@/components/match/MatchInvitations";
 
 const Index = () => {
   const { user } = useAuth();
@@ -171,10 +170,7 @@ const Index = () => {
               onRestoreHP={handleRestoreHP}
             />
 
-            {/* Match Invitations - Now positioned directly under Player Vitals */}
-            <MatchInvitations />
-
-            {/* Social Play Section - Show quick actions for Phase 1 */}
+            {/* Social Play Section - Always show quick actions for Phase 1 */}
             <SocialPlayQuickActions />
 
             {/* Active Session Widgets */}
@@ -206,9 +202,6 @@ const Index = () => {
               profileLoading={profileLoading}
               isPlayer={isPlayer}
             />
-
-            {/* Match Invitations for coaches too - positioned after profile */}
-            <MatchInvitations />
 
             {/* Coach Overview Cards */}
             <CoachOverviewCards

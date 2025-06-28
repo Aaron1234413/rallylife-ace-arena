@@ -1701,127 +1701,6 @@ export type Database = {
         }
         Relationships: []
       }
-      match_invitations: {
-        Row: {
-          created_at: string | null
-          expires_at: string | null
-          id: string
-          invitation_type: string
-          invitee_email: string | null
-          invitee_id: string | null
-          invitee_name: string
-          inviter_id: string
-          match_session_id: string
-          message: string | null
-          responded_at: string | null
-          status: string
-          updated_at: string | null
-        }
-        Insert: {
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string
-          invitation_type: string
-          invitee_email?: string | null
-          invitee_id?: string | null
-          invitee_name: string
-          inviter_id: string
-          match_session_id: string
-          message?: string | null
-          responded_at?: string | null
-          status?: string
-          updated_at?: string | null
-        }
-        Update: {
-          created_at?: string | null
-          expires_at?: string | null
-          id?: string
-          invitation_type?: string
-          invitee_email?: string | null
-          invitee_id?: string | null
-          invitee_name?: string
-          inviter_id?: string
-          match_session_id?: string
-          message?: string | null
-          responded_at?: string | null
-          status?: string
-          updated_at?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "match_invitations_invitee_id_fkey"
-            columns: ["invitee_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "match_invitations_inviter_id_fkey"
-            columns: ["inviter_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "match_invitations_match_session_id_fkey"
-            columns: ["match_session_id"]
-            isOneToOne: false
-            referencedRelation: "active_match_sessions"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      match_participants: {
-        Row: {
-          can_edit_score: boolean | null
-          created_at: string | null
-          id: string
-          is_external: boolean | null
-          joined_at: string | null
-          match_session_id: string
-          participant_name: string
-          participant_role: string
-          user_id: string | null
-        }
-        Insert: {
-          can_edit_score?: boolean | null
-          created_at?: string | null
-          id?: string
-          is_external?: boolean | null
-          joined_at?: string | null
-          match_session_id: string
-          participant_name: string
-          participant_role: string
-          user_id?: string | null
-        }
-        Update: {
-          can_edit_score?: boolean | null
-          created_at?: string | null
-          id?: string
-          is_external?: boolean | null
-          joined_at?: string | null
-          match_session_id?: string
-          participant_name?: string
-          participant_role?: string
-          user_id?: string | null
-        }
-        Relationships: [
-          {
-            foreignKeyName: "match_participants_match_session_id_fkey"
-            columns: ["match_session_id"]
-            isOneToOne: false
-            referencedRelation: "active_match_sessions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "match_participants_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
       match_relationships: {
         Row: {
           activity_log_id: string | null
@@ -3276,10 +3155,6 @@ export type Database = {
         Args: { geom1: unknown; geom2: unknown }
         Returns: boolean
       }
-      accept_match_invitation: {
-        Args: { invitation_id: string }
-        Returns: Json
-      }
       add_coach_tokens: {
         Args: {
           user_id: string
@@ -3549,10 +3424,6 @@ export type Database = {
       create_direct_conversation: {
         Args: { other_user_id: string; conversation_name?: string }
         Returns: string
-      }
-      decline_match_invitation: {
-        Args: { invitation_id: string }
-        Returns: Json
       }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
@@ -3966,38 +3837,6 @@ export type Database = {
           connected_since: string
         }[]
       }
-      get_user_match_sessions: {
-        Args: { user_id: string }
-        Returns: {
-          completed_at: string | null
-          created_at: string | null
-          current_set: number
-          end_mood: string | null
-          final_score: string | null
-          id: string
-          is_doubles: boolean | null
-          match_notes: string | null
-          match_type: string
-          mid_match_mood: string | null
-          mid_match_notes: string | null
-          opponent_1_id: string | null
-          opponent_1_name: string | null
-          opponent_2_id: string | null
-          opponent_2_name: string | null
-          opponent_id: string | null
-          opponent_name: string
-          partner_id: string | null
-          partner_name: string | null
-          pause_start_time: string | null
-          player_id: string
-          result: string | null
-          sets: Json
-          start_time: string
-          status: string
-          total_paused_duration: number | null
-          updated_at: string | null
-        }[]
-      }
       gettransactionid: {
         Args: Record<PropertyKey, never>
         Returns: unknown
@@ -4049,18 +3888,6 @@ export type Database = {
       initialize_player_xp: {
         Args: { user_id: string }
         Returns: undefined
-      }
-      is_session_invitee: {
-        Args: { session_id: string }
-        Returns: boolean
-      }
-      is_session_owner: {
-        Args: { session_id: string }
-        Returns: boolean
-      }
-      is_session_participant: {
-        Args: { session_id: string }
-        Returns: boolean
       }
       json: {
         Args: { "": unknown }

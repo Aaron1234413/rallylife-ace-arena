@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -14,60 +13,10 @@ import { StakesPreview } from '@/components/match/StakesPreview';
 import { useMatchRewards } from '@/hooks/useMatchRewards';
 import { getRandomMessage } from '@/utils/motivationalMessages';
 import { toast } from 'sonner';
-import { useMatchInvitations } from '@/hooks/useMatchInvitations';
-
-// Helper function to format date for datetime-local input in EST
-const formatDateForInput = (date: Date): string => {
-  // Convert to EST (UTC-5) or EDT (UTC-4) depending on daylight saving time
-  const estOffset = -5; // EST is UTC-5
-  const edtOffset = -4; // EDT is UTC-4
-  
-  // Check if it's daylight saving time (rough approximation)
-  const isDST = (date: Date): boolean => {
-    const jan = new Date(date.getFullYear(), 0, 1).getTimezoneOffset();
-    const jul = new Date(date.getFullYear(), 6, 1).getTimezoneOffset();
-    return Math.max(jan, jul) !== date.getTimezoneOffset();
-  };
-  
-  const offset = isDST(date) ? edtOffset : estOffset;
-  const estDate = new Date(date.getTime() + (offset * 60 * 60 * 1000));
-  
-  // Format as YYYY-MM-DDTHH:MM for datetime-local input
-  const year = estDate.getUTCFullYear();
-  const month = String(estDate.getUTCMonth() + 1).padStart(2, '0');
-  const day = String(estDate.getUTCDate()).padStart(2, '0');
-  const hours = String(estDate.getUTCHours()).padStart(2, '0');
-  const minutes = String(estDate.getUTCMinutes()).padStart(2, '0');
-  
-  return `${year}-${month}-${day}T${hours}:${minutes}`;
-};
-
-// Helper function to parse datetime-local input as EST and convert to UTC
-const parseInputDateAsEST = (inputValue: string): Date => {
-  if (!inputValue) return new Date();
-  
-  // Parse the input value as if it's in EST
-  const localDate = new Date(inputValue);
-  
-  // Get the current timezone offset
-  const now = new Date();
-  const isDST = (date: Date): boolean => {
-    const jan = new Date(date.getFullYear(), 0, 1).getTimezoneOffset();
-    const jul = new Date(date.getFullYear(), 6, 1).getTimezoneOffset();
-    return Math.max(jan, jul) !== date.getTimezoneOffset();
-  };
-  
-  // EST/EDT offset in minutes
-  const estOffset = isDST(now) ? 4 * 60 : 5 * 60; // EDT is UTC-4, EST is UTC-5
-  
-  // Convert to UTC by adding the EST offset
-  return new Date(localDate.getTime() + (estOffset * 60 * 1000));
-};
 
 const StartMatch = () => {
   const navigate = useNavigate();
   const { sessionData, updateSessionData, isSessionActive, loading } = useMatchSession();
-  const { sendInvitation } = useMatchInvitations();
   
   // Updated state to use SelectedOpponent objects
   const [opponent, setOpponent] = useState<SelectedOpponent | null>(null);
@@ -75,7 +24,16 @@ const StartMatch = () => {
   const [partner, setPartner] = useState<SelectedOpponent | null>(null);
   const [opponent1, setOpponent1] = useState<SelectedOpponent | null>(null);
   const [opponent2, setOpponent2] = useState<SelectedOpponent | null>(null);
-  const [startTime, setStartTime] = useState(() => formatDateForInput(new Date()));
+  
+  // Fix timezone issue by using local timezone
+  const getLocalDateTimeString = () => {
+    const now = new Date();
+    // Get local timezone offset and adjust
+    const localDateTime = new Date(now.getTime() - (now.getTimezoneOffset() * 60000));
+    return localDateTime.toISOString().slice(0, 16);
+  };
+  
+  const [startTime, setStartTime] = useState(getLocalDateTimeString());
   const [isStarting, setIsStarting] = useState(false);
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
@@ -129,18 +87,7 @@ const StartMatch = () => {
   };
 
   const handleStartMatch = async () => {
-    console.log('🎾 [StartMatch] handleStartMatch called');
-    console.log('🎾 [StartMatch] Form state:', {
-      opponent,
-      isDoubles,
-      partner,
-      opponent1,
-      opponent2,
-      startTime
-    });
-
     if (!validateForm()) {
-      console.log('🎾 [StartMatch] Form validation failed:', validationErrors);
       toast.error('Please fill in all required fields');
       return;
     }
@@ -151,15 +98,14 @@ const StartMatch = () => {
       // Small delay for UX
       await new Promise(resolve => setTimeout(resolve, 800));
 
-      // Parse the start time as EST and convert to proper Date object
-      const matchStartTime = parseInputDateAsEST(startTime);
-      console.log('🎾 [StartMatch] Parsed start time:', matchStartTime);
+      // Convert local datetime string to proper Date object
+      const startDateTime = new Date(startTime);
 
       // Prepare session data with opponent IDs and names
       const sessionUpdate = {
         matchType: (isDoubles ? 'doubles' : 'singles') as 'singles' | 'doubles',
         isDoubles,
-        startTime: matchStartTime
+        startTime: startDateTime
       };
 
       if (isDoubles) {
@@ -181,68 +127,14 @@ const StartMatch = () => {
         });
       }
 
-      console.log('🎾 [StartMatch] Session update data:', sessionUpdate);
+      // Save session data
+      await updateSessionData(sessionUpdate);
 
-      // Save session data and get the created session with ID
-      const createdSession = await updateSessionData(sessionUpdate);
-      console.log('🎾 [StartMatch] Created session:', createdSession);
-      
-      // Runtime check to ensure we have a session
-      if (!createdSession) {
-        throw new Error('Failed to create session');
-      }
-
-      console.log('🎾 [StartMatch] Starting invitation process...');
-
-      // Send invitations to opponents if they have IDs
-      if (!isDoubles && opponent?.id) {
-        console.log('🎾 [StartMatch] Sending singles invitation to:', opponent);
-        // Singles: invite the opponent
-        await sendInvitation({
-          sessionId: createdSession.id,
-          inviteeId: opponent.id,
-          inviteeName: opponent.name,
-          message: `I'd like to play a tennis match with you!`
-        });
-      } else if (isDoubles) {
-        console.log('🎾 [StartMatch] Sending doubles invitations...');
-        // Doubles: invite partner and opponents
-        if (partner?.id) {
-          console.log('🎾 [StartMatch] Inviting partner:', partner);
-          await sendInvitation({
-            sessionId: createdSession.id,
-            inviteeId: partner.id,
-            inviteeName: partner.name,
-            message: `Want to be my partner for a doubles match?`
-          });
-        }
-        if (opponent1?.id) {
-          console.log('🎾 [StartMatch] Inviting opponent1:', opponent1);
-          await sendInvitation({
-            sessionId: createdSession.id,
-            inviteeId: opponent1.id,
-            inviteeName: opponent1.name,
-            message: `I'd like to play a doubles match against you!`
-          });
-        }
-        if (opponent2?.id) {
-          console.log('🎾 [StartMatch] Inviting opponent2:', opponent2);
-          await sendInvitation({
-            sessionId: createdSession.id,
-            inviteeId: opponent2.id,
-            inviteeName: opponent2.name,
-            message: `I'd like to play a doubles match against you!`
-          });
-        }
-      }
-
-      console.log('🎾 [StartMatch] All invitations sent successfully');
-      toast.success('Match started and invitations sent! 🎾');
+      toast.success('Match started! Good luck out there! 🎾');
       
       // Navigate to dashboard
       navigate('/');
     } catch (error) {
-      console.error('🎾 [StartMatch] Error starting match:', error);
       toast.error('Failed to start match. Please try again.');
     } finally {
       setIsStarting(false);
@@ -387,7 +279,6 @@ const StartMatch = () => {
                     placeholder="Search for your opponent..."
                     value={opponent}
                     onChange={(newOpponent) => {
-                      console.log('🎾 [StartMatch] Opponent selected:', newOpponent);
                       setOpponent(newOpponent);
                       clearFieldError('opponent');
                     }}
@@ -406,7 +297,6 @@ const StartMatch = () => {
                     placeholder="Search for your partner..."
                     value={partner}
                     onChange={(newPartner) => {
-                      console.log('🎾 [StartMatch] Partner selected:', newPartner);
                       setPartner(newPartner);
                       clearFieldError('partner');
                     }}
@@ -420,7 +310,6 @@ const StartMatch = () => {
                     placeholder="Search for first opponent..."
                     value={opponent1}
                     onChange={(newOpponent1) => {
-                      console.log('🎾 [StartMatch] Opponent1 selected:', newOpponent1);
                       setOpponent1(newOpponent1);
                       clearFieldError('opponent1');
                     }}
@@ -433,10 +322,7 @@ const StartMatch = () => {
                     label="Opponent 2"
                     placeholder="Search for second opponent (optional)..."
                     value={opponent2}
-                    onChange={(newOpponent2) => {
-                      console.log('🎾 [StartMatch] Opponent2 selected:', newOpponent2);
-                      setOpponent2(newOpponent2);
-                    }}
+                    onChange={setOpponent2}
                     disabled={isStarting}
                   />
                 </div>
@@ -445,13 +331,13 @@ const StartMatch = () => {
               {/* Start Time Override */}
               <FormField
                 id="startTime"
-                label="Start Time (EST)"
+                label="Start Time"
                 type="datetime-local"
                 placeholder=""
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
                 disabled={isStarting}
-                helpText="Auto-captured in EST (modify if logging a past match)"
+                helpText="Auto-captured in your local timezone (modify if logging a past match)"
               />
             </div>
 

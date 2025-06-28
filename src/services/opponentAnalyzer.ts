@@ -43,14 +43,14 @@ export const analyzeOpponent = async (opponent: SelectedOpponent): Promise<Oppon
 
   try {
     // Get opponent's profile data
-    const { data: profile, error: profileError } = await supabase
+    const { data: profile, error } = await supabase
       .from('profiles')
       .select('id, full_name')
       .eq('id', opponent.id)
       .single();
 
-    if (profileError || !profile) {
-      console.warn('Could not fetch opponent profile:', profileError);
+    if (error || !profile) {
+      console.warn('Could not fetch opponent profile:', error);
       return {
         id: opponent.id,
         name: opponent.name,
@@ -62,31 +62,22 @@ export const analyzeOpponent = async (opponent: SelectedOpponent): Promise<Oppon
       };
     }
 
-    // Get opponent's XP data (level)
-    const { data: xpData, error: xpError } = await supabase
-      .from('player_xp')
-      .select('current_level')
-      .eq('player_id', opponent.id)
-      .single();
+    // Get opponent's level and skill
+    const [xpData, playerData] = await Promise.all([
+      supabase
+        .from('player_xp')
+        .select('current_level')
+        .eq('id', opponent.id)
+        .single(),
+      supabase
+        .from('player_profiles')
+        .select('skill_level')
+        .eq('id', opponent.id)
+        .single()
+    ]);
 
-    // Get opponent's skill level from player_profiles
-    const { data: playerData, error: playerError } = await supabase
-      .from('player_profiles')
-      .select('skill_level')
-      .eq('id', opponent.id)
-      .single();
-
-    const level = xpData?.current_level || DEFAULT_LEVEL;
-    const skillLevel = playerData?.skill_level || DEFAULT_SKILL;
-
-    console.log('Opponent analysis:', {
-      id: opponent.id,
-      name: opponent.name,
-      level,
-      skillLevel,
-      xpError,
-      playerError
-    });
+    const level = xpData.data?.current_level || DEFAULT_LEVEL;
+    const skillLevel = playerData.data?.skill_level || DEFAULT_SKILL;
 
     return {
       id: opponent.id,
@@ -95,7 +86,7 @@ export const analyzeOpponent = async (opponent: SelectedOpponent): Promise<Oppon
       skillLevel,
       isManual: false,
       estimatedDifficulty: 'similar', // Will be calculated relative to player
-      confidenceLevel: xpError || playerError ? 'medium' : 'high'
+      confidenceLevel: 'high'
     };
 
   } catch (error) {

@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -163,10 +164,8 @@ export function useMatchSessions() {
     }
   };
 
-  const createMatchSession = async (params: CreateMatchSessionParams): Promise<ActiveMatchSession> => {
-    if (!user) {
-      throw new Error('User must be authenticated to create a match session');
-    }
+  const createMatchSession = async (params: CreateMatchSessionParams) => {
+    if (!user) return;
 
     try {
       console.log('Creating match session with params:', params);
@@ -200,10 +199,6 @@ export function useMatchSessions() {
         throw error;
       }
 
-      if (!data) {
-        throw new Error('No data returned after creating match session');
-      }
-
       console.log('Match session created successfully:', data);
       
       const typedData = toActiveMatchSession(data);
@@ -215,10 +210,8 @@ export function useMatchSessions() {
     }
   };
 
-  const updateMatchSession = async (params: UpdateMatchSessionParams): Promise<ActiveMatchSession> => {
-    if (!user) {
-      throw new Error('User must be authenticated to update a match session');
-    }
+  const updateMatchSession = async (params: UpdateMatchSessionParams) => {
+    if (!user) return;
 
     try {
       console.log('Updating match session with params:', params);
@@ -247,10 +240,6 @@ export function useMatchSessions() {
       if (error) {
         console.error('Error updating match session:', error);
         throw error;
-      }
-
-      if (!data) {
-        throw new Error('No data returned after updating match session');
       }
 
       console.log('Match session updated successfully:', data);
