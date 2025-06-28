@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -39,20 +40,20 @@ const EndMatch = () => {
   const getOpponentDisplayInfo = () => {
     if (!sessionData) return null;
 
-    if (sessionData.isDoubles) {
+    if (sessionData.is_doubles) {
       const opponents = [];
-      if (sessionData.opponent1Name) {
+      if (sessionData.opponent_1_name) {
         opponents.push({
-          name: sessionData.opponent1Name,
-          id: sessionData.opponent1Id,
-          isManual: !sessionData.opponent1Id
+          name: sessionData.opponent_1_name,
+          id: sessionData.opponent_1_id,
+          isManual: !sessionData.opponent_1_id
         });
       }
-      if (sessionData.opponent2Name) {
+      if (sessionData.opponent_2_name) {
         opponents.push({
-          name: sessionData.opponent2Name,
-          id: sessionData.opponent2Id,
-          isManual: !sessionData.opponent2Id
+          name: sessionData.opponent_2_name,
+          id: sessionData.opponent_2_id,
+          isManual: !sessionData.opponent_2_id
         });
       }
       return { isDoubles: true, opponents };
@@ -60,9 +61,9 @@ const EndMatch = () => {
       return {
         isDoubles: false,
         opponent: {
-          name: sessionData.opponentName,
-          id: sessionData.opponentId,
-          isManual: !sessionData.opponentId
+          name: sessionData.opponent_name,
+          id: sessionData.opponent_id,
+          isManual: !sessionData.opponent_id
         }
       };
     }
@@ -87,29 +88,29 @@ const EndMatch = () => {
     try {
       // Calculate duration if not provided
       const calculatedDuration = duration ? parseInt(duration) : 
-        Math.floor((new Date().getTime() - sessionData.startTime.getTime()) / (1000 * 60));
+        Math.floor((new Date().getTime() - sessionData.start_time.getTime()) / (1000 * 60));
 
       // Prepare opponent name for display
-      const opponentDisplayName = sessionData.isDoubles 
-        ? `${sessionData.opponent1Name}${sessionData.opponent2Name ? ` & ${sessionData.opponent2Name}` : ''}`
-        : sessionData.opponentName;
+      const opponentDisplayName = sessionData.is_doubles 
+        ? `${sessionData.opponent_1_name}${sessionData.opponent_2_name ? ` & ${sessionData.opponent_2_name}` : ''}`
+        : sessionData.opponent_name;
 
       // Prepare activity title
-      const activityTitle = sessionData.isDoubles 
+      const activityTitle = sessionData.is_doubles 
         ? `Doubles Match vs ${opponentDisplayName}`
         : `Singles Match vs ${opponentDisplayName}`;
 
       // Prepare activity description
-      let description = `${sessionData.matchType} match`;
-      if (sessionData.isDoubles && sessionData.partnerName) {
-        description += ` with partner ${sessionData.partnerName}`;
+      let description = `${sessionData.match_type} match`;
+      if (sessionData.is_doubles && sessionData.partner_name) {
+        description += ` with partner ${sessionData.partner_name}`;
       }
       description += ` vs ${opponentDisplayName}`;
 
       // Prepare notes combining match notes and mid-match notes
       let combinedNotes = '';
-      if (sessionData.midMatchNotes) {
-        combinedNotes += `Mid-match notes: ${sessionData.midMatchNotes}`;
+      if (sessionData.mid_match_notes) {
+        combinedNotes += `Mid-match notes: ${sessionData.mid_match_notes}`;
       }
       if (matchNotes) {
         if (combinedNotes) combinedNotes += '\n\n';
@@ -123,19 +124,19 @@ const EndMatch = () => {
 
       // Prepare metadata with opponent information
       const metadata = {
-        match_type: sessionData.matchType,
-        is_doubles: sessionData.isDoubles,
-        partner_name: sessionData.partnerName || null,
-        partner_id: sessionData.partnerId || null,
-        opponent_name: sessionData.opponentName || null,
-        opponent_id: sessionData.opponentId || null,
-        opponent_1_name: sessionData.opponent1Name || null,
-        opponent_1_id: sessionData.opponent1Id || null,
-        opponent_2_name: sessionData.opponent2Name || null,
-        opponent_2_id: sessionData.opponent2Id || null,
-        mid_match_mood: sessionData.midMatchMood || null,
+        match_type: sessionData.match_type,
+        is_doubles: sessionData.is_doubles,
+        partner_name: sessionData.partner_name || null,
+        partner_id: sessionData.partner_id || null,
+        opponent_name: sessionData.opponent_name || null,
+        opponent_id: sessionData.opponent_id || null,
+        opponent_1_name: sessionData.opponent_1_name || null,
+        opponent_1_id: sessionData.opponent_1_id || null,
+        opponent_2_name: sessionData.opponent_2_name || null,
+        opponent_2_id: sessionData.opponent_2_id || null,
+        mid_match_mood: sessionData.mid_match_mood || null,
         end_match_mood: endMood || null,
-        start_time: sessionData.startTime.toISOString(),
+        start_time: sessionData.start_time.toISOString(),
         expected_rewards: {
           xp: xpReward,
           hp: hpChange,
@@ -162,7 +163,7 @@ const EndMatch = () => {
           xp_earned: xpReward,
           is_competitive: true,
           is_official: false,
-          logged_at: sessionData.startTime.toISOString(),
+          logged_at: sessionData.start_time.toISOString(),
           metadata: metadata
         })
         .select()
@@ -358,7 +359,7 @@ const EndMatch = () => {
           <CardContent className="pt-4 sm:pt-6">
             <div className="text-center space-y-3">
               <h3 className="font-semibold text-base sm:text-lg">
-                {sessionData.matchType === 'doubles' ? 'Doubles Match' : 'Singles Match'}
+                {sessionData.match_type === 'doubles' ? 'Doubles Match' : 'Singles Match'}
               </h3>
               
               {/* Opponent Display */}
@@ -401,7 +402,7 @@ const EndMatch = () => {
               )}
 
               {/* Partner Info for Doubles */}
-              {sessionData.isDoubles && sessionData.partnerName && (
+              {sessionData.is_doubles && sessionData.partner_name && (
                 <div className="flex items-center justify-center gap-2 text-sm text-gray-600">
                   <span>with partner</span>
                   <Avatar className="h-5 w-5">
@@ -409,22 +410,22 @@ const EndMatch = () => {
                       <User className="h-3 w-3" />
                     </AvatarFallback>
                   </Avatar>
-                  <span className="font-medium">{sessionData.partnerName}</span>
-                  {!sessionData.partnerId && (
+                  <span className="font-medium">{sessionData.partner_name}</span>
+                  {!sessionData.partner_id && (
                     <Badge variant="outline" className="text-xs">External</Badge>
                   )}
                 </div>
               )}
               
               <p className="text-xs sm:text-sm text-gray-500">
-                Started: {sessionData.startTime.toLocaleTimeString()}
+                Started: {sessionData.start_time.toLocaleTimeString()}
               </p>
             </div>
           </CardContent>
         </CardWithAnimation>
 
         {/* Mid-Match Check-in Summary (if exists) */}
-        {(sessionData.midMatchMood || sessionData.midMatchNotes) && (
+        {(sessionData.mid_match_mood || sessionData.mid_match_notes) && (
           <CardWithAnimation delay={200}>
             <CardHeader className="pb-3">
               <CardTitle className="flex items-center gap-2 text-sm sm:text-base">
@@ -433,17 +434,17 @@ const EndMatch = () => {
               </CardTitle>
             </CardHeader>
             <CardContent className="space-y-2">
-              {sessionData.midMatchMood && (
+              {sessionData.mid_match_mood && (
                 <div className="flex items-center gap-2">
                   <span className="text-xs sm:text-sm text-gray-600">Mood:</span>
-                  <span className="text-lg">{sessionData.midMatchMood}</span>
+                  <span className="text-lg">{sessionData.mid_match_mood}</span>
                 </div>
               )}
-              {sessionData.midMatchNotes && (
+              {sessionData.mid_match_notes && (
                 <div>
                   <span className="text-xs sm:text-sm text-gray-600">Notes:</span>
                   <p className="text-xs sm:text-sm mt-1 bg-gray-50 p-2 rounded">
-                    {sessionData.midMatchNotes}
+                    {sessionData.mid_match_notes}
                   </p>
                 </div>
               )}

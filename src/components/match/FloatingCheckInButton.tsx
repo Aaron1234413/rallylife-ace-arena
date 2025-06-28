@@ -31,7 +31,7 @@ export const FloatingCheckInButton = () => {
   }
 
   // Calculate match duration
-  const matchDuration = Math.floor((new Date().getTime() - sessionData.startTime.getTime()) / (1000 * 60));
+  const matchDuration = Math.floor((new Date().getTime() - sessionData.start_time.getTime()) / (1000 * 60));
 
   return (
     <>

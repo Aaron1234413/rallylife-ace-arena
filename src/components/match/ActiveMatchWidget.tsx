@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -20,9 +21,7 @@ export const ActiveMatchWidget = () => {
     sessionData, 
     logSetScore, 
     startNextSet, 
-    isSessionActive, 
-    getCurrentSetDisplay, 
-    getOpponentSetDisplay,
+    isSessionActive,
     loading: matchLoading
   } = useMatchSession();
   
@@ -69,7 +68,7 @@ export const ActiveMatchWidget = () => {
     if (!isSessionActive || !sessionData) return;
 
     const updateDuration = () => {
-      const duration = Math.floor((new Date().getTime() - sessionData.startTime.getTime()) / (1000 * 60));
+      const duration = Math.floor((new Date().getTime() - sessionData.start_time.getTime()) / (1000 * 60));
       setMatchDuration(duration);
     };
 
@@ -81,7 +80,7 @@ export const ActiveMatchWidget = () => {
   // Check if current set is completed and show prompt
   useEffect(() => {
     if (sessionData && sessionData.sets) {
-      const currentSet = sessionData.sets[sessionData.currentSet];
+      const currentSet = sessionData.sets[sessionData.current_set];
       if (currentSet && currentSet.completed) {
         setShowNextSetPrompt(true);
         setPlayerSetScore('');
@@ -166,7 +165,7 @@ export const ActiveMatchWidget = () => {
     try {
       await logSetScore(playerSetScore.trim(), opponentSetScore.trim());
       setLastSyncTime(new Date());
-      toast.success(`Set ${sessionData.currentSet + 1} logged!`);
+      toast.success(`Set ${sessionData.current_set + 1} logged!`);
     } catch (error) {
       toast.error('Failed to save set score. Please try again.');
     } finally {
@@ -193,8 +192,8 @@ export const ActiveMatchWidget = () => {
   };
 
   const playerName = 'You';
-  const opponentName = sessionData.opponentName;
-  const currentSet = sessionData.sets[sessionData.currentSet];
+  const opponentName = sessionData.opponent_name;
+  const currentSet = sessionData.sets[sessionData.current_set];
   const completedSets = sessionData.sets.filter(set => set.completed);
 
   const getSetLabel = (index: number) => {
@@ -287,7 +286,7 @@ export const ActiveMatchWidget = () => {
           {showNextSetPrompt && (
             <div className="bg-tennis-green-light/10 rounded-lg p-4 text-center space-y-3">
               <p className="font-medium text-tennis-green-dark font-orbitron">
-                Set {sessionData.currentSet + 1} completed! Are you playing another set?
+                Set {sessionData.current_set + 1} completed! Are you playing another set?
               </p>
               <div className="flex gap-2">
                 <Button
@@ -314,7 +313,7 @@ export const ActiveMatchWidget = () => {
           {!currentSet?.completed && (
             <div className="bg-gray-50 rounded-lg p-4 space-y-4">
               <h4 className="font-medium text-gray-900 font-orbitron">
-                Set {sessionData.currentSet + 1} Score
+                Set {sessionData.current_set + 1} Score
               </h4>
               <div className="grid grid-cols-2 gap-3">
                 <div className="space-y-2">

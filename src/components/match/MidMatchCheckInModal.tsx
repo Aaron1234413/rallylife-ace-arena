@@ -32,8 +32,8 @@ export function MidMatchCheckInModal({ isOpen, onClose }: MidMatchCheckInModalPr
 
     // Update session data with mid-match check-in
     updateSessionData({
-      midMatchMood: mood,
-      midMatchNotes: notes
+      mid_match_mood: mood,
+      mid_match_notes: notes
     });
 
     toast.success('Check-in saved! Keep it up! 💪');
@@ -65,11 +65,11 @@ export function MidMatchCheckInModal({ isOpen, onClose }: MidMatchCheckInModalPr
           {/* Current Match Info */}
           <div className="bg-gray-50 p-3 rounded-lg">
             <p className="text-sm font-medium">
-              Playing vs {sessionData.opponentName}
-              {sessionData.isDoubles && sessionData.opponent1Name && ` & ${sessionData.opponent1Name}`}
+              Playing vs {sessionData.opponent_name}
+              {sessionData.is_doubles && sessionData.opponent_1_name && ` & ${sessionData.opponent_1_name}`}
             </p>
             <p className="text-xs text-gray-500">
-              Started: {sessionData.startTime.toLocaleTimeString()}
+              Started: {sessionData.start_time.toLocaleTimeString()}
             </p>
           </div>
 

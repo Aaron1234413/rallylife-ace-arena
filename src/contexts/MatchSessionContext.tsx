@@ -1,3 +1,4 @@
+
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { useMatchInvitations } from '@/hooks/useMatchInvitations';
@@ -24,6 +25,14 @@ interface MatchSessionData {
   current_set: number;
   final_notes?: string;
   end_mood?: string;
+  partner_name?: string;
+  partner_id?: string;
+  opponent_1_name?: string;
+  opponent_1_id?: string;
+  opponent_2_name?: string;
+  opponent_2_id?: string;
+  mid_match_mood?: string;
+  mid_match_notes?: string;
 }
 
 interface MatchSessionContextType {
@@ -91,11 +100,45 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
         }
 
         if (data) {
-          // Convert the start_time to a Date object
-          const session = {
-            ...data,
+          // Parse the sets data safely
+          let parsedSets: SetData[] = [];
+          if (data.sets) {
+            try {
+              if (typeof data.sets === 'string') {
+                parsedSets = JSON.parse(data.sets);
+              } else if (Array.isArray(data.sets)) {
+                parsedSets = data.sets as SetData[];
+              }
+            } catch (e) {
+              console.error('Error parsing sets data:', e);
+              parsedSets = [{ playerScore: '', opponentScore: '', completed: false }];
+            }
+          }
+
+          // Convert the database response to our interface format
+          const session: MatchSessionData = {
+            id: data.id,
+            player_id: data.player_id,
+            opponent_name: data.opponent_name,
+            opponent_id: data.opponent_id,
+            is_doubles: data.is_doubles || false,
+            match_type: data.match_type,
             start_time: new Date(data.start_time),
-          } as MatchSessionData;
+            end_time: data.end_time ? new Date(data.end_time) : undefined,
+            status: data.status,
+            sets: parsedSets,
+            current_set: data.current_set,
+            final_notes: data.final_notes,
+            end_mood: data.end_mood,
+            partner_name: data.partner_name,
+            partner_id: data.partner_id,
+            opponent_1_name: data.opponent_1_name,
+            opponent_1_id: data.opponent_1_id,
+            opponent_2_name: data.opponent_2_name,
+            opponent_2_id: data.opponent_2_id,
+            mid_match_mood: data.mid_match_mood,
+            mid_match_notes: data.mid_match_notes
+          };
           setSessionData(session);
         } else {
           setSessionData(null);
@@ -134,7 +177,7 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
     try {
       const { error } = await supabase
         .from('active_match_sessions')
-        .update({ sets: updatedSets })
+        .update({ sets: JSON.stringify(updatedSets) })
         .eq('id', sessionData.id);
 
       if (error) {
@@ -162,7 +205,7 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
     try {
       const { error } = await supabase
         .from('active_match_sessions')
-        .update({ sets: updatedSets, current_set: nextSetIndex })
+        .update({ sets: JSON.stringify(updatedSets), current_set: nextSetIndex })
         .eq('id', sessionData.id);
 
       if (error) {
