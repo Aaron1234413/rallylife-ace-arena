@@ -10,7 +10,6 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { MatchSessionProvider } from "@/contexts/MatchSessionContext";
 import { TrainingSessionProvider } from "@/contexts/TrainingSessionContext";
 import { SocialPlaySessionProvider } from "@/contexts/SocialPlaySessionContext";
-import { FloatingCheckInTrigger } from "@/components/training/FloatingCheckInTrigger";
 
 import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
@@ -43,7 +42,6 @@ function App() {
             <BrowserRouter>
               <AppLayout>
                 <Toaster />
-                <FloatingCheckInTrigger />
                 <Routes>
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth/login" element={<Auth />} />

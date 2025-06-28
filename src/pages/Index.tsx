@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -32,6 +33,8 @@ import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget
 import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
 import { useSocialPlaySession } from "@/contexts/SocialPlaySessionContext";
 import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
+import { FloatingCheckInTrigger } from "@/components/training/FloatingCheckInTrigger";
+import { FloatingCheckInButton } from "@/components/match/FloatingCheckInButton";
 
 const Index = () => {
   const { user } = useAuth();
@@ -155,6 +158,10 @@ const Index = () => {
 
   return (
     <div className="min-h-screen overflow-x-hidden">
+      {/* Floating components that need to be inside the provider contexts */}
+      <FloatingCheckInTrigger />
+      <FloatingCheckInButton />
+      
       <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Welcome Banner */}
         <WelcomeBanner />
@@ -180,8 +187,10 @@ const Index = () => {
               onRestoreHP={handleRestoreHP}
             />
             
-            {/* Match Widget - Shows both active matches AND invitations */}
-            <ActiveMatchWidget />
+            {/* Match Widget - Shows both active matches AND invitations - ALWAYS VISIBLE */}
+            <div className="mb-6">
+              <ActiveMatchWidget />
+            </div>
             
             <ActiveTrainingWidget />
 
