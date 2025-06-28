@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -382,8 +383,9 @@ export function useMatchInvitations() {
         (payload) => {
           console.log('📨 [DATA FLOW] Real-time update for sent invitations:', {
             event: payload.eventType,
-            id: payload.new?.id || payload.old?.id,
-            status: payload.new?.status || 'deleted'
+            id: payload.new && typeof payload.new === 'object' && 'id' in payload.new ? payload.new.id : 
+                payload.old && typeof payload.old === 'object' && 'id' in payload.old ? payload.old.id : 'unknown',
+            status: payload.new && typeof payload.new === 'object' && 'status' in payload.new ? payload.new.status : 'deleted'
           });
           fetchSentInvitations();
         }
@@ -401,8 +403,9 @@ export function useMatchInvitations() {
         (payload) => {
           console.log('📨 [DATA FLOW] Real-time update for received invitations:', {
             event: payload.eventType,
-            id: payload.new?.id || payload.old?.id,
-            status: payload.new?.status || 'deleted'
+            id: payload.new && typeof payload.new === 'object' && 'id' in payload.new ? payload.new.id : 
+                payload.old && typeof payload.old === 'object' && 'id' in payload.old ? payload.old.id : 'unknown',
+            status: payload.new && typeof payload.new === 'object' && 'status' in payload.new ? payload.new.status : 'deleted'
           });
           fetchReceivedInvitations();
         }
