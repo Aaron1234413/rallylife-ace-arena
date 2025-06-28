@@ -81,7 +81,7 @@ export function useActivityLogs() {
   const [stats, setStats] = useState<ActivityStats | null>(null);
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
-  const isSubscribed = useRef(false);
+  const subscriptionInitialized = useRef(false);
 
   const fetchActivities = async (
     limit = 20,
@@ -191,18 +191,14 @@ export function useActivityLogs() {
   const cleanupChannel = () => {
     if (channelRef.current) {
       console.log('Cleaning up activity channel subscription');
-      try {
-        supabase.removeChannel(channelRef.current);
-      } catch (error) {
-        console.error('Error removing channel:', error);
-      }
+      supabase.removeChannel(channelRef.current);
       channelRef.current = null;
-      isSubscribed.current = false;
+      subscriptionInitialized.current = false;
     }
   };
 
   useEffect(() => {
-    if (user && !isSubscribed.current) {
+    if (user && !subscriptionInitialized.current) {
       const loadData = async () => {
         setLoading(true);
         await fetchActivities();
@@ -212,7 +208,7 @@ export function useActivityLogs() {
 
       loadData();
 
-      // Clean up any existing channel first
+      // Clean up any existing channel
       cleanupChannel();
 
       // Set up real-time subscription for activity changes with unique channel name
@@ -237,14 +233,15 @@ export function useActivityLogs() {
       channel.subscribe((status) => {
         console.log('Activity Channel subscription status:', status);
         if (status === 'SUBSCRIBED') {
-          isSubscribed.current = true;
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          isSubscribed.current = false;
+          subscriptionInitialized.current = true;
         }
       });
 
       channelRef.current = channel;
 
+      return () => {
+        cleanupChannel();
+      };
     } else if (!user) {
       // Clean up when no user
       cleanupChannel();
@@ -252,11 +249,6 @@ export function useActivityLogs() {
       setStats(null);
       setLoading(false);
     }
-
-    // Cleanup on unmount
-    return () => {
-      cleanupChannel();
-    };
   }, [user]);
 
   return {
