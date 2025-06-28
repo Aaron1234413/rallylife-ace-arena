@@ -28,6 +28,7 @@ export const PendingInvitationCard: React.FC<PendingInvitationCardProps> = ({ in
       await cancelInvitation(invitation.id);
       toast.success('Match invitation canceled');
     } catch (error) {
+      console.error('Error canceling invitation:', error);
       toast.error('Failed to cancel invitation');
     }
   };

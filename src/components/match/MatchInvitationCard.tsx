@@ -28,6 +28,7 @@ export const MatchInvitationCard: React.FC<MatchInvitationCardProps> = ({ invita
       await acceptInvitation(invitation.id);
       toast.success('Match invitation accepted! Starting match...');
     } catch (error) {
+      console.error('Error accepting invitation:', error);
       toast.error('Failed to accept invitation');
     }
   };
@@ -37,6 +38,7 @@ export const MatchInvitationCard: React.FC<MatchInvitationCardProps> = ({ invita
       await declineInvitation(invitation.id);
       toast.success('Match invitation declined');
     } catch (error) {
+      console.error('Error declining invitation:', error);
       toast.error('Failed to decline invitation');
     }
   };

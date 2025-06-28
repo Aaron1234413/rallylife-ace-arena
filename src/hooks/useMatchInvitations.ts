@@ -110,19 +110,22 @@ export function useMatchInvitations() {
     if (!user) return;
 
     try {
-      // First create a temporary match session ID (we'll use this pattern)
-      const tempSessionId = crypto.randomUUID();
+      // Generate a unique session ID for this invitation
+      const sessionId = crypto.randomUUID();
       
+      // Simplified invitation data - only store essential information
       const invitationData = {
         inviter_id: user.id,
-        invitee_id: params.invitedUserId,
+        invitee_id: params.invitedUserId || null,
         invitee_name: params.invitedUserName,
-        invitee_email: params.invitedUserEmail,
+        invitee_email: params.invitedUserEmail || null,
         invitation_type: params.matchType,
-        match_session_id: tempSessionId,
-        message: params.message,
+        match_session_id: sessionId,
+        message: params.message || null,
         status: 'pending' as const
       };
+
+      console.log('Creating invitation with data:', invitationData);
 
       const { data, error } = await supabase
         .from('match_invitations')
@@ -132,7 +135,7 @@ export function useMatchInvitations() {
 
       if (error) {
         console.error('Error creating invitation:', error);
-        throw error;
+        throw new Error(`Failed to create invitation: ${error.message}`);
       }
 
       console.log('Match invitation created successfully:', data);
@@ -151,26 +154,41 @@ export function useMatchInvitations() {
     if (!user) return;
 
     try {
-      // First, update the invitation status
-      const { data: invitation, error: updateError } = await supabase
+      console.log('Accepting invitation:', invitationId);
+
+      // Get the invitation details first
+      const { data: invitation, error: fetchError } = await supabase
         .from('match_invitations')
-        .update({ status: 'accepted' })
+        .select('*')
         .eq('id', invitationId)
         .eq('invitee_id', user.id)
-        .select()
         .single();
 
+      if (fetchError || !invitation) {
+        console.error('Error fetching invitation:', fetchError);
+        throw new Error('Invitation not found');
+      }
+
+      // Update the invitation status to accepted
+      const { error: updateError } = await supabase
+        .from('match_invitations')
+        .update({ 
+          status: 'accepted',
+          responded_at: new Date().toISOString()
+        })
+        .eq('id', invitationId)
+        .eq('invitee_id', user.id);
+
       if (updateError) {
-        console.error('Error accepting invitation:', updateError);
+        console.error('Error updating invitation:', updateError);
         throw updateError;
       }
 
-      // For now, we'll create a basic active match session
-      // This should be enhanced based on the invitation type
+      // Create an active match session based on the invitation
       const sessionData = {
-        player_id: invitation.inviter_id,
-        opponent_name: invitation.invitee_name,
-        opponent_id: invitation.invitee_id,
+        player_id: invitation.inviter_id, // The person who sent the invitation
+        opponent_name: user.email?.split('@')[0] || 'Unknown', // Current user becomes the opponent
+        opponent_id: user.id,
         is_doubles: invitation.invitation_type === 'doubles',
         match_type: invitation.invitation_type,
         start_time: new Date().toISOString(),
@@ -178,6 +196,8 @@ export function useMatchInvitations() {
         sets: [{ playerScore: '', opponentScore: '', completed: false }],
         current_set: 0
       };
+
+      console.log('Creating match session:', sessionData);
 
       const { data: session, error: sessionError } = await supabase
         .from('active_match_sessions')
@@ -190,7 +210,7 @@ export function useMatchInvitations() {
         throw sessionError;
       }
 
-      console.log('Match session created from accepted invitation:', session);
+      console.log('Match session created successfully:', session);
       
       // Refresh invitations
       await fetchReceivedInvitations();
@@ -209,7 +229,10 @@ export function useMatchInvitations() {
     try {
       const { error } = await supabase
         .from('match_invitations')
-        .update({ status: 'declined' })
+        .update({ 
+          status: 'declined',
+          responded_at: new Date().toISOString()
+        })
         .eq('id', invitationId)
         .eq('invitee_id', user.id);
 
@@ -235,7 +258,10 @@ export function useMatchInvitations() {
     try {
       const { error } = await supabase
         .from('match_invitations')
-        .update({ status: 'expired' })
+        .update({ 
+          status: 'expired',
+          responded_at: new Date().toISOString()
+        })
         .eq('id', invitationId)
         .eq('inviter_id', user.id);
 
