@@ -31,20 +31,21 @@ export function MessageComposer({ conversationId, onSendMessage, sending }: Mess
   };
 
   return (
-    <div className="border-t bg-background p-4">
-      <div className="flex items-center space-x-2">
+    <div className="border-t border-tennis-green-bg/20 bg-white/80 backdrop-blur-sm p-4">
+      <div className="flex items-center space-x-3">
         <Input
           value={message}
           onChange={(e) => setMessage(e.target.value)}
           onKeyPress={handleKeyPress}
           placeholder="Type a message..."
           disabled={sending}
-          className="flex-1"
+          className="flex-1 border-tennis-green-bg/30 focus:border-tennis-green-medium"
         />
         <Button
           onClick={handleSend}
           disabled={!message.trim() || sending}
           size="sm"
+          className="bg-tennis-green-dark hover:bg-tennis-green-medium px-6"
         >
           <Send className="h-4 w-4" />
         </Button>

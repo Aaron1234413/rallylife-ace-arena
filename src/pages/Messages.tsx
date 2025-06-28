@@ -22,6 +22,7 @@ import { PlayerStatusCard } from '@/components/messages/PlayerStatusCard';
 import { ChallengeCard } from '@/components/messages/ChallengeCard';
 import { AchievementShareCard } from '@/components/messages/AchievementShareCard';
 import { NewConversationDialog } from '@/components/messages/NewConversationDialog';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
@@ -47,127 +48,144 @@ export default function Messages() {
   const otherParticipant = selectedConversationData?.otherParticipant;
 
   return (
-    <div className="h-screen flex flex-col">
-      {/* Header */}
-      <div className="border-b bg-background px-4 py-3">
-        <div className="flex items-center justify-between">
-          <h1 className="text-xl font-semibold">Messages</h1>
-          <NewConversationDialog>
-            <Button size="sm">
-              <Plus className="h-4 w-4 mr-2" />
-              New Chat
-            </Button>
-          </NewConversationDialog>
-        </div>
-      </div>
-
-      <div className="flex-1 flex overflow-hidden">
-        {/* Conversations Sidebar */}
-        <div className={`w-full md:w-80 border-r bg-background flex flex-col ${
-          showMobileConversation ? 'hidden md:flex' : 'flex'
-        }`}>
-          {/* Search */}
-          <div className="p-4 border-b">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search conversations..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-10"
-              />
-            </div>
+    <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light">
+      <div className="container mx-auto px-4 py-6 sm:py-8">
+        {/* Header */}
+        <div className="text-center mb-6 sm:mb-8 space-y-2">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full shadow-lg">
+            <span className="text-xl">💬</span>
           </div>
-
-          {/* Conversations */}
-          <ConversationList
-            conversations={conversations || []}
-            loading={conversationsLoading}
-            selectedConversation={selectedConversation}
-            onConversationSelect={handleConversationSelect}
-            searchTerm={searchTerm}
-          />
+          <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Messages</h1>
+          <p className="text-tennis-green-bg/90">Connect with players and coaches</p>
         </div>
 
-        {/* Chat Area */}
-        <div className={`flex-1 flex flex-col ${
-          !showMobileConversation ? 'hidden md:flex' : 'flex'
-        }`}>
-          {selectedConversation ? (
-            <>
-              {/* Chat Header */}
-              <ConversationHeader
-                otherParticipant={otherParticipant}
-                onBackClick={() => setShowMobileConversation(false)}
-                showBackButton={true}
-              />
-
-              {/* Messages */}
-              <div className="flex-1 overflow-hidden">
-                <MessageList
-                  messages={messages}
-                  loading={messagesLoading}
-                  conversationId={selectedConversation}
-                />
-              </div>
-
-              {/* Message Composer */}
-              <MessageComposer 
-                conversationId={selectedConversation} 
-                onSendMessage={sendMessage}
-                sending={sending}
-              />
-            </>
-          ) : (
-            <div className="flex-1 flex items-center justify-center text-center p-8">
-              <div>
-                <MessageSquare className="h-16 w-16 mx-auto mb-4 text-muted-foreground opacity-50" />
-                <h3 className="text-lg font-medium mb-2">Select a conversation</h3>
-                <p className="text-muted-foreground mb-4">
-                  Choose a conversation from the list to start messaging
-                </p>
-                <NewConversationDialog>
-                  <Button>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Start New Chat
-                  </Button>
-                </NewConversationDialog>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Right Sidebar - Enhanced for coach features */}
-        {selectedConversation && (
-          <div className="hidden lg:block w-80 border-l bg-muted/20">
-            <ScrollArea className="h-full">
-              <div className="p-4 space-y-4">
-                {/* Quick Actions Header */}
-                <div className="text-sm font-medium text-muted-foreground border-b pb-2">
-                  Quick Actions
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 overflow-hidden">
+          <div className="h-[calc(100vh-200px)] flex">
+            {/* Conversations Sidebar */}
+            <div className={`w-full md:w-80 border-r border-tennis-green-bg/20 bg-tennis-green-bg/10 flex flex-col ${
+              showMobileConversation ? 'hidden md:flex' : 'flex'
+            }`}>
+              {/* Search */}
+              <div className="p-4 border-b border-tennis-green-bg/20">
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="font-semibold text-tennis-green-dark">Conversations</h2>
+                  <NewConversationDialog>
+                    <Button size="sm" className="bg-tennis-green-dark hover:bg-tennis-green-medium">
+                      <Plus className="h-4 w-4 mr-2" />
+                      New Chat
+                    </Button>
+                  </NewConversationDialog>
                 </div>
-                
-                <PlayerStatusCard
-                  hpData={hpData}
-                  xpData={xpData}
-                  tokenData={tokenData}
-                  loading={hpLoading || xpLoading || tokensLoading}
-                />
-                
-                <ChallengeCard
-                  otherUserId={otherParticipant?.id}
-                  conversationId={selectedConversation}
-                  tokenData={tokenData}
-                />
-                
-                <AchievementShareCard
-                  achievements={playerAchievements}
-                  conversationId={selectedConversation}
-                />
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-tennis-green-dark/50" />
+                  <Input
+                    placeholder="Search conversations..."
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="pl-10 border-tennis-green-bg/30 focus:border-tennis-green-medium"
+                  />
+                </div>
               </div>
-            </ScrollArea>
+
+              {/* Conversations */}
+              <ConversationList
+                conversations={conversations || []}
+                loading={conversationsLoading}
+                selectedConversation={selectedConversation}
+                onConversationSelect={handleConversationSelect}
+                searchTerm={searchTerm}
+              />
+            </div>
+
+            {/* Chat Area */}
+            <div className={`flex-1 flex flex-col ${
+              !showMobileConversation ? 'hidden md:flex' : 'flex'
+            }`}>
+              {selectedConversation ? (
+                <>
+                  {/* Chat Header */}
+                  <ConversationHeader
+                    otherParticipant={otherParticipant}
+                    onBackClick={() => setShowMobileConversation(false)}
+                    showBackButton={true}
+                  />
+
+                  {/* Messages */}
+                  <div className="flex-1 overflow-hidden bg-tennis-green-bg/5">
+                    <MessageList
+                      messages={messages}
+                      loading={messagesLoading}
+                      conversationId={selectedConversation}
+                    />
+                  </div>
+
+                  {/* Message Composer */}
+                  <MessageComposer 
+                    conversationId={selectedConversation} 
+                    onSendMessage={sendMessage}
+                    sending={sending}
+                  />
+                </>
+              ) : (
+                <div className="flex-1 flex items-center justify-center text-center p-8">
+                  <div className="space-y-6">
+                    <div className="inline-flex items-center justify-center w-16 h-16 bg-tennis-green-bg/20 rounded-full">
+                      <MessageSquare className="h-8 w-8 text-tennis-green-medium" />
+                    </div>
+                    <div className="space-y-2">
+                      <h3 className="text-xl font-semibold text-tennis-green-dark">Select a conversation</h3>
+                      <p className="text-tennis-green-dark/70 max-w-sm">
+                        Choose a conversation from the list to start messaging with players and coaches
+                      </p>
+                    </div>
+                    <NewConversationDialog>
+                      <Button className="bg-tennis-green-dark hover:bg-tennis-green-medium">
+                        <Plus className="h-4 w-4 mr-2" />
+                        Start New Chat
+                      </Button>
+                    </NewConversationDialog>
+                  </div>
+                </div>
+              )}
+            </div>
+
+            {/* Right Sidebar - Enhanced for coach features */}
+            {selectedConversation && (
+              <div className="hidden lg:block w-80 border-l border-tennis-green-bg/20 bg-tennis-green-bg/5">
+                <ScrollArea className="h-full">
+                  <div className="p-4 space-y-4">
+                    {/* Quick Actions Header */}
+                    <Card className="bg-white/80 backdrop-blur-sm border-tennis-green-bg/30">
+                      <CardHeader className="pb-3">
+                        <CardTitle className="text-sm font-medium text-tennis-green-dark">
+                          Quick Actions
+                        </CardTitle>
+                      </CardHeader>
+                    </Card>
+                    
+                    <PlayerStatusCard
+                      hpData={hpData}
+                      xpData={xpData}
+                      tokenData={tokenData}
+                      loading={hpLoading || xpLoading || tokensLoading}
+                    />
+                    
+                    <ChallengeCard
+                      otherUserId={otherParticipant?.id}
+                      conversationId={selectedConversation}
+                      tokenData={tokenData}
+                    />
+                    
+                    <AchievementShareCard
+                      achievements={playerAchievements}
+                      conversationId={selectedConversation}
+                    />
+                  </div>
+                </ScrollArea>
+              </div>
+            )}
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
