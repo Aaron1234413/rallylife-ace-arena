@@ -12,9 +12,21 @@ export const MatchInvitations: React.FC = () => {
   const { user } = useAuth();
   const { invitations, loading, acceptInvitation, declineInvitation } = useMatchInvitations();
 
-  if (!user) return null;
+  console.log('🎾 [MatchInvitations Component] Render state:', {
+    userLoggedIn: !!user,
+    userId: user?.id,
+    loading,
+    invitationsCount: invitations.length,
+    invitations: invitations
+  });
+
+  if (!user) {
+    console.log('🎾 [MatchInvitations Component] No user, not rendering');
+    return null;
+  }
 
   if (loading) {
+    console.log('🎾 [MatchInvitations Component] Loading state');
     return (
       <Card className="border-tennis-green-light bg-gradient-to-r from-tennis-green-light/5 to-tennis-green-dark/5">
         <CardContent className="flex items-center justify-center py-6">
@@ -27,6 +39,7 @@ export const MatchInvitations: React.FC = () => {
 
   // Always show the component, but with different states
   const hasInvitations = invitations.length > 0;
+  console.log('🎾 [MatchInvitations Component] Rendering with invitations:', hasInvitations);
 
   return (
     <Card className="border-tennis-green-light bg-gradient-to-r from-tennis-green-light/5 to-tennis-green-dark/5">
@@ -46,15 +59,24 @@ export const MatchInvitations: React.FC = () => {
 
       <CardContent className="space-y-3">
         {hasInvitations ? (
-          invitations.map((invitation) => (
-            <MatchInvitationCard
-              key={invitation.id}
-              invitation={invitation}
-              onAccept={acceptInvitation}
-              onDecline={declineInvitation}
-              isCurrentUser={true}
-            />
-          ))
+          invitations.map((invitation) => {
+            console.log('🎾 [MatchInvitations Component] Rendering invitation card:', invitation);
+            return (
+              <MatchInvitationCard
+                key={invitation.id}
+                invitation={invitation}
+                onAccept={(id) => {
+                  console.log('🎾 [MatchInvitations Component] Accept clicked for:', id);
+                  acceptInvitation(id);
+                }}
+                onDecline={(id) => {
+                  console.log('🎾 [MatchInvitations Component] Decline clicked for:', id);
+                  declineInvitation(id);
+                }}
+                isCurrentUser={true}
+              />
+            );
+          })
         ) : (
           <div className="text-center py-6">
             <Inbox className="h-12 w-12 text-gray-400 mx-auto mb-3" />

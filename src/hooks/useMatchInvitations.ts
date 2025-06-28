@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -15,7 +14,12 @@ export function useMatchInvitations() {
   const subscriptionInitialized = useRef(false);
 
   const fetchInvitations = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('🎾 [Match Invitations] No user found, skipping fetch');
+      return;
+    }
+
+    console.log('🎾 [Match Invitations] Starting fetchInvitations for user:', user.id);
 
     try {
       const { data, error } = await supabase
@@ -30,10 +34,14 @@ export function useMatchInvitations() {
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
+      console.log('🎾 [Match Invitations] Supabase query result:', { data, error });
+
       if (error) {
-        console.error('Error fetching invitations:', error);
+        console.error('🎾 [Match Invitations] Error fetching invitations:', error);
         return;
       }
+
+      console.log('🎾 [Match Invitations] Raw invitations data:', data);
 
       const typedInvitations: MatchInvitation[] = (data || []).map(inv => ({
         id: inv.id,
@@ -53,39 +61,60 @@ export function useMatchInvitations() {
         session_opponent_name: inv.session?.opponent_name
       }));
 
+      console.log('🎾 [Match Invitations] Processed invitations:', typedInvitations);
       setInvitations(typedInvitations);
     } catch (error) {
-      console.error('Error in fetchInvitations:', error);
+      console.error('🎾 [Match Invitations] Error in fetchInvitations:', error);
     }
   };
 
   const sendInvitation = async ({ sessionId, inviteeId, inviteeEmail, inviteeName, message }: SendInvitationParams) => {
-    if (!user) return;
+    if (!user) {
+      console.error('🎾 [Send Invitation] No user found');
+      return;
+    }
+
+    console.log('🎾 [Send Invitation] Starting sendInvitation with params:', {
+      sessionId,
+      inviteeId,
+      inviteeEmail,
+      inviteeName,
+      message,
+      senderId: user.id
+    });
 
     try {
       const expiresAt = new Date();
       expiresAt.setHours(expiresAt.getHours() + 24);
 
-      const { error } = await supabase
+      const invitationData = {
+        match_session_id: sessionId,
+        inviter_id: user.id,
+        invitee_id: inviteeId,
+        invitee_email: inviteeEmail,
+        invitee_name: inviteeName,
+        invitation_type: 'match',
+        message,
+        status: 'pending',
+        expires_at: expiresAt.toISOString()
+      };
+
+      console.log('🎾 [Send Invitation] Inserting invitation data:', invitationData);
+
+      const { data, error } = await supabase
         .from('match_invitations')
-        .insert({
-          match_session_id: sessionId,
-          inviter_id: user.id,
-          invitee_id: inviteeId,
-          invitee_email: inviteeEmail,
-          invitee_name: inviteeName,
-          invitation_type: 'match',
-          message,
-          status: 'pending',
-          expires_at: expiresAt.toISOString()
-        });
+        .insert(invitationData)
+        .select();
+
+      console.log('🎾 [Send Invitation] Insert result:', { data, error });
 
       if (error) {
-        console.error('Error sending invitation:', error);
+        console.error('🎾 [Send Invitation] Error sending invitation:', error);
         toast.error('Failed to send invitation');
         return;
       }
 
+      console.log('🎾 [Send Invitation] Invitation sent successfully:', data);
       toast.success('Invitation sent successfully!');
       
       queryClient.invalidateQueries({ queryKey: ['match-invitations'] });
@@ -93,32 +122,42 @@ export function useMatchInvitations() {
       
       await fetchInvitations();
     } catch (error) {
-      console.error('Error in sendInvitation:', error);
+      console.error('🎾 [Send Invitation] Error in sendInvitation:', error);
       toast.error('Failed to send invitation');
     }
   };
 
   const acceptInvitation = async (inviteId: string) => {
-    if (!user) return;
+    if (!user) {
+      console.error('🎾 [Accept Invitation] No user found');
+      return;
+    }
+
+    console.log('🎾 [Accept Invitation] Starting acceptInvitation for:', inviteId);
 
     try {
       const { data, error } = await supabase.rpc('accept_match_invitation', {
         invitation_id: inviteId
       });
 
+      console.log('🎾 [Accept Invitation] RPC result:', { data, error });
+
       if (error) {
-        console.error('Error accepting invitation:', error);
+        console.error('🎾 [Accept Invitation] Error accepting invitation:', error);
         toast.error('Failed to accept invitation');
         return;
       }
 
       const result = data as { success: boolean; message: string; error?: string };
+      console.log('🎾 [Accept Invitation] Parsed result:', result);
       
       if (!result.success) {
+        console.error('🎾 [Accept Invitation] RPC returned failure:', result.error);
         toast.error(result.error || 'Failed to accept invitation');
         return;
       }
 
+      console.log('🎾 [Accept Invitation] Successfully accepted invitation');
       toast.success('Invitation accepted! Match session is now active.');
       
       // Force refresh of all related data
@@ -128,32 +167,42 @@ export function useMatchInvitations() {
       
       await fetchInvitations();
     } catch (error) {
-      console.error('Error in acceptInvitation:', error);
+      console.error('🎾 [Accept Invitation] Error in acceptInvitation:', error);
       toast.error('Failed to accept invitation');
     }
   };
 
   const declineInvitation = async (inviteId: string) => {
-    if (!user) return;
+    if (!user) {
+      console.error('🎾 [Decline Invitation] No user found');
+      return;
+    }
+
+    console.log('🎾 [Decline Invitation] Starting declineInvitation for:', inviteId);
 
     try {
       const { data, error } = await supabase.rpc('decline_match_invitation', {
         invitation_id: inviteId
       });
 
+      console.log('🎾 [Decline Invitation] RPC result:', { data, error });
+
       if (error) {
-        console.error('Error declining invitation:', error);
+        console.error('🎾 [Decline Invitation] Error declining invitation:', error);
         toast.error('Failed to decline invitation');
         return;
       }
 
       const result = data as { success: boolean; message: string; error?: string };
+      console.log('🎾 [Decline Invitation] Parsed result:', result);
       
       if (!result.success) {
+        console.error('🎾 [Decline Invitation] RPC returned failure:', result.error);
         toast.error(result.error || 'Failed to decline invitation');
         return;
       }
 
+      console.log('🎾 [Decline Invitation] Successfully declined invitation');
       toast.success('Invitation declined');
       
       queryClient.invalidateQueries({ queryKey: ['match-invitations'] });
@@ -161,22 +210,30 @@ export function useMatchInvitations() {
       
       await fetchInvitations();
     } catch (error) {
-      console.error('Error in declineInvitation:', error);
+      console.error('🎾 [Decline Invitation] Error in declineInvitation:', error);
       toast.error('Failed to decline invitation');
     }
   };
 
   useEffect(() => {
+    console.log('🎾 [Match Invitations] useEffect triggered with user:', user?.id);
+    
     if (user && !subscriptionInitialized.current) {
+      console.log('🎾 [Match Invitations] Setting up subscription and loading data');
+      
       const loadData = async () => {
+        console.log('🎾 [Match Invitations] Loading initial data...');
         setLoading(true);
         await fetchInvitations();
         setLoading(false);
+        console.log('🎾 [Match Invitations] Initial data loaded');
       };
 
       loadData();
 
       const channelName = `match-invitations-${user.id}-${Date.now()}`;
+      console.log('🎾 [Match Invitations] Creating channel:', channelName);
+      
       const channel = supabase.channel(channelName);
       
       channel.on(
@@ -188,27 +245,30 @@ export function useMatchInvitations() {
           filter: `invitee_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('New match invitation received:', payload);
+          console.log('🎾 [Match Invitations] Real-time: New match invitation received:', payload);
           toast.info('🎾 New match invitation received!');
           fetchInvitations();
         }
       );
 
       channel.subscribe((status) => {
-        console.log('Match invitations channel subscription status:', status);
+        console.log('🎾 [Match Invitations] Channel subscription status:', status);
         if (status === 'SUBSCRIBED') {
           subscriptionInitialized.current = true;
+          console.log('🎾 [Match Invitations] Real-time subscription active');
         }
       });
 
       channelRef.current = channel;
 
       return () => {
+        console.log('🎾 [Match Invitations] Cleaning up subscription');
         if (channelRef.current) {
           supabase.removeChannel(channelRef.current);
         }
       };
     } else if (!user) {
+      console.log('🎾 [Match Invitations] No user, clearing invitations');
       setInvitations([]);
       setLoading(false);
     }
@@ -244,6 +304,12 @@ export function useMatchInvitations() {
       return [];
     }
   };
+
+  console.log('🎾 [Match Invitations] Hook state:', {
+    invitationsCount: invitations.length,
+    loading,
+    userLoggedIn: !!user
+  });
 
   return {
     invitations,

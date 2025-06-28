@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -128,7 +129,18 @@ const StartMatch = () => {
   };
 
   const handleStartMatch = async () => {
+    console.log('🎾 [StartMatch] handleStartMatch called');
+    console.log('🎾 [StartMatch] Form state:', {
+      opponent,
+      isDoubles,
+      partner,
+      opponent1,
+      opponent2,
+      startTime
+    });
+
     if (!validateForm()) {
+      console.log('🎾 [StartMatch] Form validation failed:', validationErrors);
       toast.error('Please fill in all required fields');
       return;
     }
@@ -141,6 +153,7 @@ const StartMatch = () => {
 
       // Parse the start time as EST and convert to proper Date object
       const matchStartTime = parseInputDateAsEST(startTime);
+      console.log('🎾 [StartMatch] Parsed start time:', matchStartTime);
 
       // Prepare session data with opponent IDs and names
       const sessionUpdate = {
@@ -168,16 +181,22 @@ const StartMatch = () => {
         });
       }
 
+      console.log('🎾 [StartMatch] Session update data:', sessionUpdate);
+
       // Save session data and get the created session with ID
       const createdSession = await updateSessionData(sessionUpdate);
+      console.log('🎾 [StartMatch] Created session:', createdSession);
       
       // Runtime check to ensure we have a session
       if (!createdSession) {
         throw new Error('Failed to create session');
       }
 
+      console.log('🎾 [StartMatch] Starting invitation process...');
+
       // Send invitations to opponents if they have IDs
       if (!isDoubles && opponent?.id) {
+        console.log('🎾 [StartMatch] Sending singles invitation to:', opponent);
         // Singles: invite the opponent
         await sendInvitation({
           sessionId: createdSession.id,
@@ -186,8 +205,10 @@ const StartMatch = () => {
           message: `I'd like to play a tennis match with you!`
         });
       } else if (isDoubles) {
+        console.log('🎾 [StartMatch] Sending doubles invitations...');
         // Doubles: invite partner and opponents
         if (partner?.id) {
+          console.log('🎾 [StartMatch] Inviting partner:', partner);
           await sendInvitation({
             sessionId: createdSession.id,
             inviteeId: partner.id,
@@ -196,6 +217,7 @@ const StartMatch = () => {
           });
         }
         if (opponent1?.id) {
+          console.log('🎾 [StartMatch] Inviting opponent1:', opponent1);
           await sendInvitation({
             sessionId: createdSession.id,
             inviteeId: opponent1.id,
@@ -204,6 +226,7 @@ const StartMatch = () => {
           });
         }
         if (opponent2?.id) {
+          console.log('🎾 [StartMatch] Inviting opponent2:', opponent2);
           await sendInvitation({
             sessionId: createdSession.id,
             inviteeId: opponent2.id,
@@ -213,12 +236,13 @@ const StartMatch = () => {
         }
       }
 
+      console.log('🎾 [StartMatch] All invitations sent successfully');
       toast.success('Match started and invitations sent! 🎾');
       
       // Navigate to dashboard
       navigate('/');
     } catch (error) {
-      console.error('Error starting match:', error);
+      console.error('🎾 [StartMatch] Error starting match:', error);
       toast.error('Failed to start match. Please try again.');
     } finally {
       setIsStarting(false);
@@ -363,6 +387,7 @@ const StartMatch = () => {
                     placeholder="Search for your opponent..."
                     value={opponent}
                     onChange={(newOpponent) => {
+                      console.log('🎾 [StartMatch] Opponent selected:', newOpponent);
                       setOpponent(newOpponent);
                       clearFieldError('opponent');
                     }}
@@ -381,6 +406,7 @@ const StartMatch = () => {
                     placeholder="Search for your partner..."
                     value={partner}
                     onChange={(newPartner) => {
+                      console.log('🎾 [StartMatch] Partner selected:', newPartner);
                       setPartner(newPartner);
                       clearFieldError('partner');
                     }}
@@ -394,6 +420,7 @@ const StartMatch = () => {
                     placeholder="Search for first opponent..."
                     value={opponent1}
                     onChange={(newOpponent1) => {
+                      console.log('🎾 [StartMatch] Opponent1 selected:', newOpponent1);
                       setOpponent1(newOpponent1);
                       clearFieldError('opponent1');
                     }}
@@ -406,7 +433,10 @@ const StartMatch = () => {
                     label="Opponent 2"
                     placeholder="Search for second opponent (optional)..."
                     value={opponent2}
-                    onChange={setOpponent2}
+                    onChange={(newOpponent2) => {
+                      console.log('🎾 [StartMatch] Opponent2 selected:', newOpponent2);
+                      setOpponent2(newOpponent2);
+                    }}
                     disabled={isStarting}
                   />
                 </div>
