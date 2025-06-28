@@ -5,7 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { MessageCircle, Calendar, MapPin, Star } from 'lucide-react';
+import { MessageCircle, Calendar, MapPin, Star, Trophy } from 'lucide-react';
 import { CoachBenefitsPreview } from './CoachBenefitsPreview';
 
 interface UserCardProps {
@@ -35,30 +35,44 @@ export function UserCard({ user, type }: UserCardProps) {
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow">
-      <CardContent className="p-4">
-        <div className="space-y-4">
+    <Card className="bg-white/95 backdrop-blur-sm border-white/30 shadow-lg hover:shadow-xl transition-all duration-300 hover:border-tennis-green-primary/30">
+      <CardContent className="p-6">
+        <div className="space-y-6">
           <div className="flex items-center justify-between">
             <div className="flex items-center space-x-4 flex-1">
               {/* Avatar */}
-              <Avatar className="h-16 w-16">
-                <AvatarImage src={user.avatar_url} alt={user.full_name} />
-                <AvatarFallback className="bg-tennis-green-primary text-white text-lg font-semibold">
-                  {getInitials(user.full_name)}
-                </AvatarFallback>
-              </Avatar>
+              <div className="relative">
+                <Avatar className="h-20 w-20 border-2 border-white shadow-lg">
+                  <AvatarImage src={user.avatar_url} alt={user.full_name} />
+                  <AvatarFallback className="bg-tennis-green-primary text-white text-xl font-bold">
+                    {getInitials(user.full_name)}
+                  </AvatarFallback>
+                </Avatar>
+                {type === 'coaches' && (
+                  <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-tennis-green-primary rounded-full flex items-center justify-center shadow-lg">
+                    <Trophy className="w-3 h-3 text-white" />
+                  </div>
+                )}
+              </div>
 
               {/* User Info */}
               <div className="flex-1">
-                <h3 className="text-lg font-semibold text-gray-900">{user.full_name}</h3>
-                <p className="text-gray-600">{getLevelDisplay()}</p>
-                <div className="flex items-center gap-2 mt-1">
-                  <Badge variant="secondary" className="text-xs">
+                <h3 className="text-xl font-bold text-tennis-green-dark mb-1">
+                  {user.full_name}
+                </h3>
+                <p className="text-tennis-green-medium font-medium mb-3">
+                  {getLevelDisplay()}
+                </p>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <Badge 
+                    variant="secondary" 
+                    className="bg-tennis-green-bg/50 text-tennis-green-dark border-tennis-green-bg"
+                  >
                     {getSpecialtyDisplay()}
                   </Badge>
                   {user.location && (
-                    <div className="flex items-center text-xs text-gray-500">
-                      <MapPin className="h-3 w-3 mr-1" />
+                    <div className="flex items-center text-sm text-tennis-green-dark/70">
+                      <MapPin className="h-4 w-4 mr-1" />
                       {user.location}
                     </div>
                   )}
@@ -66,40 +80,43 @@ export function UserCard({ user, type }: UserCardProps) {
               </div>
 
               {/* Match Percentage */}
-              <div className="text-right">
-                <div className="bg-tennis-green-primary text-white px-3 py-1 rounded-full text-sm font-semibold">
-                  {user.match_percentage}%
+              <div className="text-center">
+                <div className="bg-gradient-to-r from-tennis-green-primary to-tennis-green-medium text-white px-4 py-2 rounded-full shadow-lg">
+                  <div className="text-2xl font-bold">{user.match_percentage}%</div>
                 </div>
-                <p className="text-xs text-gray-500 mt-1">Match</p>
+                <div className="flex items-center gap-1 text-sm text-tennis-green-dark/70 mt-2">
+                  <Star className="h-3 w-3 text-tennis-yellow" />
+                  <span>Match</span>
+                </div>
               </div>
             </div>
 
             {/* Action Buttons */}
-            <div className="flex flex-col gap-2 ml-4">
+            <div className="flex flex-col gap-3 ml-6">
               <Button 
-                variant="outline" 
-                size="sm"
-                className="border-tennis-green-primary text-tennis-green-primary hover:bg-tennis-green-primary hover:text-white"
+                className="bg-white border-2 border-tennis-green-primary text-tennis-green-primary hover:bg-tennis-green-primary hover:text-white transition-all duration-200 shadow-md hover:shadow-lg"
+                size="lg"
               >
-                <MessageCircle className="h-4 w-4 mr-1" />
+                <MessageCircle className="h-4 w-4 mr-2" />
                 Message
               </Button>
               <Button 
-                variant="outline" 
-                size="sm"
-                className="border-tennis-green-primary text-tennis-green-primary hover:bg-tennis-green-primary hover:text-white"
+                className="bg-tennis-green-primary hover:bg-tennis-green-medium text-white shadow-md hover:shadow-lg transition-all duration-200"
+                size="lg"
               >
-                <Calendar className="h-4 w-4 mr-1" />
-                {type === 'coaches' ? 'Book' : 'Challenge'}
+                <Calendar className="h-4 w-4 mr-2" />
+                {type === 'coaches' ? 'Book Session' : 'Challenge'}
               </Button>
             </div>
           </div>
 
           {/* Coach Benefits Preview - only show for coaches */}
           {type === 'coaches' && (
-            <CoachBenefitsPreview 
-              coachLevel={user.current_level || 1} 
-            />
+            <div className="border-t border-tennis-green-bg/30 pt-4">
+              <CoachBenefitsPreview 
+                coachLevel={user.current_level || 1} 
+              />
+            </div>
           )}
         </div>
       </CardContent>

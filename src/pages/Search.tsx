@@ -6,7 +6,7 @@ import { useSearchUsers } from '@/hooks/useSearchUsers';
 import { Card, CardContent } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Search as SearchIcon } from 'lucide-react';
+import { Search as SearchIcon, Users, Trophy, UserCheck } from 'lucide-react';
 
 export default function Search() {
   const [searchQuery, setSearchQuery] = useState('');
@@ -39,61 +39,66 @@ export default function Search() {
   };
 
   return (
-    <div className="min-h-screen bg-tennis-green-bg">
+    <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light">
       {/* Header */}
-      <div className="bg-tennis-green-primary text-white py-6">
-        <div className="container mx-auto px-4">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="w-8 h-8 bg-white rounded-full flex items-center justify-center">
-              <div className="w-6 h-6 bg-tennis-green-primary rounded-full"></div>
+      <div className="bg-white/95 backdrop-blur-sm border-b border-white/20 shadow-lg">
+        <div className="container mx-auto px-4 py-6">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-tennis-green-primary rounded-full flex items-center justify-center shadow-lg">
+              <SearchIcon className="w-5 h-5 text-white" />
             </div>
-            <h1 className="text-2xl font-bold">RallyLife</h1>
+            <div>
+              <h1 className="text-3xl font-bold text-tennis-green-dark">Rako Search</h1>
+              <p className="text-tennis-green-dark/70">Find players, coaches, and tournaments</p>
+            </div>
           </div>
-        </div>
-      </div>
-
-      <div className="container mx-auto px-4 py-6">
-        {/* Search Section */}
-        <div className="mb-8">
-          <h2 className="text-4xl font-bold text-center mb-8 text-gray-900">SEARCH</h2>
           
+          {/* Search Input */}
+          <div className="relative mb-6">
+            <SearchIcon className="absolute left-4 top-1/2 transform -translate-y-1/2 text-tennis-green-medium h-5 w-5" />
+            <Input
+              type="text"
+              placeholder="Search for players, coaches, or tournaments..."
+              value={searchQuery}
+              onChange={(e) => handleSearch(e.target.value)}
+              className="pl-12 h-14 text-lg border-tennis-green-bg/30 focus:border-tennis-green-primary focus:ring-tennis-green-primary bg-white/90 backdrop-blur-sm shadow-sm"
+            />
+          </div>
+
           {/* Search Tabs */}
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsList className="grid w-full grid-cols-3 bg-white/90 backdrop-blur-sm border border-tennis-green-bg/30 shadow-sm">
               <TabsTrigger 
                 value="players" 
-                className="data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white"
+                className="data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white flex items-center gap-2"
               >
+                <Users className="w-4 h-4" />
                 Players
               </TabsTrigger>
               <TabsTrigger 
                 value="tournaments" 
-                className="data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white"
+                className="data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white flex items-center gap-2"
               >
+                <Trophy className="w-4 h-4" />
                 Tournaments
               </TabsTrigger>
               <TabsTrigger 
                 value="coaches" 
-                className="data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white"
+                className="data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white flex items-center gap-2"
               >
+                <UserCheck className="w-4 h-4" />
                 Coaches
               </TabsTrigger>
             </TabsList>
+          </Tabs>
+        </div>
+      </div>
 
-            {/* Search Input */}
-            <div className="relative mb-6">
-              <SearchIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-5 w-5" />
-              <Input
-                type="text"
-                placeholder="Search..."
-                value={searchQuery}
-                onChange={(e) => handleSearch(e.target.value)}
-                className="pl-10 h-12 text-lg border-gray-300 focus:border-tennis-green-primary focus:ring-tennis-green-primary"
-              />
-            </div>
-
+      <div className="container mx-auto px-4 py-6">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6">
+          <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
             {/* Players Tab */}
-            <TabsContent value="players" className="space-y-6">
+            <TabsContent value="players" className="space-y-6 mt-6">
               <SearchFilters
                 type="players"
                 filters={filters}
@@ -107,17 +112,21 @@ export default function Search() {
             </TabsContent>
 
             {/* Tournaments Tab */}
-            <TabsContent value="tournaments" className="space-y-6">
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <h3 className="text-lg font-semibold text-gray-600 mb-2">Coming Soon</h3>
-                  <p className="text-gray-500">Tournament search will be available in a future update.</p>
+            <TabsContent value="tournaments" className="space-y-6 mt-6">
+              <Card className="bg-tennis-green-bg/30 border-tennis-green-bg/50">
+                <CardContent className="p-12 text-center">
+                  <Trophy className="h-16 w-16 mx-auto text-tennis-green-medium mb-4" />
+                  <h3 className="text-2xl font-semibold text-tennis-green-dark mb-3">Tournament Search Coming Soon</h3>
+                  <p className="text-tennis-green-dark/70 text-lg">
+                    We're working on bringing you comprehensive tournament search and registration features. 
+                    Stay tuned for exciting competitive opportunities!
+                  </p>
                 </CardContent>
               </Card>
             </TabsContent>
 
             {/* Coaches Tab */}
-            <TabsContent value="coaches" className="space-y-6">
+            <TabsContent value="coaches" className="space-y-6 mt-6">
               <SearchFilters
                 type="coaches"
                 filters={filters}
