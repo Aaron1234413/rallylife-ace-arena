@@ -1,9 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
-import { Play, RefreshCw, AlertCircle } from 'lucide-react';
+import { useMatchInvitations } from '@/hooks/useMatchInvitations';
+import { Play, RefreshCw, AlertCircle, Send } from 'lucide-react';
 import { AnimatedButton } from '@/components/ui/animated-button';
 import { CardWithAnimation } from '@/components/ui/card-with-animation';
 import { FormField } from '@/components/ui/form-field';
@@ -17,6 +19,7 @@ import { toast } from 'sonner';
 const StartMatch = () => {
   const navigate = useNavigate();
   const { sessionData, updateSessionData, isSessionActive, loading } = useMatchSession();
+  const { createInvitation } = useMatchInvitations();
   
   // Updated state to use SelectedOpponent objects
   const [opponent, setOpponent] = useState<SelectedOpponent | null>(null);
@@ -34,7 +37,8 @@ const StartMatch = () => {
   };
   
   const [startTime, setStartTime] = useState(getLocalDateTimeString());
-  const [isStarting, setIsStarting] = useState(false);
+  const [message, setMessage] = useState('');
+  const [isCreatingInvitation, setIsCreatingInvitation] = useState(false);
   const [showRecoveryPrompt, setShowRecoveryPrompt] = useState(false);
   const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
 
@@ -86,13 +90,13 @@ const StartMatch = () => {
     }
   };
 
-  const handleStartMatch = async () => {
+  const handleCreateInvitation = async () => {
     if (!validateForm()) {
       toast.error('Please fill in all required fields');
       return;
     }
 
-    setIsStarting(true);
+    setIsCreatingInvitation(true);
 
     try {
       // Small delay for UX
@@ -101,43 +105,50 @@ const StartMatch = () => {
       // Convert local datetime string to proper Date object
       const startDateTime = new Date(startTime);
 
-      // Prepare session data with opponent IDs and names
-      const sessionUpdate = {
-        matchType: (isDoubles ? 'doubles' : 'singles') as 'singles' | 'doubles',
-        isDoubles,
-        startTime: startDateTime
-      };
-
       if (isDoubles) {
-        // Doubles match data
-        Object.assign(sessionUpdate, {
-          partnerName: partner?.name,
-          partnerId: partner?.id,
-          opponentName: opponent1?.name || '', // Primary opponent name for backward compatibility
-          opponent1Name: opponent1?.name,
-          opponent1Id: opponent1?.id,
-          opponent2Name: opponent2?.name,
-          opponent2Id: opponent2?.id
-        });
+        // For doubles, create invitation to first opponent
+        if (opponent1) {
+          await createInvitation({
+            invitedUserName: opponent1.name,
+            invitedUserId: opponent1.id,
+            invitedUserEmail: opponent1.email,
+            matchType: 'doubles',
+            isDoubles: true,
+            startTime: startDateTime,
+            partnerName: partner?.name,
+            partnerId: partner?.id,
+            opponent1Name: opponent1.name,
+            opponent1Id: opponent1.id,
+            opponent2Name: opponent2?.name,
+            opponent2Id: opponent2?.id,
+            message: message.trim() || undefined
+          });
+        }
       } else {
-        // Singles match data
-        Object.assign(sessionUpdate, {
-          opponentName: opponent?.name || '',
-          opponentId: opponent?.id
-        });
+        // For singles, create invitation to opponent
+        if (opponent) {
+          await createInvitation({
+            invitedUserName: opponent.name,
+            invitedUserId: opponent.id,
+            invitedUserEmail: opponent.email,
+            matchType: 'singles',
+            isDoubles: false,
+            startTime: startDateTime,
+            opponentName: opponent.name,
+            opponentId: opponent.id,
+            message: message.trim() || undefined
+          });
+        }
       }
 
-      // Save session data
-      await updateSessionData(sessionUpdate);
-
-      toast.success('Match started! Good luck out there! 🎾');
+      toast.success('Match invitation sent! 🎾');
       
       // Navigate to dashboard
       navigate('/');
     } catch (error) {
-      toast.error('Failed to start match. Please try again.');
+      toast.error('Failed to send invitation. Please try again.');
     } finally {
-      setIsStarting(false);
+      setIsCreatingInvitation(false);
     }
   };
 
@@ -250,8 +261,8 @@ const StartMatch = () => {
         <CardWithAnimation delay={0}>
           <CardHeader className="text-center pb-4">
             <CardTitle className="flex items-center justify-center gap-2 text-xl sm:text-2xl">
-              <Play className="h-6 w-6 text-tennis-green-dark" />
-              Start Tennis Match
+              <Send className="h-6 w-6 text-tennis-green-dark" />
+              Invite to Tennis Match
             </CardTitle>
             <p className="text-base sm:text-lg font-medium text-tennis-green-dark mt-3 leading-relaxed">
               {randomMessage}
@@ -266,7 +277,7 @@ const StartMatch = () => {
             <MatchTypeToggle
               isDoubles={isDoubles}
               onToggle={setIsDoubles}
-              disabled={isStarting}
+              disabled={isCreatingInvitation}
             />
 
             {/* Form Fields */}
@@ -275,14 +286,14 @@ const StartMatch = () => {
               {!isDoubles && (
                 <div className="animate-fade-in">
                   <OpponentSearchSelector
-                    label="Opponent"
+                    label="Invite Opponent"
                     placeholder="Search for your opponent..."
                     value={opponent}
                     onChange={(newOpponent) => {
                       setOpponent(newOpponent);
                       clearFieldError('opponent');
                     }}
-                    disabled={isStarting}
+                    disabled={isCreatingInvitation}
                     required
                     error={validationErrors.opponent}
                   />
@@ -300,30 +311,30 @@ const StartMatch = () => {
                       setPartner(newPartner);
                       clearFieldError('partner');
                     }}
-                    disabled={isStarting}
+                    disabled={isCreatingInvitation}
                     required
                     error={validationErrors.partner}
                   />
                   
                   <OpponentSearchSelector
-                    label="Opponent 1"
+                    label="Invite Opponent 1"
                     placeholder="Search for first opponent..."
                     value={opponent1}
                     onChange={(newOpponent1) => {
                       setOpponent1(newOpponent1);
                       clearFieldError('opponent1');
                     }}
-                    disabled={isStarting}
+                    disabled={isCreatingInvitation}
                     required
                     error={validationErrors.opponent1}
                   />
                   
                   <OpponentSearchSelector
-                    label="Opponent 2"
+                    label="Opponent 2 (Optional)"
                     placeholder="Search for second opponent (optional)..."
                     value={opponent2}
                     onChange={setOpponent2}
-                    disabled={isStarting}
+                    disabled={isCreatingInvitation}
                   />
                 </div>
               )}
@@ -331,13 +342,25 @@ const StartMatch = () => {
               {/* Start Time Override */}
               <FormField
                 id="startTime"
-                label="Start Time"
+                label="Proposed Start Time"
                 type="datetime-local"
                 placeholder=""
                 value={startTime}
                 onChange={(e) => setStartTime(e.target.value)}
-                disabled={isStarting}
-                helpText="Auto-captured in your local timezone (modify if logging a past match)"
+                disabled={isCreatingInvitation}
+                helpText="Suggested match start time (they can accept or propose a different time)"
+              />
+
+              {/* Message */}
+              <FormField
+                id="message"
+                label="Message (Optional)"
+                type="textarea"
+                placeholder="Add a personal message to your invitation..."
+                value={message}
+                onChange={(e) => setMessage(e.target.value)}
+                disabled={isCreatingInvitation}
+                helpText="Make your invitation more personal with a message"
               />
             </div>
 
@@ -350,16 +373,16 @@ const StartMatch = () => {
               loading={rewardsLoading}
             />
 
-            {/* Start Match Button */}
+            {/* Send Invitation Button */}
             <div className="pt-4">
               <AnimatedButton
-                onClick={handleStartMatch}
-                loading={isStarting}
-                disabled={isStarting}
+                onClick={handleCreateInvitation}
+                loading={isCreatingInvitation}
+                disabled={isCreatingInvitation}
                 className="w-full h-14 text-lg bg-tennis-green-dark hover:bg-tennis-green text-white font-semibold"
               >
-                <Play className="h-5 w-5 mr-2" />
-                {isStarting ? 'Starting Match...' : 'Start Match'}
+                <Send className="h-5 w-5 mr-2" />
+                {isCreatingInvitation ? 'Sending Invitation...' : 'Send Match Invitation'}
               </AnimatedButton>
             </div>
           </CardContent>

@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -180,7 +179,10 @@ const Index = () => {
               onAddXP={handleAddXP}
               onRestoreHP={handleRestoreHP}
             />
+            
+            {/* Match Widget - Shows both active matches AND invitations */}
             <ActiveMatchWidget />
+            
             <ActiveTrainingWidget />
 
             {/* Enhanced Quick Actions - Now Available on All Devices */}
