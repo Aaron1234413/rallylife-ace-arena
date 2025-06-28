@@ -5498,14 +5498,6 @@ export type Database = {
         }
         Returns: string
       }
-      user_owns_match_session: {
-        Args: { session_id: string }
-        Returns: boolean
-      }
-      user_participates_in_match_session: {
-        Args: { session_id: string }
-        Returns: boolean
-      }
     }
     Enums: {
       user_role: "player" | "coach"
