@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -385,7 +384,8 @@ export function useMatchInvitations() {
             event: payload.eventType,
             id: payload.new && typeof payload.new === 'object' && 'id' in payload.new ? payload.new.id : 
                 payload.old && typeof payload.old === 'object' && 'id' in payload.old ? payload.old.id : 'unknown',
-            status: payload.new && typeof payload.new === 'object' && 'status' in payload.new ? payload.new.status : 'deleted'
+            status: payload.new && typeof payload.new === 'object' && 'status' in payload.new ? payload.new.status : 'deleted',
+            payload: payload // 🔍 DEBUGGING: Full payload for inspection
           });
           fetchSentInvitations();
         }
@@ -405,7 +405,8 @@ export function useMatchInvitations() {
             event: payload.eventType,
             id: payload.new && typeof payload.new === 'object' && 'id' in payload.new ? payload.new.id : 
                 payload.old && typeof payload.old === 'object' && 'id' in payload.old ? payload.old.id : 'unknown',
-            status: payload.new && typeof payload.new === 'object' && 'status' in payload.new ? payload.new.status : 'deleted'
+            status: payload.new && typeof payload.new === 'object' && 'status' in payload.new ? payload.new.status : 'deleted',
+            payload: payload // 🔍 DEBUGGING: Full payload for inspection
           });
           fetchReceivedInvitations();
         }
