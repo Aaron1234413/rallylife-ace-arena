@@ -3276,6 +3276,10 @@ export type Database = {
         Args: { geom1: unknown; geom2: unknown }
         Returns: boolean
       }
+      accept_match_invitation: {
+        Args: { invitation_id: string }
+        Returns: Json
+      }
       add_coach_tokens: {
         Args: {
           user_id: string
@@ -3545,6 +3549,10 @@ export type Database = {
       create_direct_conversation: {
         Args: { other_user_id: string; conversation_name?: string }
         Returns: string
+      }
+      decline_match_invitation: {
+        Args: { invitation_id: string }
+        Returns: Json
       }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>

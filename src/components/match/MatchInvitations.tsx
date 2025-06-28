@@ -12,7 +12,9 @@ export const MatchInvitations: React.FC = () => {
   const { user } = useAuth();
   const { invitations, loading, acceptInvitation, declineInvitation } = useMatchInvitations();
 
-  if (!user || loading) {
+  if (!user) return null;
+
+  if (loading) {
     return (
       <Card className="border-tennis-green-light bg-gradient-to-r from-tennis-green-light/5 to-tennis-green-dark/5">
         <CardContent className="flex items-center justify-center py-6">
@@ -23,12 +25,8 @@ export const MatchInvitations: React.FC = () => {
     );
   }
 
-  // Filter invitations - only show ones where current user is the invitee
-  const receivedInvitations = invitations.filter(inv => inv.invitee_id === user.id);
-
-  if (receivedInvitations.length === 0) {
-    return null; // Don't show the component if no invitations
-  }
+  // Always show the component, but with different states
+  const hasInvitations = invitations.length > 0;
 
   return (
     <Card className="border-tennis-green-light bg-gradient-to-r from-tennis-green-light/5 to-tennis-green-dark/5">
@@ -38,24 +36,34 @@ export const MatchInvitations: React.FC = () => {
             <Mail className="h-5 w-5 text-tennis-green-dark" />
             <span className="text-lg font-orbitron font-bold">Match Invitations</span>
           </div>
-          {receivedInvitations.length > 0 && (
+          {hasInvitations && (
             <Badge variant="default" className="bg-tennis-green-dark text-white font-orbitron font-medium">
-              {receivedInvitations.length} pending
+              {invitations.length} pending
             </Badge>
           )}
         </CardTitle>
       </CardHeader>
 
       <CardContent className="space-y-3">
-        {receivedInvitations.map((invitation) => (
-          <MatchInvitationCard
-            key={invitation.id}
-            invitation={invitation}
-            onAccept={acceptInvitation}
-            onDecline={declineInvitation}
-            isCurrentUser={true}
-          />
-        ))}
+        {hasInvitations ? (
+          invitations.map((invitation) => (
+            <MatchInvitationCard
+              key={invitation.id}
+              invitation={invitation}
+              onAccept={acceptInvitation}
+              onDecline={declineInvitation}
+              isCurrentUser={true}
+            />
+          ))
+        ) : (
+          <div className="text-center py-6">
+            <Inbox className="h-12 w-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-600 font-medium mb-1">No pending invitations</p>
+            <p className="text-sm text-gray-500">
+              Match invitations from other players will appear here
+            </p>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

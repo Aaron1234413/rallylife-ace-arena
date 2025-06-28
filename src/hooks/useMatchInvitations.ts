@@ -1,3 +1,4 @@
+
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -26,6 +27,7 @@ export function useMatchInvitations() {
         `)
         .eq('invitee_id', user.id)
         .eq('status', 'pending')
+        .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -62,7 +64,7 @@ export function useMatchInvitations() {
 
     try {
       const expiresAt = new Date();
-      expiresAt.setHours(expiresAt.getHours() + 24); // 24 hour expiry
+      expiresAt.setHours(expiresAt.getHours() + 24);
 
       const { error } = await supabase
         .from('match_invitations')
@@ -86,7 +88,6 @@ export function useMatchInvitations() {
 
       toast.success('Invitation sent successfully!');
       
-      // Invalidate React Query caches
       queryClient.invalidateQueries({ queryKey: ['match-invitations'] });
       queryClient.invalidateQueries({ queryKey: ['match-sessions'] });
       
@@ -101,66 +102,26 @@ export function useMatchInvitations() {
     if (!user) return;
 
     try {
-      // Get invitation details
-      const { data: invitation, error: inviteError } = await supabase
-        .from('match_invitations')
-        .select('*')
-        .eq('id', inviteId)
-        .single();
+      const { data, error } = await supabase.rpc('accept_match_invitation', {
+        invitation_id: inviteId
+      });
 
-      if (inviteError || !invitation) {
-        toast.error('Invitation not found');
+      if (error) {
+        console.error('Error accepting invitation:', error);
+        toast.error('Failed to accept invitation');
         return;
       }
 
-      // Check if expired
-      if (new Date(invitation.expires_at) < new Date()) {
-        toast.error('This invitation has expired');
-        return;
-      }
-
-      // Get user's full name for participant record
-      const { data: userProfile } = await supabase
-        .from('profiles')
-        .select('full_name')
-        .eq('id', user.id)
-        .single();
-
-      const userName = userProfile?.full_name || 'Unknown Player';
-
-      // Add to match participants
-      const { error: participantError } = await supabase
-        .from('match_participants')
-        .insert({
-          match_session_id: invitation.match_session_id,
-          user_id: user.id,
-          participant_name: userName,
-          participant_role: 'player'
-        });
-
-      if (participantError) {
-        console.error('Error adding participant:', participantError);
-        toast.error('Failed to join match');
-        return;
-      }
-
-      // Update invitation status
-      const { error: updateError } = await supabase
-        .from('match_invitations')
-        .update({ 
-          status: 'accepted', 
-          responded_at: new Date().toISOString(),
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', inviteId);
-
-      if (updateError) {
-        console.error('Error updating invitation:', updateError);
-      }
-
-      toast.success('Invitation accepted! You\'ve joined the match.');
+      const result = data as { success: boolean; message: string; error?: string };
       
-      // Invalidate React Query caches
+      if (!result.success) {
+        toast.error(result.error || 'Failed to accept invitation');
+        return;
+      }
+
+      toast.success('Invitation accepted! Match session is now active.');
+      
+      // Force refresh of all related data
       queryClient.invalidateQueries({ queryKey: ['match-invitations'] });
       queryClient.invalidateQueries({ queryKey: ['match-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['match-participants'] });
@@ -176,14 +137,9 @@ export function useMatchInvitations() {
     if (!user) return;
 
     try {
-      const { error } = await supabase
-        .from('match_invitations')
-        .update({ 
-          status: 'declined', 
-          responded_at: new Date().toISOString(),
-          updated_at: new Date().toISOString() 
-        })
-        .eq('id', inviteId);
+      const { data, error } = await supabase.rpc('decline_match_invitation', {
+        invitation_id: inviteId
+      });
 
       if (error) {
         console.error('Error declining invitation:', error);
@@ -191,9 +147,15 @@ export function useMatchInvitations() {
         return;
       }
 
+      const result = data as { success: boolean; message: string; error?: string };
+      
+      if (!result.success) {
+        toast.error(result.error || 'Failed to decline invitation');
+        return;
+      }
+
       toast.success('Invitation declined');
       
-      // Invalidate React Query caches
       queryClient.invalidateQueries({ queryKey: ['match-invitations'] });
       queryClient.invalidateQueries({ queryKey: ['match-sessions'] });
       
@@ -204,32 +166,16 @@ export function useMatchInvitations() {
     }
   };
 
-  const cleanupExpiredInvitations = async () => {
-    if (!user) return;
-
-    try {
-      await supabase
-        .from('match_invitations')
-        .update({ status: 'declined' })
-        .lt('expires_at', new Date().toISOString())
-        .eq('status', 'pending');
-    } catch (error) {
-      console.error('Error cleaning up expired invitations:', error);
-    }
-  };
-
   useEffect(() => {
     if (user && !subscriptionInitialized.current) {
       const loadData = async () => {
         setLoading(true);
         await fetchInvitations();
-        await cleanupExpiredInvitations();
         setLoading(false);
       };
 
       loadData();
 
-      // Set up real-time subscription - only for invitations where current user is invitee
       const channelName = `match-invitations-${user.id}-${Date.now()}`;
       const channel = supabase.channel(channelName);
       

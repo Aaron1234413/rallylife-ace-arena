@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -160,12 +159,12 @@ const Index = () => {
         {/* Welcome Banner */}
         <WelcomeBanner />
 
-        {/* Match Invitations - Show for all authenticated users */}
-        <MatchInvitations />
-
         {/* Player-specific content */}
         {isPlayer && (
           <>
+            {/* Match Invitations - Always show for players */}
+            <MatchInvitations />
+
             {/* Phase 1 & 2: Enhanced Player Vitals Hero Section with Recovery Integration */}
             <PlayerVitalsHero
               hpData={hpData}
@@ -200,6 +199,9 @@ const Index = () => {
         {/* Coach-specific content */}
         {isCoach && (
           <>
+            {/* Match Invitations for coaches too */}
+            <MatchInvitations />
+
             {/* Profile Card for Coaches */}
             <ProfileCard
               profile={profile}
