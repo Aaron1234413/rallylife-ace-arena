@@ -31,11 +31,19 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    /* Tennis green theme colors */
-    --tennis-green-light: 120 50% 70%;
-    --tennis-green: 120 60% 50%;
-    --tennis-green-dark: 120 70% 30%;
-    --tennis-green-bg: 120 20% 95%;
+    /* Enhanced Tennis theme colors */
+    --tennis-green-dark: 120 70% 25%;
+    --tennis-green-medium: 120 60% 45%;
+    --tennis-green-light: 120 50% 65%;
+    --tennis-green-primary: 120 65% 35%;
+    --tennis-green-bg: 120 25% 95%;
+    --tennis-yellow: 45 95% 65%;
+    --tennis-court: 25 85% 85%;
+    
+    /* HP and XP colors */
+    --hp-red: 0 75% 60%;
+    --hp-green: 120 60% 50%;
+    --xp-blue: 220 75% 60%;
   }
 
   .dark {
@@ -73,15 +81,20 @@
   
   body {
     @apply bg-background text-foreground;
-    /* Improve mobile scrolling */
+    /* Improved mobile scrolling */
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: none;
+    /* Smoother font rendering */
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
   }
 
-  /* Safe area handling for mobile devices */
+  /* Enhanced safe area handling */
   .safe-area-inset {
     padding-left: env(safe-area-inset-left);
     padding-right: env(safe-area-inset-right);
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
   }
 
   /* Smooth scrolling for the entire app */
@@ -89,28 +102,37 @@
     scroll-behavior: smooth;
   }
 
-  /* Prevent horizontal overflow on mobile */
+  /* Prevent horizontal overflow and ensure full width */
   body, #root {
     overflow-x: hidden;
     width: 100%;
+    min-height: 100vh;
   }
 }
 
-/* Tennis theme colors */
+/* Enhanced Tennis theme colors with CSS custom properties */
+.tennis-green-primary {
+  color: hsl(var(--tennis-green-primary));
+}
+
+.bg-tennis-green-primary {
+  background-color: hsl(var(--tennis-green-primary));
+}
+
+.tennis-green-medium {
+  color: hsl(var(--tennis-green-medium));
+}
+
+.bg-tennis-green-medium {
+  background-color: hsl(var(--tennis-green-medium));
+}
+
 .tennis-green-light {
   color: hsl(var(--tennis-green-light));
 }
 
 .bg-tennis-green-light {
   background-color: hsl(var(--tennis-green-light));
-}
-
-.tennis-green {
-  color: hsl(var(--tennis-green));
-}
-
-.bg-tennis-green {
-  background-color: hsl(var(--tennis-green));
 }
 
 .tennis-green-dark {
@@ -129,108 +151,131 @@
   background-color: hsl(var(--tennis-green-bg));
 }
 
-/* Custom animations */
-@keyframes fade-in {
+/* Enhanced animations with better performance */
+@keyframes fade-in-up {
   0% {
     opacity: 0;
-    transform: translateY(10px);
-  }
-  100% {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes scale-in {
-  0% {
-    transform: scale(0.95);
-    opacity: 0;
-  }
-  100% {
-    transform: scale(1);
-    opacity: 1;
-  }
-}
-
-@keyframes slide-up {
-  0% {
     transform: translateY(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes fade-in-scale {
+  0% {
     opacity: 0;
+    transform: scale(0.95);
   }
   100% {
-    transform: translateY(0);
     opacity: 1;
+    transform: scale(1);
   }
 }
 
-@keyframes pulse-slow {
+@keyframes slide-in-right {
+  0% {
+    opacity: 0;
+    transform: translateX(20px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse-glow {
   0%, 100% {
     opacity: 1;
+    box-shadow: 0 0 0 0 hsla(var(--tennis-green-primary), 0.4);
   }
   50% {
-    opacity: 0.7;
+    opacity: 0.85;
+    box-shadow: 0 0 0 8px hsla(var(--tennis-green-primary), 0);
   }
 }
 
-@keyframes progress-smooth {
+@keyframes shimmer {
   0% {
-    transform: scaleX(0);
+    background-position: -200px 0;
   }
   100% {
-    transform: scaleX(1);
+    background-position: calc(200px + 100%) 0;
   }
 }
 
-@keyframes progress-urgent {
-  0%, 100% {
-    transform: scaleX(1);
+@keyframes bounce-subtle {
+  0%, 20%, 53%, 80%, 100% {
+    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+    transform: translate3d(0, 0, 0);
   }
-  50% {
-    transform: scaleX(1.02);
+  40%, 43% {
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    transform: translate3d(0, -8px, 0);
   }
-}
-
-@keyframes number-change {
-  0% {
-    transform: translateY(-2px);
-    opacity: 0.8;
+  70% {
+    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
+    transform: translate3d(0, -4px, 0);
   }
-  100% {
-    transform: translateY(0);
-    opacity: 1;
+  90% {
+    transform: translate3d(0, -2px, 0);
   }
 }
 
-.animate-fade-in {
-  animation: fade-in 0.3s ease-out;
+/* Animation utility classes */
+.animate-fade-in-up {
+  animation: fade-in-up 0.6s ease-out;
 }
 
-.animate-scale-in {
-  animation: scale-in 0.2s ease-out;
+.animate-fade-in-scale {
+  animation: fade-in-scale 0.4s ease-out;
 }
 
-.animate-slide-up {
-  animation: slide-up 0.4s ease-out;
+.animate-slide-in-right {
+  animation: slide-in-right 0.5s ease-out;
 }
 
-.animate-pulse-slow {
-  animation: pulse-slow 3s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+.animate-pulse-glow {
+  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
 }
 
-.animate-progress-smooth {
-  animation: progress-smooth 1s ease-out;
+.animate-shimmer {
+  animation: shimmer 2s infinite;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    hsla(var(--tennis-green-primary), 0.1),
+    transparent
+  );
+  background-size: 200px 100%;
 }
 
-.animate-progress-urgent {
-  animation: progress-urgent 2s ease-in-out infinite;
+.animate-bounce-subtle {
+  animation: bounce-subtle 1s;
 }
 
-.animate-number-change {
-  animation: number-change 0.3s ease-out;
+/* Enhanced hover effects */
+.hover-lift {
+  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
 }
 
-/* Touch-friendly improvements */
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px hsla(var(--tennis-green-primary), 0.15);
+}
+
+.hover-glow {
+  transition: box-shadow 0.3s ease-out;
+}
+
+.hover-glow:hover {
+  box-shadow: 0 0 20px hsla(var(--tennis-green-primary), 0.3);
+}
+
+/* Responsive utilities */
 @media (max-width: 768px) {
+  /* Touch-friendly improvements */
   button, .button, [role="button"] {
     min-height: 44px;
     min-width: 44px;
@@ -239,15 +284,55 @@
   input, textarea, select {
     font-size: 16px; /* Prevents zoom on iOS */
   }
+
+  /* Better mobile spacing */
+  .container {
+    padding-left: 1rem;
+    padding-right: 1rem;
+  }
+
+  /* Mobile-first text sizing */
+  h1 {
+    font-size: 1.875rem; /* 30px */
+  }
+  
+  h2 {
+    font-size: 1.5rem; /* 24px */
+  }
+  
+  h3 {
+    font-size: 1.25rem; /* 20px */
+  }
 }
 
-/* Improve focus visibility */
+@media (max-width: 640px) {
+  /* Extra small screens */
+  .container {
+    padding-left: 0.75rem;
+    padding-right: 0.75rem;
+  }
+}
+
+/* Enhanced focus visibility for accessibility */
 *:focus-visible {
-  outline: 2px solid hsl(var(--ring));
+  outline: 2px solid hsl(var(--tennis-green-primary));
   outline-offset: 2px;
+  border-radius: 2px;
 }
 
-/* Reduce motion for users who prefer it */
+/* Loading skeleton improvements */
+.skeleton {
+  background: linear-gradient(
+    90deg,
+    hsl(var(--tennis-green-bg)),
+    hsl(var(--tennis-green-bg) / 0.8),
+    hsl(var(--tennis-green-bg))
+  );
+  background-size: 200px 100%;
+  animation: shimmer 1.5s infinite;
+}
+
+/* Smooth transitions for reduced motion users */
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,
@@ -256,5 +341,34 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
+  }
+}
+
+/* Print styles */
+@media print {
+  * {
+    background: transparent !important;
+    color: black !important;
+    box-shadow: none !important;
+    text-shadow: none !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .tennis-green-primary {
+    color: #000;
+  }
+  
+  .bg-tennis-green-primary {
+    background-color: #000;
+  }
+  
+  button {
+    border: 2px solid currentColor;
   }
 }

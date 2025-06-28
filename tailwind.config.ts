@@ -67,12 +67,13 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Tennis-specific colors matching your mockups
+				// Enhanced Tennis-specific colors
 				tennis: {
 					green: {
 						dark: 'hsl(var(--tennis-green-dark))',
 						medium: 'hsl(var(--tennis-green-medium))',
 						light: 'hsl(var(--tennis-green-light))',
+						primary: 'hsl(var(--tennis-green-primary))',
 						bg: 'hsl(var(--tennis-green-bg))'
 					},
 					yellow: 'hsl(var(--tennis-yellow))',
@@ -107,11 +108,72 @@ export default {
 					to: {
 						height: '0'
 					}
+				},
+				'fade-in-up': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateY(20px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateY(0)'
+					}
+				},
+				'fade-in-scale': {
+					'0%': {
+						opacity: '0',
+						transform: 'scale(0.95)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'scale(1)'
+					}
+				},
+				'slide-in-right': {
+					'0%': {
+						opacity: '0',
+						transform: 'translateX(20px)'
+					},
+					'100%': {
+						opacity: '1',
+						transform: 'translateX(0)'
+					}
+				},
+				'pulse-glow': {
+					'0%, 100%': {
+						opacity: '1',
+						boxShadow: '0 0 0 0 hsla(var(--tennis-green-primary), 0.4)'
+					},
+					'50%': {
+						opacity: '0.85',
+						boxShadow: '0 0 0 8px hsla(var(--tennis-green-primary), 0)'
+					}
+				},
+				'shimmer': {
+					'0%': {
+						backgroundPosition: '-200px 0'
+					},
+					'100%': {
+						backgroundPosition: 'calc(200px + 100%) 0'
+					}
 				}
 			},
 			animation: {
 				'accordion-down': 'accordion-down 0.2s ease-out',
-				'accordion-up': 'accordion-up 0.2s ease-out'
+				'accordion-up': 'accordion-up 0.2s ease-out',
+				'fade-in-up': 'fade-in-up 0.6s ease-out',
+				'fade-in-scale': 'fade-in-scale 0.4s ease-out',
+				'slide-in-right': 'slide-in-right 0.5s ease-out',
+				'pulse-glow': 'pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+				'shimmer': 'shimmer 2s infinite'
+			},
+			spacing: {
+				'18': '4.5rem',
+				'88': '22rem',
+				'128': '32rem'
+			},
+			backdropBlur: {
+				xs: '2px'
 			}
 		}
 	},
