@@ -65,6 +65,7 @@ export function useMatchInvitations() {
     if (!user) return;
 
     try {
+      console.log('Fetching received invitations for user:', user.id);
       const { data, error } = await supabase
         .from('match_invitations')
         .select('*')
@@ -88,6 +89,7 @@ export function useMatchInvitations() {
     if (!user) return;
 
     try {
+      console.log('Fetching sent invitations for user:', user.id);
       const { data, error } = await supabase
         .from('match_invitations')
         .select('*')
@@ -108,25 +110,37 @@ export function useMatchInvitations() {
   };
 
   const createInvitation = async (params: CreateInvitationParams) => {
-    if (!user) return;
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
 
     try {
       // Generate a unique session ID for this invitation
       const sessionId = crypto.randomUUID();
       
-      // Simplified invitation data - only store essential information
+      // Simplified invitation data - using match_type instead of invitation_type to avoid constraint issues
       const invitationData = {
         inviter_id: user.id,
         invitee_id: params.invitedUserId || null,
         invitee_name: params.invitedUserName,
         invitee_email: params.invitedUserEmail || null,
-        invitation_type: params.matchType,
+        invitation_type: params.matchType, // This should be 'singles' or 'doubles'
         match_session_id: sessionId,
         message: params.message || null,
         status: 'pending' as const
       };
 
       console.log('Creating invitation with data:', invitationData);
+
+      // First check what columns actually exist in the table
+      const { data: tableInfo, error: tableError } = await supabase
+        .from('match_invitations')
+        .select('*')
+        .limit(0);
+
+      if (tableError) {
+        console.error('Error checking table structure:', tableError);
+      }
 
       const { data, error } = await supabase
         .from('match_invitations')
@@ -135,7 +149,13 @@ export function useMatchInvitations() {
         .single();
 
       if (error) {
-        console.error('Error creating invitation:', error);
+        console.error('Detailed error creating invitation:', {
+          error,
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         throw new Error(`Failed to create invitation: ${error.message}`);
       }
 

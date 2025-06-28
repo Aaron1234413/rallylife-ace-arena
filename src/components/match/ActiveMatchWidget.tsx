@@ -88,18 +88,21 @@ export const ActiveMatchWidget = () => {
     }
   }, [sessionData]);
 
-  // Debug logging
+  // Enhanced debug logging
   useEffect(() => {
     console.log('ActiveMatchWidget render state:', {
       isSessionActive,
       matchLoading,
       invitationsLoading,
       receivedInvitations: receivedInvitations?.length || 0,
-      sentInvitations: sentInvitations?.length || 0
+      sentInvitations: sentInvitations?.length || 0,
+      receivedInvitationsData: receivedInvitations,
+      sentInvitationsData: sentInvitations
     });
   }, [isSessionActive, matchLoading, invitationsLoading, receivedInvitations, sentInvitations]);
 
   if (matchLoading || invitationsLoading) {
+    console.log('ActiveMatchWidget: Loading state', { matchLoading, invitationsLoading });
     return (
       <Card className="border-tennis-green-light bg-gradient-to-r from-tennis-green-light/5 to-tennis-green-dark/5">
         <CardContent className="flex items-center justify-center py-8">
@@ -116,6 +119,13 @@ export const ActiveMatchWidget = () => {
   const hasReceivedInvitations = receivedInvitations && receivedInvitations.length > 0;
   const hasSentInvitations = sentInvitations && sentInvitations.length > 0;
   const hasAnyInvitations = hasReceivedInvitations || hasSentInvitations;
+
+  console.log('ActiveMatchWidget: Render decision', {
+    isSessionActive,
+    hasReceivedInvitations,
+    hasSentInvitations,
+    hasAnyInvitations
+  });
 
   // Show active match if there is one
   if (isSessionActive && sessionData) {
