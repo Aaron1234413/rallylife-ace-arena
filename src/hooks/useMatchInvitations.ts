@@ -38,6 +38,23 @@ interface CreateInvitationParams {
   message?: string;
 }
 
+// Helper function to cast database response to our interface
+const toMatchInvitation = (data: any): MatchInvitation => ({
+  id: data.id,
+  inviter_id: data.inviter_id,
+  invitee_id: data.invitee_id,
+  invitee_name: data.invitee_name,
+  invitee_email: data.invitee_email,
+  invitation_type: data.invitation_type,
+  match_session_id: data.match_session_id,
+  status: data.status as 'pending' | 'accepted' | 'declined' | 'expired',
+  message: data.message,
+  created_at: data.created_at,
+  expires_at: data.expires_at,
+  responded_at: data.responded_at,
+  updated_at: data.updated_at,
+});
+
 export function useMatchInvitations() {
   const { user } = useAuth();
   const [receivedInvitations, setReceivedInvitations] = useState<MatchInvitation[]>([]);
@@ -61,7 +78,7 @@ export function useMatchInvitations() {
         return;
       }
 
-      setReceivedInvitations(data || []);
+      setReceivedInvitations((data || []).map(toMatchInvitation));
     } catch (error) {
       console.error('Error in fetchReceivedInvitations:', error);
     }
@@ -83,7 +100,7 @@ export function useMatchInvitations() {
         return;
       }
 
-      setSentInvitations(data || []);
+      setSentInvitations((data || []).map(toMatchInvitation));
     } catch (error) {
       console.error('Error in fetchSentInvitations:', error);
     }
@@ -123,7 +140,7 @@ export function useMatchInvitations() {
       // Refresh sent invitations
       await fetchSentInvitations();
       
-      return data;
+      return toMatchInvitation(data);
     } catch (error) {
       console.error('Error in createInvitation:', error);
       throw error;
