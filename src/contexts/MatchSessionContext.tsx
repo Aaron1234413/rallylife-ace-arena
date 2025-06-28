@@ -76,6 +76,40 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
     refreshInvitations
   } = useMatchInvitations();
 
+  // Helper function to safely parse sets data
+  const parseSetsData = (sets: any): SetData[] => {
+    if (!sets) return [];
+    
+    try {
+      let parsed: any;
+      if (typeof sets === 'string') {
+        parsed = JSON.parse(sets);
+      } else {
+        parsed = sets;
+      }
+      
+      if (Array.isArray(parsed)) {
+        return parsed.map((set: any) => ({
+          playerScore: set.playerScore || '',
+          opponentScore: set.opponentScore || '',
+          completed: Boolean(set.completed)
+        }));
+      }
+    } catch (e) {
+      console.error('Error parsing sets data:', e);
+    }
+    
+    return [{ playerScore: '', opponentScore: '', completed: false }];
+  };
+
+  // Helper function to safely cast status
+  const castStatus = (status: any): 'active' | 'completed' | 'abandoned' => {
+    if (status === 'active' || status === 'completed' || status === 'abandoned') {
+      return status;
+    }
+    return 'active';
+  };
+
   useEffect(() => {
     const fetchActiveSession = async () => {
       if (!user) {
@@ -100,21 +134,6 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
         }
 
         if (data) {
-          // Parse the sets data safely
-          let parsedSets: SetData[] = [];
-          if (data.sets) {
-            try {
-              if (typeof data.sets === 'string') {
-                parsedSets = JSON.parse(data.sets);
-              } else if (Array.isArray(data.sets)) {
-                parsedSets = data.sets as SetData[];
-              }
-            } catch (e) {
-              console.error('Error parsing sets data:', e);
-              parsedSets = [{ playerScore: '', opponentScore: '', completed: false }];
-            }
-          }
-
           // Convert the database response to our interface format
           const session: MatchSessionData = {
             id: data.id,
@@ -124,11 +143,11 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
             is_doubles: data.is_doubles || false,
             match_type: data.match_type,
             start_time: new Date(data.start_time),
-            end_time: data.end_time ? new Date(data.end_time) : undefined,
-            status: data.status,
-            sets: parsedSets,
+            end_time: data.completed_at ? new Date(data.completed_at) : undefined,
+            status: castStatus(data.status),
+            sets: parseSetsData(data.sets),
             current_set: data.current_set,
-            final_notes: data.final_notes,
+            final_notes: data.match_notes,
             end_mood: data.end_mood,
             partner_name: data.partner_name,
             partner_id: data.partner_id,
@@ -230,7 +249,12 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
     try {
       const { error } = await supabase
         .from('active_match_sessions')
-        .update({ status: 'completed', end_time: new Date().toISOString(), final_notes: finalNotes, end_mood: endMood })
+        .update({ 
+          status: 'completed', 
+          completed_at: new Date().toISOString(), 
+          match_notes: finalNotes, 
+          end_mood: endMood 
+        })
         .eq('id', sessionData.id);
 
       if (error) {

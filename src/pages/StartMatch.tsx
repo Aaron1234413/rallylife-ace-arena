@@ -172,7 +172,7 @@ const StartMatch = () => {
 
   // Show session recovery prompt
   if (showRecoveryPrompt && sessionData) {
-    const matchDuration = Math.floor((new Date().getTime() - sessionData.startTime.getTime()) / (1000 * 60));
+    const matchDuration = Math.floor((new Date().getTime() - sessionData.start_time.getTime()) / (1000 * 60));
     
     return (
       <div className="min-h-screen bg-tennis-green-bg p-3 sm:p-4">
@@ -200,21 +200,21 @@ const StartMatch = () => {
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
                     <span className="text-gray-600">Type:</span>
-                    <span className="font-medium capitalize">{sessionData.matchType}</span>
+                    <span className="font-medium capitalize">{sessionData.match_type}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Opponent:</span>
-                    <span className="font-medium">{sessionData.opponentName}</span>
+                    <span className="font-medium">{sessionData.opponent_name}</span>
                   </div>
-                  {sessionData.isDoubles && sessionData.partnerName && (
+                  {sessionData.is_doubles && sessionData.partner_name && (
                     <div className="flex justify-between">
                       <span className="text-gray-600">Partner:</span>
-                      <span className="font-medium">{sessionData.partnerName}</span>
+                      <span className="font-medium">{sessionData.partner_name}</span>
                     </div>
                   )}
                   <div className="flex justify-between">
                     <span className="text-gray-600">Started:</span>
-                    <span className="font-medium">{sessionData.startTime.toLocaleTimeString()}</span>
+                    <span className="font-medium">{sessionData.start_time.toLocaleTimeString()}</span>
                   </div>
                   <div className="flex justify-between">
                     <span className="text-gray-600">Sets Completed:</span>
