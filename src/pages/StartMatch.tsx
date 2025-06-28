@@ -21,7 +21,8 @@ const StartMatch = () => {
     updateSessionData, 
     isSessionActive, 
     loading,
-    createInvitation 
+    createInvitation,
+    refreshInvitations 
   } = useMatchSession();
   
   // Updated state to use SelectedOpponent objects
@@ -146,9 +147,13 @@ const StartMatch = () => {
 
       toast.success('Match invitation sent! 🎾');
       
+      // Force refresh invitations to update the dashboard
+      await refreshInvitations();
+      
       // Navigate to dashboard
       navigate('/');
     } catch (error) {
+      console.error('Error creating invitation:', error);
       toast.error('Failed to send invitation. Please try again.');
     } finally {
       setIsCreatingInvitation(false);

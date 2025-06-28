@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -78,6 +77,7 @@ export function useMatchInvitations() {
         return;
       }
 
+      console.log('Fetched received invitations:', data);
       setReceivedInvitations((data || []).map(toMatchInvitation));
     } catch (error) {
       console.error('Error in fetchReceivedInvitations:', error);
@@ -100,6 +100,7 @@ export function useMatchInvitations() {
         return;
       }
 
+      console.log('Fetched sent invitations:', data);
       setSentInvitations((data || []).map(toMatchInvitation));
     } catch (error) {
       console.error('Error in fetchSentInvitations:', error);
@@ -140,7 +141,7 @@ export function useMatchInvitations() {
 
       console.log('Match invitation created successfully:', data);
       
-      // Refresh sent invitations
+      // Force refresh sent invitations immediately
       await fetchSentInvitations();
       
       return toMatchInvitation(data);
@@ -245,6 +246,7 @@ export function useMatchInvitations() {
       
       // Refresh invitations
       await fetchReceivedInvitations();
+      await fetchSentInvitations();
       
     } catch (error) {
       console.error('Error in declineInvitation:', error);
@@ -287,6 +289,15 @@ export function useMatchInvitations() {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
     }
+  };
+
+  // Manual refresh function that can be called from components
+  const refreshInvitations = async () => {
+    console.log('Manually refreshing invitations...');
+    await Promise.all([
+      fetchReceivedInvitations(),
+      fetchSentInvitations()
+    ]);
   };
 
   useEffect(() => {
@@ -362,9 +373,6 @@ export function useMatchInvitations() {
     acceptInvitation,
     declineInvitation,
     cancelInvitation,
-    refreshInvitations: () => {
-      fetchReceivedInvitations();
-      fetchSentInvitations();
-    }
+    refreshInvitations
   };
 }
