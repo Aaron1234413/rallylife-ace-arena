@@ -13,6 +13,7 @@ import { cn } from '@/lib/utils';
 export interface SelectedOpponent {
   id?: string;
   name: string;
+  email?: string;
   isManual: boolean;
   skillLevel?: string;
   currentLevel?: number;
@@ -33,6 +34,7 @@ interface OpponentSearchSelectorProps {
 const searchResultToOpponent = (result: SearchResult): SelectedOpponent => ({
   id: result.id,
   name: result.full_name,
+  email: result.email,
   isManual: false,
   skillLevel: result.skill_level,
   currentLevel: result.current_level,

@@ -111,7 +111,7 @@ const StartMatch = () => {
           await createInvitation({
             invitedUserName: opponent1.name,
             invitedUserId: opponent1.id,
-            invitedUserEmail: opponent1.email,
+            invitedUserEmail: opponent1.email || undefined,
             matchType: 'doubles',
             isDoubles: true,
             startTime: startDateTime,
@@ -130,7 +130,7 @@ const StartMatch = () => {
           await createInvitation({
             invitedUserName: opponent.name,
             invitedUserId: opponent.id,
-            invitedUserEmail: opponent.email,
+            invitedUserEmail: opponent.email || undefined,
             matchType: 'singles',
             isDoubles: false,
             startTime: startDateTime,
