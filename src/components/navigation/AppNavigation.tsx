@@ -32,13 +32,13 @@ export function AppNavigation() {
   const isActive = (path: string) => location.pathname === path;
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-white border-b border-gray-200 shadow-sm">
+    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-white via-white/95 to-white backdrop-blur-md border-b border-tennis-green-light/30 shadow-lg">
       <div className="max-w-7xl mx-auto px-4">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/dashboard" className="text-xl font-bold text-tennis-green-dark">
-              🎾 Rako
+            <Link to="/dashboard" className="text-xl font-bold text-tennis-green-dark hover:text-tennis-green-primary transition-all duration-300 hover:scale-105">
+              🎾 <span className="font-orbitron">Rako</span>
             </Link>
           </div>
 
@@ -50,10 +50,10 @@ export function AppNavigation() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors flex items-center gap-2 ${
+                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 transform hover:scale-105 ${
                     isActive(item.path)
-                      ? 'bg-tennis-green-light text-white'
-                      : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gray-100'
+                      ? 'bg-gradient-to-r from-tennis-green-primary to-tennis-green-medium text-white shadow-lg shadow-tennis-green-primary/25'
+                      : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gradient-to-r hover:from-tennis-green-bg/30 hover:to-tennis-green-subtle/20 hover:shadow-md'
                   }`}
                 >
                   <Icon className="h-4 w-4" />
@@ -69,7 +69,7 @@ export function AppNavigation() {
               variant="ghost"
               size="sm"
               onClick={signOut}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 hover:shadow-md transition-all duration-300 hover:scale-105"
             >
               <LogOut className="h-4 w-4 mr-2" />
               Sign Out
@@ -82,7 +82,7 @@ export function AppNavigation() {
               variant="ghost"
               size="sm"
               onClick={signOut}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2 hover:shadow-md transition-all duration-300"
             >
               <LogOut className="h-4 w-4" />
             </Button>
@@ -98,10 +98,10 @@ export function AppNavigation() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  className={`flex flex-col items-center justify-center p-3 rounded-lg text-xs font-medium transition-colors min-h-[60px] ${
+                  className={`flex flex-col items-center justify-center p-3 rounded-xl text-xs font-medium transition-all duration-300 min-h-[60px] transform hover:scale-105 ${
                     isActive(item.path)
-                      ? 'bg-tennis-green-light text-white'
-                      : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gray-100'
+                      ? 'bg-gradient-to-b from-tennis-green-primary to-tennis-green-medium text-white shadow-lg shadow-tennis-green-primary/25'
+                      : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gradient-to-b hover:from-tennis-green-bg/30 hover:to-tennis-green-subtle/20 hover:shadow-md'
                   }`}
                 >
                   <Icon className="h-4 w-4 mb-1" />
