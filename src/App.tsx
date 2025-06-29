@@ -13,6 +13,7 @@ import { SocialPlaySessionProvider } from "@/contexts/SocialPlaySessionContext";
 
 import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
+import Landing from "@/pages/Landing";
 import NotFound from "@/pages/NotFound";
 import Onboarding from "@/pages/Onboarding";
 import Search from "@/pages/Search";
@@ -43,6 +44,7 @@ function App() {
               <AppLayout>
                 <Toaster />
                 <Routes>
+                  <Route path="/landing" element={<Landing />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth/login" element={<Auth />} />
                   <Route path="/auth/signup" element={<Auth />} />
