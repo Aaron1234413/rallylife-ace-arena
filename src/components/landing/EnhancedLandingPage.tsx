@@ -3,7 +3,6 @@ import React, { memo } from 'react';
 import { LiveStatsCounter } from './LiveStatsCounter';
 import { LiveAchievements } from './LiveAchievements';
 import { AchievementNotification } from './AchievementNotification';
-import { LiveLocationTracker } from './LiveLocationTracker';
 import { CRTMonitor } from './CRTMonitor';
 
 interface EnhancedLandingPageProps {
@@ -25,19 +24,8 @@ export const EnhancedLandingPage = memo(function EnhancedLandingPage({ className
         </CRTMonitor>
       </div>
 
-      {/* Live Activity Locations - Mobile Optimized */}
-      <div className="flex justify-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-        <div className="w-full max-w-2xl">
-          <CRTMonitor title="ACTIVE LOCATIONS" size="medium">
-            <div className="p-3 md:p-4 bg-white/95 backdrop-blur-sm rounded">
-              <LiveLocationTracker />
-            </div>
-          </CRTMonitor>
-        </div>
-      </div>
-
       {/* Achievements Section - Mobile Optimized */}
-      <div className="flex justify-center animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+      <div className="flex justify-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
         <div className="w-full max-w-2xl">
           <CRTMonitor title="RECENT ACHIEVEMENTS" size="medium">
             <div className="p-3 md:p-4 bg-white/95 backdrop-blur-sm rounded">
@@ -48,7 +36,7 @@ export const EnhancedLandingPage = memo(function EnhancedLandingPage({ className
       </div>
 
       {/* Enhanced Network Status with improved contrast - Mobile Optimized */}
-      <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+      <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
         <div className="inline-flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-tennis-green-dark/90 border border-tennis-green-primary/60 rounded-lg backdrop-blur-sm hover:border-tennis-green-primary transition-all duration-300 animate-glow-pulse">
           <div className="relative">
             <div className="w-2 h-2 md:w-3 md:h-3 bg-tennis-green-primary rounded-full animate-pulse"></div>
