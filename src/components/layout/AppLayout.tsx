@@ -22,7 +22,7 @@ export function AppLayout({ children }: AppLayoutProps) {
     <div className="min-h-screen bg-background">
       {user && <AppNavigation />}
       
-      <main className={`${user ? 'pt-48 md:pt-36' : ''} pb-20 sm:pb-6 min-h-screen`}>
+      <main className={`${user ? 'pt-56 md:pt-44' : ''} pb-20 sm:pb-6 min-h-screen`}>
         <div className="safe-area-inset">
           {children}
         </div>
