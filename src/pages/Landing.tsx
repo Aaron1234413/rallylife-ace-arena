@@ -28,54 +28,63 @@ export default function Landing() {
       <div className="relative z-10">
         <MissionHeader />
         
-        {/* Hero Section */}
-        <div className="container mx-auto px-4 py-8">
-          <div className="max-w-6xl mx-auto space-y-8">
+        {/* Hero Section - Mobile Optimized */}
+        <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
+          <div className="max-w-6xl mx-auto space-y-4 md:space-y-8">
             
-            {/* Main Title in CRT Monitor */}
-            <CRTMonitor title="MAIN TERMINAL" size="large">
-              <div className="text-center py-6 px-4 bg-white/95 backdrop-blur-sm rounded-lg">
-                <h1 className="text-4xl md:text-6xl font-orbitron font-bold text-tennis-green-dark mb-4 tracking-wider">
-                  TENNIS
-                  <br />
-                  <span className="text-tennis-yellow animate-pulse">PROTOCOL</span>
-                </h1>
-                
-                <p className="text-base md:text-lg text-tennis-green-medium font-poppins max-w-2xl mx-auto leading-relaxed mb-6">
-                  Mission Control for the ultimate tennis gaming experience. 
-                  Track performance, compete globally, level up your game.
-                </p>
+            {/* Main Title in CRT Monitor - Mobile Responsive */}
+            <div className="px-2 md:px-0">
+              <CRTMonitor title="MAIN TERMINAL" size="large">
+                <div className="text-center py-4 md:py-6 px-3 md:px-4 bg-white/95 backdrop-blur-sm rounded-lg">
+                  <div className="mb-4">
+                    <h1 className="text-2xl md:text-4xl lg:text-6xl font-orbitron font-bold text-tennis-green-dark mb-2 md:mb-4 tracking-wider leading-tight">
+                      RAKO
+                    </h1>
+                    <div className="text-xl md:text-3xl lg:text-4xl font-orbitron font-bold text-tennis-yellow animate-pulse mb-2">
+                      TENNIS PROTOCOL
+                    </div>
+                  </div>
+                  
+                  <p className="text-sm md:text-base lg:text-lg text-tennis-green-medium font-poppins max-w-2xl mx-auto leading-relaxed mb-4 md:mb-6 px-2">
+                    Mission Control for the ultimate tennis gaming experience. 
+                    Track performance, compete globally, level up your game.
+                  </p>
 
-                {/* Insert Coin Animation */}
-                <InsertCoin />
-              </div>
-            </CRTMonitor>
+                  {/* Insert Coin Animation */}
+                  <InsertCoin />
+                </div>
+              </CRTMonitor>
+            </div>
             
-            {/* Enhanced Live Data Section */}
-            <EnhancedLandingPage />
+            {/* Enhanced Live Data Section - Mobile Optimized */}
+            <div className="px-2 md:px-0">
+              <EnhancedLandingPage />
+            </div>
             
-            {/* Main CTA in Gaming Style - Reduced spacing and made more prominent */}
-            <div className="pb-8">
-              <CRTMonitor title="LAUNCH PROTOCOL" size="large">
-                <div className="text-center py-6 px-4 bg-white/95 backdrop-blur-sm rounded-lg">
-                  <div className="space-y-4">
-                    <Link to="/auth">
+            {/* Main CTA in Gaming Style - Mobile Optimized */}
+            <div className="pb-4 md:pb-8 px-2 md:px-0">
+              <CRTMonitor title="LAUNCH RAKO PROTOCOL" size="large">
+                <div className="text-center py-4 md:py-6 px-3 md:px-4 bg-white/95 backdrop-blur-sm rounded-lg">
+                  <div className="space-y-3 md:space-y-4">
+                    <Link to="/auth" className="block">
                       <Button 
                         size="lg" 
-                        className="bg-tennis-yellow hover:bg-tennis-yellow/90 text-tennis-green-dark font-orbitron text-lg md:text-xl px-8 md:px-12 py-4 md:py-6 rounded-none border-4 border-tennis-green-dark shadow-[0_0_20px_rgba(255,255,155,0.5)] hover:shadow-[0_0_30px_rgba(255,255,155,0.8)] transition-all duration-300 uppercase tracking-widest hover:scale-105 transform font-bold"
+                        className="w-full md:w-auto bg-tennis-yellow hover:bg-tennis-yellow/90 text-tennis-green-dark font-orbitron text-base md:text-lg lg:text-xl px-4 md:px-8 lg:px-12 py-3 md:py-4 lg:py-6 rounded-none border-4 border-tennis-green-dark shadow-[0_0_20px_rgba(255,255,155,0.5)] hover:shadow-[0_0_30px_rgba(255,255,155,0.8)] transition-all duration-300 uppercase tracking-widest hover:scale-105 transform font-bold min-h-[3rem] md:min-h-[4rem]"
                       >
-                        ▶ INITIATE TENNIS PROTOCOL
+                        <span className="text-center leading-tight">
+                          ▶ INITIATE RAKO PROTOCOL
+                        </span>
                       </Button>
                     </Link>
                     
                     <div className="flex flex-col items-center space-y-2">
-                      <p className="text-tennis-green-medium text-sm font-orbitron tracking-wider font-bold">
+                      <p className="text-tennis-green-medium text-xs md:text-sm font-orbitron tracking-wider font-bold">
                         [ STATUS: READY FOR LAUNCH ]
                       </p>
                       <div className="flex items-center space-x-2">
                         <div className="w-2 h-2 bg-tennis-green-primary rounded-full animate-pulse" />
                         <span className="text-xs text-tennis-green-medium font-orbitron tracking-widest font-bold">
-                          SYSTEM ONLINE
+                          RAKO SYSTEM ONLINE
                         </span>
                       </div>
                     </div>
