@@ -1,4 +1,3 @@
-
 import { useAuth } from "@/hooks/useAuth";
 import { AppNavigation } from "@/components/navigation/AppNavigation";
 import { FloatingCheckInButton } from "@/components/match/FloatingCheckInButton";
@@ -11,7 +10,7 @@ interface AppLayoutProps {
 export function AppLayout({ children }: AppLayoutProps) {
   const { user, loading } = useAuth();
   const location = useLocation();
-  const isLandingPage = location.pathname === '/landing';
+  const isLandingPage = location.pathname === '/';
 
   if (loading) {
     return (
