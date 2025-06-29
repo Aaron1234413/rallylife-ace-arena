@@ -46,7 +46,7 @@ export function ScanLines({ intensity = 'medium', speed = 'medium' }: ScanLinesP
         />
       </div>
 
-      <style jsx>{`
+      <style>{`
         @keyframes scan-line {
           0% { top: -2px; }
           100% { top: 100%; }
