@@ -11,7 +11,7 @@ interface EnhancedLandingPageProps {
 
 export const EnhancedLandingPage = memo(function EnhancedLandingPage({ className }: EnhancedLandingPageProps) {
   return (
-    <div className={`space-y-6 md:space-y-8 ${className}`}>
+    <div className={`space-y-8 md:space-y-12 ${className}`}>
       {/* Achievement notifications overlay */}
       <AchievementNotification />
 

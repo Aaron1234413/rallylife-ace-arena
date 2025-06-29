@@ -29,7 +29,7 @@ export default function Landing() {
         
         {/* Hero Section - Mobile Optimized */}
         <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
-          <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
+          <div className="max-w-6xl mx-auto space-y-8 md:space-y-12">
             
             {/* Rako Network Status - Moved above main terminal */}
             <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
