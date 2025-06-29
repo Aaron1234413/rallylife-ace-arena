@@ -55,9 +55,9 @@ export function LiveStatsCounter({ className }: LiveStatsCounterProps) {
     return (
       <div className={`grid grid-cols-2 md:grid-cols-4 gap-4 ${className}`}>
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="bg-black/40 border border-tennis-green-primary/30 rounded p-4 animate-pulse">
-            <div className="h-8 bg-tennis-green-primary/20 rounded mb-2"></div>
-            <div className="h-4 bg-tennis-green-primary/10 rounded"></div>
+          <div key={i} className="bg-tennis-green-subtle/20 border border-tennis-green-medium/30 rounded p-4 animate-pulse">
+            <div className="h-8 bg-tennis-green-medium/20 rounded mb-2"></div>
+            <div className="h-4 bg-tennis-green-medium/10 rounded"></div>
           </div>
         ))}
       </div>
@@ -69,7 +69,7 @@ export function LiveStatsCounter({ className }: LiveStatsCounterProps) {
       label: 'Matches Today',
       value: stats.matches_today,
       icon: '🎾',
-      color: 'text-tennis-green-primary',
+      color: 'text-tennis-green-dark',
       bgColor: 'bg-tennis-green-primary/10'
     },
     {
@@ -83,15 +83,15 @@ export function LiveStatsCounter({ className }: LiveStatsCounterProps) {
       label: 'XP Distributed',
       value: stats.total_xp_distributed,
       icon: '⚡',
-      color: 'text-tennis-green-accent',
+      color: 'text-tennis-green-dark',
       bgColor: 'bg-tennis-green-accent/10'
     },
     {
       label: 'Achievements Today',
       value: stats.achievements_unlocked_today,
       icon: '🏆',
-      color: 'text-yellow-400',
-      bgColor: 'bg-yellow-400/10'
+      color: 'text-tennis-yellow',
+      bgColor: 'bg-tennis-yellow/10'
     }
   ];
 
@@ -101,9 +101,9 @@ export function LiveStatsCounter({ className }: LiveStatsCounterProps) {
         <div 
           key={counter.label} 
           className={`
-            bg-black/40 border border-tennis-green-primary/30 rounded p-4 
+            bg-tennis-green-subtle/20 border border-tennis-green-medium/30 rounded p-4 
             hover:border-tennis-green-primary/60 transition-all duration-300 
-            hover:bg-black/60 hover:scale-105 transform
+            hover:bg-tennis-green-subtle/30 hover:scale-105 transform
             ${counter.bgColor}
           `}
           style={{ animationDelay: `${index * 100}ms` }}
@@ -115,7 +115,7 @@ export function LiveStatsCounter({ className }: LiveStatsCounterProps) {
             <div className={`text-2xl font-orbitron font-bold mb-1 ${counter.color} transition-all duration-500`}>
               <AnimatedCounter value={counter.value} />
             </div>
-            <div className="text-xs text-tennis-green-light uppercase tracking-wider">
+            <div className="text-xs text-tennis-green-medium uppercase tracking-wider font-bold">
               {counter.label}
             </div>
             <div className="mt-2 flex justify-center">
