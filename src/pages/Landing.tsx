@@ -1,7 +1,6 @@
 
 import React from 'react';
 import { StarField } from '@/components/landing/StarField';
-import { MissionHeader } from '@/components/landing/MissionHeader';
 import { CRTMonitor } from '@/components/landing/CRTMonitor';
 import { ScanLines } from '@/components/landing/ScanLines';
 import { Button } from '@/components/ui/button';
@@ -26,8 +25,6 @@ export default function Landing() {
       
       {/* Main Content */}
       <div className="relative z-10">
-        <MissionHeader />
-        
         {/* Hero Section - Mobile Optimized */}
         <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
           <div className="max-w-6xl mx-auto space-y-8 md:space-y-12">
