@@ -44,11 +44,13 @@ function App() {
               <AppLayout>
                 <Toaster />
                 <Routes>
+                  <Route path="/" element={<Landing />} />
                   <Route path="/landing" element={<Landing />} />
                   <Route path="/auth" element={<Auth />} />
                   <Route path="/auth/login" element={<Auth />} />
                   <Route path="/auth/signup" element={<Auth />} />
                   <Route path="/auth/forgot-password" element={<Auth />} />
+                  <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                   <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
                   <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
                   <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
@@ -64,7 +66,6 @@ function App() {
                   <Route path="/end-training" element={<ProtectedRoute><EndTraining /></ProtectedRoute>} />
                   <Route path="/start-social-play" element={<ProtectedRoute><StartSocialPlay /></ProtectedRoute>} />
                   <Route path="/join-social-play" element={<ProtectedRoute><JoinSocialPlay /></ProtectedRoute>} />
-                  <Route path="/" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </AppLayout>

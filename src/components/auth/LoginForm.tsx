@@ -1,4 +1,3 @@
-
 import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { Button } from '@/components/ui/button';
@@ -27,7 +26,7 @@ export function LoginForm() {
     if (error) {
       setError(error.message);
     } else {
-      navigate('/');
+      navigate('/dashboard');
     }
     
     setLoading(false);
