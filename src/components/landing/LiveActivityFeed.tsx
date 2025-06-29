@@ -12,6 +12,8 @@ interface LiveActivityFeedProps {
 export function LiveActivityFeed({ className, maxItems = 6 }: LiveActivityFeedProps) {
   const { recentActivity, loading } = useLandingPageData();
 
+  console.log('LiveActivityFeed render:', { loading, activityCount: recentActivity?.length });
+
   if (loading) {
     return (
       <div className={`space-y-3 ${className}`}>
@@ -24,6 +26,23 @@ export function LiveActivityFeed({ className, maxItems = 6 }: LiveActivityFeedPr
             </div>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (!recentActivity || recentActivity.length === 0) {
+    return (
+      <div className={`space-y-2 ${className}`}>
+        <div className="flex items-center gap-2 mb-4">
+          <ActivityPulse size="small" />
+          <span className="text-tennis-green-primary font-orbitron text-sm uppercase tracking-wider">
+            Live Activity Feed
+          </span>
+        </div>
+        <div className="text-center text-tennis-green-light/60 py-8">
+          <div className="text-lg mb-2">⚡</div>
+          <div className="text-sm">No recent activity</div>
+        </div>
       </div>
     );
   }

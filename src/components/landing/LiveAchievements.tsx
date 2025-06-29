@@ -10,6 +10,8 @@ interface LiveAchievementsProps {
 export function LiveAchievements({ className }: LiveAchievementsProps) {
   const { liveAchievements, loading } = useLandingPageData();
 
+  console.log('LiveAchievements render:', { loading, achievementsCount: liveAchievements?.length });
+
   if (loading) {
     return (
       <div className={`space-y-3 ${className}`}>
@@ -22,6 +24,23 @@ export function LiveAchievements({ className }: LiveAchievementsProps) {
             </div>
           </div>
         ))}
+      </div>
+    );
+  }
+
+  if (!liveAchievements || liveAchievements.length === 0) {
+    return (
+      <div className={`space-y-3 ${className}`}>
+        <div className="flex items-center gap-2 mb-4">
+          <div className="text-lg animate-bounce">🏆</div>
+          <span className="text-tennis-green-primary font-orbitron text-sm uppercase tracking-wider">
+            Recent Achievements
+          </span>
+        </div>
+        <div className="text-center text-tennis-green-light/60 py-8">
+          <div className="text-lg mb-2">🏆</div>
+          <div className="text-sm">No recent achievements</div>
+        </div>
       </div>
     );
   }

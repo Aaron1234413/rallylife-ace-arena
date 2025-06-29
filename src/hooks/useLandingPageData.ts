@@ -9,15 +9,24 @@ export function useLandingPageData() {
   const globalActivity = useGlobalActivity();
   const notifications = useLiveNotifications();
 
+  console.log('useLandingPageData hook called:', {
+    landingDataLoading: landingData.loading,
+    globalActivityLoading: globalActivity.loading,
+    statsExists: !!landingData.stats,
+    recentActivityCount: landingData.recentActivity?.length,
+    achievementsCount: landingData.liveAchievements?.length,
+    activityLocationsCount: globalActivity.activityLocations?.length
+  });
+
   // Memoize the return object to prevent unnecessary re-renders
   const memoizedData = useMemo(() => ({
     // Live stats and counters
     stats: landingData.stats,
-    recentActivity: landingData.recentActivity,
-    liveAchievements: landingData.liveAchievements,
+    recentActivity: landingData.recentActivity || [],
+    liveAchievements: landingData.liveAchievements || [],
     
     // Global activity map data
-    activityLocations: globalActivity.activityLocations,
+    activityLocations: globalActivity.activityLocations || [],
     
     // Live notifications
     currentNotification: notifications.currentNotification,

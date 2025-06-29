@@ -40,7 +40,6 @@ export function useLandingData() {
   const [loading, setLoading] = useState(true);
   
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const channelRef = useRef<any>(null);
 
   const generateLiveStats = (): LiveStats => ({
     matches_today: Math.floor(Math.random() * 1000) + 500,
@@ -121,11 +120,13 @@ export function useLandingData() {
 
   useEffect(() => {
     const loadInitialData = () => {
+      console.log('Loading initial landing data...');
       setLoading(true);
       setStats(generateLiveStats());
       setRecentActivity(generateRecentActivity());
       setLiveAchievements(generateLiveAchievements());
       setLoading(false);
+      console.log('Initial landing data loaded');
     };
 
     loadInitialData();
@@ -143,35 +144,10 @@ export function useLandingData() {
       }
     }, 3000);
 
-    // Set up WebSocket subscription for real-time activity (when RPC functions exist)
-    const channelName = `landing-activity-${Date.now()}`;
-    const channel = supabase.channel(channelName);
-
-    channel
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'activity_logs'
-      }, () => {
-        setRecentActivity(generateRecentActivity());
-      })
-      .on('postgres_changes', {
-        event: 'INSERT',
-        schema: 'public',
-        table: 'player_achievements'
-      }, () => {
-        setLiveAchievements(generateLiveAchievements());
-      })
-      .subscribe();
-
-    channelRef.current = channel;
-
     return () => {
+      console.log('🏁 [DATA FLOW] Component unmounting, cleaning up');
       if (intervalRef.current) {
         clearInterval(intervalRef.current);
-      }
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
       }
     };
   }, []);
