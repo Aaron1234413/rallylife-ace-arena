@@ -8,7 +8,6 @@ import { InsertCoin } from '@/components/landing/InsertCoin';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ParticleField } from '@/components/landing/ParticleField';
-import { InteractiveTerminal } from '@/components/landing/InteractiveTerminal';
 import { EnhancedLandingPage } from '@/components/landing/EnhancedLandingPage';
 
 export default function Landing() {
@@ -54,17 +53,6 @@ export default function Landing() {
             
             {/* Enhanced Live Data Section */}
             <EnhancedLandingPage />
-            
-            {/* Interactive Terminal Row */}
-            <div className="flex justify-center">
-              <div className="w-full max-w-2xl">
-                <CRTMonitor title="COMMAND INTERFACE" size="medium">
-                  <div className="p-4 bg-white/95 backdrop-blur-sm rounded">
-                    <InteractiveTerminal />
-                  </div>
-                </CRTMonitor>
-              </div>
-            </div>
             
             {/* Main CTA in Gaming Style */}
             <CRTMonitor title="LAUNCH PROTOCOL" size="large">
