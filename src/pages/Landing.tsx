@@ -4,7 +4,6 @@ import { StarField } from '@/components/landing/StarField';
 import { MissionHeader } from '@/components/landing/MissionHeader';
 import { CRTMonitor } from '@/components/landing/CRTMonitor';
 import { ScanLines } from '@/components/landing/ScanLines';
-import { PixelTennis } from '@/components/landing/PixelTennis';
 import { InsertCoin } from '@/components/landing/InsertCoin';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
@@ -62,22 +61,6 @@ export default function Landing() {
                 <CRTMonitor title="COMMAND INTERFACE" size="medium">
                   <div className="p-4 bg-white/95 backdrop-blur-sm rounded">
                     <InteractiveTerminal />
-                  </div>
-                </CRTMonitor>
-              </div>
-            </div>
-
-            {/* Game Demo Monitor */}
-            <div className="flex justify-center">
-              <div className="w-full max-w-md">
-                <CRTMonitor title="GAME PREVIEW" size="medium">
-                  <div className="p-4 bg-white/95 backdrop-blur-sm rounded">
-                    <PixelTennis />
-                    <div className="mt-4 text-center">
-                      <div className="text-xs text-tennis-green-medium font-orbitron tracking-wider uppercase font-bold">
-                        Live Tennis Simulation
-                      </div>
-                    </div>
                   </div>
                 </CRTMonitor>
               </div>
