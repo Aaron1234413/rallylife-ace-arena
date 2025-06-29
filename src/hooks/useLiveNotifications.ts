@@ -7,120 +7,140 @@ interface LiveNotification {
   player_name: string;
   message: string;
   timestamp: string;
-  avatar_url?: string;
   details?: {
     level?: number;
-    achievement_name?: string;
     xp_earned?: number;
-    match_score?: string;
+    achievement_name?: string;
   };
 }
 
 export function useLiveNotifications() {
-  const [notifications, setNotifications] = useState<LiveNotification[]>([]);
   const [currentNotification, setCurrentNotification] = useState<LiveNotification | null>(null);
+  const [pendingCount, setPendingCount] = useState(0);
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const notificationTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const notificationQueue = useRef<LiveNotification[]>([]);
 
   const generateNotification = (): LiveNotification => {
-    const types: LiveNotification['type'][] = ['achievement', 'level_up', 'match_win', 'milestone'];
-    const type = types[Math.floor(Math.random() * types.length)];
-    
-    const playerNames = [
+    const players = [
       'Alex Johnson', 'Maria Garcia', 'David Chen', 'Sarah Wilson', 'Mike Rodriguez',
       'Emma Thompson', 'James Lee', 'Lisa Anderson', 'Tom Brown', 'Anna Martinez'
     ];
-    
-    const playerName = playerNames[Math.floor(Math.random() * playerNames.length)];
-    
-    const messages = {
-      achievement: [
-        'unlocked "Ace Master" achievement!',
-        'earned "Perfect Form" badge!',
-        'achieved "Speed Demon" status!',
-        'unlocked "Consistency King" achievement!'
-      ],
-      level_up: [
-        'reached Level 15!',
-        'leveled up to Level 22!',
-        'advanced to Level 8!',
-        'achieved Level 30!'
-      ],
-      match_win: [
-        'won an epic 3-set match!',
-        'dominated 6-2, 6-1!',
-        'clinched victory 7-5, 6-3!',
-        'crushed opponent 6-0, 6-1!'
-      ],
-      milestone: [
-        'played their 100th match!',
-        'earned 10,000 XP total!',
-        'completed 50 training sessions!',
-        'reached 1,000 hours played!'
-      ]
-    };
 
-    const message = messages[type][Math.floor(Math.random() * messages[type].length)];
+    const notificationTypes = [
+      {
+        type: 'achievement' as const,
+        messages: [
+          'unlocked "Ace Master" achievement!',
+          'earned "Marathon Player" badge!',
+          'achieved "Perfect Form" status!',
+          'unlocked "Speed Demon" achievement!'
+        ]
+      },
+      {
+        type: 'level_up' as const,
+        messages: [
+          'reached Level 15!',
+          'advanced to Level 22!',
+          'leveled up to 18!',
+          'hit Level 25!'
+        ]
+      },
+      {
+        type: 'match_win' as const,
+        messages: [
+          'won an epic 3-set match!',
+          'dominated in straight sets!',
+          'came back from 2 sets down!',
+          'won a nail-biting tiebreaker!'
+        ]
+      },
+      {
+        type: 'milestone' as const,
+        messages: [
+          'played their 100th match!',
+          'reached 1000 total XP!',
+          'completed 50 training sessions!',
+          'achieved 10-match win streak!'
+        ]
+      }
+    ];
+
+    const selectedType = notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
+    const player = players[Math.floor(Math.random() * players.length)];
+    const message = selectedType.messages[Math.floor(Math.random() * selectedType.messages.length)];
+
+    let details = {};
+    if (selectedType.type === 'level_up') {
+      details = {
+        level: Math.floor(Math.random() * 30) + 15,
+        xp_earned: Math.floor(Math.random() * 200) + 100
+      };
+    } else if (selectedType.type === 'achievement') {
+      details = {
+        xp_earned: Math.floor(Math.random() * 150) + 50,
+        achievement_name: message.split('"')[1]
+      };
+    }
 
     return {
       id: `notification-${Date.now()}-${Math.random()}`,
-      type,
-      player_name: playerName,
+      type: selectedType.type,
+      player_name: player,
       message,
       timestamp: new Date().toISOString(),
-      details: type === 'level_up' ? {
-        level: Math.floor(Math.random() * 30) + 1,
-        xp_earned: Math.floor(Math.random() * 500) + 100
-      } : type === 'achievement' ? {
-        achievement_name: message.split('"')[1]
-      } : undefined
+      details: Object.keys(details).length > 0 ? details : undefined
     };
   };
 
   const showNextNotification = () => {
-    if (notifications.length > 0) {
-      const [next, ...rest] = notifications;
-      setCurrentNotification(next);
-      setNotifications(rest);
+    if (notificationQueue.current.length > 0) {
+      const nextNotification = notificationQueue.current.shift()!;
+      setCurrentNotification(nextNotification);
+      setPendingCount(notificationQueue.current.length);
 
       // Hide notification after 4 seconds
-      notificationTimeoutRef.current = setTimeout(() => {
+      setTimeout(() => {
         setCurrentNotification(null);
+        
+        // Show next notification after a brief delay
+        setTimeout(showNextNotification, 1000);
       }, 4000);
     }
   };
 
-  useEffect(() => {
-    // Generate initial notifications
-    const initialNotifications = Array.from({ length: 5 }, generateNotification);
-    setNotifications(initialNotifications);
+  const addNotification = (notification: LiveNotification) => {
+    notificationQueue.current.push(notification);
+    setPendingCount(notificationQueue.current.length);
+    
+    // If no notification is currently showing, show this one immediately
+    if (!currentNotification) {
+      showNextNotification();
+    }
+  };
 
-    // Add new notifications every 6-10 seconds
-    intervalRef.current = setInterval(() => {
-      const newNotification = generateNotification();
-      setNotifications(prev => [...prev, newNotification]);
-    }, Math.random() * 4000 + 6000); // 6-10 seconds
+  useEffect(() => {
+    // Generate notifications every 8-15 seconds
+    const generateNotifications = () => {
+      const notification = generateNotification();
+      addNotification(notification);
+      
+      // Schedule next notification
+      const delay = Math.random() * 7000 + 8000; // 8-15 seconds
+      intervalRef.current = setTimeout(generateNotifications, delay);
+    };
+
+    // Start generating notifications after initial delay
+    intervalRef.current = setTimeout(generateNotifications, 3000);
 
     return () => {
       if (intervalRef.current) {
-        clearInterval(intervalRef.current);
-      }
-      if (notificationTimeoutRef.current) {
-        clearTimeout(notificationTimeoutRef.current);
+        clearTimeout(intervalRef.current);
       }
     };
-  }, []);
-
-  useEffect(() => {
-    // Show notification if one is available and none is currently showing
-    if (!currentNotification && notifications.length > 0) {
-      const timer = setTimeout(showNextNotification, 1000);
-      return () => clearTimeout(timer);
-    }
-  }, [currentNotification, notifications]);
+  }, [currentNotification]);
 
   return {
     currentNotification,
-    pendingCount: notifications.length
+    pendingCount
   };
 }

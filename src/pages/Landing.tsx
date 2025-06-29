@@ -1,3 +1,4 @@
+
 import React from 'react';
 import { StarField } from '@/components/landing/StarField';
 import { MissionHeader } from '@/components/landing/MissionHeader';
@@ -10,6 +11,7 @@ import { Link } from 'react-router-dom';
 import { GameConsole } from '@/components/landing/GameConsole';
 import { ParticleField } from '@/components/landing/ParticleField';
 import { InteractiveTerminal } from '@/components/landing/InteractiveTerminal';
+import { EnhancedLandingPage } from '@/components/landing/EnhancedLandingPage';
 
 export default function Landing() {
   return (
@@ -52,6 +54,9 @@ export default function Landing() {
               </div>
             </CRTMonitor>
             
+            {/* Enhanced Live Data Section */}
+            <EnhancedLandingPage />
+            
             {/* Interactive Console and Terminal Row */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
               <CRTMonitor title="GAME CONSOLE" size="medium">
@@ -63,43 +68,6 @@ export default function Landing() {
               <CRTMonitor title="COMMAND INTERFACE" size="medium">
                 <div className="p-4">
                   <InteractiveTerminal />
-                </div>
-              </CRTMonitor>
-            </div>
-            
-            {/* Stats Grid in Multiple Monitors */}
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <CRTMonitor title="ACTIVITY MONITOR" size="medium">
-                <div className="p-4 text-center">
-                  <div className="text-2xl font-orbitron text-tennis-green-primary mb-2 font-mono">2,847</div>
-                  <div className="text-tennis-green-light text-sm uppercase tracking-wider">Matches Today</div>
-                  <div className="mt-2 flex justify-center">
-                    <div className="w-8 h-1 bg-tennis-green-primary animate-pulse rounded" />
-                  </div>
-                </div>
-              </CRTMonitor>
-              
-              <CRTMonitor title="PLAYER COUNT" size="medium">
-                <div className="p-4 text-center">
-                  <div className="text-2xl font-orbitron text-tennis-green-primary mb-2 font-mono">15,293</div>
-                  <div className="text-tennis-green-light text-sm uppercase tracking-wider">Active Players</div>
-                  <div className="mt-2 flex justify-center space-x-1">
-                    {Array.from({length: 5}).map((_, i) => (
-                      <div key={i} className={`w-1 h-4 bg-tennis-green-primary rounded ${i < 4 ? 'animate-pulse' : 'opacity-30'}`} />
-                    ))}
-                  </div>
-                </div>
-              </CRTMonitor>
-              
-              <CRTMonitor title="XP TRACKER" size="medium">
-                <div className="p-4 text-center">
-                  <div className="text-2xl font-orbitron text-tennis-green-primary mb-2 font-mono">98,456</div>
-                  <div className="text-tennis-green-light text-sm uppercase tracking-wider">XP Earned</div>
-                  <div className="mt-2">
-                    <div className="w-full bg-gray-700 rounded-full h-1">
-                      <div className="bg-tennis-green-primary h-1 rounded-full w-3/4 animate-pulse" />
-                    </div>
-                  </div>
                 </div>
               </CRTMonitor>
             </div>
