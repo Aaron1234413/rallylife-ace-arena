@@ -1,4 +1,3 @@
-
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -175,134 +174,6 @@
   background-color: hsl(var(--tennis-green-accent));
 }
 
-/* Tennis Court Patterns */
-.tennis-court-pattern {
-  background-image: 
-    linear-gradient(90deg, hsl(var(--tennis-green-primary)) 1px, transparent 1px),
-    linear-gradient(hsl(var(--tennis-green-primary)) 1px, transparent 1px);
-  background-size: 40px 40px;
-  background-position: 0 0, 0 0;
-  opacity: 0.03;
-}
-
-.tennis-net-pattern {
-  background-image: 
-    repeating-linear-gradient(
-      45deg,
-      transparent,
-      transparent 2px,
-      hsl(var(--tennis-green-primary)) 2px,
-      hsl(var(--tennis-green-primary)) 4px
-    );
-  opacity: 0.05;
-}
-
-.tennis-ball-texture {
-  background-image: 
-    radial-gradient(circle at 25% 25%, hsl(var(--tennis-yellow)) 2px, transparent 3px),
-    radial-gradient(circle at 75% 75%, hsl(var(--tennis-yellow)) 2px, transparent 3px);
-  background-size: 20px 20px;
-  background-position: 0 0, 10px 10px;
-  opacity: 0.08;
-}
-
-.tennis-court-lines {
-  position: relative;
-}
-
-.tennis-court-lines::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    hsl(var(--tennis-green-primary)) 20%, 
-    hsl(var(--tennis-green-primary)) 80%, 
-    transparent 100%);
-  opacity: 0.3;
-}
-
-.tennis-court-lines::after {
-  content: '';
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background: linear-gradient(90deg, 
-    transparent 0%, 
-    hsl(var(--tennis-green-primary)) 20%, 
-    hsl(var(--tennis-green-primary)) 80%, 
-    transparent 100%);
-  opacity: 0.3;
-}
-
-/* Tennis-themed card variations */
-.tennis-card-stats {
-  position: relative;
-  background: linear-gradient(135deg, 
-    hsl(var(--tennis-neutral-50)) 0%, 
-    hsl(var(--tennis-green-subtle)) 100%);
-  border: 1px solid hsl(var(--tennis-green-light));
-}
-
-.tennis-card-stats::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    linear-gradient(90deg, transparent 49%, hsl(var(--tennis-green-primary)) 50%, hsl(var(--tennis-green-primary)) 51%, transparent 52%),
-    linear-gradient(0deg, transparent 49%, hsl(var(--tennis-green-primary)) 50%, hsl(var(--tennis-green-primary)) 51%, transparent 52%);
-  background-size: 60px 60px;
-  opacity: 0.02;
-  pointer-events: none;
-}
-
-.tennis-card-action {
-  position: relative;
-  background: linear-gradient(135deg, 
-    white 0%, 
-    hsl(var(--tennis-yellow-light)) 100%);
-  border: 2px solid hsl(var(--tennis-yellow));
-  transition: all 0.3s ease;
-}
-
-.tennis-card-action:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px hsla(var(--tennis-yellow), 0.25);
-}
-
-.tennis-card-action::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-image: 
-    radial-gradient(circle at 20% 80%, hsl(var(--tennis-yellow)) 1px, transparent 2px),
-    radial-gradient(circle at 80% 20%, hsl(var(--tennis-yellow)) 1px, transparent 2px);
-  background-size: 30px 30px;
-  opacity: 0.1;
-  pointer-events: none;
-}
-
-.tennis-achievement-glow {
-  position: relative;
-  background: linear-gradient(135deg, 
-    hsl(var(--tennis-yellow-light)) 0%, 
-    white 50%,
-    hsl(var(--tennis-yellow-light)) 100%);
-  border: 2px solid hsl(var(--tennis-yellow));
-  box-shadow: 0 0 20px hsla(var(--tennis-yellow), 0.3);
-}
-
 /* Enhanced animations with better performance */
 @keyframes fade-in-up {
   0% {
@@ -375,15 +246,6 @@
   }
 }
 
-@keyframes tennis-ball-bounce {
-  0%, 100% {
-    transform: translateY(0) rotate(0deg);
-  }
-  50% {
-    transform: translateY(-10px) rotate(180deg);
-  }
-}
-
 /* Animation utility classes */
 .animate-fade-in-up {
   animation: fade-in-up 0.6s ease-out;
@@ -416,10 +278,6 @@
   animation: bounce-subtle 1s;
 }
 
-.animate-tennis-ball-bounce {
-  animation: tennis-ball-bounce 2s ease-in-out infinite;
-}
-
 /* Enhanced hover effects */
 .hover-lift {
   transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
@@ -436,10 +294,6 @@
 
 .hover-glow:hover {
   box-shadow: 0 0 20px hsla(var(--tennis-green-primary), 0.3);
-}
-
-.hover-tennis-glow:hover {
-  box-shadow: 0 0 30px hsla(var(--tennis-yellow), 0.4);
 }
 
 /* Responsive utilities */
