@@ -35,14 +35,14 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
 
   if (loading) {
     return (
-      <Card className="w-full bg-gradient-to-br from-blue-50 to-purple-50 border-0 shadow-lg">
+      <Card className="w-full bg-gradient-to-br from-tennis-neutral-50 to-tennis-neutral-100 border-0 shadow-lg">
         <CardContent className="p-4 sm:p-6">
           <div className="text-center">
             <div className="animate-pulse">
-              <div className="h-6 sm:h-8 bg-gray-200 rounded w-1/3 mx-auto mb-4"></div>
+              <div className="h-6 sm:h-8 bg-tennis-neutral-200 rounded w-1/3 mx-auto mb-4"></div>
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 {[1, 2, 3].map((i) => (
-                  <div key={i} className="h-16 sm:h-20 bg-gray-200 rounded"></div>
+                  <div key={i} className="h-16 sm:h-20 bg-tennis-neutral-200 rounded"></div>
                 ))}
               </div>
             </div>
@@ -59,31 +59,25 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
   const getHPStatus = (percentage: number) => {
     if (percentage >= 80) return { 
       label: 'Excellent', 
-      color: 'bg-green-500', 
-      textColor: 'text-green-700',
-      bgGradient: 'from-green-50 to-emerald-50',
-      borderColor: 'border-green-200',
-      progressColor: 'bg-green-500',
+      bgGradient: 'from-tennis-success-light to-emerald-50',
+      borderColor: 'border-tennis-success',
+      progressColor: 'bg-tennis-success',
       pulseIntensity: 'none',
       ariaLabel: 'Health status: Excellent'
     };
     if (percentage >= 40) return { 
       label: percentage >= 60 ? 'Good' : 'Fair', 
-      color: percentage >= 60 ? 'bg-blue-500' : 'bg-yellow-500', 
-      textColor: percentage >= 60 ? 'text-blue-700' : 'text-yellow-700',
-      bgGradient: percentage >= 60 ? 'from-blue-50 to-sky-50' : 'from-yellow-50 to-orange-50',
-      borderColor: percentage >= 60 ? 'border-blue-200' : 'border-yellow-200',
-      progressColor: percentage >= 60 ? 'bg-blue-500' : 'bg-yellow-500',
+      bgGradient: percentage >= 60 ? 'from-tennis-info-light to-sky-50' : 'from-tennis-yellow-light to-orange-50',
+      borderColor: percentage >= 60 ? 'border-tennis-info' : 'border-tennis-yellow',
+      progressColor: percentage >= 60 ? 'bg-tennis-info' : 'bg-tennis-yellow',
       pulseIntensity: 'none',
       ariaLabel: `Health status: ${percentage >= 60 ? 'Good' : 'Fair'}`
     };
     return { 
       label: hpPercentage >= 20 ? 'Low' : 'Critical', 
-      color: hpPercentage >= 20 ? 'bg-orange-500' : 'bg-red-500', 
-      textColor: hpPercentage >= 20 ? 'text-orange-700' : 'text-red-700',
-      bgGradient: hpPercentage >= 20 ? 'from-orange-50 to-red-50' : 'from-red-50 via-red-100 to-pink-50',
-      borderColor: hpPercentage >= 20 ? 'border-orange-200' : 'border-red-200',
-      progressColor: hpPercentage >= 20 ? 'bg-orange-500' : 'bg-red-500',
+      bgGradient: hpPercentage >= 20 ? 'from-orange-50 to-tennis-hp-light' : 'from-tennis-hp-light via-red-100 to-pink-50',
+      borderColor: hpPercentage >= 20 ? 'border-orange-200' : 'border-tennis-hp',
+      progressColor: hpPercentage >= 20 ? 'bg-orange-500' : 'bg-tennis-hp',
       pulseIntensity: hpPercentage >= 20 ? 'animate-pulse-slow' : 'animate-pulse',
       ariaLabel: `Health status: ${hpPercentage >= 20 ? 'Low' : 'Critical'} - Recovery recommended`
     };
@@ -128,28 +122,28 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
         {announceHP && `Health Points updated: ${hpData?.current_hp || 0} out of ${hpData?.max_hp || 100}`}
       </div>
 
-      <Card className="w-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 border-0 shadow-xl overflow-hidden transition-all duration-500 hover:shadow-2xl">
+      <Card className="w-full bg-gradient-to-br from-tennis-neutral-50 via-tennis-neutral-100 to-tennis-neutral-50 border-0 shadow-xl overflow-hidden transition-all duration-500 hover:shadow-2xl">
         <CardContent className="p-4 sm:p-6 lg:p-8">
-          {/* Header - Enhanced with Orbitron typography */}
+          {/* Header - Enhanced with Orbitron typography and neutral colors */}
           <div className="text-center mb-6 sm:mb-8 animate-fade-in">
-            <h2 className="orbitron-heading text-display sm:text-hero text-gray-900 mb-2 tracking-tight">
+            <h2 className="orbitron-heading text-display sm:text-hero text-tennis-neutral-800 mb-2 tracking-tight">
               Player Vitals
             </h2>
-            <p className="poppins-body text-body-lg text-gray-600">
+            <p className="poppins-body text-body-lg text-tennis-neutral-600">
               Track your progress and stay motivated
             </p>
           </div>
 
-          {/* Main Vitals Grid - Enhanced typography hierarchy */}
+          {/* Main Vitals Grid - Strategic color usage */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {/* HP Section - Enhanced typography */}
+            {/* HP Section - RED for HP-related content */}
             <div 
               className={cn(
                 "p-4 sm:p-6 rounded-2xl border-2 transition-all duration-700 transform hover:scale-105 hover:shadow-lg group",
-                "focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-blue-500",
+                "focus-within:ring-2 focus-within:ring-offset-2 focus-within:ring-tennis-hp",
                 `bg-gradient-to-br ${hpStatus.bgGradient}`,
                 hpStatus.borderColor,
-                hpPercentage < 40 ? "shadow-lg ring-2 ring-red-200 hover:ring-red-300" : "shadow-md",
+                hpPercentage < 40 ? "shadow-lg ring-2 ring-tennis-hp/20 hover:ring-tennis-hp/30" : "shadow-md",
                 hpStatus.pulseIntensity,
                 "motion-reduce:animate-none motion-reduce:transition-none"
               )}
@@ -162,14 +156,14 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                   <Heart 
                     className={cn(
                       "h-6 w-6 sm:h-7 sm:w-7 transition-all duration-500 group-hover:scale-110", 
-                      hpPercentage <= 30 ? "text-red-500 animate-pulse motion-reduce:animate-none" : "text-red-400"
+                      hpPercentage <= 30 ? "text-tennis-hp animate-pulse motion-reduce:animate-none" : "text-red-400"
                     )} 
                     fill={hpPercentage <= 30 ? "currentColor" : "none"}
                     aria-hidden="true"
                   />
                   <h3 
                     id="hp-heading"
-                    className="orbitron-heading text-heading-md sm:text-heading-lg text-gray-900 transition-colors duration-300 group-hover:text-gray-700"
+                    className="orbitron-heading text-heading-md sm:text-heading-lg text-tennis-neutral-800 transition-colors duration-300 group-hover:text-tennis-neutral-700"
                   >
                     Health Points
                   </h3>
@@ -177,11 +171,11 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                 
                 <div className="space-y-3" id="hp-description">
                   <div className="flex items-center justify-between text-body-sm font-medium">
-                    <span className="text-gray-700 transition-colors duration-300">HP</span>
+                    <span className="text-tennis-neutral-700 transition-colors duration-300">HP</span>
                     <span 
                       className={cn(
                         "font-bold transition-all duration-500 transform text-heading-sm sm:text-heading-md",
-                        hpPercentage < 40 ? "text-red-700 scale-110" : "text-gray-900",
+                        hpPercentage < 40 ? "text-tennis-hp scale-110" : "text-tennis-neutral-800",
                         "animate-number-change motion-reduce:animate-none"
                       )}
                       aria-label={`Current health: ${hpData?.current_hp || 0} out of ${hpData?.max_hp || 100} points`}
@@ -191,7 +185,7 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                   </div>
                   <Progress 
                     value={hpPercentage} 
-                    className="h-3 sm:h-4 bg-gray-200 rounded-full transition-all duration-500 hover:h-4 sm:hover:h-5"
+                    className="h-3 sm:h-4 bg-tennis-neutral-200 rounded-full transition-all duration-500 hover:h-4 sm:hover:h-5"
                     indicatorClassName={cn(
                       "transition-all duration-1000 rounded-full",
                       hpStatus.progressColor,
@@ -204,10 +198,9 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                       variant="secondary" 
                       className={cn(
                         "text-caption font-semibold px-3 sm:px-4 py-1 sm:py-2 rounded-full border-2 bg-white/80 backdrop-blur-sm transition-all duration-300",
-                        hpStatus.textColor,
-                        hpStatus.borderColor.replace('border-', 'border-'),
+                        hpPercentage < 40 ? "text-tennis-hp border-tennis-hp" : "text-tennis-neutral-700 border-tennis-neutral-300",
                         hpPercentage < 40 ? "animate-pulse motion-reduce:animate-none transform hover:scale-105" : "hover:scale-105",
-                        "shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500"
+                        "shadow-sm hover:shadow-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tennis-hp"
                       )}
                       aria-label={hpStatus.ariaLabel}
                       tabIndex={0}
@@ -219,22 +212,22 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
               </div>
             </div>
 
-            {/* XP Section - Enhanced typography */}
+            {/* XP Section - YELLOW for achievements and important metrics */}
             <div 
-              className="text-center space-y-3 sm:space-y-4 p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-yellow-200 shadow-md transition-all duration-500 transform hover:scale-105 hover:shadow-lg group motion-reduce:transform-none motion-reduce:transition-none"
+              className="text-center space-y-3 sm:space-y-4 p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-tennis-yellow-light to-amber-50 border-2 border-tennis-yellow shadow-md transition-all duration-500 transform hover:scale-105 hover:shadow-lg group motion-reduce:transform-none motion-reduce:transition-none"
               role="region"
               aria-labelledby="xp-heading"
               aria-describedby="xp-description"
             >
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Star 
-                  className="h-6 w-6 sm:h-7 sm:w-7 text-yellow-500 transition-all duration-300 group-hover:rotate-12 group-hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none" 
+                  className="h-6 w-6 sm:h-7 sm:w-7 text-tennis-yellow-dark transition-all duration-300 group-hover:rotate-12 group-hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none" 
                   fill="currentColor"
                   aria-hidden="true"
                 />
                 <h3 
                   id="xp-heading"
-                  className="orbitron-heading text-heading-md sm:text-heading-lg text-gray-900 transition-colors duration-300 group-hover:text-gray-700"
+                  className="orbitron-heading text-heading-md sm:text-heading-lg text-tennis-neutral-800 transition-colors duration-300 group-hover:text-tennis-neutral-700"
                 >
                   Experience
                 </h3>
@@ -244,7 +237,7 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Badge 
                     variant="outline" 
-                    className="orbitron-heading font-bold text-body-lg px-3 sm:px-4 py-1 sm:py-2 text-yellow-700 border-yellow-300 bg-white/80 transition-all duration-300 hover:scale-105 hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                    className="orbitron-heading font-bold text-body-lg px-3 sm:px-4 py-1 sm:py-2 text-tennis-yellow-dark border-tennis-yellow bg-white/80 transition-all duration-300 hover:scale-105 hover:bg-tennis-yellow-light focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tennis-yellow"
                     tabIndex={0}
                     aria-label={`Current level: ${xpData?.current_level || 1}`}
                   >
@@ -252,9 +245,9 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                   </Badge>
                 </div>
                 <div className="flex items-center justify-between text-body-sm font-medium">
-                  <span className="text-gray-700 transition-colors duration-300">XP</span>
+                  <span className="text-tennis-neutral-700 transition-colors duration-300">XP</span>
                   <span 
-                    className="font-bold text-heading-sm sm:text-heading-md text-gray-900 transition-all duration-500 animate-number-change motion-reduce:animate-none"
+                    className="font-bold text-heading-sm sm:text-heading-md text-tennis-neutral-800 transition-all duration-500 animate-number-change motion-reduce:animate-none"
                     aria-label={`Experience points: ${xpData?.current_xp || 0} out of ${(xpData?.current_xp || 0) + (xpData?.xp_to_next_level || 100)} needed for next level`}
                   >
                     {xpData?.current_xp || 0}/{(xpData?.current_xp || 0) + (xpData?.xp_to_next_level || 100)}
@@ -262,31 +255,31 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                 </div>
                 <Progress 
                   value={xpPercentage} 
-                  className="h-3 sm:h-4 bg-gray-200 rounded-full transition-all duration-500 hover:h-4 sm:hover:h-5"
-                  indicatorClassName="bg-yellow-500 transition-all duration-1000 rounded-full animate-progress-smooth motion-reduce:animate-none"
+                  className="h-3 sm:h-4 bg-tennis-neutral-200 rounded-full transition-all duration-500 hover:h-4 sm:hover:h-5"
+                  indicatorClassName="bg-tennis-yellow transition-all duration-1000 rounded-full animate-progress-smooth motion-reduce:animate-none"
                   aria-label={`Experience progress: ${Math.round(xpPercentage)}% to next level`}
                 />
-                <p className="text-body-sm text-gray-600 font-medium transition-colors duration-300">
+                <p className="text-body-sm text-tennis-neutral-600 font-medium transition-colors duration-300">
                   {xpData?.xp_to_next_level || 100} XP to next level
                 </p>
               </div>
             </div>
 
-            {/* Tokens Section - Enhanced typography */}
+            {/* Tokens Section - NEUTRAL for information cards */}
             <div 
-              className="text-center space-y-3 sm:space-y-4 p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 shadow-md transition-all duration-500 transform hover:scale-105 hover:shadow-lg group motion-reduce:transform-none motion-reduce:transition-none sm:col-span-2 lg:col-span-1"
+              className="text-center space-y-3 sm:space-y-4 p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-tennis-neutral-50 to-tennis-neutral-100 border-2 border-tennis-neutral-200 shadow-md transition-all duration-500 transform hover:scale-105 hover:shadow-lg group motion-reduce:transform-none motion-reduce:transition-none sm:col-span-2 lg:col-span-1"
               role="region"
               aria-labelledby="tokens-heading"
               aria-describedby="tokens-description"
             >
               <div className="flex items-center justify-center gap-2 mb-3">
                 <Coins 
-                  className="h-6 w-6 sm:h-7 sm:w-7 text-purple-500 transition-all duration-300 group-hover:rotate-y-180 group-hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none"
+                  className="h-6 w-6 sm:h-7 sm:w-7 text-tennis-neutral-600 transition-all duration-300 group-hover:rotate-y-180 group-hover:scale-110 motion-reduce:transform-none motion-reduce:transition-none"
                   aria-hidden="true"
                 />
                 <h3 
                   id="tokens-heading"
-                  className="orbitron-heading text-heading-md sm:text-heading-lg text-gray-900 transition-colors duration-300 group-hover:text-gray-700"
+                  className="orbitron-heading text-heading-md sm:text-heading-lg text-tennis-neutral-800 transition-colors duration-300 group-hover:text-tennis-neutral-700"
                 >
                   Tokens
                 </h3>
@@ -299,25 +292,25 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                     tabIndex={0}
                     aria-label={`Regular tokens: ${tokenData?.regular_tokens || 0}`}
                   >
-                    <div className="font-bold text-heading-md sm:text-heading-lg text-gray-900 transition-all duration-500 animate-number-change motion-reduce:animate-none">
+                    <div className="font-bold text-heading-md sm:text-heading-lg text-tennis-neutral-800 transition-all duration-500 animate-number-change motion-reduce:animate-none">
                       {tokenData?.regular_tokens || 0}
                     </div>
-                    <div className="text-body-sm text-gray-600 font-medium">Regular</div>
+                    <div className="text-body-sm text-tennis-neutral-600 font-medium">Regular</div>
                   </div>
                   <div 
                     className="text-center transition-all duration-300 hover:scale-105 focus-within:scale-105 motion-reduce:transform-none motion-reduce:transition-none"
                     tabIndex={0}
                     aria-label={`Premium tokens: ${tokenData?.premium_tokens || 0}`}
                   >
-                    <div className="font-bold text-heading-md sm:text-heading-lg text-purple-600 transition-all duration-500 animate-number-change motion-reduce:animate-none">
+                    <div className="font-bold text-heading-md sm:text-heading-lg text-tennis-neutral-600 transition-all duration-500 animate-number-change motion-reduce:animate-none">
                       {tokenData?.premium_tokens || 0}
                     </div>
-                    <div className="text-body-sm text-gray-600 font-medium">Premium</div>
+                    <div className="text-body-sm text-tennis-neutral-600 font-medium">Premium</div>
                   </div>
                 </div>
                 <Badge 
                   variant="secondary" 
-                  className="text-caption bg-white/80 backdrop-blur-sm border-purple-200 px-3 sm:px-4 py-1 sm:py-2 transition-all duration-300 hover:scale-105 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  className="text-caption bg-white/80 backdrop-blur-sm border-tennis-neutral-200 px-3 sm:px-4 py-1 sm:py-2 transition-all duration-300 hover:scale-105 hover:bg-tennis-neutral-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-tennis-neutral-400"
                   tabIndex={0}
                   aria-label={`Lifetime tokens earned: ${tokenData?.lifetime_earned || 0}`}
                 >
