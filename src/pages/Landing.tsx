@@ -1,4 +1,3 @@
-
 import React from 'react';
 import { StarField } from '@/components/landing/StarField';
 import { MissionHeader } from '@/components/landing/MissionHeader';
@@ -8,12 +7,20 @@ import { PixelTennis } from '@/components/landing/PixelTennis';
 import { InsertCoin } from '@/components/landing/InsertCoin';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
+import { GameConsole } from '@/components/landing/GameConsole';
+import { ParticleField } from '@/components/landing/ParticleField';
+import { InteractiveTerminal } from '@/components/landing/InteractiveTerminal';
 
 export default function Landing() {
   return (
     <div className="min-h-screen bg-black text-white overflow-hidden relative">
       {/* Animated Star Background */}
       <StarField />
+      
+      {/* Particle Effects Layer */}
+      <div className="absolute inset-0 z-5">
+        <ParticleField intensity="medium" />
+      </div>
       
       {/* Scan Lines Overlay */}
       <ScanLines intensity="light" speed="slow" />
@@ -44,6 +51,21 @@ export default function Landing() {
                 <InsertCoin />
               </div>
             </CRTMonitor>
+            
+            {/* Interactive Console and Terminal Row */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              <CRTMonitor title="GAME CONSOLE" size="medium">
+                <div className="p-4">
+                  <GameConsole />
+                </div>
+              </CRTMonitor>
+              
+              <CRTMonitor title="COMMAND INTERFACE" size="medium">
+                <div className="p-4">
+                  <InteractiveTerminal />
+                </div>
+              </CRTMonitor>
+            </div>
             
             {/* Stats Grid in Multiple Monitors */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
