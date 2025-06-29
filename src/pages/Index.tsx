@@ -146,11 +146,11 @@ const Index = () => {
   // Show loading state while profile is being fetched
   if (profileLoading) {
     return (
-      <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light">
+      <div className="min-h-screen bg-tennis-neutral-50">
         <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
           <div className="animate-pulse">
-            <div className="h-32 bg-white/20 backdrop-blur-sm rounded mb-6"></div>
-            <div className="h-48 bg-white/20 backdrop-blur-sm rounded mb-6"></div>
+            <div className="h-32 bg-tennis-neutral-100 rounded-lg mb-6"></div>
+            <div className="h-48 bg-tennis-neutral-100 rounded-lg mb-6"></div>
           </div>
         </div>
       </div>
@@ -158,7 +158,7 @@ const Index = () => {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light overflow-x-hidden">
+    <div className="min-h-screen bg-tennis-neutral-50 overflow-x-hidden">
       {/* Floating components that need to be inside the provider contexts */}
       <FloatingCheckInTrigger />
       <FloatingCheckInButton />

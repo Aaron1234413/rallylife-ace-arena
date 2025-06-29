@@ -58,16 +58,18 @@ const Pulse = () => {
   const activityIntelligence = getActivityIntelligence();
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light">
+    <div className="min-h-screen bg-tennis-neutral-50">
       <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
         {/* Header Section */}
-        <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg">
+        <Card className="bg-white/95 backdrop-blur-sm border-tennis-neutral-200 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Bolt className="h-6 w-6 text-yellow-500" />
-              Pulse
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-tennis-green-primary to-tennis-green-accent flex items-center justify-center">
+                <Bolt className="h-4 w-4 text-white" />
+              </div>
+              <span className="text-tennis-green-dark">Pulse</span>
             </CardTitle>
-            <p className="text-muted-foreground">
+            <p className="text-tennis-neutral-600">
               Your activity timeline, achievements, and leaderboard standings
             </p>
           </CardHeader>
@@ -75,9 +77,9 @@ const Pulse = () => {
             {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Time:</span>
+                <span className="text-sm font-medium text-tennis-green-dark">Time:</span>
                 <Select value={timeFilter} onValueChange={setTimeFilter}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-32 border-tennis-neutral-300">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -90,9 +92,9 @@ const Pulse = () => {
               </div>
               
               <div className="flex items-center gap-2">
-                <span className="text-sm font-medium">Activity:</span>
+                <span className="text-sm font-medium text-tennis-green-dark">Activity:</span>
                 <Select value={activityFilter} onValueChange={setActivityFilter}>
-                  <SelectTrigger className="w-32">
+                  <SelectTrigger className="w-32 border-tennis-neutral-300">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -109,33 +111,33 @@ const Pulse = () => {
         </Card>
 
         {/* Activity Intelligence Widget */}
-        <Card className="bg-gradient-to-r from-slate-50/95 to-gray-50/95 border-slate-200/50 shadow-md backdrop-blur-sm">
+        <Card className="bg-gradient-to-r from-white to-tennis-green-subtle border-tennis-neutral-200 shadow-md backdrop-blur-sm">
           <CardContent className="p-3 sm:p-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-tennis-green-primary to-tennis-green-accent text-white shadow-md">
                   <Clock className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="font-bold text-gray-800 text-sm sm:text-base">Activity Intelligence</span>
-                  <p className="text-gray-600 mt-0.5 text-xs sm:text-sm">
+                  <span className="font-bold text-tennis-green-dark text-sm sm:text-base">Activity Intelligence</span>
+                  <p className="text-tennis-neutral-600 mt-0.5 text-xs sm:text-sm">
                     Real-time insights from your tennis data
                   </p>
                 </div>
               </div>
               <div className="flex flex-wrap gap-2 sm:gap-4 text-sm">
-                <div className="flex items-center gap-2 bg-white/90 rounded-lg px-3 py-1.5 shadow-sm border backdrop-blur-sm">
-                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
+                <div className="flex items-center gap-2 bg-white/90 rounded-lg px-3 py-1.5 shadow-sm border border-tennis-neutral-200 backdrop-blur-sm">
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-tennis-green-accent" />
                   <div>
-                    <div className="text-xs text-gray-500">This Week</div>
-                    <div className="font-bold text-gray-800 text-sm">{activityIntelligence.weeklyCount}</div>
+                    <div className="text-xs text-tennis-neutral-500">This Week</div>
+                    <div className="font-bold text-tennis-green-dark text-sm">{activityIntelligence.weeklyCount}</div>
                   </div>
                 </div>
-                <div className="flex items-center gap-2 bg-white/90 rounded-lg px-3 py-1.5 shadow-sm border backdrop-blur-sm">
-                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
+                <div className="flex items-center gap-2 bg-white/90 rounded-lg px-3 py-1.5 shadow-sm border border-tennis-neutral-200 backdrop-blur-sm">
+                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-tennis-yellow-dark" />
                   <div>
-                    <div className="text-xs text-gray-500">Energy</div>
-                    <div className="font-bold text-gray-800 text-sm">{activityIntelligence.energyLevel}</div>
+                    <div className="text-xs text-tennis-neutral-500">Energy</div>
+                    <div className="font-bold text-tennis-green-dark text-sm">{activityIntelligence.energyLevel}</div>
                   </div>
                 </div>
                 {activityIntelligence.hoursSinceLastActivity > 24 && (
@@ -167,9 +169,9 @@ const Pulse = () => {
           {/* Right Column - Achievements and Leaderboard (40% on desktop) */}
           <div className="lg:col-span-2 space-y-6">
             {/* Achievements Section */}
-            <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg">
+            <Card className="bg-white/95 backdrop-blur-sm border-tennis-neutral-200 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-lg">Recent Achievements</CardTitle>
+                <CardTitle className="text-lg text-tennis-green-dark">Recent Achievements</CardTitle>
               </CardHeader>
               <CardContent>
                 <AchievementDisplay
@@ -180,7 +182,7 @@ const Pulse = () => {
                   <div className="mt-4 text-center">
                     <a 
                       href="/achievements" 
-                      className="text-sm text-blue-600 hover:text-blue-800 font-medium"
+                      className="text-sm text-tennis-green-accent hover:text-tennis-green-primary font-medium transition-colors"
                     >
                       View All Achievements →
                     </a>
@@ -190,9 +192,9 @@ const Pulse = () => {
             </Card>
 
             {/* Leaderboard Section */}
-            <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-lg">
+            <Card className="bg-white/95 backdrop-blur-sm border-tennis-neutral-200 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-lg">Top Players</CardTitle>
+                <CardTitle className="text-lg text-tennis-green-dark">Top Players</CardTitle>
               </CardHeader>
               <CardContent>
                 <LeaderboardWidget

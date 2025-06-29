@@ -1,4 +1,3 @@
-
 import type { Config } from "tailwindcss";
 
 export default {
@@ -67,17 +66,34 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Enhanced Tennis-specific colors
+				// Refined Tennis-specific colors with better contrast and sophistication
 				tennis: {
 					green: {
-						dark: 'hsl(var(--tennis-green-dark))',
-						medium: 'hsl(var(--tennis-green-medium))',
-						light: 'hsl(var(--tennis-green-light))',
-						primary: 'hsl(var(--tennis-green-primary))',
-						bg: 'hsl(var(--tennis-green-bg))'
+						// Softer, more muted greens
+						dark: 'hsl(var(--tennis-green-dark))',      // Darker for text/headers
+						medium: 'hsl(var(--tennis-green-medium))',  // Medium for accents
+						light: 'hsl(var(--tennis-green-light))',    // Light for backgrounds
+						primary: 'hsl(var(--tennis-green-primary))', // Main brand color
+						subtle: 'hsl(var(--tennis-green-subtle))',   // Very light for sections
+						accent: 'hsl(var(--tennis-green-accent))'    // For highlights
 					},
-					yellow: 'hsl(var(--tennis-yellow))',
-					court: 'hsl(var(--tennis-court))'
+					yellow: {
+						DEFAULT: 'hsl(var(--tennis-yellow))',
+						light: 'hsl(var(--tennis-yellow-light))',
+						dark: 'hsl(var(--tennis-yellow-dark))'
+					},
+					neutral: {
+						50: 'hsl(var(--tennis-neutral-50))',
+						100: 'hsl(var(--tennis-neutral-100))',
+						200: 'hsl(var(--tennis-neutral-200))',
+						300: 'hsl(var(--tennis-neutral-300))',
+						400: 'hsl(var(--tennis-neutral-400))',
+						500: 'hsl(var(--tennis-neutral-500))',
+						600: 'hsl(var(--tennis-neutral-600))',
+						700: 'hsl(var(--tennis-neutral-700))',
+						800: 'hsl(var(--tennis-neutral-800))',
+						900: 'hsl(var(--tennis-neutral-900))'
+					}
 				},
 				hp: {
 					red: 'hsl(var(--hp-red))',
