@@ -1,9 +1,9 @@
 
 import React, { memo } from 'react';
-import { GlobalActivityMap } from './GlobalActivityMap';
 import { LiveStatsCounter } from './LiveStatsCounter';
 import { LiveAchievements } from './LiveAchievements';
 import { AchievementNotification } from './AchievementNotification';
+import { LiveLocationTracker } from './LiveLocationTracker';
 import { CRTMonitor } from './CRTMonitor';
 
 interface EnhancedLandingPageProps {
@@ -25,12 +25,12 @@ export const EnhancedLandingPage = memo(function EnhancedLandingPage({ className
         </CRTMonitor>
       </div>
 
-      {/* Global Activity Map Section - Single column, centered */}
+      {/* Live Activity Locations - Minimal list format */}
       <div className="flex justify-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-        <div className="w-full max-w-4xl">
-          <CRTMonitor title="GLOBAL TENNIS ACTIVITY" size="large">
-            <div className="p-6 bg-white/95 backdrop-blur-sm rounded">
-              <GlobalActivityMap />
+        <div className="w-full max-w-2xl">
+          <CRTMonitor title="ACTIVE LOCATIONS" size="medium">
+            <div className="p-4 bg-white/95 backdrop-blur-sm rounded">
+              <LiveLocationTracker />
             </div>
           </CRTMonitor>
         </div>
