@@ -8,7 +8,7 @@ export function HowItWorks() {
     {
       number: 1,
       title: 'Create & Customize',
-      description: 'Set up your tennis profile, customize your avatar, and choose your gear preferences',
+      description: 'Set up your tennis profile, customize your player avatar, and choose your favorite gear',
       icon: Target,
       color: 'text-tennis-green-primary',
       bgColor: 'bg-tennis-green-primary/10'
@@ -16,7 +16,7 @@ export function HowItWorks() {
     {
       number: 2,
       title: 'Play & Progress',
-      description: 'Join matches, training sessions, and social events while earning XP and achievements',
+      description: 'Join matches, training sessions, and events while earning points and unlocking achievements',
       icon: Trophy,
       color: 'text-tennis-yellow',
       bgColor: 'bg-tennis-yellow/10'
@@ -24,7 +24,7 @@ export function HowItWorks() {
     {
       number: 3,
       title: 'Shop & Socialize',
-      description: 'Buy virtual/real tennis gear in the marketplace and connect with the community',
+      description: 'Buy cool tennis gear in the store and connect with players around the world',
       icon: Users,
       color: 'text-tennis-green-accent',
       bgColor: 'bg-tennis-green-accent/10'
@@ -34,22 +34,22 @@ export function HowItWorks() {
   const features = [
     {
       name: 'Smart Training',
-      description: 'AI-powered training recommendations based on your performance',
+      description: 'Get personalized training tips based on how you play',
       icon: '🎯'
     },
     {
-      name: 'Marketplace Hub',
-      description: 'Buy virtual gear upgrades and real tennis equipment',
+      name: 'Tennis Store',
+      description: 'Buy virtual upgrades and real tennis equipment',
       icon: '🛒'
     },
     {
-      name: 'Multi-Play Modes',
-      description: 'Social play, competitive matches, coaching sessions with real-time tracking',
+      name: 'Game Modes',
+      description: 'Social games, competitive matches, and coaching sessions with live tracking',
       icon: '⚡'
     },
     {
       name: 'Recovery & Growth',
-      description: 'Improve recovery with meditation, stretching, and personalized programs',
+      description: 'Improve your game with meditation, stretching, and personalized programs',
       icon: '🌟'
     }
   ];
@@ -61,10 +61,10 @@ export function HowItWorks() {
           {/* Header */}
           <div className="text-center mb-8 md:mb-12">
             <h2 className="text-2xl md:text-3xl font-orbitron font-bold text-tennis-green-dark mb-4">
-              Your Tennis Gaming Journey
+              Your Tennis Gaming Adventure
             </h2>
             <p className="text-sm md:text-base text-tennis-green-medium font-poppins max-w-2xl mx-auto">
-              From signup to champion - here's how RAKO transforms your tennis experience
+              From beginner to champion - here's how RAKO makes tennis gaming fun and rewarding
             </p>
           </div>
 
@@ -75,7 +75,7 @@ export function HowItWorks() {
               {/* Scroll Indicator Text */}
               <div className="flex items-center justify-center gap-2 mb-4">
                 <span className="text-xs text-tennis-green-medium font-orbitron tracking-wider font-bold">
-                  SWIPE TO EXPLORE STEPS
+                  SWIPE TO SEE ALL STEPS
                 </span>
                 <ArrowRight className="h-3 w-3 text-tennis-green-primary animate-pulse" />
               </div>
@@ -177,7 +177,7 @@ export function HowItWorks() {
           {/* Key Features Preview with Enhanced Mobile UX */}
           <div className="border-t border-tennis-green-medium/30 pt-8 md:pt-10">
             <h3 className="text-xl md:text-2xl font-orbitron font-bold text-tennis-green-dark text-center mb-8 md:mb-10">
-              What You'll Experience
+              What You'll Love About RAKO
             </h3>
             
             {/* Mobile Horizontal Scroll with Peek */}

@@ -40,7 +40,7 @@ export default function Landing() {
                   <div className="absolute inset-0 w-2 h-2 md:w-3 md:h-3 bg-tennis-green-primary rounded-full animate-ping opacity-30"></div>
                 </div>
                 <span className="text-tennis-green-primary text-xs md:text-sm font-orbitron tracking-wider uppercase font-bold">
-                  Rako Network: Online
+                  Rako Game: Online
                 </span>
                 <div className="text-tennis-yellow text-xs animate-float">⚡</div>
               </div>
@@ -48,19 +48,19 @@ export default function Landing() {
             
             {/* Main Title in CRT Monitor - Mobile Responsive */}
             <div className="px-2 md:px-0">
-              <CRTMonitor title="MAIN TERMINAL" size="large">
+              <CRTMonitor title="GAME CONSOLE" size="large">
                 <div className="text-center py-4 md:py-6 px-3 md:px-4 bg-white/95 backdrop-blur-sm rounded-lg">
                   <div className="mb-4">
                     <h1 className="text-2xl md:text-4xl lg:text-6xl font-orbitron font-bold text-tennis-green-dark mb-2 md:mb-4 tracking-wider leading-tight">
                       RAKO
                     </h1>
                     <div className="text-xl md:text-3xl lg:text-4xl font-orbitron font-bold text-tennis-yellow animate-pulse mb-2">
-                      Smart Tennis Gaming Platform
+                      Tennis Gaming Platform
                     </div>
                   </div>
                   
                   <p className="text-sm md:text-base lg:text-lg text-tennis-green-medium font-poppins max-w-2xl mx-auto leading-relaxed mb-4 md:mb-6 px-2">
-                    Track your progress, compete globally, and level up your tennis game with our revolutionary gaming platform.
+                    Track your progress, compete with players worldwide, and level up your tennis skills with our fun gaming platform.
                   </p>
                 </div>
               </CRTMonitor>
@@ -78,7 +78,7 @@ export default function Landing() {
             
             {/* Main CTA in Gaming Style - Mobile Optimized */}
             <div className="pb-4 md:pb-8 px-2 md:px-0">
-              <CRTMonitor title="LAUNCH RAKO PLATFORM" size="large">
+              <CRTMonitor title="START PLAYING RAKO" size="large">
                 <div className="text-center py-4 md:py-6 px-3 md:px-4 bg-white/95 backdrop-blur-sm rounded-lg">
                   <div className="space-y-3 md:space-y-4">
                     <Link to="/auth" className="block">
@@ -94,12 +94,12 @@ export default function Landing() {
                     
                     <div className="flex flex-col items-center space-y-2">
                       <p className="text-tennis-green-medium text-xs md:text-sm font-orbitron tracking-wider font-bold">
-                        [ STATUS: READY FOR LAUNCH ]
+                        [ STATUS: READY TO PLAY ]
                       </p>
                       <div className="flex items-center space-x-2">
                         <div className="w-2 h-2 bg-tennis-green-primary rounded-full animate-pulse" />
                         <span className="text-xs text-tennis-green-medium font-orbitron tracking-widest font-bold">
-                          RAKO SYSTEM ONLINE
+                          RAKO GAME ONLINE
                         </span>
                       </div>
                     </div>

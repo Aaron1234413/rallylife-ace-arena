@@ -16,7 +16,7 @@ export function MissionHeader() {
                 RAKO
               </h1>
               <p className="text-tennis-green-light text-xs md:text-sm font-orbitron tracking-widest">
-                SMART TENNIS GAMING
+                TENNIS GAMING PLATFORM
               </p>
             </div>
           </div>
@@ -25,7 +25,7 @@ export function MissionHeader() {
           <div className="hidden sm:flex items-center space-x-4 md:space-x-6">
             <div className="flex items-center space-x-2">
               <div className="w-2 h-2 md:w-3 md:h-3 bg-tennis-green-primary rounded-full animate-pulse shadow-[0_0_10px_rgba(155,255,155,0.8)]"></div>
-              <span className="text-tennis-green-primary font-orbitron text-xs md:text-sm tracking-wider font-bold">SYSTEM ONLINE</span>
+              <span className="text-tennis-green-primary font-orbitron text-xs md:text-sm tracking-wider font-bold">GAME ONLINE</span>
             </div>
             <div className="text-tennis-green-light font-orbitron text-xs md:text-sm tracking-wider hidden md:block">
               {new Date().toLocaleDateString()}

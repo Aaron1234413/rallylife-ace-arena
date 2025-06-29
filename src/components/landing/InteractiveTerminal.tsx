@@ -7,55 +7,55 @@ const COMMANDS = {
     response: [
       'Available commands:',
       '  help     - Show this help message',
-      '  status   - Check system status',
-      '  stats    - Display player statistics',
-      '  connect  - Connect to tennis network',
-      '  clear    - Clear terminal',
-      '  whoami   - Display user info'
+      '  status   - Check game status',
+      '  stats    - Display player stats',
+      '  connect  - Connect to tennis game',
+      '  clear    - Clear screen',
+      '  whoami   - Display player info'
     ]
   },
   status: {
-    description: 'Check system status',
+    description: 'Check game status',
     response: [
-      'TENNIS PROTOCOL - STATUS REPORT',
+      'TENNIS GAME - STATUS REPORT',
       '▓▓▓▓▓▓▓▓▓▓ 100%',
-      'Network: ONLINE',
+      'Game Server: ONLINE',
       'Players: 15,293 active',
       'Matches: 2,847 today',
-      'XP Pool: 98,456 available',
-      'System: OPERATIONAL'
+      'Points Pool: 98,456 available',
+      'Game Status: READY TO PLAY'
     ]
   },
   stats: {
     description: 'Display statistics',
     response: [
-      'GLOBAL TENNIS STATISTICS',
+      'GLOBAL TENNIS GAME STATS',
       '========================',
       'Total Matches Played: 1,847,293',
       'Active Players: 15,293',
-      'XP Distributed: 2,394,847',
-      'Average Match Duration: 47 minutes',
-      'Top Skill: Serve Accuracy (67%)'
+      'Points Distributed: 2,394,847',
+      'Average Match Time: 47 minutes',
+      'Top Skill: Serve Power (67%)'
     ]
   },
   connect: {
-    description: 'Connect to tennis network',
+    description: 'Connect to tennis game',
     response: [
-      'Connecting to Tennis Network...',
-      'Establishing secure connection...',
+      'Connecting to Tennis Game...',
+      'Finding players nearby...',
       '▓▓▓▓▓▓▓▓▓▓ Connected!',
-      'Welcome to the Tennis Protocol.',
-      'Ready for match coordination.'
+      'Welcome to RAKO Tennis.',
+      'Ready to start playing!'
     ]
   },
   whoami: {
-    description: 'Display user info',
+    description: 'Display player info',
     response: [
-      'User: Tennis Player',
-      'Clearance: Level 1',
+      'Player: Tennis Gamer',
+      'Level: Beginner',
       'Access: BASIC',
-      'Location: Tennis Network',
-      'Status: READY FOR PLAY'
+      'Location: Tennis Game World',
+      'Status: READY TO PLAY'
     ]
   }
 };
@@ -63,7 +63,7 @@ const COMMANDS = {
 export function InteractiveTerminal() {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<Array<{type: 'command' | 'response', content: string}>>([
-    { type: 'response', content: 'TENNIS PROTOCOL TERMINAL v2.0' },
+    { type: 'response', content: 'TENNIS GAME CONSOLE v2.0' },
     { type: 'response', content: 'Type "help" for available commands.' },
     { type: 'response', content: '' }
   ]);
@@ -89,8 +89,8 @@ export function InteractiveTerminal() {
 
     if (cmd === 'clear') {
       setHistory([
-        { type: 'response', content: 'TENNIS PROTOCOL TERMINAL v2.0' },
-        { type: 'response', content: 'Terminal cleared. Type "help" for commands.' },
+        { type: 'response', content: 'TENNIS GAME CONSOLE v2.0' },
+        { type: 'response', content: 'Console cleared. Type "help" for commands.' },
         { type: 'response', content: '' }
       ]);
     } else if (COMMANDS[cmd as keyof typeof COMMANDS]) {
@@ -128,7 +128,7 @@ export function InteractiveTerminal() {
       {/* Terminal Header */}
       <div className="bg-tennis-green-primary/10 border-b border-tennis-green-primary/30 px-3 py-2 flex items-center justify-between">
         <span className="text-tennis-green-primary text-xs font-orbitron tracking-wider">
-          TENNIS PROTOCOL TERMINAL
+          TENNIS GAME CONSOLE
         </span>
         <div className="flex space-x-1">
           <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
