@@ -6,17 +6,17 @@ export function MissionHeader() {
     <header className="relative z-20 border-b border-tennis-green-primary/60 bg-tennis-green-dark/90 backdrop-blur-sm">
       <div className="container mx-auto px-4 py-6">
         <div className="flex items-center justify-between">
-          {/* Mission Control Logo */}
+          {/* Tennis Protocol Logo */}
           <div className="flex items-center space-x-4">
             <div className="w-12 h-12 border-2 border-tennis-green-primary bg-tennis-green-primary/20 rounded-full flex items-center justify-center shadow-[0_0_15px_rgba(155,255,155,0.4)]">
               <span className="text-tennis-green-primary text-xl">🎾</span>
             </div>
             <div>
               <h1 className="text-2xl font-orbitron font-bold text-tennis-green-primary tracking-wider">
-                RAKO MISSION CONTROL
+                TENNIS PROTOCOL
               </h1>
               <p className="text-tennis-green-light text-sm font-orbitron tracking-widest">
-                TENNIS COMMAND CENTER
+                PERFORMANCE SYSTEM
               </p>
             </div>
           </div>
@@ -28,7 +28,7 @@ export function MissionHeader() {
               <span className="text-tennis-green-primary font-orbitron text-sm tracking-wider font-bold">SYSTEM ONLINE</span>
             </div>
             <div className="text-tennis-green-light font-orbitron text-sm tracking-wider">
-              STARDATE: {new Date().toLocaleDateString()}
+              {new Date().toLocaleDateString()}
             </div>
           </div>
         </div>

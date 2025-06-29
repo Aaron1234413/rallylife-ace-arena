@@ -57,13 +57,6 @@ export function PixelTennis() {
         }}
       />
 
-      {/* Score Display */}
-      <div className="absolute top-1 left-1/2 transform -translate-x-1/2">
-        <div className="text-tennis-green-primary text-xs font-orbitron tracking-wider bg-black/80 px-2 py-0.5 rounded border border-tennis-green-primary/30">
-          DEMO MODE
-        </div>
-      </div>
-
       {/* Retro Pixels Effect */}
       <div 
         className="absolute inset-0 opacity-20 pointer-events-none"

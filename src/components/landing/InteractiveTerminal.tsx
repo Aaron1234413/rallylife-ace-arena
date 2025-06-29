@@ -17,7 +17,7 @@ const COMMANDS = {
   status: {
     description: 'Check system status',
     response: [
-      'RAKO TENNIS PROTOCOL - STATUS REPORT',
+      'TENNIS PROTOCOL - STATUS REPORT',
       '▓▓▓▓▓▓▓▓▓▓ 100%',
       'Network: ONLINE',
       'Players: 15,293 active',
@@ -41,7 +41,7 @@ const COMMANDS = {
   connect: {
     description: 'Connect to tennis network',
     response: [
-      'Connecting to RAKO Tennis Network...',
+      'Connecting to Tennis Network...',
       'Establishing secure connection...',
       '▓▓▓▓▓▓▓▓▓▓ Connected!',
       'Welcome to the Tennis Protocol.',
@@ -51,11 +51,11 @@ const COMMANDS = {
   whoami: {
     description: 'Display user info',
     response: [
-      'User: Mission Control Operator',
-      'Clearance: Level 9',
-      'Access: FULL SPECTRUM',
-      'Location: Tennis Command Center',
-      'Status: READY FOR PROTOCOL'
+      'User: Tennis Player',
+      'Clearance: Level 1',
+      'Access: BASIC',
+      'Location: Tennis Network',
+      'Status: READY FOR PLAY'
     ]
   }
 };
@@ -63,7 +63,7 @@ const COMMANDS = {
 export function InteractiveTerminal() {
   const [input, setInput] = useState('');
   const [history, setHistory] = useState<Array<{type: 'command' | 'response', content: string}>>([
-    { type: 'response', content: 'RAKO TENNIS PROTOCOL TERMINAL v2.0' },
+    { type: 'response', content: 'TENNIS PROTOCOL TERMINAL v2.0' },
     { type: 'response', content: 'Type "help" for available commands.' },
     { type: 'response', content: '' }
   ]);
@@ -89,7 +89,7 @@ export function InteractiveTerminal() {
 
     if (cmd === 'clear') {
       setHistory([
-        { type: 'response', content: 'RAKO TENNIS PROTOCOL TERMINAL v2.0' },
+        { type: 'response', content: 'TENNIS PROTOCOL TERMINAL v2.0' },
         { type: 'response', content: 'Terminal cleared. Type "help" for commands.' },
         { type: 'response', content: '' }
       ]);
@@ -128,7 +128,7 @@ export function InteractiveTerminal() {
       {/* Terminal Header */}
       <div className="bg-tennis-green-primary/10 border-b border-tennis-green-primary/30 px-3 py-2 flex items-center justify-between">
         <span className="text-tennis-green-primary text-xs font-orbitron tracking-wider">
-          MISSION CONTROL TERMINAL
+          TENNIS PROTOCOL TERMINAL
         </span>
         <div className="flex space-x-1">
           <div className="w-2 h-2 bg-yellow-500 rounded-full"></div>
