@@ -123,112 +123,109 @@ export function ActionButton({
           !action.availability && "hover:scale-100 cursor-not-allowed"
         )}
       >
-        {/* Simplified Background - Solid Color instead of complex gradients */}
+        {/* Improved Background with consistent height */}
         <div className={cn(
-          "w-full relative overflow-hidden",
+          "w-full relative overflow-hidden min-h-[180px] flex flex-col",
           // Convert gradient colors to solid colors with better contrast
           action.id === 'match' && "bg-blue-600",
           action.id === 'training' && "bg-green-600", 
           action.id === 'social' && "bg-purple-600",
-          isMobile ? "p-4" : "p-5"
+          action.id === 'quick_recovery' && "bg-red-600",
+          isMobile ? "p-3" : "p-4"
         )}>
 
-          {/* Header Section */}
-          <div className={cn(
-            "flex items-start justify-between mb-3 relative z-10",
-            isMobile && "flex-col gap-2"
-          )}>
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-white/20 backdrop-blur-sm">
+          {/* Restructured Header - More compact */}
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 rounded-lg bg-white/20 backdrop-blur-sm">
                 <Icon 
-                  className="h-5 w-5 text-white" 
+                  className="h-4 w-4 text-white" 
                   aria-hidden="true"
                 />
               </div>
               
-              <div className="flex-1">
-                <h3 
-                  id={`action-${action.id}-title`}
-                  className={cn(
-                    "font-bold text-white mb-1",
-                    isMobile ? "text-lg" : "text-lg"
-                  )}
-                >
-                  {action.title}
-                </h3>
-                <div className="flex items-center gap-2">
-                  <Badge 
-                    variant="secondary" 
-                    className="text-xs bg-white/20 text-white border-white/30"
-                  >
-                    {getDifficultyLabel(action.difficulty || 'medium')}
-                  </Badge>
-                  {action.estimatedDuration && (
-                    <Badge 
-                      variant="secondary" 
-                      className="text-xs bg-white/20 text-white border-white/30"
-                    >
-                      <Clock className="h-3 w-3 mr-1" aria-hidden="true" />
-                      {action.estimatedDuration}min
-                    </Badge>
-                  )}
-                </div>
-              </div>
+              <h3 
+                id={`action-${action.id}-title`}
+                className="font-bold text-white text-base leading-tight"
+              >
+                {action.title}
+              </h3>
             </div>
           </div>
 
-          {/* Simplified Description */}
-          <p 
-            id={`action-${action.id}-description`}
-            className={cn(
-              "text-sm text-white/90 leading-relaxed mb-4",
-              isMobile && "text-base"
+          {/* Compact badges section */}
+          <div className="flex flex-wrap items-center gap-1 mb-2">
+            <Badge 
+              variant="secondary" 
+              className="text-xs bg-white/20 text-white border-white/30 px-2 py-0.5"
+            >
+              {getDifficultyLabel(action.difficulty || 'medium')}
+            </Badge>
+            {action.estimatedDuration && (
+              <Badge 
+                variant="secondary" 
+                className="text-xs bg-white/20 text-white border-white/30 px-2 py-0.5"
+              >
+                <Clock className="h-3 w-3 mr-1" aria-hidden="true" />
+                {action.estimatedDuration}min
+              </Badge>
             )}
-          >
-            {action.description}
-          </p>
+          </div>
 
-          {/* Clean Rewards Display */}
+          {/* Improved Description with better text sizing */}
+          <div className="flex-1 mb-3">
+            <p 
+              id={`action-${action.id}-description`}
+              className="text-xs leading-relaxed text-white/90 line-clamp-3"
+              style={{ 
+                display: '-webkit-box',
+                WebkitLineClamp: 3,
+                WebkitBoxOrient: 'vertical',
+                overflow: 'hidden'
+              }}
+            >
+              {action.description}
+            </p>
+          </div>
+
+          {/* Restructured Rewards - Horizontal layout for space efficiency */}
           <div 
-            className={cn(
-              "grid gap-3 text-sm",
-              isMobile ? "grid-cols-1" : "grid-cols-3"
-            )}
+            className="flex items-center justify-between gap-2 mt-auto"
             role="group"
             aria-label="Activity rewards"
           >
             <div 
-              className="flex items-center gap-2 bg-white/15 rounded-lg p-3"
+              className="flex items-center gap-1 bg-white/15 rounded px-2 py-1 flex-1"
               role="listitem"
             >
-              <Heart className="h-4 w-4 text-red-300" aria-hidden="true" />
-              <div>
-                <div className="text-white/70 text-xs">HP</div>
-                <div className="font-bold text-white text-lg">
+              <Heart className="h-3 w-3 text-red-300" aria-hidden="true" />
+              <div className="text-center">
+                <div className="text-white font-bold text-sm">
                   {action.rewards.hp > 0 ? '+' : ''}{action.rewards.hp}
                 </div>
+                <div className="text-white/70 text-xs">HP</div>
               </div>
             </div>
             
             <div 
-              className="flex items-center gap-2 bg-white/15 rounded-lg p-3"
+              className="flex items-center gap-1 bg-white/15 rounded px-2 py-1 flex-1"
               role="listitem"
             >
-              <Star className="h-4 w-4 text-blue-300" aria-hidden="true" />
-              <div>
+              <Star className="h-3 w-3 text-blue-300" aria-hidden="true" />
+              <div className="text-center">
+                <div className="text-white font-bold text-sm">+{action.rewards.xp}</div>
                 <div className="text-white/70 text-xs">XP</div>
-                <div className="font-bold text-white text-lg">+{action.rewards.xp}</div>
               </div>
             </div>
             
             <div 
-              className="flex items-center gap-2 bg-white/15 rounded-lg p-3"
+              className="flex items-center gap-1 bg-white/15 rounded px-2 py-1 flex-1"
               role="listitem"
             >
-              <Coins className="h-4 w-4 text-yellow-300" aria-hidden="true" />
-              <div>
+              <Coins className="h-3 w-3 text-yellow-300" aria-hidden="true" />
+              <div className="text-center">
+                <div className="text-white font-bold text-sm">+{action.rewards.tokens}</div>
                 <div className="text-white/70 text-xs">Tokens</div>
-                <div className="font-bold text-white text-lg">+{action.rewards.tokens}</div>
               </div>
             </div>
           </div>
