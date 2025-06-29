@@ -1,3 +1,4 @@
+
 import type { Config } from "tailwindcss";
 
 export default {
@@ -66,19 +67,21 @@ export default {
 					border: 'hsl(var(--sidebar-border))',
 					ring: 'hsl(var(--sidebar-ring))'
 				},
-				// Refined Tennis-specific colors with better contrast and sophistication
+				// Fresh Tennis Club Theme - Enhanced vibrant colors
 				tennis: {
 					green: {
-						// Softer, more muted greens
-						dark: 'hsl(var(--tennis-green-dark))',      // Darker for text/headers
-						medium: 'hsl(var(--tennis-green-medium))',  // Medium for accents
-						light: 'hsl(var(--tennis-green-light))',    // Light for backgrounds
-						primary: 'hsl(var(--tennis-green-primary))', // Main brand color
-						subtle: 'hsl(var(--tennis-green-subtle))',   // Very light for sections
-						accent: 'hsl(var(--tennis-green-accent))'    // For highlights
+						// Enhanced vibrant greens for Fresh Tennis Club theme
+						dark: 'hsl(var(--tennis-green-dark))',        // Deeper, richer
+						medium: 'hsl(var(--tennis-green-medium))',    // More vibrant
+						light: 'hsl(var(--tennis-green-light))',      // Brighter
+						primary: 'hsl(var(--tennis-green-primary))',  // Enhanced primary
+						subtle: 'hsl(var(--tennis-green-subtle))',    // Light sage
+						accent: 'hsl(var(--tennis-green-accent))',    // Vibrant accent
+						bg: 'hsl(var(--tennis-green-bg))',           // Main sage background
+						'bg-alt': 'hsl(var(--tennis-green-bg-alt))'  // Alternative background
 					},
 					yellow: {
-						DEFAULT: 'hsl(var(--tennis-yellow))',
+						DEFAULT: 'hsl(var(--tennis-yellow))',         // Lime-yellow energy
 						light: 'hsl(var(--tennis-yellow-light))',
 						dark: 'hsl(var(--tennis-yellow-dark))'
 					},

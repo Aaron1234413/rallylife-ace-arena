@@ -31,35 +31,39 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    /* Refined Tennis theme colors - softer, more sophisticated */
-    --tennis-green-dark: 155 25% 35%;      /* Deep forest green for text */
-    --tennis-green-medium: 155 20% 50%;    /* Muted green for accents */
-    --tennis-green-light: 155 15% 70%;     /* Soft green for borders */
-    --tennis-green-primary: 155 30% 45%;   /* Main brand color */
-    --tennis-green-subtle: 155 8% 95%;     /* Very light for backgrounds */
-    --tennis-green-accent: 155 35% 55%;    /* For highlights and CTAs */
+    /* Fresh Tennis Club Theme - Enhanced vibrant colors */
+    --tennis-green-dark: 155 35% 25%;        /* Deeper, richer green for text */
+    --tennis-green-medium: 155 45% 35%;      /* More vibrant medium green */
+    --tennis-green-light: 155 30% 55%;       /* Brighter light green */
+    --tennis-green-primary: 155 50% 40%;     /* Enhanced primary brand color */
+    --tennis-green-subtle: 155 25% 96%;      /* Very light sage background */
+    --tennis-green-accent: 155 60% 45%;      /* Vibrant accent color */
     
-    /* Enhanced tennis yellow - more sophisticated */
-    --tennis-yellow: 45 85% 65%;
-    --tennis-yellow-light: 45 90% 85%;
-    --tennis-yellow-dark: 45 80% 50%;
+    /* Fresh background colors */
+    --tennis-green-bg: 155 20% 97%;          /* Main sage background */
+    --tennis-green-bg-alt: 155 15% 94%;      /* Alternative background */
     
-    /* Professional neutral palette */
-    --tennis-neutral-50: 220 20% 98%;
-    --tennis-neutral-100: 220 15% 95%;
-    --tennis-neutral-200: 220 13% 91%;
-    --tennis-neutral-300: 220 12% 84%;
-    --tennis-neutral-400: 220 9% 60%;
-    --tennis-neutral-500: 220 9% 46%;
-    --tennis-neutral-600: 220 12% 35%;
-    --tennis-neutral-700: 220 16% 25%;
-    --tennis-neutral-800: 220 20% 15%;
-    --tennis-neutral-900: 220 25% 8%;
+    /* Enhanced tennis yellow - more lime/energy */
+    --tennis-yellow: 65 85% 60%;             /* Lime-yellow energy */
+    --tennis-yellow-light: 65 90% 80%;
+    --tennis-yellow-dark: 65 80% 45%;
     
-    /* HP and XP colors - improved contrast */
-    --hp-red: 0 65% 55%;
-    --hp-green: 155 50% 45%;
-    --xp-blue: 220 70% 55%;
+    /* Professional neutral palette with sage undertones */
+    --tennis-neutral-50: 155 15% 98%;
+    --tennis-neutral-100: 155 12% 96%;
+    --tennis-neutral-200: 155 10% 92%;
+    --tennis-neutral-300: 155 8% 86%;
+    --tennis-neutral-400: 155 6% 64%;
+    --tennis-neutral-500: 155 6% 48%;
+    --tennis-neutral-600: 155 8% 36%;
+    --tennis-neutral-700: 155 12% 26%;
+    --tennis-neutral-800: 155 16% 16%;
+    --tennis-neutral-900: 155 20% 9%;
+    
+    /* HP and XP colors - enhanced for better contrast */
+    --hp-red: 0 70% 50%;
+    --hp-green: 155 60% 40%;
+    --xp-blue: 220 75% 50%;
   }
 
   .dark {
@@ -96,7 +100,7 @@
   }
   
   body {
-    @apply bg-background text-foreground;
+    @apply bg-tennis-green-bg text-foreground;
     /* Enhanced typography base settings */
     font-family: 'Poppins', system-ui, -apple-system, sans-serif;
     font-weight: 400;
@@ -258,7 +262,7 @@
   font-weight: 500;
 }
 
-/* Refined Tennis theme utility classes with better accessibility */
+/* Enhanced Tennis theme utility classes with Fresh Tennis Club colors */
 .tennis-green-primary {
   color: hsl(var(--tennis-green-primary));
 }
@@ -305,6 +309,18 @@
 
 .bg-tennis-green-accent {
   background-color: hsl(var(--tennis-green-accent));
+}
+
+.tennis-green-bg {
+  color: hsl(var(--tennis-green-bg));
+}
+
+.bg-tennis-green-bg {
+  background-color: hsl(var(--tennis-green-bg));
+}
+
+.bg-tennis-green-bg-alt {
+  background-color: hsl(var(--tennis-green-bg-alt));
 }
 
 /* Enhanced animations with better performance */

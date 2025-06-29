@@ -39,7 +39,7 @@ export default function Search() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light">
+    <div className="min-h-screen bg-tennis-green-bg">
       {/* Header - Enhanced typography */}
       <div className="bg-white/95 backdrop-blur-sm border-b border-white/20 shadow-lg">
         <div className="container mx-auto px-4 py-6">
@@ -51,7 +51,7 @@ export default function Search() {
               <h1 className="orbitron-heading text-display text-tennis-green-dark">
                 Rako Search
               </h1>
-              <p className="poppins-body text-body text-tennis-green-dark/70">
+              <p className="poppins-body text-body text-tennis-green-medium">
                 Find players, coaches, and tournaments
               </p>
             </div>
@@ -65,13 +65,13 @@ export default function Search() {
               placeholder="Search for players, coaches, or tournaments..."
               value={searchQuery}
               onChange={(e) => handleSearch(e.target.value)}
-              className="poppins-body pl-12 h-14 text-body-lg border-tennis-green-bg/30 focus:border-tennis-green-primary focus:ring-tennis-green-primary bg-white/90 backdrop-blur-sm shadow-sm"
+              className="poppins-body pl-12 h-14 text-body-lg border-tennis-green-light focus:border-tennis-green-primary focus:ring-tennis-green-primary bg-white/90 backdrop-blur-sm shadow-sm"
             />
           </div>
 
           {/* Search Tabs - Enhanced typography */}
           <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-white/90 backdrop-blur-sm border border-tennis-green-bg/30 shadow-sm">
+            <TabsList className="grid w-full grid-cols-3 bg-white/90 backdrop-blur-sm border border-tennis-green-light shadow-sm">
               <TabsTrigger 
                 value="players" 
                 className="poppins-body data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white flex items-center gap-2"
@@ -117,13 +117,13 @@ export default function Search() {
 
             {/* Tournaments Tab - Enhanced typography */}
             <TabsContent value="tournaments" className="space-y-6 mt-6">
-              <Card className="bg-tennis-green-bg/30 border-tennis-green-bg/50">
+              <Card className="bg-tennis-green-subtle border-tennis-green-light">
                 <CardContent className="p-12 text-center">
                   <Trophy className="h-16 w-16 mx-auto text-tennis-green-medium mb-4" />
                   <h3 className="orbitron-heading text-heading-lg text-tennis-green-dark mb-3">
                     Tournament Search Coming Soon
                   </h3>
-                  <p className="poppins-body text-tennis-green-dark/70 text-body-lg">
+                  <p className="poppins-body text-tennis-green-medium text-body-lg">
                     We're working on bringing you comprehensive tournament search and registration features. 
                     Stay tuned for exciting competitive opportunities!
                   </p>
