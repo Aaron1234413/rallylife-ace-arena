@@ -20,7 +20,7 @@ export function AppNavigation() {
 
   // Basic navigation items available to all users
   const navItems = [
-    { path: '/', label: 'Dashboard', icon: Home },
+    { path: '/dashboard', label: 'Dashboard', icon: Home },
     { path: '/pulse', label: 'Pulse', icon: Bolt },
     { path: '/search', label: 'Search', icon: Search },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
@@ -37,7 +37,7 @@ export function AppNavigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center">
-            <Link to="/" className="text-xl font-bold text-tennis-green-dark">
+            <Link to="/dashboard" className="text-xl font-bold text-tennis-green-dark">
               🎾 Rako
             </Link>
           </div>
