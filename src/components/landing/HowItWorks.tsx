@@ -82,13 +82,13 @@ export function HowItWorks() {
               
               <div className="relative">
                 <div className="overflow-x-auto scrollbar-hide pb-4">
-                  <div className="flex gap-3 px-2" style={{ width: 'calc(100% + 80px)' }}>
+                  <div className="flex gap-2 px-1" style={{ width: 'calc(100% + 60px)' }}>
                     {steps.map((step, index) => {
                       const Icon = step.icon;
                       const isLast = index === steps.length - 1;
                       
                       return (
-                        <div key={step.number} className="flex-shrink-0 relative" style={{ width: 'calc(100vw - 120px)' }}>
+                        <div key={step.number} className="flex-shrink-0 relative" style={{ width: 'calc(100vw - 100px)' }}>
                           <div className={`
                             p-5 rounded-lg border-2 border-tennis-green-medium/30 
                             hover:border-tennis-green-primary/60 transition-all duration-300
@@ -192,12 +192,12 @@ export function HowItWorks() {
               
               <div className="relative">
                 <div className="overflow-x-auto scrollbar-hide pb-4">
-                  <div className="flex gap-3 px-2" style={{ width: 'calc(100% + 60px)' }}>
+                  <div className="flex gap-2 px-1" style={{ width: 'calc(100% + 60px)' }}>
                     {features.map((feature, index) => (
                       <div 
                         key={feature.name}
                         className="flex-shrink-0 text-center p-5 rounded-lg bg-tennis-green-subtle/20 border border-tennis-green-medium/20 hover:border-tennis-green-primary/40 transition-all duration-300 hover:scale-105 transform"
-                        style={{ width: 'calc(100vw - 140px)' }}
+                        style={{ width: 'calc(100vw - 120px)' }}
                       >
                         <div className="text-3xl mb-4">{feature.icon}</div>
                         <h4 className="font-orbitron font-bold text-tennis-green-dark mb-3 text-base">
