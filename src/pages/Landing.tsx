@@ -54,13 +54,12 @@ export default function Landing() {
                       RAKO
                     </h1>
                     <div className="text-xl md:text-3xl lg:text-4xl font-orbitron font-bold text-tennis-yellow animate-pulse mb-2">
-                      TENNIS PROTOCOL
+                      Smart Tennis Gaming Platform
                     </div>
                   </div>
                   
                   <p className="text-sm md:text-base lg:text-lg text-tennis-green-medium font-poppins max-w-2xl mx-auto leading-relaxed mb-4 md:mb-6 px-2">
-                    Mission Control for the ultimate tennis gaming experience. 
-                    Track performance, compete globally, level up your game.
+                    Track your progress, compete globally, and level up your tennis game with our revolutionary gaming platform.
                   </p>
                 </div>
               </CRTMonitor>
@@ -73,7 +72,7 @@ export default function Landing() {
             
             {/* Main CTA in Gaming Style - Mobile Optimized */}
             <div className="pb-4 md:pb-8 px-2 md:px-0">
-              <CRTMonitor title="LAUNCH RAKO PROTOCOL" size="large">
+              <CRTMonitor title="LAUNCH RAKO PLATFORM" size="large">
                 <div className="text-center py-4 md:py-6 px-3 md:px-4 bg-white/95 backdrop-blur-sm rounded-lg">
                   <div className="space-y-3 md:space-y-4">
                     <Link to="/auth" className="block">
@@ -82,7 +81,7 @@ export default function Landing() {
                         className="w-full md:w-auto bg-tennis-yellow hover:bg-tennis-yellow/90 text-tennis-green-dark font-orbitron text-base md:text-lg lg:text-xl px-4 md:px-8 lg:px-12 py-3 md:py-4 lg:py-6 rounded-none border-4 border-tennis-green-dark shadow-[0_0_20px_rgba(255,255,155,0.5)] hover:shadow-[0_0_30px_rgba(255,255,155,0.8)] transition-all duration-300 uppercase tracking-widest hover:scale-105 transform font-bold min-h-[3rem] md:min-h-[4rem]"
                       >
                         <span className="text-center leading-tight">
-                          ▶ INITIATE RAKO PROTOCOL
+                          ▶ START YOUR TENNIS JOURNEY
                         </span>
                       </Button>
                     </Link>
