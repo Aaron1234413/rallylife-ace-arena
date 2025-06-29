@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ParticleField } from '@/components/landing/ParticleField';
 import { EnhancedLandingPage } from '@/components/landing/EnhancedLandingPage';
+import { HowItWorks } from '@/components/landing/HowItWorks';
 
 export default function Landing() {
   return (
@@ -63,6 +64,11 @@ export default function Landing() {
                   </p>
                 </div>
               </CRTMonitor>
+            </div>
+            
+            {/* How It Works Section - NEW */}
+            <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+              <HowItWorks />
             </div>
             
             {/* Enhanced Live Data Section - Mobile Optimized */}
