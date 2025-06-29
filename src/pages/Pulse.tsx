@@ -60,24 +60,24 @@ const Pulse = () => {
   return (
     <div className="min-h-screen bg-tennis-neutral-50">
       <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
-        {/* Header Section - Enhanced typography with strategic colors */}
+        {/* Header Section - Enhanced typography */}
         <Card className="bg-white/95 backdrop-blur-sm border-tennis-neutral-200 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-tennis-primary to-tennis-secondary flex items-center justify-center">
+              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-tennis-green-primary to-tennis-green-accent flex items-center justify-center">
                 <Bolt className="h-4 w-4 text-white" />
               </div>
-              <span className="orbitron-heading text-heading-lg text-tennis-neutral-800">Pulse</span>
+              <span className="orbitron-heading text-heading-lg text-tennis-green-dark">Pulse</span>
             </CardTitle>
             <p className="poppins-body text-body text-tennis-neutral-600">
               Your activity timeline, achievements, and leaderboard standings
             </p>
           </CardHeader>
           <CardContent>
-            {/* Filters with strategic colors */}
+            {/* Filters */}
             <div className="flex flex-col sm:flex-row gap-4">
               <div className="flex items-center gap-2">
-                <span className="text-body-sm font-medium text-tennis-neutral-800">Time:</span>
+                <span className="text-body-sm font-medium text-tennis-green-dark">Time:</span>
                 <Select value={timeFilter} onValueChange={setTimeFilter}>
                   <SelectTrigger className="w-32 border-tennis-neutral-300">
                     <SelectValue />
@@ -92,7 +92,7 @@ const Pulse = () => {
               </div>
               
               <div className="flex items-center gap-2">
-                <span className="text-body-sm font-medium text-tennis-neutral-800">Activity:</span>
+                <span className="text-body-sm font-medium text-tennis-green-dark">Activity:</span>
                 <Select value={activityFilter} onValueChange={setActivityFilter}>
                   <SelectTrigger className="w-32 border-tennis-neutral-300">
                     <SelectValue />
@@ -110,16 +110,16 @@ const Pulse = () => {
           </CardContent>
         </Card>
 
-        {/* Activity Intelligence Widget - Strategic color usage */}
-        <Card className="bg-gradient-to-r from-white to-tennis-neutral-50 border-tennis-neutral-200 shadow-md backdrop-blur-sm">
+        {/* Activity Intelligence Widget - Enhanced typography */}
+        <Card className="bg-gradient-to-r from-white to-tennis-green-subtle border-tennis-neutral-200 shadow-md backdrop-blur-sm">
           <CardContent className="p-3 sm:p-4">
             <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
               <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-tennis-info to-tennis-info text-white shadow-md">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-tennis-green-primary to-tennis-green-accent text-white shadow-md">
                   <Clock className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="orbitron-heading font-bold text-tennis-neutral-800 text-heading-sm">
+                  <span className="orbitron-heading font-bold text-tennis-green-dark text-heading-sm">
                     Activity Intelligence
                   </span>
                   <p className="poppins-body text-tennis-neutral-600 mt-0.5 text-body-sm">
@@ -129,17 +129,17 @@ const Pulse = () => {
               </div>
               <div className="flex flex-wrap gap-2 sm:gap-4 text-sm">
                 <div className="flex items-center gap-2 bg-white/90 rounded-lg px-3 py-1.5 shadow-sm border border-tennis-neutral-200 backdrop-blur-sm">
-                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-tennis-success" />
+                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-tennis-green-accent" />
                   <div>
                     <div className="text-caption text-tennis-neutral-500">This Week</div>
-                    <div className="font-bold text-tennis-neutral-800 text-body-sm">{activityIntelligence.weeklyCount}</div>
+                    <div className="font-bold text-tennis-green-dark text-body-sm">{activityIntelligence.weeklyCount}</div>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 bg-white/90 rounded-lg px-3 py-1.5 shadow-sm border border-tennis-neutral-200 backdrop-blur-sm">
                   <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-tennis-yellow-dark" />
                   <div>
                     <div className="text-caption text-tennis-neutral-500">Energy</div>
-                    <div className="font-bold text-tennis-neutral-800 text-body-sm">{activityIntelligence.energyLevel}</div>
+                    <div className="font-bold text-tennis-green-dark text-body-sm">{activityIntelligence.energyLevel}</div>
                   </div>
                 </div>
                 {activityIntelligence.hoursSinceLastActivity > 24 && (
@@ -156,7 +156,7 @@ const Pulse = () => {
           </CardContent>
         </Card>
 
-        {/* Main Content Layout with strategic colors */}
+        {/* Main Content Layout */}
         <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
           {/* Left Column - Activity Timeline (60% on desktop) */}
           <div className="lg:col-span-3">
@@ -170,10 +170,10 @@ const Pulse = () => {
 
           {/* Right Column - Achievements and Leaderboard (40% on desktop) */}
           <div className="lg:col-span-2 space-y-6">
-            {/* Achievements Section - Yellow for achievements */}
+            {/* Achievements Section - Enhanced typography */}
             <Card className="bg-white/95 backdrop-blur-sm border-tennis-neutral-200 shadow-lg">
               <CardHeader>
-                <CardTitle className="orbitron-heading text-heading-md text-tennis-neutral-800">
+                <CardTitle className="orbitron-heading text-heading-md text-tennis-green-dark">
                   Recent Achievements
                 </CardTitle>
               </CardHeader>
@@ -186,7 +186,7 @@ const Pulse = () => {
                   <div className="mt-4 text-center">
                     <a 
                       href="/achievements" 
-                      className="poppins-body text-body-sm text-tennis-secondary hover:text-tennis-primary font-medium transition-colors"
+                      className="poppins-body text-body-sm text-tennis-green-accent hover:text-tennis-green-primary font-medium transition-colors"
                     >
                       View All Achievements →
                     </a>
@@ -195,10 +195,10 @@ const Pulse = () => {
               </CardContent>
             </Card>
 
-            {/* Leaderboard Section - Blue for informational elements */}
+            {/* Leaderboard Section - Enhanced typography */}
             <Card className="bg-white/95 backdrop-blur-sm border-tennis-neutral-200 shadow-lg">
               <CardHeader>
-                <CardTitle className="orbitron-heading text-heading-md text-tennis-neutral-800">
+                <CardTitle className="orbitron-heading text-heading-md text-tennis-green-dark">
                   Top Players
                 </CardTitle>
               </CardHeader>

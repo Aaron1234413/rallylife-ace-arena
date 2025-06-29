@@ -1,3 +1,4 @@
+
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -30,55 +31,32 @@
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
 
-    /* Strategic Tennis Color System */
-    /* PRIMARY GREEN - Only for Primary CTAs and Success States */
-    --tennis-green-primary: 155 50% 40%;     /* Deep professional green for main CTAs */
-    --tennis-green-primary-hover: 155 50% 35%; /* Darker on hover */
+    /* Refined Tennis theme colors - softer, more sophisticated */
+    --tennis-green-dark: 155 25% 35%;      /* Deep forest green for text */
+    --tennis-green-medium: 155 20% 50%;    /* Muted green for accents */
+    --tennis-green-light: 155 15% 70%;     /* Soft green for borders */
+    --tennis-green-primary: 155 30% 45%;   /* Main brand color */
+    --tennis-green-subtle: 155 8% 95%;     /* Very light for backgrounds */
+    --tennis-green-accent: 155 35% 55%;    /* For highlights and CTAs */
     
-    /* SECONDARY GREEN - For Hover States and Secondary Actions */
-    --tennis-green-secondary: 155 35% 50%;   /* Lighter green for secondary actions */
-    --tennis-green-secondary-hover: 155 40% 45%; /* Medium green for hover */
+    /* Enhanced tennis yellow - more sophisticated */
+    --tennis-yellow: 45 85% 65%;
+    --tennis-yellow-light: 45 90% 85%;
+    --tennis-yellow-dark: 45 80% 50%;
     
-    /* TENNIS YELLOW - For Highlights, Achievements, and Important Metrics */
-    --tennis-yellow: 45 95% 60%;             /* Bright tennis ball yellow */
-    --tennis-yellow-light: 45 90% 75%;       /* Light yellow for backgrounds */
-    --tennis-yellow-dark: 45 85% 45%;        /* Dark yellow for text */
+    /* Professional neutral palette */
+    --tennis-neutral-50: 220 20% 98%;
+    --tennis-neutral-100: 220 15% 95%;
+    --tennis-neutral-200: 220 13% 91%;
+    --tennis-neutral-300: 220 12% 84%;
+    --tennis-neutral-400: 220 9% 60%;
+    --tennis-neutral-500: 220 9% 46%;
+    --tennis-neutral-600: 220 12% 35%;
+    --tennis-neutral-700: 220 16% 25%;
+    --tennis-neutral-800: 220 20% 15%;
+    --tennis-neutral-900: 220 25% 8%;
     
-    /* NEUTRAL BASE - Gray/White for Most Content Backgrounds */
-    --tennis-neutral-50: 220 20% 98%;        /* Very light background */
-    --tennis-neutral-100: 220 15% 95%;       /* Light background */
-    --tennis-neutral-200: 220 13% 91%;       /* Border color */
-    --tennis-neutral-300: 220 12% 84%;       /* Subtle borders */
-    --tennis-neutral-400: 220 9% 60%;        /* Muted text */
-    --tennis-neutral-500: 220 9% 46%;        /* Regular text */
-    --tennis-neutral-600: 220 12% 35%;       /* Dark text */
-    --tennis-neutral-700: 220 16% 25%;       /* Darker text */
-    --tennis-neutral-800: 220 20% 15%;       /* Very dark text */
-    --tennis-neutral-900: 220 25% 8%;        /* Almost black */
-    
-    /* COLOR CODING - Different Colors for Different Content Types */
-    --tennis-blue-info: 220 70% 55%;         /* Blue for informational content */
-    --tennis-blue-info-light: 220 60% 85%;   /* Light blue backgrounds */
-    --tennis-blue-info-dark: 220 80% 35%;    /* Dark blue text */
-    
-    /* HP RED - For Health/HP Related Content */
-    --tennis-red-hp: 0 70% 55%;              /* Red for HP content */
-    --tennis-red-hp-light: 0 60% 85%;        /* Light red backgrounds */
-    --tennis-red-hp-dark: 0 80% 35%;         /* Dark red text */
-    
-    /* SUCCESS GREEN - Different from primary, for success states */
-    --tennis-green-success: 155 60% 45%;     /* Success green */
-    --tennis-green-success-light: 155 50% 85%; /* Light success backgrounds */
-    --tennis-green-success-dark: 155 70% 25%; /* Dark success text */
-    
-    /* LEGACY COLORS - Keep for backward compatibility but discourage use */
-    --tennis-green-dark: 155 25% 35%;
-    --tennis-green-medium: 155 20% 50%;
-    --tennis-green-light: 155 15% 70%;
-    --tennis-green-subtle: 155 8% 95%;
-    --tennis-green-accent: 155 35% 55%;
-    
-    /* Enhanced neutral palette for better contrast */
+    /* HP and XP colors - improved contrast */
     --hp-red: 0 65% 55%;
     --hp-green: 155 50% 45%;
     --xp-blue: 220 70% 55%;
@@ -280,153 +258,53 @@
   font-weight: 500;
 }
 
-/* Strategic Tennis Color Utility Classes */
-
-/* PRIMARY GREEN - Only for Primary CTAs and Success States */
-.tennis-primary {
+/* Refined Tennis theme utility classes with better accessibility */
+.tennis-green-primary {
   color: hsl(var(--tennis-green-primary));
 }
 
-.bg-tennis-primary {
+.bg-tennis-green-primary {
   background-color: hsl(var(--tennis-green-primary));
 }
 
-.hover\:bg-tennis-primary:hover {
-  background-color: hsl(var(--tennis-green-primary-hover));
+.tennis-green-medium {
+  color: hsl(var(--tennis-green-medium));
 }
 
-.border-tennis-primary {
-  border-color: hsl(var(--tennis-green-primary));
+.bg-tennis-green-medium {
+  background-color: hsl(var(--tennis-green-medium));
 }
 
-/* SECONDARY GREEN - For Hover States and Secondary Actions */
-.tennis-secondary {
-  color: hsl(var(--tennis-green-secondary));
+.tennis-green-light {
+  color: hsl(var(--tennis-green-light));
 }
 
-.bg-tennis-secondary {
-  background-color: hsl(var(--tennis-green-secondary));
+.bg-tennis-green-light {
+  background-color: hsl(var(--tennis-green-light));
 }
 
-.hover\:bg-tennis-secondary:hover {
-  background-color: hsl(var(--tennis-green-secondary-hover));
+.tennis-green-dark {
+  color: hsl(var(--tennis-green-dark));
 }
 
-.border-tennis-secondary {
-  border-color: hsl(var(--tennis-green-secondary));
+.bg-tennis-green-dark {
+  background-color: hsl(var(--tennis-green-dark));
 }
 
-/* TENNIS YELLOW - For Highlights, Achievements, and Important Metrics */
-.tennis-yellow {
-  color: hsl(var(--tennis-yellow-dark));
+.tennis-green-subtle {
+  color: hsl(var(--tennis-green-subtle));
 }
 
-.bg-tennis-yellow {
-  background-color: hsl(var(--tennis-yellow));
+.bg-tennis-green-subtle {
+  background-color: hsl(var(--tennis-green-subtle));
 }
 
-.bg-tennis-yellow-light {
-  background-color: hsl(var(--tennis-yellow-light));
+.tennis-green-accent {
+  color: hsl(var(--tennis-green-accent));
 }
 
-.text-tennis-yellow-dark {
-  color: hsl(var(--tennis-yellow-dark));
-}
-
-.border-tennis-yellow {
-  border-color: hsl(var(--tennis-yellow));
-}
-
-/* NEUTRAL BASE - Gray/White for Most Content Backgrounds */
-.bg-tennis-neutral-50 {
-  background-color: hsl(var(--tennis-neutral-50));
-}
-
-.bg-tennis-neutral-100 {
-  background-color: hsl(var(--tennis-neutral-100));
-}
-
-.bg-tennis-neutral-200 {
-  background-color: hsl(var(--tennis-neutral-200));
-}
-
-.text-tennis-neutral-400 {
-  color: hsl(var(--tennis-neutral-400));
-}
-
-.text-tennis-neutral-500 {
-  color: hsl(var(--tennis-neutral-500));
-}
-
-.text-tennis-neutral-600 {
-  color: hsl(var(--tennis-neutral-600));
-}
-
-.text-tennis-neutral-700 {
-  color: hsl(var(--tennis-neutral-700));
-}
-
-.text-tennis-neutral-800 {
-  color: hsl(var(--tennis-neutral-800));
-}
-
-.border-tennis-neutral-200 {
-  border-color: hsl(var(--tennis-neutral-200));
-}
-
-.border-tennis-neutral-300 {
-  border-color: hsl(var(--tennis-neutral-300));
-}
-
-/* COLOR CODING - Different Colors for Different Content Types */
-.tennis-info {
-  color: hsl(var(--tennis-blue-info-dark));
-}
-
-.bg-tennis-info {
-  background-color: hsl(var(--tennis-blue-info));
-}
-
-.bg-tennis-info-light {
-  background-color: hsl(var(--tennis-blue-info-light));
-}
-
-.border-tennis-info {
-  border-color: hsl(var(--tennis-blue-info));
-}
-
-/* HP RED - For Health/HP Related Content */
-.tennis-hp {
-  color: hsl(var(--tennis-red-hp-dark));
-}
-
-.bg-tennis-hp {
-  background-color: hsl(var(--tennis-red-hp));
-}
-
-.bg-tennis-hp-light {
-  background-color: hsl(var(--tennis-red-hp-light));
-}
-
-.border-tennis-hp {
-  border-color: hsl(var(--tennis-red-hp));
-}
-
-/* SUCCESS GREEN - Different from primary, for success states */
-.tennis-success {
-  color: hsl(var(--tennis-green-success-dark));
-}
-
-.bg-tennis-success {
-  background-color: hsl(var(--tennis-green-success));
-}
-
-.bg-tennis-success-light {
-  background-color: hsl(var(--tennis-green-success-light));
-}
-
-.border-tennis-success {
-  border-color: hsl(var(--tennis-green-success));
+.bg-tennis-green-accent {
+  background-color: hsl(var(--tennis-green-accent));
 }
 
 /* Enhanced animations with better performance */
@@ -667,11 +545,11 @@
 
 /* High contrast mode support */
 @media (prefers-contrast: high) {
-  .tennis-primary {
+  .tennis-green-primary {
     color: #000;
   }
   
-  .bg-tennis-primary {
+  .bg-tennis-green-primary {
     background-color: #000;
   }
   

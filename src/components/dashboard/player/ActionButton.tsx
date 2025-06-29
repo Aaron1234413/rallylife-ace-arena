@@ -68,38 +68,6 @@ export function ActionButton({
     }
   };
 
-  // Strategic color mapping
-  const getActionColors = (actionId: string) => {
-    switch (actionId) {
-      case 'match':
-        return {
-          bg: 'bg-tennis-primary',
-          hoverBg: 'hover:bg-tennis-primary',
-          text: 'text-white'
-        };
-      case 'training':
-        return {
-          bg: 'bg-tennis-secondary',
-          hoverBg: 'hover:bg-tennis-secondary',
-          text: 'text-white'
-        };
-      case 'social':
-        return {
-          bg: 'bg-tennis-info',
-          hoverBg: 'hover:bg-tennis-info',
-          text: 'text-white'
-        };
-      default:
-        return {
-          bg: 'bg-tennis-neutral-600',
-          hoverBg: 'hover:bg-tennis-neutral-700',
-          text: 'text-white'
-        };
-    }
-  };
-
-  const actionColors = getActionColors(action.id);
-
   return (
     <div 
       className={cn(
@@ -118,7 +86,7 @@ export function ActionButton({
           role="img"
           aria-label="AI Recommended Activity"
         >
-          <Badge className="bg-tennis-yellow text-tennis-yellow-dark border-0 shadow-md px-2 py-1 text-xs">
+          <Badge className="bg-purple-600 text-white border-0 shadow-md px-2 py-1 text-xs">
             AI Recommended
           </Badge>
         </div>
@@ -133,7 +101,7 @@ export function ActionButton({
           <Badge 
             className={cn(
               "text-xs font-medium border shadow-sm px-2 py-1",
-              action.urgency === 'high' && "bg-tennis-hp-light text-tennis-hp border-tennis-hp",
+              action.urgency === 'high' && "bg-red-50 text-red-700 border-red-200",
               action.urgency === 'medium' && "bg-orange-50 text-orange-700 border-orange-200"
             )}
           >
@@ -155,10 +123,13 @@ export function ActionButton({
           !action.availability && "hover:scale-100 cursor-not-allowed"
         )}
       >
-        {/* Strategic Background Colors */}
+        {/* Simplified Background - Solid Color instead of complex gradients */}
         <div className={cn(
           "w-full relative overflow-hidden",
-          actionColors.bg,
+          // Convert gradient colors to solid colors with better contrast
+          action.id === 'match' && "bg-blue-600",
+          action.id === 'training' && "bg-green-600", 
+          action.id === 'social' && "bg-purple-600",
           isMobile ? "p-4" : "p-5"
         )}>
 
@@ -217,7 +188,7 @@ export function ActionButton({
             {action.description}
           </p>
 
-          {/* Clean Rewards Display with Strategic Colors */}
+          {/* Clean Rewards Display */}
           <div 
             className={cn(
               "grid gap-3 text-sm",
@@ -230,7 +201,7 @@ export function ActionButton({
               className="flex items-center gap-2 bg-white/15 rounded-lg p-3"
               role="listitem"
             >
-              <Heart className="h-4 w-4 text-tennis-hp-light" aria-hidden="true" />
+              <Heart className="h-4 w-4 text-red-300" aria-hidden="true" />
               <div>
                 <div className="text-white/70 text-xs">HP</div>
                 <div className="font-bold text-white text-lg">
@@ -243,7 +214,7 @@ export function ActionButton({
               className="flex items-center gap-2 bg-white/15 rounded-lg p-3"
               role="listitem"
             >
-              <Star className="h-4 w-4 text-tennis-yellow-light" aria-hidden="true" />
+              <Star className="h-4 w-4 text-blue-300" aria-hidden="true" />
               <div>
                 <div className="text-white/70 text-xs">XP</div>
                 <div className="font-bold text-white text-lg">+{action.rewards.xp}</div>
@@ -290,7 +261,7 @@ export function ActionButton({
             >
               <div className="text-center text-white p-4">
                 <Activity 
-                  className="h-8 w-8 mx-auto mb-2 text-tennis-hp" 
+                  className="h-8 w-8 mx-auto mb-2 text-red-400" 
                   aria-hidden="true"
                 />
                 <p className="text-sm font-medium">Not Available</p>
