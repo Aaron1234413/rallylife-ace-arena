@@ -68,48 +68,67 @@ export function HowItWorks() {
             </p>
           </div>
 
-          {/* Steps - Mobile Horizontal Scroll */}
+          {/* Steps - Mobile Horizontal Scroll with Visual Cues */}
           <div className="mb-10 md:mb-14">
-            {/* Mobile Horizontal Scroll */}
-            <div className="md:hidden overflow-x-auto pb-4">
-              <div className="flex gap-4 min-w-max px-2">
-                {steps.map((step, index) => {
-                  const Icon = step.icon;
-                  const isLast = index === steps.length - 1;
-                  
-                  return (
-                    <div key={step.number} className="flex-shrink-0 w-72 relative">
-                      <div className={`
-                        p-5 rounded-lg border-2 border-tennis-green-medium/30 
-                        hover:border-tennis-green-primary/60 transition-all duration-300
-                        hover:scale-105 transform ${step.bgColor} h-full
-                      `}>
-                        {/* Step Number */}
-                        <div className="flex items-center justify-between mb-4">
-                          <div className="w-10 h-10 rounded-full bg-tennis-green-dark text-white font-orbitron font-bold flex items-center justify-center text-base">
-                            {step.number}
-                          </div>
-                          <Icon className={`h-7 w-7 ${step.color}`} />
-                        </div>
-                        
-                        {/* Content */}
-                        <h3 className="text-lg font-orbitron font-bold text-tennis-green-dark mb-3">
-                          {step.title}
-                        </h3>
-                        <p className="text-sm text-tennis-green-medium font-poppins leading-relaxed">
-                          {step.description}
-                        </p>
-                      </div>
+            {/* Mobile Horizontal Scroll with Peek */}
+            <div className="md:hidden">
+              {/* Scroll Indicator Text */}
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <span className="text-xs text-tennis-green-medium font-orbitron tracking-wider font-bold">
+                  SWIPE TO EXPLORE STEPS
+                </span>
+                <ArrowRight className="h-3 w-3 text-tennis-green-primary animate-pulse" />
+              </div>
+              
+              <div className="relative">
+                <div className="overflow-x-auto scrollbar-hide pb-4">
+                  <div className="flex gap-3 px-2" style={{ width: 'calc(100% + 80px)' }}>
+                    {steps.map((step, index) => {
+                      const Icon = step.icon;
+                      const isLast = index === steps.length - 1;
                       
-                      {/* Arrow for mobile */}
-                      {!isLast && (
-                        <div className="absolute top-1/2 -right-2 transform -translate-y-1/2 z-10">
-                          <ArrowRight className="h-4 w-4 text-tennis-green-primary animate-pulse" />
+                      return (
+                        <div key={step.number} className="flex-shrink-0 relative" style={{ width: 'calc(100vw - 120px)' }}>
+                          <div className={`
+                            p-5 rounded-lg border-2 border-tennis-green-medium/30 
+                            hover:border-tennis-green-primary/60 transition-all duration-300
+                            hover:scale-105 transform ${step.bgColor} h-full
+                          `}>
+                            {/* Step Number */}
+                            <div className="flex items-center justify-between mb-4">
+                              <div className="w-10 h-10 rounded-full bg-tennis-green-dark text-white font-orbitron font-bold flex items-center justify-center text-base">
+                                {step.number}
+                              </div>
+                              <Icon className={`h-7 w-7 ${step.color}`} />
+                            </div>
+                            
+                            {/* Content */}
+                            <h3 className="text-lg font-orbitron font-bold text-tennis-green-dark mb-3">
+                              {step.title}
+                            </h3>
+                            <p className="text-sm text-tennis-green-medium font-poppins leading-relaxed">
+                              {step.description}
+                            </p>
+                          </div>
+                          
+                          {/* Arrow for mobile */}
+                          {!isLast && (
+                            <div className="absolute top-1/2 -right-1 transform -translate-y-1/2 z-10">
+                              <ArrowRight className="h-4 w-4 text-tennis-green-primary animate-pulse" />
+                            </div>
+                          )}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
+                      );
+                    })}
+                  </div>
+                </div>
+                
+                {/* Progress Dots */}
+                <div className="flex justify-center gap-2 mt-3">
+                  {steps.map((_, index) => (
+                    <div key={index} className="w-2 h-2 rounded-full bg-tennis-green-medium/30" />
+                  ))}
+                </div>
               </div>
             </div>
 
@@ -155,29 +174,49 @@ export function HowItWorks() {
             </div>
           </div>
 
-          {/* Key Features Preview */}
+          {/* Key Features Preview with Enhanced Mobile UX */}
           <div className="border-t border-tennis-green-medium/30 pt-8 md:pt-10">
             <h3 className="text-xl md:text-2xl font-orbitron font-bold text-tennis-green-dark text-center mb-8 md:mb-10">
               What You'll Experience
             </h3>
             
-            {/* Mobile Horizontal Scroll */}
-            <div className="md:hidden overflow-x-auto pb-4">
-              <div className="flex gap-4 min-w-max px-2">
-                {features.map((feature) => (
-                  <div 
-                    key={feature.name}
-                    className="flex-shrink-0 w-64 text-center p-5 rounded-lg bg-tennis-green-subtle/20 border border-tennis-green-medium/20 hover:border-tennis-green-primary/40 transition-all duration-300 hover:scale-105 transform"
-                  >
-                    <div className="text-3xl mb-4">{feature.icon}</div>
-                    <h4 className="font-orbitron font-bold text-tennis-green-dark mb-3 text-base">
-                      {feature.name}
-                    </h4>
-                    <p className="text-xs text-tennis-green-medium font-poppins leading-relaxed">
-                      {feature.description}
-                    </p>
+            {/* Mobile Horizontal Scroll with Peek */}
+            <div className="md:hidden">
+              {/* Scroll Indicator Text */}
+              <div className="flex items-center justify-center gap-2 mb-4">
+                <span className="text-xs text-tennis-green-medium font-orbitron tracking-wider font-bold">
+                  SCROLL FOR MORE FEATURES
+                </span>
+                <ArrowRight className="h-3 w-3 text-tennis-green-primary animate-pulse" />
+              </div>
+              
+              <div className="relative">
+                <div className="overflow-x-auto scrollbar-hide pb-4">
+                  <div className="flex gap-3 px-2" style={{ width: 'calc(100% + 60px)' }}>
+                    {features.map((feature, index) => (
+                      <div 
+                        key={feature.name}
+                        className="flex-shrink-0 text-center p-5 rounded-lg bg-tennis-green-subtle/20 border border-tennis-green-medium/20 hover:border-tennis-green-primary/40 transition-all duration-300 hover:scale-105 transform"
+                        style={{ width: 'calc(100vw - 140px)' }}
+                      >
+                        <div className="text-3xl mb-4">{feature.icon}</div>
+                        <h4 className="font-orbitron font-bold text-tennis-green-dark mb-3 text-base">
+                          {feature.name}
+                        </h4>
+                        <p className="text-xs text-tennis-green-medium font-poppins leading-relaxed">
+                          {feature.description}
+                        </p>
+                      </div>
+                    ))}
                   </div>
-                ))}
+                </div>
+                
+                {/* Progress Dots */}
+                <div className="flex justify-center gap-2 mt-3">
+                  {features.map((_, index) => (
+                    <div key={index} className="w-2 h-2 rounded-full bg-tennis-green-medium/30" />
+                  ))}
+                </div>
               </div>
             </div>
 
