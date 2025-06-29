@@ -10,7 +10,8 @@ import {
   Moon,
   Activity,
   Target,
-  CheckCircle
+  CheckCircle,
+  Sparkles
 } from 'lucide-react';
 
 interface SmartRecommendationsProps {
@@ -101,15 +102,44 @@ export function SmartRecommendations({
 
   const recommendations = getSmartRecommendations();
 
+  // Get contextual status info
+  const getContextualStatus = () => {
+    const { recommendations: recData } = contextualData;
+    const statuses = [];
+    
+    if (recData.energy) {
+      statuses.push({
+        label: `${recData.energy} energy`,
+        color: recData.energy === 'high' ? 'bg-green-100 text-green-700' : 
+               recData.energy === 'low' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'
+      });
+    }
+    
+    if (recData.motivation) {
+      statuses.push({
+        label: `${recData.motivation} motivation`,
+        color: recData.motivation === 'high' ? 'bg-blue-100 text-blue-700' : 
+               recData.motivation === 'low' ? 'bg-gray-100 text-gray-700' : 'bg-purple-100 text-purple-700'
+      });
+    }
+    
+    return statuses;
+  };
+
+  const contextualStatuses = getContextualStatus();
+
   if (recommendations.length === 0) {
     return (
-      <Card className="bg-green-50 border-green-200">
+      <Card className="bg-gradient-to-r from-green-50 to-emerald-50 border-green-200">
         <CardContent className="p-4">
           <div className="flex items-center gap-3">
-            <CheckCircle className="h-5 w-5 text-green-500" />
+            <div className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-green-500" />
+              <CheckCircle className="h-5 w-5 text-green-500" />
+            </div>
             <div>
-              <h3 className="font-semibold text-green-700">Perfect Balance!</h3>
-              <p className="text-sm text-green-600">
+              <h3 className="font-semibold text-green-700 text-sm">Perfect Balance!</h3>
+              <p className="text-xs text-green-600">
                 Your stats look great. Choose any activity that inspires you!
               </p>
             </div>
@@ -121,46 +151,79 @@ export function SmartRecommendations({
 
   return (
     <div className="space-y-3">
-      {recommendations.map((rec) => {
-        const Icon = rec.icon;
+      {/* Compact Header with Integrated Status */}
+      <div className="flex items-start justify-between gap-3 mb-4">
+        <div className="flex-1">
+          <div className="flex items-center gap-2 mb-2">
+            <Sparkles className="h-4 w-4 text-purple-500" />
+            <h3 className="font-semibold text-gray-900 text-sm">AI Smart Recommendations</h3>
+          </div>
+          <p className="text-xs text-gray-600 leading-relaxed">
+            Personalized insights based on your current state
+          </p>
+        </div>
         
-        return (
-          <Card 
-            key={rec.id}
-            className={cn(
-              "cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-[1.01]",
-              "border-l-4", rec.bgColor, rec.borderColor
-            )}
-            onClick={() => onRecommendationClick(rec.id)}
-          >
-            <CardContent className="p-4">
-              <div className="flex items-start gap-3">
-                <div className={cn("p-2 rounded-lg", rec.color)}>
-                  <Icon className="h-4 w-4 text-white" aria-hidden="true" />
-                </div>
-                
-                <div className="flex-1">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h3 className={cn("font-semibold", rec.textColor)}>
-                      {rec.title}
-                    </h3>
-                    <Badge 
-                      variant="secondary" 
-                      className={cn("text-xs", rec.bgColor, rec.textColor, "border-0")}
-                    >
-                      AI Insight
-                    </Badge>
+        {/* Contextual Status Badges - Integrated with Header */}
+        {contextualStatuses.length > 0 && (
+          <div className="flex flex-wrap gap-1">
+            {contextualStatuses.map((status, index) => (
+              <Badge 
+                key={index}
+                variant="secondary" 
+                className={cn("text-xs px-2 py-1 border-0", status.color)}
+              >
+                {status.label}
+              </Badge>
+            ))}
+          </div>
+        )}
+      </div>
+
+      {/* Compact Recommendation Cards */}
+      <div className="grid gap-2">
+        {recommendations.map((rec) => {
+          const Icon = rec.icon;
+          
+          return (
+            <Card 
+              key={rec.id}
+              className={cn(
+                "cursor-pointer transition-all duration-300 hover:shadow-md hover:scale-[1.01]",
+                "border-l-4", rec.bgColor, rec.borderColor
+              )}
+              onClick={() => onRecommendationClick(rec.id)}
+            >
+              <CardContent className="p-3">
+                <div className="flex items-center gap-3">
+                  {/* Compact Icon */}
+                  <div className={cn("p-2 rounded-lg shrink-0", rec.color)}>
+                    <Icon className="h-4 w-4 text-white" aria-hidden="true" />
                   </div>
                   
-                  <p className="text-sm text-gray-600">
-                    {rec.description}
-                  </p>
+                  {/* Content Area - Optimized Layout */}
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center justify-between gap-2 mb-1">
+                      <h4 className={cn("font-semibold text-sm truncate", rec.textColor)}>
+                        {rec.title}
+                      </h4>
+                      <Badge 
+                        variant="secondary" 
+                        className={cn("text-xs shrink-0", rec.bgColor, rec.textColor, "border-0")}
+                      >
+                        AI Insight
+                      </Badge>
+                    </div>
+                    
+                    <p className="text-xs text-gray-600 line-clamp-2">
+                      {rec.description}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            </CardContent>
-          </Card>
-        );
-      })}
+              </CardContent>
+            </Card>
+          );
+        })}
+      </div>
     </div>
   );
 }
