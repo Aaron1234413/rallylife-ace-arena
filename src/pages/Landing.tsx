@@ -4,7 +4,6 @@ import { StarField } from '@/components/landing/StarField';
 import { MissionHeader } from '@/components/landing/MissionHeader';
 import { CRTMonitor } from '@/components/landing/CRTMonitor';
 import { ScanLines } from '@/components/landing/ScanLines';
-import { InsertCoin } from '@/components/landing/InsertCoin';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ParticleField } from '@/components/landing/ParticleField';
@@ -49,9 +48,6 @@ export default function Landing() {
                     Mission Control for the ultimate tennis gaming experience. 
                     Track performance, compete globally, level up your game.
                   </p>
-
-                  {/* Insert Coin Animation */}
-                  <InsertCoin />
                 </div>
               </CRTMonitor>
             </div>
