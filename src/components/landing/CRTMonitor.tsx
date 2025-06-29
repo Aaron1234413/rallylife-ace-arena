@@ -22,26 +22,26 @@ export function CRTMonitor({
 
   return (
     <div className="relative">
-      {/* CRT Bezel */}
+      {/* CRT Bezel - Updated with tennis green colors */}
       <div className={`
-        relative bg-gradient-to-b from-gray-800 via-gray-900 to-black
-        border-4 border-gray-700 ${sizeClasses[size]}
-        shadow-[inset_0_2px_4px_rgba(0,0,0,0.8),_0_0_20px_rgba(155,255,155,0.3)]
+        relative bg-gradient-to-b from-tennis-green-medium via-tennis-green-dark to-tennis-green-bg
+        border-4 border-tennis-green-primary/60 ${sizeClasses[size]}
+        shadow-[inset_0_2px_4px_rgba(0,0,0,0.3),_0_0_20px_rgba(155,255,155,0.4)]
         before:absolute before:inset-2 before:rounded-lg
-        before:bg-gradient-to-b before:from-transparent before:via-transparent before:to-black/20
+        before:bg-gradient-to-b before:from-transparent before:via-transparent before:to-tennis-green-bg/20
         before:pointer-events-none
       `}>
         {/* Screen Title */}
         {title && (
-          <div className="absolute -top-8 left-4 bg-gray-800 px-3 py-1 rounded-t border-x-2 border-t-2 border-gray-700">
-            <span className={`text-xs font-orbitron text-${glowColor} tracking-widest uppercase`}>
+          <div className="absolute -top-8 left-4 bg-tennis-green-dark px-3 py-1 rounded-t border-x-2 border-t-2 border-tennis-green-primary/60">
+            <span className={`text-xs font-orbitron text-tennis-green-primary tracking-widest uppercase`}>
               {title}
             </span>
           </div>
         )}
         
-        {/* Inner Screen */}
-        <div className="relative bg-black/90 backdrop-blur-sm rounded border border-gray-600/50 overflow-hidden">
+        {/* Inner Screen - Dark with light content area */}
+        <div className="relative bg-tennis-green-bg/10 backdrop-blur-sm rounded border border-tennis-green-primary/30 overflow-hidden">
           {/* Screen Content */}
           <div className="relative z-10">
             {children}
@@ -53,8 +53,8 @@ export function CRTMonitor({
         
         {/* Power LED */}
         <div className="absolute bottom-2 right-2 flex items-center space-x-1">
-          <div className={`w-2 h-2 rounded-full bg-${glowColor} shadow-[0_0_8px_currentColor] animate-pulse`} />
-          <span className="text-xs text-gray-500 font-orbitron">PWR</span>
+          <div className={`w-2 h-2 rounded-full bg-tennis-green-primary shadow-[0_0_8px_currentColor] animate-pulse`} />
+          <span className="text-xs text-tennis-green-light font-orbitron">PWR</span>
         </div>
       </div>
     </div>

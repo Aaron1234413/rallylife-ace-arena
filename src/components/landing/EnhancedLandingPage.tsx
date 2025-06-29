@@ -1,9 +1,7 @@
 
 import React, { memo } from 'react';
 import { GlobalActivityMap } from './GlobalActivityMap';
-import { LiveLocationTracker } from './LiveLocationTracker';
 import { LiveStatsCounter } from './LiveStatsCounter';
-import { LiveActivityFeed } from './LiveActivityFeed';
 import { LiveAchievements } from './LiveAchievements';
 import { AchievementNotification } from './AchievementNotification';
 import { CRTMonitor } from './CRTMonitor';
@@ -27,36 +25,20 @@ export const EnhancedLandingPage = memo(function EnhancedLandingPage({ className
         </CRTMonitor>
       </div>
 
-      {/* Interactive Map Section with staggered animation */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
-          <CRTMonitor title="GLOBAL ACTIVITY MAP" size="medium">
-            <div className="p-4">
+      {/* Global Activity Map Section - Single column, centered */}
+      <div className="flex justify-center animate-fade-in-up" style={{ animationDelay: '0.2s' }}>
+        <div className="w-full max-w-4xl">
+          <CRTMonitor title="GLOBAL TENNIS ACTIVITY" size="large">
+            <div className="p-6">
               <GlobalActivityMap />
-            </div>
-          </CRTMonitor>
-        </div>
-        
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-          <CRTMonitor title="LIVE LOCATION TRACKER" size="medium">
-            <div className="p-4">
-              <LiveLocationTracker />
             </div>
           </CRTMonitor>
         </div>
       </div>
 
-      {/* Activity & Achievements Section with staggered animation */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-          <CRTMonitor title="LIVE ACTIVITY FEED" size="medium">
-            <div className="p-4">
-              <LiveActivityFeed maxItems={8} />
-            </div>
-          </CRTMonitor>
-        </div>
-        
-        <div className="animate-fade-in-up" style={{ animationDelay: '0.5s' }}>
+      {/* Achievements Section - Centered */}
+      <div className="flex justify-center animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
+        <div className="w-full max-w-2xl">
           <CRTMonitor title="RECENT ACHIEVEMENTS" size="medium">
             <div className="p-4">
               <LiveAchievements />
@@ -66,8 +48,8 @@ export const EnhancedLandingPage = memo(function EnhancedLandingPage({ className
       </div>
 
       {/* Enhanced Network Status with glow effect */}
-      <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.6s' }}>
-        <div className="inline-flex items-center gap-2 px-6 py-3 bg-black/40 border border-tennis-green-primary/30 rounded-lg backdrop-blur-sm hover:border-tennis-green-primary/60 transition-all duration-300 animate-glow-pulse">
+      <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+        <div className="inline-flex items-center gap-2 px-6 py-3 bg-tennis-green-bg/40 border border-tennis-green-primary/30 rounded-lg backdrop-blur-sm hover:border-tennis-green-primary/60 transition-all duration-300 animate-glow-pulse">
           <div className="relative">
             <div className="w-3 h-3 bg-tennis-green-primary rounded-full animate-pulse"></div>
             <div className="absolute inset-0 w-3 h-3 bg-tennis-green-primary rounded-full animate-ping opacity-30"></div>
@@ -75,7 +57,7 @@ export const EnhancedLandingPage = memo(function EnhancedLandingPage({ className
           <span className="text-tennis-green-light text-sm font-orbitron tracking-wider uppercase">
             Live Network Status: Online
           </span>
-          <div className="text-tennis-green-primary text-xs animate-float">⚡</div>
+          <div className="text-tennis-yellow text-xs animate-float">⚡</div>
         </div>
       </div>
     </div>
