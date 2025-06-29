@@ -7,7 +7,7 @@ import { ScanLines } from '@/components/landing/ScanLines';
 import { Button } from '@/components/ui/button';
 import { Link } from 'react-router-dom';
 import { ParticleField } from '@/components/landing/ParticleField';
-import { EnhancedLandingPage } from '@/components/landing/EnhancedLandingPage';
+import { LiveStatsCounter } from '@/components/landing/LiveStatsCounter';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 
 export default function Landing() {
@@ -66,17 +66,21 @@ export default function Landing() {
               </CRTMonitor>
             </div>
             
-            {/* How It Works Section - NEW */}
+            {/* How It Works Section */}
             <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
               <HowItWorks />
             </div>
             
-            {/* Enhanced Live Data Section - Mobile Optimized */}
-            <div className="px-2 md:px-0">
-              <EnhancedLandingPage />
+            {/* Live Stats Section - Simplified without recent achievements */}
+            <div className="animate-fade-in-up px-2 md:px-0" style={{ animationDelay: '0.4s' }}>
+              <CRTMonitor title="RAKO LIVE STATISTICS" size="large">
+                <div className="p-3 md:p-6 bg-white/95 backdrop-blur-sm rounded">
+                  <LiveStatsCounter />
+                </div>
+              </CRTMonitor>
             </div>
             
-            {/* Main CTA in Gaming Style - Mobile Optimized */}
+            {/* Main CTA in Gaming Style - Mobile Optimized with Shorter Text */}
             <div className="pb-4 md:pb-8 px-2 md:px-0">
               <CRTMonitor title="START PLAYING RAKO" size="large">
                 <div className="text-center py-4 md:py-6 px-3 md:px-4 bg-white/95 backdrop-blur-sm rounded-lg">
@@ -87,7 +91,7 @@ export default function Landing() {
                         className="w-full md:w-auto bg-tennis-yellow hover:bg-tennis-yellow/90 text-tennis-green-dark font-orbitron text-base md:text-lg lg:text-xl px-4 md:px-8 lg:px-12 py-3 md:py-4 lg:py-6 rounded-none border-4 border-tennis-green-dark shadow-[0_0_20px_rgba(255,255,155,0.5)] hover:shadow-[0_0_30px_rgba(255,255,155,0.8)] transition-all duration-300 uppercase tracking-widest hover:scale-105 transform font-bold min-h-[3rem] md:min-h-[4rem]"
                       >
                         <span className="text-center leading-tight">
-                          ▶ START YOUR TENNIS JOURNEY
+                          ▶ PLAY NOW
                         </span>
                       </Button>
                     </Link>
