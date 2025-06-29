@@ -29,7 +29,21 @@ export default function Landing() {
         
         {/* Hero Section - Mobile Optimized */}
         <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
-          <div className="max-w-6xl mx-auto space-y-4 md:space-y-8">
+          <div className="max-w-6xl mx-auto space-y-6 md:space-y-8">
+            
+            {/* Rako Network Status - Moved above main terminal */}
+            <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
+              <div className="inline-flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-tennis-green-dark/90 border border-tennis-green-primary/60 rounded-lg backdrop-blur-sm hover:border-tennis-green-primary transition-all duration-300 animate-glow-pulse">
+                <div className="relative">
+                  <div className="w-2 h-2 md:w-3 md:h-3 bg-tennis-green-primary rounded-full animate-pulse"></div>
+                  <div className="absolute inset-0 w-2 h-2 md:w-3 md:h-3 bg-tennis-green-primary rounded-full animate-ping opacity-30"></div>
+                </div>
+                <span className="text-tennis-green-primary text-xs md:text-sm font-orbitron tracking-wider uppercase font-bold">
+                  Rako Network: Online
+                </span>
+                <div className="text-tennis-yellow text-xs animate-float">⚡</div>
+              </div>
+            </div>
             
             {/* Main Title in CRT Monitor - Mobile Responsive */}
             <div className="px-2 md:px-0">
