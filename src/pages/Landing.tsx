@@ -66,18 +66,18 @@ export default function Landing() {
               </CRTMonitor>
             </div>
             
-            {/* How It Works Section */}
-            <div className="animate-fade-in-up" style={{ animationDelay: '0.3s' }}>
-              <HowItWorks />
-            </div>
-            
-            {/* Live Stats Section - Simplified without recent achievements */}
-            <div className="animate-fade-in-up px-2 md:px-0" style={{ animationDelay: '0.4s' }}>
+            {/* Live Stats Section - Now positioned before How It Works */}
+            <div className="animate-fade-in-up px-2 md:px-0" style={{ animationDelay: '0.3s' }}>
               <CRTMonitor title="RAKO LIVE STATISTICS" size="large">
                 <div className="p-3 md:p-6 bg-white/95 backdrop-blur-sm rounded">
                   <LiveStatsCounter />
                 </div>
               </CRTMonitor>
+            </div>
+            
+            {/* How It Works Section - Now positioned after Live Stats */}
+            <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
+              <HowItWorks />
             </div>
             
             {/* Main CTA in Gaming Style - Mobile Optimized with Shorter Text */}
