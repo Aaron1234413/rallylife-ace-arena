@@ -1,3 +1,4 @@
+
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -401,7 +402,7 @@ export function EnhancedQuickActions({
         Skip to Quick Actions
       </a>
 
-      {/* Mobile-optimized Smart Recommendations with backend data */}
+      {/* Consolidated Smart Recommendations with Activity Intelligence */}
       <Card className="relative overflow-hidden border-2 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 border-purple-200/50 shadow-lg">
         <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-indigo-500/5"></div>
         <CardHeader className="relative pb-3 sm:pb-4">
@@ -437,20 +438,9 @@ export function EnhancedQuickActions({
             </div>
           </CardTitle>
         </CardHeader>
-        <CardContent className="relative p-3 sm:p-6 pt-0">
-          <SmartRecommendations 
-            hpData={hpData}
-            xpData={xpData}
-            contextualData={contextualData}
-            onRecommendationClick={handleRecommendationClick}
-          />
-        </CardContent>
-      </Card>
-
-      {/* Mobile-optimized Activity Intelligence Card with backend data */}
-      <Card className="bg-gradient-to-r from-slate-50 to-gray-50 border-slate-200 shadow-md">
-        <CardContent className="p-3 sm:p-4">
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <CardContent className="relative p-3 sm:p-6 pt-0 space-y-4">
+          {/* Activity Intelligence Stats */}
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-white/60 rounded-lg border border-white/40">
             <div className="flex items-center gap-3">
               <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md">
                 <Clock className="h-4 w-4" />
@@ -488,10 +478,18 @@ export function EnhancedQuickActions({
               )}
             </div>
           </div>
+
+          {/* Smart Recommendations */}
+          <SmartRecommendations 
+            hpData={hpData}
+            xpData={xpData}
+            contextualData={contextualData}
+            onRecommendationClick={handleRecommendationClick}
+          />
         </CardContent>
       </Card>
 
-      {/* Mobile-optimized Enhanced Quick Actions with real backend integration */}
+      {/* Enhanced Quick Actions */}
       <Card 
         id="quick-actions"
         className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50"
@@ -544,7 +542,7 @@ export function EnhancedQuickActions({
               </div>
             ))}
             
-            {/* Mobile-optimized Recovery Center Action with HP integration */}
+            {/* Recovery Center Action */}
             <div 
               className="animate-fade-in"
               style={{ animationDelay: `${sortedActions.length * 100}ms` }}
@@ -557,7 +555,7 @@ export function EnhancedQuickActions({
         </CardContent>
       </Card>
 
-      {/* Real Social Play Dialog with backend integration */}
+      {/* Social Play Dialog */}
       <CreateSocialPlayDialog 
         open={socialPlayDialogOpen} 
         onOpenChange={setSocialPlayDialogOpen}
