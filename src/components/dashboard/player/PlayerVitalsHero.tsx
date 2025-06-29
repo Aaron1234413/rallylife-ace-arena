@@ -130,15 +130,19 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
 
       <Card className="w-full bg-gradient-to-br from-blue-50 via-purple-50 to-pink-50 border-0 shadow-xl overflow-hidden transition-all duration-500 hover:shadow-2xl">
         <CardContent className="p-4 sm:p-6 lg:p-8">
-          {/* Header */}
+          {/* Header - Enhanced with Orbitron typography */}
           <div className="text-center mb-6 sm:mb-8 animate-fade-in">
-            <h2 className="text-2xl sm:text-3xl font-bold text-gray-900 mb-2">Player Vitals</h2>
-            <p className="text-gray-600 text-base sm:text-lg">Track your progress and stay motivated</p>
+            <h2 className="orbitron-heading text-display sm:text-hero text-gray-900 mb-2 tracking-tight">
+              Player Vitals
+            </h2>
+            <p className="poppins-body text-body-lg text-gray-600">
+              Track your progress and stay motivated
+            </p>
           </div>
 
-          {/* Main Vitals Grid - Mobile-first responsive */}
+          {/* Main Vitals Grid - Enhanced typography hierarchy */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6 lg:gap-8">
-            {/* HP Section - Enhanced with status-driven styling, animations, and accessibility */}
+            {/* HP Section - Enhanced typography */}
             <div 
               className={cn(
                 "p-4 sm:p-6 rounded-2xl border-2 transition-all duration-700 transform hover:scale-105 hover:shadow-lg group",
@@ -147,7 +151,6 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                 hpStatus.borderColor,
                 hpPercentage < 40 ? "shadow-lg ring-2 ring-red-200 hover:ring-red-300" : "shadow-md",
                 hpStatus.pulseIntensity,
-                // Reduce motion for users who prefer it
                 "motion-reduce:animate-none motion-reduce:transition-none"
               )}
               role="region"
@@ -166,19 +169,19 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                   />
                   <h3 
                     id="hp-heading"
-                    className="font-bold text-lg sm:text-xl text-gray-900 transition-colors duration-300 group-hover:text-gray-700"
+                    className="orbitron-heading text-heading-md sm:text-heading-lg text-gray-900 transition-colors duration-300 group-hover:text-gray-700"
                   >
                     Health Points
                   </h3>
                 </div>
                 
                 <div className="space-y-3" id="hp-description">
-                  <div className="flex items-center justify-between text-sm font-medium">
+                  <div className="flex items-center justify-between text-body-sm font-medium">
                     <span className="text-gray-700 transition-colors duration-300">HP</span>
                     <span 
                       className={cn(
-                        "font-bold transition-all duration-500 transform",
-                        hpPercentage < 40 ? "text-xl sm:text-2xl text-red-700 scale-110" : "text-lg sm:text-xl text-gray-900",
+                        "font-bold transition-all duration-500 transform text-heading-sm sm:text-heading-md",
+                        hpPercentage < 40 ? "text-red-700 scale-110" : "text-gray-900",
                         "animate-number-change motion-reduce:animate-none"
                       )}
                       aria-label={`Current health: ${hpData?.current_hp || 0} out of ${hpData?.max_hp || 100} points`}
@@ -200,7 +203,7 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                     <Badge 
                       variant="secondary" 
                       className={cn(
-                        "text-xs sm:text-sm font-semibold px-3 sm:px-4 py-1 sm:py-2 rounded-full border-2 bg-white/80 backdrop-blur-sm transition-all duration-300",
+                        "text-caption font-semibold px-3 sm:px-4 py-1 sm:py-2 rounded-full border-2 bg-white/80 backdrop-blur-sm transition-all duration-300",
                         hpStatus.textColor,
                         hpStatus.borderColor.replace('border-', 'border-'),
                         hpPercentage < 40 ? "animate-pulse motion-reduce:animate-none transform hover:scale-105" : "hover:scale-105",
@@ -216,7 +219,7 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
               </div>
             </div>
 
-            {/* XP Section - Enhanced styling with animations and accessibility */}
+            {/* XP Section - Enhanced typography */}
             <div 
               className="text-center space-y-3 sm:space-y-4 p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-yellow-50 to-amber-50 border-2 border-yellow-200 shadow-md transition-all duration-500 transform hover:scale-105 hover:shadow-lg group motion-reduce:transform-none motion-reduce:transition-none"
               role="region"
@@ -231,7 +234,7 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                 />
                 <h3 
                   id="xp-heading"
-                  className="font-bold text-lg sm:text-xl text-gray-900 transition-colors duration-300 group-hover:text-gray-700"
+                  className="orbitron-heading text-heading-md sm:text-heading-lg text-gray-900 transition-colors duration-300 group-hover:text-gray-700"
                 >
                   Experience
                 </h3>
@@ -241,17 +244,17 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                 <div className="flex items-center justify-center gap-2 mb-2">
                   <Badge 
                     variant="outline" 
-                    className="font-bold text-base sm:text-lg px-3 sm:px-4 py-1 sm:py-2 text-yellow-700 border-yellow-300 bg-white/80 transition-all duration-300 hover:scale-105 hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
+                    className="orbitron-heading font-bold text-body-lg px-3 sm:px-4 py-1 sm:py-2 text-yellow-700 border-yellow-300 bg-white/80 transition-all duration-300 hover:scale-105 hover:bg-yellow-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
                     tabIndex={0}
                     aria-label={`Current level: ${xpData?.current_level || 1}`}
                   >
                     Level {xpData?.current_level || 1}
                   </Badge>
                 </div>
-                <div className="flex items-center justify-between text-sm font-medium">
+                <div className="flex items-center justify-between text-body-sm font-medium">
                   <span className="text-gray-700 transition-colors duration-300">XP</span>
                   <span 
-                    className="font-bold text-lg sm:text-xl text-gray-900 transition-all duration-500 animate-number-change motion-reduce:animate-none"
+                    className="font-bold text-heading-sm sm:text-heading-md text-gray-900 transition-all duration-500 animate-number-change motion-reduce:animate-none"
                     aria-label={`Experience points: ${xpData?.current_xp || 0} out of ${(xpData?.current_xp || 0) + (xpData?.xp_to_next_level || 100)} needed for next level`}
                   >
                     {xpData?.current_xp || 0}/{(xpData?.current_xp || 0) + (xpData?.xp_to_next_level || 100)}
@@ -263,13 +266,13 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                   indicatorClassName="bg-yellow-500 transition-all duration-1000 rounded-full animate-progress-smooth motion-reduce:animate-none"
                   aria-label={`Experience progress: ${Math.round(xpPercentage)}% to next level`}
                 />
-                <p className="text-xs sm:text-sm text-gray-600 font-medium transition-colors duration-300">
+                <p className="text-body-sm text-gray-600 font-medium transition-colors duration-300">
                   {xpData?.xp_to_next_level || 100} XP to next level
                 </p>
               </div>
             </div>
 
-            {/* Tokens Section - Enhanced styling with animations and accessibility */}
+            {/* Tokens Section - Enhanced typography */}
             <div 
               className="text-center space-y-3 sm:space-y-4 p-4 sm:p-6 rounded-2xl bg-gradient-to-br from-purple-50 to-indigo-50 border-2 border-purple-200 shadow-md transition-all duration-500 transform hover:scale-105 hover:shadow-lg group motion-reduce:transform-none motion-reduce:transition-none sm:col-span-2 lg:col-span-1"
               role="region"
@@ -283,7 +286,7 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                 />
                 <h3 
                   id="tokens-heading"
-                  className="font-bold text-lg sm:text-xl text-gray-900 transition-colors duration-300 group-hover:text-gray-700"
+                  className="orbitron-heading text-heading-md sm:text-heading-lg text-gray-900 transition-colors duration-300 group-hover:text-gray-700"
                 >
                   Tokens
                 </h3>
@@ -296,25 +299,25 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
                     tabIndex={0}
                     aria-label={`Regular tokens: ${tokenData?.regular_tokens || 0}`}
                   >
-                    <div className="font-bold text-xl sm:text-2xl text-gray-900 transition-all duration-500 animate-number-change motion-reduce:animate-none">
+                    <div className="font-bold text-heading-md sm:text-heading-lg text-gray-900 transition-all duration-500 animate-number-change motion-reduce:animate-none">
                       {tokenData?.regular_tokens || 0}
                     </div>
-                    <div className="text-xs sm:text-sm text-gray-600 font-medium">Regular</div>
+                    <div className="text-body-sm text-gray-600 font-medium">Regular</div>
                   </div>
                   <div 
                     className="text-center transition-all duration-300 hover:scale-105 focus-within:scale-105 motion-reduce:transform-none motion-reduce:transition-none"
                     tabIndex={0}
                     aria-label={`Premium tokens: ${tokenData?.premium_tokens || 0}`}
                   >
-                    <div className="font-bold text-xl sm:text-2xl text-purple-600 transition-all duration-500 animate-number-change motion-reduce:animate-none">
+                    <div className="font-bold text-heading-md sm:text-heading-lg text-purple-600 transition-all duration-500 animate-number-change motion-reduce:animate-none">
                       {tokenData?.premium_tokens || 0}
                     </div>
-                    <div className="text-xs sm:text-sm text-gray-600 font-medium">Premium</div>
+                    <div className="text-body-sm text-gray-600 font-medium">Premium</div>
                   </div>
                 </div>
                 <Badge 
                   variant="secondary" 
-                  className="text-xs sm:text-sm bg-white/80 backdrop-blur-sm border-purple-200 px-3 sm:px-4 py-1 sm:py-2 transition-all duration-300 hover:scale-105 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
+                  className="text-caption bg-white/80 backdrop-blur-sm border-purple-200 px-3 sm:px-4 py-1 sm:py-2 transition-all duration-300 hover:scale-105 hover:bg-purple-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500"
                   tabIndex={0}
                   aria-label={`Lifetime tokens earned: ${tokenData?.lifetime_earned || 0}`}
                 >
@@ -326,7 +329,7 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
         </CardContent>
       </Card>
 
-      {/* HP Status Alert - Contextual recovery suggestions with mobile optimization */}
+      {/* HP Status Alert */}
       <HPStatusAlert
         hpPercentage={hpPercentage}
         currentHP={hpData?.current_hp || 0}

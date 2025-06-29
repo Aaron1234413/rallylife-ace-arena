@@ -30,8 +30,12 @@ export default function Feed() {
             <div className="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full shadow-lg">
               <span className="text-xl">📱</span>
             </div>
-            <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Activity Feed</h1>
-            <p className="text-tennis-green-bg/90">Stay connected with your tennis community</p>
+            <h1 className="orbitron-heading text-display sm:text-hero text-white tracking-tight">
+              Activity Feed
+            </h1>
+            <p className="poppins-body text-body-lg text-tennis-green-bg/90">
+              Stay connected with your tennis community
+            </p>
           </div>
           
           <div className="space-y-4 sm:space-y-6">
@@ -64,13 +68,17 @@ export default function Feed() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light">
       <div className="container mx-auto px-4 py-6 sm:py-8 max-w-2xl">
-        {/* Header */}
+        {/* Header - Enhanced typography */}
         <div className="text-center mb-6 sm:mb-8 space-y-2">
           <div className="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full shadow-lg">
             <span className="text-xl">📱</span>
           </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Activity Feed</h1>
-          <p className="text-tennis-green-bg/90">Stay connected with your tennis community</p>
+          <h1 className="orbitron-heading text-display sm:text-hero text-white tracking-tight">
+            Activity Feed
+          </h1>
+          <p className="poppins-body text-body-lg text-tennis-green-bg/90">
+            Stay connected with your tennis community
+          </p>
         </div>
 
         <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 space-y-6">
@@ -79,10 +87,10 @@ export default function Feed() {
             onFilterChange={setFilter}
           />
 
-          {/* Info alert about automatic posting */}
+          {/* Info alert about automatic posting - Enhanced typography */}
           <Alert className="border-blue-200 bg-blue-50">
             <Info className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800">
+            <AlertDescription className="poppins-body text-body text-blue-800">
               Your activities automatically appear in your feed when you complete sessions, matches, or training.
             </AlertDescription>
           </Alert>
@@ -91,8 +99,10 @@ export default function Feed() {
             <Card className="bg-tennis-green-bg/30 border-tennis-green-bg/50">
               <CardContent className="p-8 text-center">
                 <Activity className="h-12 w-12 mx-auto text-tennis-green-medium mb-4" />
-                <h3 className="text-lg font-medium mb-2 text-tennis-green-dark">No posts found</h3>
-                <p className="text-tennis-green-dark/70">
+                <h3 className="orbitron-heading text-heading-md mb-2 text-tennis-green-dark">
+                  No posts found
+                </h3>
+                <p className="poppins-body text-body text-tennis-green-dark/70">
                   {filter === 'all' 
                     ? 'No activities to display yet. Start playing to see your feed come to life!'
                     : `No ${filter} posts found. Try adjusting your filter or log some activities.`
