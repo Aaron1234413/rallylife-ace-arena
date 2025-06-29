@@ -2,13 +2,15 @@
 import { useLandingData } from './useLandingData';
 import { useGlobalActivity } from './useGlobalActivity';
 import { useLiveNotifications } from './useLiveNotifications';
+import { useMemo } from 'react';
 
 export function useLandingPageData() {
   const landingData = useLandingData();
   const globalActivity = useGlobalActivity();
   const notifications = useLiveNotifications();
 
-  return {
+  // Memoize the return object to prevent unnecessary re-renders
+  const memoizedData = useMemo(() => ({
     // Live stats and counters
     stats: landingData.stats,
     recentActivity: landingData.recentActivity,
@@ -26,5 +28,17 @@ export function useLandingPageData() {
     
     // Refresh function
     refreshAll: landingData.refreshData
-  };
+  }), [
+    landingData.stats,
+    landingData.recentActivity,
+    landingData.liveAchievements,
+    landingData.loading,
+    landingData.refreshData,
+    globalActivity.activityLocations,
+    globalActivity.loading,
+    notifications.currentNotification,
+    notifications.pendingCount
+  ]);
+
+  return memoizedData;
 }
