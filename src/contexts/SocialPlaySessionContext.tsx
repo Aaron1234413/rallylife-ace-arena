@@ -8,11 +8,21 @@ interface ActiveSession {
   startTime: Date;
   sessionType: 'singles' | 'doubles';
   location?: string;
+  participants?: Array<{
+    id: string;
+    name: string;
+    role: string;
+  }>;
 }
 
 interface SocialPlaySessionContextType {
   activeSession: ActiveSession | null;
-  startSession: (sessionData: { id: string; sessionType: 'singles' | 'doubles'; location?: string }) => void;
+  startSession: (sessionData: { 
+    id: string; 
+    sessionType: 'singles' | 'doubles'; 
+    location?: string;
+    participants?: Array<{ id: string; name: string; role: string }>;
+  }) => void;
   endSession: () => void;
   getDurationMinutes: () => number;
   loading: boolean;
@@ -25,12 +35,18 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [loading, setLoading] = useState(false);
 
-  const startSession = (sessionData: { id: string; sessionType: 'singles' | 'doubles'; location?: string }) => {
+  const startSession = (sessionData: { 
+    id: string; 
+    sessionType: 'singles' | 'doubles'; 
+    location?: string;
+    participants?: Array<{ id: string; name: string; role: string }>;
+  }) => {
     const newSession: ActiveSession = {
       id: sessionData.id,
       startTime: new Date(),
       sessionType: sessionData.sessionType,
       location: sessionData.location,
+      participants: sessionData.participants,
     };
     
     setActiveSession(newSession);
@@ -42,8 +58,10 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
       updates: { start_time: new Date().toISOString() }
     });
     
+    const participantNames = sessionData.participants?.map(p => p.name).join(', ') || 'players';
+    
     toast.success('Session Started', {
-      description: 'Your tennis session is now active!',
+      description: `Your tennis session with ${participantNames} is now active!`,
     });
   };
 

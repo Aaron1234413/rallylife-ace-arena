@@ -19,6 +19,7 @@ import { cn } from '@/lib/utils';
 import { useSocialPlayEvents } from '@/hooks/useSocialPlayEvents';
 import { SocialPlayParticipantSelector } from './SocialPlayParticipantSelector';
 import { SocialPlayStakesPreview } from './SocialPlayStakesPreview';
+import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
 
 export interface SelectedPlayer {
   id: string;
@@ -43,6 +44,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const { createEvent, isCreatingEvent } = useSocialPlayEvents();
+  const { createSession, isCreatingSession } = useSocialPlaySessions();
 
   // Form state
   const [title, setTitle] = useState('');
@@ -83,22 +85,22 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
     const scheduledDateTime = new Date(scheduledDate!);
     scheduledDateTime.setHours(hours, minutes);
 
-    // Prepare invited users based on session type
-    const invitedUsers = [];
+    // Prepare participants based on session type
+    const participants = [];
     if (sessionType === 'singles' && selectedOpponent) {
-      invitedUsers.push({
+      participants.push({
         user_id: selectedOpponent.id,
         role: 'opponent'
       });
     } else if (sessionType === 'doubles') {
       if (selectedPartner) {
-        invitedUsers.push({
+        participants.push({
           user_id: selectedPartner.id,
           role: 'partner'
         });
       }
       selectedOpponents.forEach((opponent, index) => {
-        invitedUsers.push({
+        participants.push({
           user_id: opponent.id,
           role: `opponent_${index + 1}`
         });
@@ -106,6 +108,20 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
     }
 
     try {
+      // Create the social play session directly with participants
+      await createSession({
+        session_type: sessionType,
+        competitive_level: 'medium', // Default to medium for now
+        location: location.trim(),
+        participants
+      });
+
+      // Also create the event for scheduling purposes
+      const invitedUsers = participants.map(p => ({
+        user_id: p.user_id,
+        role: p.role
+      }));
+
       await createEvent({
         title: title.trim(),
         session_type: sessionType,
@@ -128,7 +144,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
       handleOpenChange(false);
       onEventCreated?.();
     } catch (error) {
-      console.error('Failed to create event:', error);
+      console.error('Failed to create session:', error);
     }
   };
 
@@ -284,10 +300,10 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
             <div className="flex gap-3 pt-4">
               <Button
                 type="submit"
-                disabled={!isFormValid() || isCreatingEvent}
+                disabled={!isFormValid() || isCreatingEvent || isCreatingSession}
                 className="flex-1"
               >
-                {isCreatingEvent ? 'Creating Event...' : 'Create Event & Invite Players'}
+                {(isCreatingEvent || isCreatingSession) ? 'Creating Session...' : 'Create Session & Add Players'}
               </Button>
             </div>
           </form>

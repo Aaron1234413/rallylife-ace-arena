@@ -21,6 +21,11 @@ interface SocialPlaySession {
   updated_at: string;
 }
 
+interface CreateSessionParticipant {
+  user_id: string;
+  role: string;
+}
+
 export function useSocialPlaySessions() {
   const { user } = useAuth();
   const { toast } = useToast();
@@ -77,12 +82,13 @@ export function useSocialPlaySessions() {
     enabled: !!user?.id
   });
 
-  // Create social play session
+  // Create social play session with participants
   const createSession = useMutation({
     mutationFn: async (sessionData: {
       session_type: 'singles' | 'doubles';
       competitive_level: 'low' | 'medium' | 'high';
       location?: string;
+      participants?: CreateSessionParticipant[];
     }) => {
       if (!user?.id) throw new Error('User not authenticated');
       
@@ -101,17 +107,36 @@ export function useSocialPlaySessions() {
       if (sessionError) throw sessionError;
 
       // Add creator as a participant
-      const { error: creatorError } = await supabase
-        .from('social_play_participants')
-        .insert({
+      const participantsToAdd = [
+        {
           session_id: session.id,
           user_id: user.id,
           session_creator_id: user.id,
           status: 'joined',
+          role: 'creator',
           joined_at: new Date().toISOString()
+        }
+      ];
+
+      // Add other participants if provided
+      if (sessionData.participants) {
+        sessionData.participants.forEach(participant => {
+          participantsToAdd.push({
+            session_id: session.id,
+            user_id: participant.user_id,
+            session_creator_id: user.id,
+            status: 'joined', // Directly set as joined instead of pending
+            role: participant.role,
+            joined_at: new Date().toISOString()
+          });
         });
+      }
+
+      const { error: participantsError } = await supabase
+        .from('social_play_participants')
+        .insert(participantsToAdd);
       
-      if (creatorError) throw creatorError;
+      if (participantsError) throw participantsError;
       
       return session;
     },
@@ -120,7 +145,7 @@ export function useSocialPlaySessions() {
       queryClient.invalidateQueries({ queryKey: ['active-social-play-session'] });
       toast({
         title: 'Social Play Session Created',
-        description: 'Your session is ready!',
+        description: 'Your session is ready and all players have been added!',
       });
     },
     onError: (error: any) => {
