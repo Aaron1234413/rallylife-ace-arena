@@ -5,7 +5,9 @@ import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { TokenEconomy } from '@/components/dashboard/TokenEconomy';
 import { TokenStore } from '@/components/tokens/TokenStore';
+import { PerformanceStore } from '@/components/store/PerformanceStore';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Store as StoreIcon, ShoppingCart, Coins, Gem, Zap } from 'lucide-react';
 
 const Store = () => {
@@ -33,7 +35,7 @@ const Store = () => {
             <span className="text-xl">🏪</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Rako Store</h1>
-          <p className="text-tennis-green-bg/90">Spend your tokens on items, upgrades, and premium features</p>
+          <p className="text-tennis-green-bg/90">Power up your game with tokens and performance boosters</p>
         </div>
 
         <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
@@ -76,106 +78,62 @@ const Store = () => {
             </Card>
           )}
 
-          {/* Store Categories */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
-            {/* Token Store */}
-            <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-                  <ShoppingCart className="h-5 w-5" />
+          {/* Store Tabs */}
+          <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">
+            <Tabs defaultValue="performance" className="w-full">
+              <TabsList className="grid w-full grid-cols-3 bg-tennis-green-bg/10">
+                <TabsTrigger 
+                  value="performance" 
+                  className="flex items-center gap-2 data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white"
+                >
+                  <Zap className="h-4 w-4" />
+                  Performance Boosters
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="items" 
+                  className="flex items-center gap-2 data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white"
+                >
+                  <ShoppingCart className="h-4 w-4" />
                   Token Store
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="economy" 
+                  className="flex items-center gap-2 data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white"
+                >
+                  <Coins className="h-4 w-4" />
+                  Token Economy
+                </TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="performance" className="mt-6">
+                <PerformanceStore />
+              </TabsContent>
+
+              <TabsContent value="items" className="mt-6">
                 {tokenData && (
                   <TokenStore
                     onSpendTokens={spendTokens}
                     regularTokens={tokenData.regular_tokens}
                     premiumTokens={tokenData.premium_tokens}
                     onRestoreHP={restoreHP}
-                    className="border-0 shadow-none bg-transparent p-0"
                   />
                 )}
-              </CardContent>
-            </Card>
+              </TabsContent>
 
-            {/* Premium Features */}
-            <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-                  <Zap className="h-5 w-5" />
-                  Premium Features
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="space-y-3">
-                  <div className="p-4 bg-gradient-to-r from-blue-50 to-blue-100 rounded-lg border border-blue-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-blue-900">Advanced Analytics</h3>
-                      <div className="flex items-center gap-1 text-purple-600">
-                        <Gem className="h-4 w-4" />
-                        <span className="font-bold">5</span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-blue-700 mb-3">Get detailed insights into your performance</p>
-                    <button className="w-full bg-blue-500 hover:bg-blue-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
-                      Unlock Feature
-                    </button>
-                  </div>
-
-                  <div className="p-4 bg-gradient-to-r from-green-50 to-green-100 rounded-lg border border-green-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-green-900">Priority Support</h3>
-                      <div className="flex items-center gap-1 text-purple-600">
-                        <Gem className="h-4 w-4" />
-                        <span className="font-bold">3</span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-green-700 mb-3">Get faster response times and premium support</p>
-                    <button className="w-full bg-green-500 hover:bg-green-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
-                      Unlock Feature
-                    </button>
-                  </div>
-
-                  <div className="p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg border border-purple-200">
-                    <div className="flex items-center justify-between mb-2">
-                      <h3 className="font-semibold text-purple-900">Custom Training Plans</h3>
-                      <div className="flex items-center gap-1 text-purple-600">
-                        <Gem className="h-4 w-4" />
-                        <span className="font-bold">8</span>
-                      </div>
-                    </div>
-                    <p className="text-sm text-purple-700 mb-3">Get personalized training plans tailored to your needs</p>
-                    <button className="w-full bg-purple-500 hover:bg-purple-600 text-white py-2 px-4 rounded-lg text-sm font-medium transition-colors">
-                      Unlock Feature
-                    </button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Token Economy Section */}
-          {tokenData && (
-            <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-                  <Coins className="h-5 w-5" />
-                  Token Economy
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <TokenEconomy
-                  tokenData={tokenData}
-                  transactions={transactions}
-                  transactionsLoading={loading}
-                  onSpendTokens={spendTokens}
-                  onConvertTokens={convertPremiumTokens}
-                  onRestoreHP={restoreHP}
-                />
-              </CardContent>
-            </Card>
-          )}
+              <TabsContent value="economy" className="mt-6">
+                {tokenData && (
+                  <TokenEconomy
+                    tokenData={tokenData}
+                    transactions={transactions}
+                    transactionsLoading={loading}
+                    onSpendTokens={spendTokens}
+                    onConvertTokens={convertPremiumTokens}
+                    onRestoreHP={restoreHP}
+                  />
+                )}
+              </TabsContent>
+            </Tabs>
+          </Card>
         </div>
       </div>
     </div>

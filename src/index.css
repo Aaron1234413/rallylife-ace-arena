@@ -1,3 +1,5 @@
+
+@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Poppins:wght@300;400;500;600;700&display=swap');
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -13,11 +15,11 @@
     --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
     --secondary: 210 40% 96%;
-    --secondary-foreground: 222.2 84% 4.9%;
+    --secondary-foreground: 222.2 47.4% 11.2%;
     --muted: 210 40% 96%;
     --muted-foreground: 215.4 16.3% 46.9%;
     --accent: 210 40% 96%;
-    --accent-foreground: 222.2 84% 4.9%;
+    --accent-foreground: 222.2 47.4% 11.2%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 210 40% 98%;
     --border: 214.3 31.8% 91.4%;
@@ -29,40 +31,6 @@
     --chart-3: 197 37% 24%;
     --chart-4: 43 74% 66%;
     --chart-5: 27 87% 67%;
-
-    /* Fresh Tennis Club Theme - Enhanced vibrant colors */
-    --tennis-green-dark: 155 35% 25%;        /* Deeper, richer green for text */
-    --tennis-green-medium: 155 45% 35%;      /* More vibrant medium green */
-    --tennis-green-light: 155 30% 55%;       /* Brighter light green */
-    --tennis-green-primary: 155 50% 40%;     /* Enhanced primary brand color */
-    --tennis-green-subtle: 155 25% 96%;      /* Very light sage background */
-    --tennis-green-accent: 155 60% 45%;      /* Vibrant accent color */
-    
-    /* Fresh background colors */
-    --tennis-green-bg: 155 20% 97%;          /* Main sage background */
-    --tennis-green-bg-alt: 155 15% 94%;      /* Alternative background */
-    
-    /* Enhanced tennis yellow - more lime/energy */
-    --tennis-yellow: 65 85% 60%;             /* Lime-yellow energy */
-    --tennis-yellow-light: 65 90% 80%;
-    --tennis-yellow-dark: 65 80% 45%;
-    
-    /* Professional neutral palette with sage undertones */
-    --tennis-neutral-50: 155 15% 98%;
-    --tennis-neutral-100: 155 12% 96%;
-    --tennis-neutral-200: 155 10% 92%;
-    --tennis-neutral-300: 155 8% 86%;
-    --tennis-neutral-400: 155 6% 64%;
-    --tennis-neutral-500: 155 6% 48%;
-    --tennis-neutral-600: 155 8% 36%;
-    --tennis-neutral-700: 155 12% 26%;
-    --tennis-neutral-800: 155 16% 16%;
-    --tennis-neutral-900: 155 20% 9%;
-    
-    /* HP and XP colors - enhanced for better contrast */
-    --hp-red: 0 70% 50%;
-    --hp-green: 155 60% 40%;
-    --xp-blue: 220 75% 50%;
   }
 
   .dark {
@@ -97,589 +65,147 @@
   * {
     @apply border-border;
   }
-  
   body {
-    @apply bg-tennis-green-bg text-foreground;
-    /* Enhanced typography base settings */
-    font-family: 'Poppins', system-ui, -apple-system, sans-serif;
-    font-weight: 400;
-    line-height: 1.6;
-    letter-spacing: 0.01em;
-    /* Improved mobile scrolling */
-    -webkit-overflow-scrolling: touch;
-    overscroll-behavior: none;
-    /* Smoother font rendering */
-    -webkit-font-smoothing: antialiased;
-    -moz-osx-font-smoothing: grayscale;
-    text-rendering: optimizeLegibility;
-  }
-
-  /* Enhanced typography hierarchy */
-  h1, h2, h3, h4, h5, h6 {
-    font-family: 'Orbitron', system-ui, -apple-system, sans-serif;
-    font-weight: 600;
-    line-height: 1.2;
-    letter-spacing: -0.02em;
-    margin: 0;
-  }
-
-  h1 {
-    font-size: 2.5rem; /* 40px */
-    font-weight: 700;
-  }
-
-  h2 {
-    font-size: 2rem; /* 32px */
-    font-weight: 600;
-  }
-
-  h3 {
-    font-size: 1.5rem; /* 24px */
-    font-weight: 600;
-  }
-
-  h4 {
-    font-size: 1.25rem; /* 20px */
-    font-weight: 500;
-  }
-
-  h5 {
-    font-size: 1.125rem; /* 18px */
-    font-weight: 500;
-  }
-
-  h6 {
-    font-size: 1rem; /* 16px */
-    font-weight: 500;
-  }
-
-  /* Enhanced body text */
-  p {
-    line-height: 1.7;
-    letter-spacing: 0.01em;
-    margin: 0;
-  }
-
-  /* Improved link styling */
-  a {
-    letter-spacing: 0.01em;
-    transition: color 0.2s ease;
-  }
-
-  /* Enhanced safe area handling */
-  .safe-area-inset {
-    padding-left: env(safe-area-inset-left);
-    padding-right: env(safe-area-inset-right);
-    padding-top: env(safe-area-inset-top);
-    padding-bottom: env(safe-area-inset-bottom);
-  }
-
-  /* Smooth scrolling for the entire app */
-  html {
-    scroll-behavior: smooth;
-  }
-
-  /* Prevent horizontal overflow and ensure full width */
-  body, #root {
-    overflow-x: hidden;
-    width: 100%;
-    min-height: 100vh;
+    @apply bg-background text-foreground;
   }
 }
 
-/* Enhanced Typography Utility Classes */
-.orbitron-heading {
-  font-family: 'Orbitron', system-ui, -apple-system, sans-serif;
-  font-weight: 600;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
+/* Skip link for accessibility */
+.skip-link {
+  @apply absolute -top-8 left-4 z-50 bg-tennis-green-primary text-white px-4 py-2 rounded-md;
+  @apply focus:top-4 transition-all duration-200;
 }
 
-.poppins-body {
-  font-family: 'Poppins', system-ui, -apple-system, sans-serif;
-  line-height: 1.6;
-  letter-spacing: 0.01em;
-}
-
-.text-hero {
-  font-size: 3rem; /* 48px */
-  font-weight: 800;
-  line-height: 1.1;
-  letter-spacing: -0.03em;
-}
-
-.text-display {
-  font-size: 2.5rem; /* 40px */
-  font-weight: 700;
-  line-height: 1.2;
-  letter-spacing: -0.02em;
-}
-
-.text-heading-lg {
-  font-size: 2rem; /* 32px */
-  font-weight: 600;
-  line-height: 1.25;
-  letter-spacing: -0.015em;
-}
-
-.text-heading-md {
-  font-size: 1.5rem; /* 24px */
-  font-weight: 600;
-  line-height: 1.3;
-  letter-spacing: -0.01em;
-}
-
-.text-heading-sm {
-  font-size: 1.25rem; /* 20px */
-  font-weight: 500;
-  line-height: 1.4;
-  letter-spacing: -0.005em;
-}
-
-.text-body-lg {
-  font-size: 1.125rem; /* 18px */
-  line-height: 1.6;
-  letter-spacing: 0.01em;
-}
-
-.text-body {
-  font-size: 1rem; /* 16px */
-  line-height: 1.6;
-  letter-spacing: 0.01em;
-}
-
-.text-body-sm {
-  font-size: 0.875rem; /* 14px */
-  line-height: 1.5;
-  letter-spacing: 0.015em;
-}
-
-.text-caption {
-  font-size: 0.75rem; /* 12px */
-  line-height: 1.4;
-  letter-spacing: 0.02em;
-  font-weight: 500;
-}
-
-/* Enhanced Tennis theme utility classes with Fresh Tennis Club colors */
-.tennis-green-primary {
-  color: hsl(var(--tennis-green-primary));
-}
-
-.bg-tennis-green-primary {
-  background-color: hsl(var(--tennis-green-primary));
-}
-
-.tennis-green-medium {
-  color: hsl(var(--tennis-green-medium));
-}
-
-.bg-tennis-green-medium {
-  background-color: hsl(var(--tennis-green-medium));
-}
-
-.tennis-green-light {
-  color: hsl(var(--tennis-green-light));
-}
-
-.bg-tennis-green-light {
-  background-color: hsl(var(--tennis-green-light));
-}
-
-.tennis-green-dark {
-  color: hsl(var(--tennis-green-dark));
-}
-
-.bg-tennis-green-dark {
-  background-color: hsl(var(--tennis-green-dark));
-}
-
-.tennis-green-subtle {
-  color: hsl(var(--tennis-green-subtle));
-}
-
-.bg-tennis-green-subtle {
-  background-color: hsl(var(--tennis-green-subtle));
-}
-
-.tennis-green-accent {
-  color: hsl(var(--tennis-green-accent));
-}
-
-.bg-tennis-green-accent {
-  background-color: hsl(var(--tennis-green-accent));
-}
-
-.tennis-green-bg {
-  color: hsl(var(--tennis-green-bg));
-}
-
-.bg-tennis-green-bg {
-  background-color: hsl(var(--tennis-green-bg));
-}
-
-.bg-tennis-green-bg-alt {
-  background-color: hsl(var(--tennis-green-bg-alt));
-}
-
-/* Enhanced animations with better performance */
+/* Custom animations */
 @keyframes fade-in-up {
-  0% {
+  from {
     opacity: 0;
     transform: translateY(20px);
   }
-  100% {
+  to {
     opacity: 1;
     transform: translateY(0);
   }
 }
 
-@keyframes fade-in-scale {
-  0% {
-    opacity: 0;
-    transform: scale(0.95);
+@keyframes float {
+  0%, 100% {
+    transform: translateY(0px);
   }
-  100% {
-    opacity: 1;
-    transform: scale(1);
+  50% {
+    transform: translateY(-10px);
   }
 }
 
-@keyframes slide-in-right {
-  0% {
-    opacity: 0;
-    transform: translateX(20px);
+@keyframes glow-pulse {
+  0%, 100% {
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.5);
   }
-  100% {
-    opacity: 1;
-    transform: translateX(0);
+  50% {
+    box-shadow: 0 0 30px rgba(34, 197, 94, 0.8);
   }
 }
 
 @keyframes pulse-glow {
   0%, 100% {
-    opacity: 1;
-    box-shadow: 0 0 0 0 hsla(var(--tennis-green-primary), 0.4);
+    box-shadow: 0 0 10px rgba(34, 197, 94, 0.3);
   }
   50% {
-    opacity: 0.85;
-    box-shadow: 0 0 0 8px hsla(var(--tennis-green-primary), 0);
+    box-shadow: 0 0 20px rgba(34, 197, 94, 0.6);
   }
 }
 
-@keyframes shimmer {
-  0% {
-    background-position: -200px 0;
-  }
-  100% {
-    background-position: calc(200px + 100%) 0;
-  }
-}
-
-/* Gaming console specific animations */
-@keyframes scan-line {
-  0% { 
-    top: -2px; 
-    opacity: 1;
-  }
-  50% { 
-    opacity: 0.6; 
-  }
-  100% { 
-    top: 100%; 
-    opacity: 0;
-  }
-}
-
-@keyframes crt-flicker {
-  0%, 100% { 
-    opacity: 1; 
-    filter: brightness(1);
-  }
-  50% { 
-    opacity: 0.98; 
-    filter: brightness(1.02);
-  }
-}
-
-@keyframes bounce-subtle {
-  0%, 20%, 53%, 80%, 100% {
-    animation-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
-    transform: translate3d(0, 0, 0);
-  }
-  40%, 43% {
-    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    transform: translate3d(0, -8px, 0);
-  }
-  70% {
-    animation-timing-function: cubic-bezier(0.755, 0.05, 0.855, 0.06);
-    transform: translate3d(0, -4px, 0);
-  }
-  90% {
-    transform: translate3d(0, -2px, 0);
-  }
-}
-
-/* Animation utility classes */
 .animate-fade-in-up {
   animation: fade-in-up 0.6s ease-out;
 }
 
-.animate-fade-in-scale {
-  animation: fade-in-scale 0.4s ease-out;
+.animate-float {
+  animation: float 3s ease-in-out infinite;
 }
 
-.animate-slide-in-right {
-  animation: slide-in-right 0.5s ease-out;
+.animate-glow-pulse {
+  animation: glow-pulse 2s ease-in-out infinite;
 }
 
 .animate-pulse-glow {
-  animation: pulse-glow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+  animation: pulse-glow 2s ease-in-out infinite;
 }
 
-.animate-shimmer {
-  animation: shimmer 2s infinite;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    hsla(var(--tennis-green-primary), 0.1),
-    transparent
-  );
-  background-size: 200px 100%;
+/* Custom utilities */
+.text-shadow {
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
 }
 
-.animate-bounce-subtle {
-  animation: bounce-subtle 1s;
+.gradient-text {
+  background: linear-gradient(135deg, #10b981, #059669);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.animate-crt-flicker {
-  animation: crt-flicker 0.15s infinite linear alternate;
+/* Loading spinner */
+.loading-spinner {
+  @apply animate-spin rounded-full border-2 border-gray-300 border-t-tennis-green-primary;
 }
 
-/* Enhanced hover effects */
-.hover-lift {
-  transition: transform 0.2s ease-out, box-shadow 0.2s ease-out;
+/* Hide scrollbar but maintain functionality */
+.hide-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+.hide-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
-.hover-lift:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px hsla(var(--tennis-green-primary), 0.15);
+/* Card hover effects */
+.card-hover {
+  @apply transition-all duration-200 hover:shadow-lg hover:-translate-y-1;
 }
 
-.hover-glow {
-  transition: box-shadow 0.3s ease-out;
+/* Button variants */
+.btn-primary {
+  @apply bg-tennis-green-primary text-white hover:bg-tennis-green-medium transition-colors;
 }
 
-.hover-glow:hover {
-  box-shadow: 0 0 20px hsla(var(--tennis-green-primary), 0.3);
+.btn-secondary {
+  @apply bg-tennis-neutral-100 text-tennis-green-dark hover:bg-tennis-neutral-200 transition-colors;
 }
 
-/* Responsive typography */
-@media (max-width: 768px) {
-  /* Touch-friendly improvements */
-  button, .button, [role="button"] {
-    min-height: 44px;
-    min-width: 44px;
-  }
-  
-  input, textarea, select {
-    font-size: 16px; /* Prevents zoom on iOS */
-  }
-
-  /* Better mobile spacing and typography */
-  .container {
-    padding-left: 1rem;
-    padding-right: 1rem;
-  }
-
-  /* Mobile-first typography scaling */
-  h1, .text-hero {
-    font-size: 2rem !important; /* 32px */
-    line-height: 1.2;
-  }
-  
-  h2, .text-display {
-    font-size: 1.75rem !important; /* 28px */
-    line-height: 1.25;
-  }
-  
-  h3, .text-heading-lg {
-    font-size: 1.5rem !important; /* 24px */
-    line-height: 1.3;
-  }
-
-  h4, .text-heading-md {
-    font-size: 1.25rem !important; /* 20px */
-    line-height: 1.35;
-  }
-
-  h5, .text-heading-sm {
-    font-size: 1.125rem !important; /* 18px */
-    line-height: 1.4;
-  }
-
-  .text-body-lg {
-    font-size: 1rem !important; /* 16px */
-  }
-
-  .text-body {
-    font-size: 0.875rem !important; /* 14px */
-  }
+/* Form styling */
+.form-input {
+  @apply w-full px-3 py-2 border border-tennis-neutral-200 rounded-md focus:outline-none focus:ring-2 focus:ring-tennis-green-primary focus:border-tennis-green-primary;
 }
 
+/* Mobile-specific styles */
 @media (max-width: 640px) {
-  /* Extra small screens */
-  .container {
-    padding-left: 0.75rem;
-    padding-right: 0.75rem;
-  }
-
-  h1, .text-hero {
-    font-size: 1.875rem !important; /* 30px */
+  .mobile-padding {
+    @apply px-4 py-2;
   }
   
-  h2, .text-display {
-    font-size: 1.5rem !important; /* 24px */
+  .mobile-text {
+    @apply text-sm;
   }
 }
 
-/* Enhanced focus visibility for accessibility */
-*:focus-visible {
-  outline: 2px solid hsl(var(--tennis-green-primary));
-  outline-offset: 2px;
-  border-radius: 2px;
-}
+/* Tennis-specific color classes */
+.bg-tennis-green-bg { background-color: #f0f9f0; }
+.bg-tennis-green-light { background-color: #bbf7d0; }
+.bg-tennis-green-medium { background-color: #34d399; }
+.bg-tennis-green-primary { background-color: #10b981; }
+.bg-tennis-green-dark { background-color: #059669; }
+.bg-tennis-yellow { background-color: #fbbf24; }
+.bg-tennis-neutral-100 { background-color: #f5f5f4; }
+.bg-tennis-neutral-200 { background-color: #e7e5e4; }
 
-/* Loading skeleton improvements */
-.skeleton {
-  background: linear-gradient(
-    90deg,
-    hsl(var(--tennis-neutral-100)),
-    hsl(var(--tennis-neutral-50)),
-    hsl(var(--tennis-neutral-100))
-  );
-  background-size: 200px 100%;
-  animation: shimmer 1.5s infinite;
-}
+.text-tennis-green-bg { color: #f0f9f0; }
+.text-tennis-green-light { color: #bbf7d0; }
+.text-tennis-green-medium { color: #34d399; }
+.text-tennis-green-primary { color: #10b981; }
+.text-tennis-green-dark { color: #059669; }
+.text-tennis-yellow { color: #fbbf24; }
+.text-tennis-neutral-100 { color: #f5f5f4; }
+.text-tennis-neutral-200 { color: #e7e5e4; }
 
-/* Smooth transitions for reduced motion users */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    animation-duration: 0.01ms !important;
-    animation-iteration-count: 1 !important;
-    transition-duration: 0.01ms !important;
-    scroll-behavior: auto !important;
-  }
-}
-
-/* Print styles */
-@media print {
-  * {
-    background: transparent !important;
-    color: black !important;
-    box-shadow: none !important;
-    text-shadow: none !important;
-  }
-  
-  .no-print {
-    display: none !important;
-  }
-}
-
-/* High contrast mode support */
-@media (prefers-contrast: high) {
-  .tennis-green-primary {
-    color: #000;
-  }
-  
-  .bg-tennis-green-primary {
-    background-color: #000;
-  }
-  
-  button {
-    border: 2px solid currentColor;
-  }
-}
-
-/* Enhanced interactive gaming elements */
-.scrollbar-thin {
-  scrollbar-width: thin;
-}
-
-.scrollbar-track-gray-900 {
-  scrollbar-color: rgba(75, 85, 99, 0.3) transparent;
-}
-
-.scrollbar-thumb-tennis-green-primary\/30::-webkit-scrollbar {
-  width: 4px;
-}
-
-.scrollbar-thumb-tennis-green-primary\/30::-webkit-scrollbar-track {
-  background: rgba(75, 85, 99, 0.3);
-}
-
-.scrollbar-thumb-tennis-green-primary\/30::-webkit-scrollbar-thumb {
-  background: rgba(155, 255, 155, 0.3);
-  border-radius: 2px;
-}
-
-.scrollbar-thumb-tennis-green-primary\/30::-webkit-scrollbar-thumb:hover {
-  background: rgba(155, 255, 155, 0.5);
-}
-
-/* Console button effects */
-.border-3 {
-  border-width: 3px;
-}
-
-/* Enhanced particle animation */
-@keyframes particle-float {
-  0%, 100% {
-    transform: translateY(0px);
-    opacity: 0.3;
-  }
-  50% {
-    transform: translateY(-10px);
-    opacity: 0.8;
-  }
-}
-
-.animate-particle-float {
-  animation: particle-float 3s ease-in-out infinite;
-}
-
-/* Terminal cursor blink */
-@keyframes terminal-blink {
-  0%, 50% { opacity: 1; }
-  51%, 100% { opacity: 0; }
-}
-
-.animate-terminal-blink {
-  animation: terminal-blink 1s infinite;
-}
-
-/* Enhanced glow effects for interactive elements */
-.glow-green {
-  box-shadow: 0 0 5px rgba(155, 255, 155, 0.3),
-              0 0 10px rgba(155, 255, 155, 0.2),
-              0 0 15px rgba(155, 255, 155, 0.1);
-}
-
-.glow-green-intense {
-  box-shadow: 0 0 10px rgba(155, 255, 155, 0.5),
-              0 0 20px rgba(155, 255, 155, 0.3),
-              0 0 30px rgba(155, 255, 155, 0.2);
-}
-
-/* Interactive button press effect */
-@keyframes button-press {
-  0% { transform: scale(1); }
-  50% { transform: scale(0.95); }
-  100% { transform: scale(1); }
-}
-
-.animate-button-press {
-  animation: button-press 0.15s ease-out;
-}
+.border-tennis-green-primary { border-color: #10b981; }
+.border-tennis-green-medium { border-color: #34d399; }
+.border-tennis-yellow { border-color: #fbbf24; }

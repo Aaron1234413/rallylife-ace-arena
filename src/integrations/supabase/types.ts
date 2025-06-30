@@ -551,6 +551,48 @@ export type Database = {
         }
         Relationships: []
       }
+      booster_cooldowns: {
+        Row: {
+          booster_id: string | null
+          cooldown_expires_at: string
+          created_at: string | null
+          id: string
+          last_purchased_at: string
+          user_id: string | null
+        }
+        Insert: {
+          booster_id?: string | null
+          cooldown_expires_at: string
+          created_at?: string | null
+          id?: string
+          last_purchased_at: string
+          user_id?: string | null
+        }
+        Update: {
+          booster_id?: string | null
+          cooldown_expires_at?: string
+          created_at?: string | null
+          id?: string
+          last_purchased_at?: string
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "booster_cooldowns_booster_id_fkey"
+            columns: ["booster_id"]
+            isOneToOne: false
+            referencedRelation: "performance_boosters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "booster_cooldowns_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       challenges: {
         Row: {
           accepted_at: string | null
@@ -1997,6 +2039,48 @@ export type Database = {
           },
         ]
       }
+      performance_boosters: {
+        Row: {
+          cooldown_hours: number | null
+          created_at: string | null
+          description: string
+          effect_data: Json
+          effect_type: string
+          icon_name: string
+          id: string
+          is_active: boolean | null
+          name: string
+          rarity: string | null
+          token_price: number
+        }
+        Insert: {
+          cooldown_hours?: number | null
+          created_at?: string | null
+          description: string
+          effect_data: Json
+          effect_type: string
+          icon_name: string
+          id?: string
+          is_active?: boolean | null
+          name: string
+          rarity?: string | null
+          token_price: number
+        }
+        Update: {
+          cooldown_hours?: number | null
+          created_at?: string | null
+          description?: string
+          effect_data?: Json
+          effect_type?: string
+          icon_name?: string
+          id?: string
+          is_active?: boolean | null
+          name?: string
+          rarity?: string | null
+          token_price?: number
+        }
+        Relationships: []
+      }
       player_achievements: {
         Row: {
           achievement_id: string
@@ -3082,6 +3166,54 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      user_performance_boosters: {
+        Row: {
+          booster_id: string | null
+          effect_applied: boolean | null
+          expires_at: string | null
+          id: string
+          is_active: boolean | null
+          purchased_at: string | null
+          used_at: string | null
+          user_id: string | null
+        }
+        Insert: {
+          booster_id?: string | null
+          effect_applied?: boolean | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          purchased_at?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Update: {
+          booster_id?: string | null
+          effect_applied?: boolean | null
+          expires_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          purchased_at?: string | null
+          used_at?: string | null
+          user_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_performance_boosters_booster_id_fkey"
+            columns: ["booster_id"]
+            isOneToOne: false
+            referencedRelation: "performance_boosters"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "user_performance_boosters_user_id_fkey"
+            columns: ["user_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       xp_activities: {
         Row: {
