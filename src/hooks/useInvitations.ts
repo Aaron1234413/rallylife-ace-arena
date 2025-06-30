@@ -339,6 +339,7 @@ export function useInvitations() {
 
         if (updateError) throw updateError;
 
+        toast.success('Match invitation accepted! Match session created.');
         return session;
       } else {
         // Handle social play invitation acceptance
@@ -375,10 +376,12 @@ export function useInvitations() {
           }
         }
 
+        toast.success('Social play invitation accepted! You\'ve joined the event.');
         return { accepted: true, invitation_category: 'social_play', session_id: invitation.match_session_id };
       }
     } catch (error) {
       console.error('💥 [INVITATIONS] Error in acceptInvitation:', error);
+      toast.error('Failed to accept invitation');
       throw error;
     } finally {
       await fetchReceivedInvitations();
@@ -405,12 +408,14 @@ export function useInvitations() {
       }
 
       console.log('Invitation declined successfully');
+      toast.success('Invitation declined');
       
       await fetchReceivedInvitations();
       await fetchSentInvitations();
       
     } catch (error) {
       console.error('Error in declineInvitation:', error);
+      toast.error('Failed to decline invitation');
       throw error;
     }
   };
@@ -434,11 +439,13 @@ export function useInvitations() {
       }
 
       console.log('Invitation canceled successfully');
+      toast.success('Invitation canceled');
       
       await fetchSentInvitations();
       
     } catch (error) {
       console.error('Error in cancelInvitation:', error);
+      toast.error('Failed to cancel invitation');
       throw error;
     }
   };
@@ -460,10 +467,12 @@ export function useInvitations() {
 
   const refreshInvitations = async () => {
     console.log('🔄 [INVITATIONS] Manually refreshing all invitations...');
+    setLoading(true);
     await Promise.all([
       fetchReceivedInvitations(),
       fetchSentInvitations()
     ]);
+    setLoading(false);
     console.log('✅ [INVITATIONS] Manual refresh completed');
   };
 
@@ -489,6 +498,7 @@ export function useInvitations() {
       
       const channel = supabase.channel(channelName);
       
+      // Listen for sent invitations changes
       channel.on(
         'postgres_changes',
         {
@@ -503,6 +513,7 @@ export function useInvitations() {
         }
       );
 
+      // Listen for received invitations changes
       channel.on(
         'postgres_changes',
         {

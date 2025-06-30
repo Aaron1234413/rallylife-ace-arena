@@ -1,3 +1,4 @@
+
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -33,6 +34,7 @@ import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPla
 import { FloatingCheckInTrigger } from "@/components/training/FloatingCheckInTrigger";
 import { FloatingCheckInButton } from "@/components/match/FloatingCheckInButton";
 import { InvitationsWidget } from "@/components/invitations/InvitationsWidget";
+import { InvitationSystemTest } from "@/components/testing/InvitationSystemTest";
 
 const Index = () => {
   const { user } = useAuth();
@@ -53,6 +55,7 @@ const Index = () => {
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [dataInitialized, setDataInitialized] = useState(false);
+  const [showTestSuite, setShowTestSuite] = useState(false);
 
   // Derive user role flags from profile
   const isPlayer = profile?.role === 'player';
@@ -165,6 +168,25 @@ const Index = () => {
       <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Welcome Banner */}
         <WelcomeBanner />
+
+        {/* Test Suite Toggle - Only show in development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="flex justify-center">
+            <button
+              onClick={() => setShowTestSuite(!showTestSuite)}
+              className="text-sm text-gray-500 hover:text-gray-700 underline"
+            >
+              {showTestSuite ? 'Hide' : 'Show'} Invitation System Test Suite
+            </button>
+          </div>
+        )}
+
+        {/* Test Suite */}
+        {showTestSuite && (
+          <div className="mb-6">
+            <InvitationSystemTest />
+          </div>
+        )}
 
         {/* Player-specific content */}
         {isPlayer && (
