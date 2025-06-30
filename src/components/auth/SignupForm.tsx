@@ -43,7 +43,7 @@ export function SignupForm() {
       }
     } else {
       setSuccess(true);
-      setTimeout(() => navigate('/'), 2000);
+      setTimeout(() => navigate('/dashboard'), 2000);
     }
     
     setLoading(false);
