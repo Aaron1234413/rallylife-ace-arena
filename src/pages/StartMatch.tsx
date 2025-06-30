@@ -11,6 +11,7 @@ import { MatchTypeToggle } from '@/components/ui/match-type-toggle';
 import { OpponentSearchSelector, SelectedOpponent } from '@/components/match/OpponentSearchSelector';
 import { StakesPreview } from '@/components/match/StakesPreview';
 import { useMatchRewards } from '@/hooks/useMatchRewards';
+import { useInvitations } from '@/hooks/useInvitations';
 import { getRandomMessage } from '@/utils/motivationalMessages';
 import { toast } from 'sonner';
 
@@ -21,9 +22,12 @@ const StartMatch = () => {
     updateSessionData, 
     isSessionActive, 
     loading,
-    createInvitation,
-    refreshInvitations 
   } = useMatchSession();
+  
+  const {
+    createMatchInvitation,
+    refreshInvitations
+  } = useInvitations();
   
   // Updated state to use SelectedOpponent objects
   const [opponent, setOpponent] = useState<SelectedOpponent | null>(null);
@@ -158,7 +162,7 @@ const StartMatch = () => {
           isDoubles: invitationParams.isDoubles
         });
 
-        const createdInvitation = await createInvitation(invitationParams);
+        const createdInvitation = await createMatchInvitation(invitationParams);
         
         console.log('✅ [CREATE] Invitation created successfully:', createdInvitation?.id);
         toast.success('Match invitation sent! 🎾');
