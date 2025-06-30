@@ -1,12 +1,15 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Clock, Play, Square, MapPin, User } from 'lucide-react';
+import { Users, Clock, Play, Square, MapPin, User, RefreshCw } from 'lucide-react';
 import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
 import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
+import { useInvitations } from '@/hooks/useInvitations';
 import { ShareLinkGenerator } from './ShareLinkGenerator';
 import { SimpleEndEventModal } from './SimpleEndEventModal';
+import { toast } from 'sonner';
 
 interface ActiveSocialPlayWidgetProps {
   onAddXP?: (amount: number, type: string, desc?: string) => Promise<void>;
@@ -18,9 +21,11 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
   onRestoreHP
 }) => {
   const { activeSession, startSession, endSession, getDurationMinutes, loading } = useSocialPlaySession();
-  const { activeSession: dbSession } = useSocialPlaySessions();
+  const { activeSession: dbSession, cleanupExpiredSessions, isCleaningUp } = useSocialPlaySessions();
+  const { receivedInvitations, sentInvitations } = useInvitations();
   const [duration, setDuration] = useState(0);
   const [showEndModal, setShowEndModal] = useState(false);
+  const [acceptedInvitations, setAcceptedInvitations] = useState(0);
 
   // Update duration every minute
   useEffect(() => {
@@ -35,24 +40,38 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
     return () => clearInterval(interval);
   }, [activeSession, getDurationMinutes]);
 
+  // Calculate accepted invitations for current session
+  useEffect(() => {
+    if (!dbSession) return;
+    
+    const socialPlayInvitations = sentInvitations.filter(
+      inv => inv.invitation_category === 'social_play' && 
+             inv.session_data?.eventTitle === dbSession.notes
+    );
+    
+    const acceptedCount = socialPlayInvitations.filter(inv => inv.status === 'accepted').length;
+    setAcceptedInvitations(acceptedCount);
+  }, [sentInvitations, dbSession]);
+
   const handleEndSession = async () => {
     await endSession();
     setShowEndModal(false);
   };
 
+  const handleCleanup = async () => {
+    await cleanupExpiredSessions();
+  };
+
   // Helper function to get participant role
   const getParticipantRole = (participant: any, sessionType: string, createdBy: string) => {
-    // If there's a role field, use it
     if (participant.role) {
       return participant.role;
     }
     
-    // Otherwise, infer role based on relationship to session creator
     if (participant.user_id === createdBy) {
       return 'creator';
     }
     
-    // For other participants, use generic role based on session type
     if (sessionType === 'singles') {
       return 'opponent';
     } else {
@@ -64,13 +83,28 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
   if (!activeSession && dbSession && dbSession.status === 'pending') {
     const joinedParticipants = dbSession.participants?.filter(p => p.status === 'joined') || [];
     const maxParticipants = dbSession.session_type === 'singles' ? 2 : 4;
+    const minParticipants = dbSession.session_type === 'singles' ? 2 : 4;
+    const totalParticipants = joinedParticipants.length + acceptedInvitations;
+    const isReady = totalParticipants >= minParticipants;
     
     return (
       <Card className="border-purple-200 bg-purple-50/50">
         <CardHeader className="pb-3">
-          <CardTitle className="text-lg font-semibold flex items-center gap-2">
-            <Users className="h-5 w-5 text-purple-600" />
-            Ready to Play
+          <CardTitle className="text-lg font-semibold flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Users className="h-5 w-5 text-purple-600" />
+              Waiting for Players
+            </div>
+            <Button
+              onClick={handleCleanup}
+              variant="ghost"
+              size="sm"
+              disabled={isCleaningUp}
+              className="text-xs"
+            >
+              <RefreshCw className={`h-3 w-3 ${isCleaningUp ? 'animate-spin' : ''}`} />
+              Cleanup
+            </Button>
           </CardTitle>
         </CardHeader>
         
@@ -89,7 +123,12 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
-                  {joinedParticipants.length}/{maxParticipants} players
+                  {totalParticipants}/{maxParticipants} players
+                  {acceptedInvitations > 0 && (
+                    <span className="text-green-600">
+                      (+{acceptedInvitations} accepted)
+                    </span>
+                  )}
                 </div>
                 {dbSession.location && (
                   <div className="flex items-center gap-1">
@@ -99,10 +138,10 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                 )}
               </div>
 
-              {/* Show joined participants */}
+              {/* Show current participants */}
               {joinedParticipants.length > 0 && (
                 <div className="space-y-2">
-                  <div className="text-xs font-medium text-gray-600">Players:</div>
+                  <div className="text-xs font-medium text-gray-600">Current Players:</div>
                   <div className="flex flex-wrap gap-1">
                     {joinedParticipants.map((participant, index) => {
                       const role = getParticipantRole(participant, dbSession.session_type, dbSession.created_by);
@@ -117,31 +156,51 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                   </div>
                 </div>
               )}
+
+              {/* Show invitation status */}
+              {acceptedInvitations > 0 && (
+                <div className="bg-green-50 p-2 rounded text-sm">
+                  <div className="text-green-700 font-medium">
+                    {acceptedInvitations} invitation{acceptedInvitations > 1 ? 's' : ''} accepted!
+                  </div>
+                  <div className="text-green-600 text-xs">
+                    {isReady ? 'Ready to start playing!' : `Need ${minParticipants - totalParticipants} more player${minParticipants - totalParticipants > 1 ? 's' : ''}`}
+                  </div>
+                </div>
+              )}
               
               <div className="flex gap-2">
-                <Button
-                  onClick={() => startSession({
-                    id: dbSession.id,
-                    sessionType: dbSession.session_type as 'singles' | 'doubles',
-                    location: dbSession.location || undefined,
-                    participants: joinedParticipants.map(p => ({
-                      id: p.id,
-                      name: p.user?.full_name || 'Player',
-                      role: getParticipantRole(p, dbSession.session_type, dbSession.created_by),
-                      user_id: p.user_id
-                    }))
-                  })}
-                  className="flex items-center gap-2"
-                  disabled={loading}
-                >
-                  <Play className="h-4 w-4" />
-                  Start Playing
-                </Button>
+                {isReady ? (
+                  <Button
+                    onClick={() => startSession({
+                      id: dbSession.id,
+                      sessionType: dbSession.session_type as 'singles' | 'doubles',
+                      location: dbSession.location || undefined,
+                      participants: joinedParticipants.map(p => ({
+                        id: p.id,
+                        name: p.user?.full_name || 'Player',
+                        role: getParticipantRole(p, dbSession.session_type, dbSession.created_by),
+                        user_id: p.user_id
+                      }))
+                    })}
+                    className="flex items-center gap-2"
+                    disabled={loading}
+                  >
+                    <Play className="h-4 w-4" />
+                    Start Playing
+                  </Button>
+                ) : (
+                  <Button disabled className="flex items-center gap-2">
+                    <Clock className="h-4 w-4" />
+                    Waiting for Players
+                  </Button>
+                )}
+                
                 <Badge 
-                  variant={joinedParticipants.length >= maxParticipants ? 'destructive' : 'secondary'}
+                  variant={isReady ? 'default' : 'secondary'}
                   className="px-3 py-2"
                 >
-                  {joinedParticipants.length >= maxParticipants ? 'Full' : 'Ready'}
+                  {isReady ? 'Ready' : 'Waiting'}
                 </Badge>
               </div>
             </div>

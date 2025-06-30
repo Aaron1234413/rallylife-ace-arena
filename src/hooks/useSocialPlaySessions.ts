@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -55,7 +54,7 @@ export function useSocialPlaySessions() {
     enabled: !!user?.id
   });
 
-  // Get active session
+  // Get active session with invitation status check
   const { data: activeSession } = useQuery({
     queryKey: ['active-social-play-session', user?.id],
     queryFn: async () => {
@@ -77,18 +76,133 @@ export function useSocialPlaySessions() {
         .maybeSingle();
       
       if (error) throw error;
+      
+      // Check if session is ready to activate based on accepted invitations
+      if (data && data.status === 'pending') {
+        const acceptedCount = await checkAcceptedInvitations(data.id);
+        const minParticipants = data.session_type === 'singles' ? 2 : 4;
+        
+        if (acceptedCount >= minParticipants) {
+          // Auto-activate session
+          await activateSession(data.id);
+        }
+      }
+      
       return data;
     },
     enabled: !!user?.id
   });
 
-  // Create social play session with participants
+  // Check how many invitations have been accepted for a session
+  const checkAcceptedInvitations = async (sessionId: string) => {
+    const { data: invitations, error } = await supabase
+      .from('match_invitations')
+      .select('id')
+      .eq('invitation_category', 'social_play')
+      .eq('match_session_id', sessionId)
+      .eq('status', 'accepted');
+    
+    if (error) {
+      console.error('Error checking accepted invitations:', error);
+      return 0;
+    }
+    
+    // Include the session creator (always counts as 1)
+    return (invitations?.length || 0) + 1;
+  };
+
+  // Auto-activate session when minimum participants are ready
+  const activateSession = async (sessionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('social_play_sessions')
+        .update({
+          status: 'active',
+          start_time: new Date().toISOString(),
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', sessionId);
+      
+      if (error) throw error;
+      
+      // Invalidate queries to refresh UI
+      queryClient.invalidateQueries({ queryKey: ['active-social-play-session'] });
+      queryClient.invalidateQueries({ queryKey: ['social-play-sessions'] });
+      
+      toast({
+        title: 'Session Ready!',
+        description: 'Minimum participants have joined. Session is now active.',
+      });
+    } catch (error) {
+      console.error('Error activating session:', error);
+    }
+  };
+
+  // Clean up expired invitations and sessions
+  const cleanupExpiredSessions = useMutation({
+    mutationFn: async () => {
+      if (!user?.id) return;
+      
+      // Find sessions with expired invitations (older than 24 hours)
+      const expiredTime = new Date();
+      expiredTime.setHours(expiredTime.getHours() - 24);
+      
+      const { data: expiredSessions, error: fetchError } = await supabase
+        .from('social_play_sessions')
+        .select('id')
+        .eq('created_by', user.id)
+        .eq('status', 'pending')
+        .lt('created_at', expiredTime.toISOString());
+      
+      if (fetchError) throw fetchError;
+      
+      if (expiredSessions && expiredSessions.length > 0) {
+        // Cancel expired sessions
+        const { error: updateError } = await supabase
+          .from('social_play_sessions')
+          .update({
+            status: 'cancelled',
+            updated_at: new Date().toISOString()
+          })
+          .in('id', expiredSessions.map(s => s.id));
+        
+        if (updateError) throw updateError;
+        
+        // Expire related invitations
+        const { error: inviteError } = await supabase
+          .from('match_invitations')
+          .update({
+            status: 'expired',
+            updated_at: new Date().toISOString()
+          })
+          .eq('invitation_category', 'social_play')
+          .in('match_session_id', expiredSessions.map(s => s.id))
+          .eq('status', 'pending');
+        
+        if (inviteError) throw inviteError;
+      }
+      
+      return expiredSessions?.length || 0;
+    },
+    onSuccess: (cleanedCount) => {
+      if (cleanedCount && cleanedCount > 0) {
+        toast({
+          title: 'Sessions Cleaned Up',
+          description: `${cleanedCount} expired session(s) have been cancelled.`,
+        });
+        queryClient.invalidateQueries({ queryKey: ['social-play-sessions'] });
+        queryClient.invalidateQueries({ queryKey: ['active-social-play-session'] });
+      }
+    }
+  });
+
+  // Create social play session (now invitation-based)
   const createSession = useMutation({
     mutationFn: async (sessionData: {
       session_type: 'singles' | 'doubles';
       competitive_level: 'low' | 'medium' | 'high';
       location?: string;
-      participants?: CreateSessionParticipant[];
+      title?: string;
     }) => {
       if (!user?.id) throw new Error('User not authenticated');
       
@@ -99,44 +213,27 @@ export function useSocialPlaySessions() {
           session_type: sessionData.session_type,
           competitive_level: sessionData.competitive_level,
           location: sessionData.location,
-          status: 'pending'
+          notes: sessionData.title,
+          status: 'pending' // Will be activated when invitations are accepted
         })
         .select()
         .single();
       
       if (sessionError) throw sessionError;
 
-      // Add creator as a participant
-      const participantsToAdd = [
-        {
+      // Add creator as a participant automatically
+      const { error: participantError } = await supabase
+        .from('social_play_participants')
+        .insert({
           session_id: session.id,
           user_id: user.id,
           session_creator_id: user.id,
           status: 'joined',
           role: 'creator',
           joined_at: new Date().toISOString()
-        }
-      ];
-
-      // Add other participants if provided
-      if (sessionData.participants) {
-        sessionData.participants.forEach(participant => {
-          participantsToAdd.push({
-            session_id: session.id,
-            user_id: participant.user_id,
-            session_creator_id: user.id,
-            status: 'joined', // Directly set as joined instead of pending
-            role: participant.role,
-            joined_at: new Date().toISOString()
-          });
         });
-      }
-
-      const { error: participantsError } = await supabase
-        .from('social_play_participants')
-        .insert(participantsToAdd);
       
-      if (participantsError) throw participantsError;
+      if (participantError) throw participantError;
       
       return session;
     },
@@ -144,8 +241,8 @@ export function useSocialPlaySessions() {
       queryClient.invalidateQueries({ queryKey: ['social-play-sessions'] });
       queryClient.invalidateQueries({ queryKey: ['active-social-play-session'] });
       toast({
-        title: 'Social Play Session Created',
-        description: 'Your session is ready and all players have been added!',
+        title: 'Session Created',
+        description: 'Send invitations to start playing when participants join!',
       });
     },
     onError: (error: any) => {
@@ -199,7 +296,9 @@ export function useSocialPlaySessions() {
     isLoading: sessionsLoading,
     createSession: createSession.mutate,
     updateSessionStatus: updateSessionStatus.mutate,
+    cleanupExpiredSessions: cleanupExpiredSessions.mutate,
     isCreatingSession: createSession.isPending,
     isUpdatingSession: updateSessionStatus.isPending,
+    isCleaningUp: cleanupExpiredSessions.isPending,
   };
 }

@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -149,6 +148,78 @@ export function useInvitations() {
     }
   };
 
+  const createSocialPlayInvitation = async (params: CreateSocialPlayInvitationParams) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      console.log('🚀 [INVITATIONS] Creating social play invitation with params:', {
+        invitedUserName: params.invitedUserName,
+        sessionType: params.sessionType,
+        eventTitle: params.eventTitle
+      });
+
+      // Find the session by title to link the invitation
+      const { data: sessions, error: sessionError } = await supabase
+        .from('social_play_sessions')
+        .select('id')
+        .eq('created_by', user.id)
+        .eq('notes', params.eventTitle)
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(1);
+
+      if (sessionError) {
+        console.error('Error finding session:', sessionError);
+      }
+
+      const sessionId = sessions?.[0]?.id || null;
+
+      const invitationData = {
+        inviter_id: user.id,
+        invitee_id: params.invitedUserId || null,
+        invitee_name: params.invitedUserName,
+        invitee_email: params.invitedUserEmail || null,
+        invitation_type: params.sessionType,
+        invitation_category: 'social_play' as const,
+        match_session_id: sessionId, // Link to the social play session
+        message: params.message || null,
+        status: 'pending' as const,
+        session_data: {
+          sessionType: params.sessionType,
+          eventTitle: params.eventTitle,
+          location: params.location,
+          scheduledTime: params.scheduledTime.toISOString(),
+          description: params.description,
+          sessionId: sessionId,
+        }
+      };
+
+      console.log('📤 [INVITATIONS] Sending social play invitation data to database:', invitationData);
+
+      const { data, error } = await supabase
+        .from('match_invitations')
+        .insert(invitationData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ [INVITATIONS] Database error creating social play invitation:', error);
+        throw new Error(`Failed to create invitation: ${error.message}`);
+      }
+
+      console.log('✅ [INVITATIONS] Social play invitation created successfully:', data);
+      
+      await fetchSentInvitations();
+      
+      return toInvitation(data);
+    } catch (error) {
+      console.error('💥 [INVITATIONS] Error in createSocialPlayInvitation:', error);
+      throw error;
+    }
+  };
+
   const createMatchInvitation = async (params: CreateMatchInvitationParams) => {
     if (!user) {
       throw new Error('User not authenticated');
@@ -206,61 +277,6 @@ export function useInvitations() {
       return toInvitation(data);
     } catch (error) {
       console.error('💥 [INVITATIONS] Error in createMatchInvitation:', error);
-      throw error;
-    }
-  };
-
-  const createSocialPlayInvitation = async (params: CreateSocialPlayInvitationParams) => {
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
-
-    try {
-      console.log('🚀 [INVITATIONS] Creating social play invitation with params:', {
-        invitedUserName: params.invitedUserName,
-        sessionType: params.sessionType,
-        eventTitle: params.eventTitle
-      });
-
-      const invitationData = {
-        inviter_id: user.id,
-        invitee_id: params.invitedUserId || null,
-        invitee_name: params.invitedUserName,
-        invitee_email: params.invitedUserEmail || null,
-        invitation_type: params.sessionType,
-        invitation_category: 'social_play' as const,
-        match_session_id: null,
-        message: params.message || null,
-        status: 'pending' as const,
-        session_data: {
-          sessionType: params.sessionType,
-          eventTitle: params.eventTitle,
-          location: params.location,
-          scheduledTime: params.scheduledTime.toISOString(),
-          description: params.description,
-        }
-      };
-
-      console.log('📤 [INVITATIONS] Sending social play invitation data to database:', invitationData);
-
-      const { data, error } = await supabase
-        .from('match_invitations')
-        .insert(invitationData)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('❌ [INVITATIONS] Database error creating social play invitation:', error);
-        throw new Error(`Failed to create invitation: ${error.message}`);
-      }
-
-      console.log('✅ [INVITATIONS] Social play invitation created successfully:', data);
-      
-      await fetchSentInvitations();
-      
-      return toInvitation(data);
-    } catch (error) {
-      console.error('💥 [INVITATIONS] Error in createSocialPlayInvitation:', error);
       throw error;
     }
   };
@@ -328,8 +344,7 @@ export function useInvitations() {
         // Handle social play invitation acceptance
         console.log('👥 [INVITATIONS] Accepting social play invitation...');
         
-        // For social play, we just mark as accepted
-        // The session creation/joining will be handled by the social play system
+        // Update invitation status
         const { error: updateError } = await supabase
           .from('match_invitations')
           .update({
@@ -341,7 +356,26 @@ export function useInvitations() {
 
         if (updateError) throw updateError;
 
-        return { accepted: true, invitation_category: 'social_play' };
+        // If there's a linked session, add the user as a participant
+        if (invitation.match_session_id) {
+          const { error: participantError } = await supabase
+            .from('social_play_participants')
+            .insert({
+              session_id: invitation.match_session_id,
+              user_id: user.id,
+              session_creator_id: invitation.inviter_id,
+              status: 'joined',
+              role: 'invited_player',
+              joined_at: new Date().toISOString()
+            });
+
+          // Don't throw error if participant already exists
+          if (participantError && !participantError.message.includes('duplicate')) {
+            console.error('Error adding participant:', participantError);
+          }
+        }
+
+        return { accepted: true, invitation_category: 'social_play', session_id: invitation.match_session_id };
       }
     } catch (error) {
       console.error('💥 [INVITATIONS] Error in acceptInvitation:', error);
