@@ -1748,6 +1748,7 @@ export type Database = {
           created_at: string | null
           expires_at: string | null
           id: string
+          invitation_category: string
           invitation_type: string
           invitee_email: string | null
           invitee_id: string | null
@@ -1756,6 +1757,7 @@ export type Database = {
           match_session_id: string | null
           message: string | null
           responded_at: string | null
+          session_data: Json | null
           status: string
           updated_at: string | null
         }
@@ -1763,6 +1765,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           id?: string
+          invitation_category?: string
           invitation_type: string
           invitee_email?: string | null
           invitee_id?: string | null
@@ -1771,6 +1774,7 @@ export type Database = {
           match_session_id?: string | null
           message?: string | null
           responded_at?: string | null
+          session_data?: Json | null
           status?: string
           updated_at?: string | null
         }
@@ -1778,6 +1782,7 @@ export type Database = {
           created_at?: string | null
           expires_at?: string | null
           id?: string
+          invitation_category?: string
           invitation_type?: string
           invitee_email?: string | null
           invitee_id?: string | null
@@ -1786,6 +1791,7 @@ export type Database = {
           match_session_id?: string | null
           message?: string | null
           responded_at?: string | null
+          session_data?: Json | null
           status?: string
           updated_at?: string | null
         }
