@@ -12,6 +12,7 @@ interface ActiveSession {
     id: string;
     name: string;
     role: string;
+    user_id: string;
   }>;
 }
 
@@ -21,7 +22,7 @@ interface SocialPlaySessionContextType {
     id: string; 
     sessionType: 'singles' | 'doubles'; 
     location?: string;
-    participants?: Array<{ id: string; name: string; role: string }>;
+    participants?: Array<{ id: string; name: string; role: string; user_id: string }>;
   }) => void;
   endSession: () => void;
   getDurationMinutes: () => number;
@@ -39,7 +40,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
     id: string; 
     sessionType: 'singles' | 'doubles'; 
     location?: string;
-    participants?: Array<{ id: string; name: string; role: string }>;
+    participants?: Array<{ id: string; name: string; role: string; user_id: string }>;
   }) => {
     const newSession: ActiveSession = {
       id: sessionData.id,
@@ -79,14 +80,18 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
         status: 'completed',
         updates: { 
           end_time: new Date().toISOString(),
-          paused_duration: 0 // Keep it simple - no pause tracking
+          paused_duration: 0
         }
       });
       
       setActiveSession(null);
       
+      // Enhanced completion message with participant count
+      const participantCount = activeSession.participants?.length || 0;
+      const sessionTypeText = activeSession.sessionType === 'doubles' ? 'doubles' : 'singles';
+      
       toast.success('Session Completed', {
-        description: `Great session! You played for ${durationMinutes} minutes.`,
+        description: `Great ${sessionTypeText} session with ${participantCount} players! You played for ${durationMinutes} minutes.`,
       });
     } catch (error) {
       toast.error('Error', {

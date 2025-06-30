@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Clock, Play, Square, MapPin } from 'lucide-react';
+import { Users, Clock, Play, Square, MapPin, User } from 'lucide-react';
 import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
 import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
 import { ShareLinkGenerator } from './ShareLinkGenerator';
@@ -32,7 +32,7 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
     };
 
     updateDuration();
-    const interval = setInterval(updateDuration, 60000); // Update every minute
+    const interval = setInterval(updateDuration, 60000);
     return () => clearInterval(interval);
   }, [activeSession, getDurationMinutes]);
 
@@ -43,7 +43,7 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
 
   // Show database session that could be started
   if (!activeSession && dbSession && dbSession.status === 'pending') {
-    const currentParticipants = dbSession.participants?.length || 0;
+    const joinedParticipants = dbSession.participants?.filter(p => p.status === 'joined') || [];
     const maxParticipants = dbSession.session_type === 'singles' ? 2 : 4;
     
     return (
@@ -70,7 +70,7 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
               <div className="flex items-center gap-4 text-sm text-muted-foreground">
                 <div className="flex items-center gap-1">
                   <Users className="h-3 w-3" />
-                  {currentParticipants}/{maxParticipants} players
+                  {joinedParticipants.length}/{maxParticipants} players
                 </div>
                 {dbSession.location && (
                   <div className="flex items-center gap-1">
@@ -79,13 +79,35 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                   </div>
                 )}
               </div>
+
+              {/* Show joined participants */}
+              {joinedParticipants.length > 0 && (
+                <div className="space-y-2">
+                  <div className="text-xs font-medium text-gray-600">Players:</div>
+                  <div className="flex flex-wrap gap-1">
+                    {joinedParticipants.map((participant, index) => (
+                      <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
+                        <User className="h-3 w-3" />
+                        {participant.user?.full_name || 'Player'}
+                        <span className="text-xs opacity-75">({participant.role})</span>
+                      </Badge>
+                    ))}
+                  </div>
+                </div>
+              )}
               
               <div className="flex gap-2">
                 <Button
                   onClick={() => startSession({
                     id: dbSession.id,
                     sessionType: dbSession.session_type as 'singles' | 'doubles',
-                    location: dbSession.location || undefined
+                    location: dbSession.location || undefined,
+                    participants: joinedParticipants.map(p => ({
+                      id: p.id,
+                      name: p.user?.full_name || 'Player',
+                      role: p.role,
+                      user_id: p.user_id
+                    }))
                   })}
                   className="flex items-center gap-2"
                   disabled={loading}
@@ -94,10 +116,10 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                   Start Playing
                 </Button>
                 <Badge 
-                  variant={currentParticipants >= maxParticipants ? 'destructive' : 'secondary'}
+                  variant={joinedParticipants.length >= maxParticipants ? 'destructive' : 'secondary'}
                   className="px-3 py-2"
                 >
-                  {currentParticipants >= maxParticipants ? 'Full' : 'Open'}
+                  {joinedParticipants.length >= maxParticipants ? 'Full' : 'Ready'}
                 </Badge>
               </div>
             </div>
@@ -143,6 +165,22 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                   <div className="flex items-center gap-1 text-sm text-muted-foreground">
                     <MapPin className="h-3 w-3" />
                     {activeSession.location}
+                  </div>
+                )}
+
+                {/* Show active participants */}
+                {activeSession.participants && activeSession.participants.length > 0 && (
+                  <div className="space-y-2">
+                    <div className="text-xs font-medium text-gray-600">Playing with:</div>
+                    <div className="flex flex-wrap gap-1">
+                      {activeSession.participants.map((participant, index) => (
+                        <Badge key={index} variant="outline" className="text-xs flex items-center gap-1 bg-green-50">
+                          <User className="h-3 w-3" />
+                          {participant.name}
+                          <span className="text-xs opacity-75">({participant.role})</span>
+                        </Badge>
+                      ))}
+                    </div>
                   </div>
                 )}
                 
