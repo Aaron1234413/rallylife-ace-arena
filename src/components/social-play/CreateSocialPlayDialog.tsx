@@ -20,19 +20,19 @@ import { useSocialPlayEvents } from '@/hooks/useSocialPlayEvents';
 import { SocialPlayParticipantSelector } from './SocialPlayParticipantSelector';
 import { SocialPlayStakesPreview } from './SocialPlayStakesPreview';
 
-interface CreateSocialPlayDialogProps {
-  children?: React.ReactNode;
-  open?: boolean;
-  onOpenChange?: (open: boolean) => void;
-  onEventCreated?: () => void;
-}
-
-interface SelectedPlayer {
+export interface SelectedPlayer {
   id: string;
   name: string;
   avatarUrl?: string;
   skillLevel?: string;
   currentLevel?: number;
+}
+
+interface CreateSocialPlayDialogProps {
+  children?: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onEventCreated?: () => void;
 }
 
 export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({

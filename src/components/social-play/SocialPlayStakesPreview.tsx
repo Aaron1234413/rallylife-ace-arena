@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { TrendingUp, TrendingDown, Target, Users, AlertCircle } from 'lucide-react';
@@ -52,23 +52,28 @@ export const SocialPlayStakesPreview: React.FC<SocialPlayStakesPreviewProps> = (
   selectedPartner,
   selectedOpponents
 }) => {
-  // For singles, use the selected opponent
-  const singlesParams = sessionType === 'singles' && selectedOpponent ? {
-    opponent: convertToOpponent(selectedOpponent),
-    isDoubles: false
-  } : undefined;
+  // Memoize the parameters to prevent infinite re-renders
+  const matchParams = useMemo(() => {
+    if (sessionType === 'singles' && selectedOpponent) {
+      return {
+        opponent: convertToOpponent(selectedOpponent),
+        isDoubles: false
+      };
+    }
+    
+    if (sessionType === 'doubles' && selectedPartner && selectedOpponents.length === 2) {
+      return {
+        isDoubles: true,
+        partner: convertToOpponent(selectedPartner),
+        opponent1: convertToOpponent(selectedOpponents[0]),
+        opponent2: convertToOpponent(selectedOpponents[1])
+      };
+    }
+    
+    return {};
+  }, [sessionType, selectedOpponent, selectedPartner, selectedOpponents]);
 
-  // For doubles, use partner and opponents
-  const doublesParams = sessionType === 'doubles' && selectedPartner && selectedOpponents.length === 2 ? {
-    isDoubles: true,
-    partner: convertToOpponent(selectedPartner),
-    opponent1: convertToOpponent(selectedOpponents[0]),
-    opponent2: convertToOpponent(selectedOpponents[1])
-  } : undefined;
-
-  const { rewards, opponentAnalysis, doublesAnalysis, loading } = useMatchRewards(
-    singlesParams || doublesParams || {}
-  );
+  const { rewards, opponentAnalysis, doublesAnalysis, loading } = useMatchRewards(matchParams);
 
   if (loading) {
     return (
