@@ -9,8 +9,7 @@ import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, Refresh
 import { useMatchSession } from '@/contexts/MatchSessionContext';
 import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 import { MidMatchCheckInModal } from './MidMatchCheckInModal';
-import { MatchInvitationCard } from './MatchInvitationCard';
-import { PendingInvitationCard } from './PendingInvitationCard';
+import { InvitationCard, PendingInvitationCard } from '@/components/invitations';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -425,7 +424,7 @@ export const ActiveMatchWidget = () => {
                 {receivedInvitations.map((invitation) => {
                   console.log('🎾 [WIDGET] Rendering received invitation:', invitation.id);
                   return (
-                    <MatchInvitationCard key={invitation.id} invitation={invitation} />
+                    <InvitationCard key={invitation.id} invitation={invitation} />
                   );
                 })}
               </div>
