@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -19,6 +18,7 @@ import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useSocialPlayEvents } from '@/hooks/useSocialPlayEvents';
 import { SocialPlayParticipantSelector } from './SocialPlayParticipantSelector';
+import { SocialPlayStakesPreview } from './SocialPlayStakesPreview';
 
 interface CreateSocialPlayDialogProps {
   children?: React.ReactNode;
@@ -133,7 +133,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   };
 
   const dialogContent = (
-    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
+    <DialogContent className="max-w-5xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
           <Users className="h-5 w-5" />
@@ -141,153 +141,168 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
         </DialogTitle>
       </DialogHeader>
       
-      <form onSubmit={handleSubmit} className="space-y-6">
-        {/* Event Title */}
-        <div className="space-y-2">
-          <Label htmlFor="title" className="text-base font-medium">
-            Event Title
-          </Label>
-          <Input
-            id="title"
-            placeholder="e.g., Sunday Morning Tennis"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-        </div>
-
-        {/* Session Type */}
-        <div className="space-y-3">
-          <Label className="text-base font-medium">Session Type</Label>
-          <RadioGroup
-            value={sessionType}
-            onValueChange={(value) => {
-              setSessionType(value as 'singles' | 'doubles');
-              // Reset selections when changing type
-              setSelectedOpponent(null);
-              setSelectedPartner(null);
-              setSelectedOpponents([]);
-            }}
-            className="flex gap-6"
-          >
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="singles" id="singles" />
-              <Label htmlFor="singles">Singles (1v1)</Label>
-            </div>
-            <div className="flex items-center space-x-2">
-              <RadioGroupItem value="doubles" id="doubles" />
-              <Label htmlFor="doubles">Doubles (2v2)</Label>
-            </div>
-          </RadioGroup>
-        </div>
-
-        {/* Player Selection */}
-        <SocialPlayParticipantSelector
-          sessionType={sessionType}
-          selectedOpponent={selectedOpponent}
-          selectedPartner={selectedPartner}
-          selectedOpponents={selectedOpponents}
-          onOpponentSelect={setSelectedOpponent}
-          onPartnerSelect={setSelectedPartner}
-          onOpponentsSelect={setSelectedOpponents}
-        />
-
-        {/* Location */}
-        <div className="space-y-2">
-          <Label htmlFor="location" className="text-base font-medium">
-            Location
-          </Label>
-          <div className="relative">
-            <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-            <Input
-              id="location"
-              placeholder="Tennis court or venue"
-              value={location}
-              onChange={(e) => setLocation(e.target.value)}
-              className="pl-10"
-              required
-            />
-          </div>
-        </div>
-
-        {/* Date and Time */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          <div className="space-y-2">
-            <Label className="text-base font-medium">Date</Label>
-            <Popover>
-              <PopoverTrigger asChild>
-                <Button
-                  variant="outline"
-                  className={cn(
-                    "w-full justify-start text-left font-normal",
-                    !scheduledDate && "text-muted-foreground"
-                  )}
-                >
-                  <CalendarIcon className="mr-2 h-4 w-4" />
-                  {scheduledDate ? format(scheduledDate, "PPP") : "Pick a date"}
-                </Button>
-              </PopoverTrigger>
-              <PopoverContent className="w-auto p-0">
-                <Calendar
-                  mode="single"
-                  selected={scheduledDate}
-                  onSelect={setScheduledDate}
-                  disabled={(date) => {
-                    const today = new Date();
-                    today.setHours(0, 0, 0, 0);
-                    const compareDate = new Date(date);
-                    compareDate.setHours(0, 0, 0, 0);
-                    return compareDate < today;
-                  }}
-                  initialFocus
-                />
-              </PopoverContent>
-            </Popover>
-          </div>
-          
-          <div className="space-y-2">
-            <Label htmlFor="time" className="text-base font-medium">
-              Time
-            </Label>
-            <div className="relative">
-              <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Main Form - Takes 2 columns */}
+        <div className="lg:col-span-2">
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Event Title */}
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-base font-medium">
+                Event Title
+              </Label>
               <Input
-                id="time"
-                type="time"
-                value={scheduledTime}
-                onChange={(e) => setScheduledTime(e.target.value)}
-                className="pl-10"
+                id="title"
+                placeholder="e.g., Sunday Morning Tennis"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
                 required
               />
             </div>
-          </div>
+
+            {/* Session Type */}
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Session Type</Label>
+              <RadioGroup
+                value={sessionType}
+                onValueChange={(value) => {
+                  setSessionType(value as 'singles' | 'doubles');
+                  // Reset selections when changing type
+                  setSelectedOpponent(null);
+                  setSelectedPartner(null);
+                  setSelectedOpponents([]);
+                }}
+                className="flex gap-6"
+              >
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="singles" id="singles" />
+                  <Label htmlFor="singles">Singles (1v1)</Label>
+                </div>
+                <div className="flex items-center space-x-2">
+                  <RadioGroupItem value="doubles" id="doubles" />
+                  <Label htmlFor="doubles">Doubles (2v2)</Label>
+                </div>
+              </RadioGroup>
+            </div>
+
+            {/* Player Selection */}
+            <SocialPlayParticipantSelector
+              sessionType={sessionType}
+              selectedOpponent={selectedOpponent}
+              selectedPartner={selectedPartner}
+              selectedOpponents={selectedOpponents}
+              onOpponentSelect={setSelectedOpponent}
+              onPartnerSelect={setSelectedPartner}
+              onOpponentsSelect={setSelectedOpponents}
+            />
+
+            {/* Location */}
+            <div className="space-y-2">
+              <Label htmlFor="location" className="text-base font-medium">
+                Location
+              </Label>
+              <div className="relative">
+                <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  id="location"
+                  placeholder="Tennis court or venue"
+                  value={location}
+                  onChange={(e) => setLocation(e.target.value)}
+                  className="pl-10"
+                  required
+                />
+              </div>
+            </div>
+
+            {/* Date and Time */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label className="text-base font-medium">Date</Label>
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button
+                      variant="outline"
+                      className={cn(
+                        "w-full justify-start text-left font-normal",
+                        !scheduledDate && "text-muted-foreground"
+                      )}
+                    >
+                      <CalendarIcon className="mr-2 h-4 w-4" />
+                      {scheduledDate ? format(scheduledDate, "PPP") : "Pick a date"}
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-auto p-0">
+                    <Calendar
+                      mode="single"
+                      selected={scheduledDate}
+                      onSelect={setScheduledDate}
+                      disabled={(date) => {
+                        const today = new Date();
+                        today.setHours(0, 0, 0, 0);
+                        const compareDate = new Date(date);
+                        compareDate.setHours(0, 0, 0, 0);
+                        return compareDate < today;
+                      }}
+                      initialFocus
+                    />
+                  </PopoverContent>
+                </Popover>
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="time" className="text-base font-medium">
+                  Time
+                </Label>
+                <div className="relative">
+                  <Clock className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                  <Input
+                    id="time"
+                    type="time"
+                    value={scheduledTime}
+                    onChange={(e) => setScheduledTime(e.target.value)}
+                    className="pl-10"
+                    required
+                  />
+                </div>
+              </div>
+            </div>
+
+            {/* Description */}
+            <div className="space-y-2">
+              <Label htmlFor="description" className="text-base font-medium">
+                Description (Optional)
+              </Label>
+              <Textarea
+                id="description"
+                placeholder="Add any additional details about the event..."
+                value={description}
+                onChange={(e) => setDescription(e.target.value)}
+                rows={3}
+              />
+            </div>
+
+            {/* Submit Button */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="submit"
+                disabled={!isFormValid() || isCreatingEvent}
+                className="flex-1"
+              >
+                {isCreatingEvent ? 'Creating Event...' : 'Create Event & Invite Players'}
+              </Button>
+            </div>
+          </form>
         </div>
 
-        {/* Description */}
-        <div className="space-y-2">
-          <Label htmlFor="description" className="text-base font-medium">
-            Description (Optional)
-          </Label>
-          <Textarea
-            id="description"
-            placeholder="Add any additional details about the event..."
-            value={description}
-            onChange={(e) => setDescription(e.target.value)}
-            rows={3}
+        {/* Stakes Preview Sidebar - Takes 1 column */}
+        <div className="space-y-4">
+          <SocialPlayStakesPreview
+            sessionType={sessionType}
+            selectedOpponent={selectedOpponent}
+            selectedPartner={selectedPartner}
+            selectedOpponents={selectedOpponents}
           />
         </div>
-
-        {/* Submit Button */}
-        <div className="flex gap-3 pt-4">
-          <Button
-            type="submit"
-            disabled={!isFormValid() || isCreatingEvent}
-            className="flex-1"
-          >
-            {isCreatingEvent ? 'Creating Event...' : 'Create Event & Invite Players'}
-          </Button>
-        </div>
-      </form>
+      </div>
     </DialogContent>
   );
 
