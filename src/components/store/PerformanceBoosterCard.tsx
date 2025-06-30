@@ -13,7 +13,7 @@ import type { PerformanceBooster, BoosterCooldown } from '@/hooks/usePerformance
 
 interface PerformanceBoosterCardProps {
   booster: PerformanceBooster;
-  onPurchase: (boosterId: string, tokenPrice: number) => void;
+  onPurchase: (params: { boosterId: string; tokenPrice: number }) => void;
   cooldown?: BoosterCooldown;
   userTokens: number;
   purchasing: boolean;
@@ -175,7 +175,7 @@ export function PerformanceBoosterCard({
           ) : (
             <Button
               size="sm"
-              onClick={() => onPurchase(booster.id, booster.token_price)}
+              onClick={() => onPurchase({ boosterId: booster.id, tokenPrice: booster.token_price })}
               disabled={!canPurchase}
               className={cn(
                 'font-semibold',
