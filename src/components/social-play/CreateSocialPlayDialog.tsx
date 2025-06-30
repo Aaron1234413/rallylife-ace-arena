@@ -117,10 +117,8 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
       });
 
       // Also create the event for scheduling purposes
-      const invitedUsers = participants.map(p => ({
-        user_id: p.user_id,
-        role: p.role
-      }));
+      // Extract just the user IDs for the invited_users array
+      const invitedUserIds = participants.map(p => p.user_id);
 
       await createEvent({
         title: title.trim(),
@@ -128,7 +126,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
         location: location.trim(),
         scheduled_time: scheduledDateTime,
         description: description.trim() || undefined,
-        invited_users: invitedUsers,
+        invited_users: invitedUserIds,
       });
       
       // Reset form
