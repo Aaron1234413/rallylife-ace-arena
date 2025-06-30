@@ -1,4 +1,3 @@
-
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -39,6 +38,26 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
   const handleEndSession = async () => {
     await endSession();
     setShowEndModal(false);
+  };
+
+  // Helper function to get participant role
+  const getParticipantRole = (participant: any, sessionType: string, createdBy: string) => {
+    // If there's a role field, use it
+    if (participant.role) {
+      return participant.role;
+    }
+    
+    // Otherwise, infer role based on relationship to session creator
+    if (participant.user_id === createdBy) {
+      return 'creator';
+    }
+    
+    // For other participants, use generic role based on session type
+    if (sessionType === 'singles') {
+      return 'opponent';
+    } else {
+      return 'player';
+    }
   };
 
   // Show database session that could be started
@@ -85,13 +104,16 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-gray-600">Players:</div>
                   <div className="flex flex-wrap gap-1">
-                    {joinedParticipants.map((participant, index) => (
-                      <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
-                        <User className="h-3 w-3" />
-                        {participant.user?.full_name || 'Player'}
-                        <span className="text-xs opacity-75">({participant.role})</span>
-                      </Badge>
-                    ))}
+                    {joinedParticipants.map((participant, index) => {
+                      const role = getParticipantRole(participant, dbSession.session_type, dbSession.created_by);
+                      return (
+                        <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {participant.user?.full_name || 'Player'}
+                          <span className="text-xs opacity-75">({role})</span>
+                        </Badge>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -105,7 +127,7 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                     participants: joinedParticipants.map(p => ({
                       id: p.id,
                       name: p.user?.full_name || 'Player',
-                      role: p.role,
+                      role: getParticipantRole(p, dbSession.session_type, dbSession.created_by),
                       user_id: p.user_id
                     }))
                   })}
