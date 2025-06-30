@@ -1,4 +1,3 @@
-
 import React, { useState, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -402,92 +401,13 @@ export function EnhancedQuickActions({
         Skip to Quick Actions
       </a>
 
-      {/* Consolidated Smart Recommendations with Activity Intelligence */}
-      <Card className="relative overflow-hidden border-2 bg-gradient-to-br from-purple-50 via-blue-50 to-indigo-50 border-purple-200/50 shadow-lg">
-        <div className="absolute inset-0 bg-gradient-to-r from-purple-500/5 via-blue-500/5 to-indigo-500/5"></div>
-        <CardHeader className="relative pb-3 sm:pb-4">
-          <CardTitle className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-xl bg-gradient-to-br from-purple-500 to-blue-600 text-white shadow-lg">
-                <Sparkles className="h-4 w-4 sm:h-5 sm:w-5" />
-              </div>
-              <div className="flex-1">
-                <h2 className="text-lg sm:text-xl font-bold bg-gradient-to-r from-purple-600 to-blue-600 bg-clip-text text-transparent">
-                  AI Smart Recommendations
-                </h2>
-                <p className="text-xs sm:text-sm text-gray-600 font-normal mt-1">
-                  Based on your real activity data and current state
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2">
-              <Badge 
-                variant="secondary" 
-                className="bg-gradient-to-r from-purple-100 to-blue-100 text-purple-700 border-purple-200 shadow-sm text-xs"
-              >
-                <Activity className="h-3 w-3 mr-1" />
-                {contextualData.playerState.energyLevel} energy
-              </Badge>
-              <Badge 
-                variant="outline" 
-                className="border-blue-200 text-blue-700 bg-blue-50 shadow-sm text-xs"
-              >
-                <TrendingUp className="h-3 w-3 mr-1" />
-                {contextualData.recommendations.motivation} motivation
-              </Badge>
-            </div>
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="relative p-3 sm:p-6 pt-0 space-y-4">
-          {/* Activity Intelligence Stats */}
-          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3 p-3 bg-white/60 rounded-lg border border-white/40">
-            <div className="flex items-center gap-3">
-              <div className="p-2 rounded-lg bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-md">
-                <Clock className="h-4 w-4" />
-              </div>
-              <div>
-                <span className="font-bold text-gray-800 text-sm sm:text-base">Activity Intelligence</span>
-                <p className="text-gray-600 mt-0.5 text-xs sm:text-sm">
-                  Real-time insights from your tennis data
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-wrap gap-2 sm:gap-4 text-sm">
-              <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 shadow-sm border">
-                <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-green-600" />
-                <div>
-                  <div className="text-xs text-gray-500">This Week</div>
-                  <div className="font-bold text-gray-800 text-sm">{contextualData.activity.recentActivityCount}</div>
-                </div>
-              </div>
-              <div className="flex items-center gap-2 bg-white rounded-lg px-3 py-1.5 shadow-sm border">
-                <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-purple-600" />
-                <div>
-                  <div className="text-xs text-gray-500">Energy</div>
-                  <div className="font-bold text-gray-800 text-sm capitalize">{contextualData.playerState.energyLevel}</div>
-                </div>
-              </div>
-              {contextualData.activity.hoursSinceLastActivity > 24 && (
-                <div className="flex items-center gap-2 bg-orange-50 rounded-lg px-3 py-1.5 shadow-sm border border-orange-200">
-                  <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-orange-600" />
-                  <div>
-                    <div className="text-xs text-orange-600">Last Activity</div>
-                    <div className="font-bold text-orange-800 text-sm">{Math.round(contextualData.activity.hoursSinceLastActivity)}h ago</div>
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-
-          {/* Smart Recommendations */}
-          <SmartRecommendations 
-            hpData={hpData}
-            xpData={xpData}
-            contextualData={contextualData}
-            onRecommendationClick={handleRecommendationClick}
-          />
-        </CardContent>
-      </Card>
+      {/* Smart Recommendations - Simplified */}
+      <SmartRecommendations 
+        hpData={hpData}
+        xpData={xpData}
+        contextualData={contextualData}
+        onRecommendationClick={handleRecommendationClick}
+      />
 
       {/* Enhanced Quick Actions */}
       <Card 
