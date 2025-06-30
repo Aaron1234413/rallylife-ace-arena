@@ -1,3 +1,4 @@
+
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -19,7 +20,8 @@ import { cn } from '@/lib/utils';
 import { useSocialPlayEvents } from '@/hooks/useSocialPlayEvents';
 import { SocialPlayParticipantSelector } from './SocialPlayParticipantSelector';
 import { SocialPlayStakesPreview } from './SocialPlayStakesPreview';
-import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
+import { useInvitations } from '@/hooks/useInvitations';
+import { toast } from 'sonner';
 
 export interface SelectedPlayer {
   id: string;
@@ -44,7 +46,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const { createEvent, isCreatingEvent } = useSocialPlayEvents();
-  const { createSession, isCreatingSession } = useSocialPlaySessions();
+  const { createSocialPlayInvitation } = useInvitations();
 
   // Form state
   const [title, setTitle] = useState('');
@@ -85,49 +87,72 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
     const scheduledDateTime = new Date(scheduledDate!);
     scheduledDateTime.setHours(hours, minutes);
 
-    // Prepare participants based on session type
-    const participants = [];
-    if (sessionType === 'singles' && selectedOpponent) {
-      participants.push({
-        user_id: selectedOpponent.id,
-        role: 'opponent'
-      });
-    } else if (sessionType === 'doubles') {
-      if (selectedPartner) {
-        participants.push({
-          user_id: selectedPartner.id,
-          role: 'partner'
-        });
-      }
-      selectedOpponents.forEach((opponent, index) => {
-        participants.push({
-          user_id: opponent.id,
-          role: `opponent_${index + 1}`
-        });
-      });
-    }
-
     try {
-      // Create the social play session directly with participants
-      await createSession({
-        session_type: sessionType,
-        competitive_level: 'medium', // Default to medium for now
-        location: location.trim(),
-        participants
-      });
-
-      // Also create the event for scheduling purposes
-      // Extract just the user IDs for the invited_users array
-      const invitedUserIds = participants.map(p => p.user_id);
-
+      // Create the social play event first
       await createEvent({
         title: title.trim(),
         session_type: sessionType,
         location: location.trim(),
         scheduled_time: scheduledDateTime,
         description: description.trim() || undefined,
-        invited_users: invitedUserIds,
+        invited_users: [], // We'll send invitations separately
       });
+
+      // Send invitations to selected players
+      const invitations = [];
+      
+      if (sessionType === 'singles' && selectedOpponent) {
+        invitations.push(
+          createSocialPlayInvitation({
+            invitedUserName: selectedOpponent.name,
+            invitedUserId: selectedOpponent.id,
+            sessionType,
+            eventTitle: title.trim(),
+            location: location.trim(),
+            scheduledTime: scheduledDateTime,
+            description: description.trim(),
+            message: `You're invited to join a social tennis event: ${title.trim()}`,
+          })
+        );
+      } else if (sessionType === 'doubles') {
+        // Invite partner
+        if (selectedPartner) {
+          invitations.push(
+            createSocialPlayInvitation({
+              invitedUserName: selectedPartner.name,
+              invitedUserId: selectedPartner.id,
+              sessionType,
+              eventTitle: title.trim(),
+              location: location.trim(),
+              scheduledTime: scheduledDateTime,
+              description: description.trim(),
+              message: `You're invited to be my partner in a doubles tennis event: ${title.trim()}`,
+            })
+          );
+        }
+
+        // Invite opponents
+        selectedOpponents.forEach((opponent, index) => {
+          invitations.push(
+            createSocialPlayInvitation({
+              invitedUserName: opponent.name,
+              invitedUserId: opponent.id,
+              sessionType,
+              eventTitle: title.trim(),
+              location: location.trim(),
+              scheduledTime: scheduledDateTime,
+              description: description.trim(),
+              message: `You're invited to join a doubles tennis event: ${title.trim()}`,
+            })
+          );
+        });
+      }
+
+      // Send all invitations
+      await Promise.all(invitations);
+      
+      const invitationCount = invitations.length;
+      toast.success(`Social play event created and ${invitationCount} invitation${invitationCount > 1 ? 's' : ''} sent!`);
       
       // Reset form
       setTitle('');
@@ -142,7 +167,8 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
       handleOpenChange(false);
       onEventCreated?.();
     } catch (error) {
-      console.error('Failed to create session:', error);
+      console.error('Failed to create event or send invitations:', error);
+      toast.error('Failed to create event or send invitations');
     }
   };
 
@@ -298,10 +324,10 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
             <div className="flex gap-3 pt-4">
               <Button
                 type="submit"
-                disabled={!isFormValid() || isCreatingEvent || isCreatingSession}
+                disabled={!isFormValid() || isCreatingEvent}
                 className="flex-1"
               >
-                {(isCreatingEvent || isCreatingSession) ? 'Creating Session...' : 'Create Session & Add Players'}
+                {isCreatingEvent ? 'Creating Event...' : 'Create Event & Send Invitations'}
               </Button>
             </div>
           </form>
