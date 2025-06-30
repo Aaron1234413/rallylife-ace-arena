@@ -1,4 +1,3 @@
-
 import { useEffect, useState } from "react";
 import { useAuth } from "@/hooks/useAuth";
 import { usePlayerHP } from "@/hooks/usePlayerHP";
@@ -6,7 +5,6 @@ import { usePlayerXP } from "@/hooks/usePlayerXP";
 import { usePlayerAvatar } from "@/hooks/usePlayerAvatar";
 import { usePlayerAchievements } from "@/hooks/usePlayerAchievements";
 import { usePlayerTokens } from "@/hooks/usePlayerTokens";
-import { useMatchInvitations } from "@/hooks/useMatchInvitations";
 import { supabase } from "@/integrations/supabase/client";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { ProfileCard } from "@/components/dashboard/ProfileCard";
@@ -28,13 +26,13 @@ import {
   Activity
 } from 'lucide-react';
 
-import { ActiveMatchWidget } from "@/components/match/ActiveMatchWidget";
 import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
 import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
 import { useSocialPlaySession } from "@/contexts/SocialPlaySessionContext";
 import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
 import { FloatingCheckInTrigger } from "@/components/training/FloatingCheckInTrigger";
 import { FloatingCheckInButton } from "@/components/match/FloatingCheckInButton";
+import { InvitationsWidget } from "@/components/invitations/InvitationsWidget";
 
 const Index = () => {
   const { user } = useAuth();
@@ -189,9 +187,9 @@ const Index = () => {
               onRestoreHP={handleRestoreHP}
             />
             
-            {/* Match Widget - Shows both active matches AND invitations - ALWAYS VISIBLE */}
+            {/* Unified Invitations Widget - Shows both match and social play invitations */}
             <div className="mb-6">
-              <ActiveMatchWidget />
+              <InvitationsWidget />
             </div>
             
             <ActiveTrainingWidget />
