@@ -18,12 +18,21 @@ import { MapPin, Calendar as CalendarIcon, Clock, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { useSocialPlayEvents } from '@/hooks/useSocialPlayEvents';
+import { SocialPlayParticipantSelector } from './SocialPlayParticipantSelector';
 
 interface CreateSocialPlayDialogProps {
   children?: React.ReactNode;
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   onEventCreated?: () => void;
+}
+
+interface SelectedPlayer {
+  id: string;
+  name: string;
+  avatarUrl?: string;
+  skillLevel?: string;
+  currentLevel?: number;
 }
 
 export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
@@ -43,21 +52,58 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   const [scheduledTime, setScheduledTime] = useState('');
   const [description, setDescription] = useState('');
 
+  // Player selection state
+  const [selectedOpponent, setSelectedOpponent] = useState<SelectedPlayer | null>(null);
+  const [selectedPartner, setSelectedPartner] = useState<SelectedPlayer | null>(null);
+  const [selectedOpponents, setSelectedOpponents] = useState<SelectedPlayer[]>([]);
+
   // Use controlled state if provided, otherwise use internal state
   const isOpen = open !== undefined ? open : internalOpen;
   const handleOpenChange = onOpenChange || setInternalOpen;
 
+  const isFormValid = () => {
+    const basicFieldsValid = title.trim() && location.trim() && scheduledDate && scheduledTime;
+    
+    if (sessionType === 'singles') {
+      return basicFieldsValid && selectedOpponent;
+    } else {
+      return basicFieldsValid && selectedPartner && selectedOpponents.length === 2;
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!title.trim() || !location.trim() || !scheduledDate || !scheduledTime) {
+    if (!isFormValid()) {
       return;
     }
 
     // Combine date and time
     const [hours, minutes] = scheduledTime.split(':').map(Number);
-    const scheduledDateTime = new Date(scheduledDate);
+    const scheduledDateTime = new Date(scheduledDate!);
     scheduledDateTime.setHours(hours, minutes);
+
+    // Prepare invited users based on session type
+    const invitedUsers = [];
+    if (sessionType === 'singles' && selectedOpponent) {
+      invitedUsers.push({
+        user_id: selectedOpponent.id,
+        role: 'opponent'
+      });
+    } else if (sessionType === 'doubles') {
+      if (selectedPartner) {
+        invitedUsers.push({
+          user_id: selectedPartner.id,
+          role: 'partner'
+        });
+      }
+      selectedOpponents.forEach((opponent, index) => {
+        invitedUsers.push({
+          user_id: opponent.id,
+          role: `opponent_${index + 1}`
+        });
+      });
+    }
 
     try {
       await createEvent({
@@ -66,7 +112,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
         location: location.trim(),
         scheduled_time: scheduledDateTime,
         description: description.trim() || undefined,
-        invited_users: [], // Simplified - no invitations for now
+        invited_users: invitedUsers,
       });
       
       // Reset form
@@ -75,6 +121,9 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
       setScheduledDate(undefined);
       setScheduledTime('');
       setDescription('');
+      setSelectedOpponent(null);
+      setSelectedPartner(null);
+      setSelectedOpponents([]);
       
       handleOpenChange(false);
       onEventCreated?.();
@@ -84,7 +133,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   };
 
   const dialogContent = (
-    <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+    <DialogContent className="max-w-4xl max-h-[90vh] overflow-y-auto">
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
           <Users className="h-5 w-5" />
@@ -112,7 +161,13 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
           <Label className="text-base font-medium">Session Type</Label>
           <RadioGroup
             value={sessionType}
-            onValueChange={(value) => setSessionType(value as 'singles' | 'doubles')}
+            onValueChange={(value) => {
+              setSessionType(value as 'singles' | 'doubles');
+              // Reset selections when changing type
+              setSelectedOpponent(null);
+              setSelectedPartner(null);
+              setSelectedOpponents([]);
+            }}
             className="flex gap-6"
           >
             <div className="flex items-center space-x-2">
@@ -125,6 +180,17 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
             </div>
           </RadioGroup>
         </div>
+
+        {/* Player Selection */}
+        <SocialPlayParticipantSelector
+          sessionType={sessionType}
+          selectedOpponent={selectedOpponent}
+          selectedPartner={selectedPartner}
+          selectedOpponents={selectedOpponents}
+          onOpponentSelect={setSelectedOpponent}
+          onPartnerSelect={setSelectedPartner}
+          onOpponentsSelect={setSelectedOpponents}
+        />
 
         {/* Location */}
         <div className="space-y-2">
@@ -209,10 +275,10 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
         <div className="flex gap-3 pt-4">
           <Button
             type="submit"
-            disabled={!title.trim() || !location.trim() || !scheduledDate || !scheduledTime || isCreatingEvent}
+            disabled={!isFormValid() || isCreatingEvent}
             className="flex-1"
           >
-            {isCreatingEvent ? 'Creating Event...' : 'Create Event'}
+            {isCreatingEvent ? 'Creating Event...' : 'Create Event & Invite Players'}
           </Button>
         </div>
       </form>
