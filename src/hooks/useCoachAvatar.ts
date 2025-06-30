@@ -209,7 +209,7 @@ export function useCoachAvatar() {
     },
   });
 
-  // Initialize avatar mutation
+  // Initialize avatar mutation - only called manually now
   const initializeAvatarMutation = useMutation({
     mutationFn: async () => {
       const { data, error } = await supabase.rpc('initialize_coach_avatar', {
@@ -243,25 +243,7 @@ export function useCoachAvatar() {
     },
   });
 
-  // Auto-initialize only once when needed
-  useEffect(() => {
-    // Only attempt initialization if:
-    // 1. Data has loaded
-    // 2. No equipped items exist
-    // 3. Haven't attempted initialization yet
-    // 4. Not currently initializing
-    if (!equippedLoading && 
-        !ownedLoading && 
-        equippedItems.length === 0 && 
-        ownedItems.length === 0 && 
-        !initializationAttempted &&
-        !initializeAvatarMutation.isPending) {
-      
-      console.log('Auto-initializing coach avatar...');
-      setInitializationAttempted(true);
-      initializeAvatarMutation.mutate();
-    }
-  }, [equippedLoading, ownedLoading, equippedItems.length, ownedItems.length, initializationAttempted, initializeAvatarMutation.isPending]);
+  // Removed auto-initialization - coach avatars are now optional and set up manually
 
   // Check if an item is owned
   const isItemOwned = (itemId: string) => {
