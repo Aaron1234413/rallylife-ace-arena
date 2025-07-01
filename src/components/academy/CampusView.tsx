@@ -13,7 +13,7 @@ import {
   History,
   ChevronRight
 } from 'lucide-react';
-import { AcademyProgress } from '@/hooks/useAcademyProgress';
+import { AcademyProgress } from '@/hooks/useAcademyProgressDB';
 
 interface Building {
   id: string;
@@ -142,7 +142,7 @@ export const CampusView: React.FC<CampusViewProps> = ({
         
         {/* Level Badge */}
         <Badge className="bg-tennis-green-primary text-white text-lg px-4 py-2">
-          Level {progress.level} • {progress.levelName}
+          Level {progress.level} • {progress.level_name}
         </Badge>
       </div>
 
@@ -163,7 +163,7 @@ export const CampusView: React.FC<CampusViewProps> = ({
             <Button
               onClick={onDailyDrill}
               className="bg-yellow-600 hover:bg-yellow-700 text-white"
-              disabled={progress.dailyTokensEarned >= 10}
+              disabled={progress.daily_tokens_earned >= 10}
             >
               Start Drill
               <ChevronRight className="h-4 w-4 ml-2" />

@@ -4,7 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
 import { TrendingUp, Star, Award, Trophy, Crown, Zap, ChevronUp } from 'lucide-react';
-import { AcademyProgress } from '@/hooks/useAcademyProgress';
+import { AcademyProgress } from '@/hooks/useAcademyProgressDB';
 
 interface AcademyProgressTrackerProps {
   progress: AcademyProgress;
@@ -31,7 +31,7 @@ export const AcademyProgressTracker: React.FC<AcademyProgressTrackerProps> = ({
   
   const currentLevelXP = currentLevelInfo.xpRequired;
   const nextLevelXP = nextLevelInfo?.xpRequired || currentLevelXP + 200;
-  const xpInCurrentLevel = progress.totalXP - currentLevelXP;
+  const xpInCurrentLevel = progress.total_xp - currentLevelXP;
   const xpNeededForNext = nextLevelXP - currentLevelXP;
   const progressToNext = Math.max(0, Math.min(100, (xpInCurrentLevel / xpNeededForNext) * 100));
 
@@ -124,8 +124,8 @@ export const AcademyProgressTracker: React.FC<AcademyProgressTrackerProps> = ({
                 <div className="space-y-2">
                   <Progress value={progressToNext} className="h-3" />
                   <div className="flex justify-between text-xs text-tennis-green-medium">
-                    <span>{progress.totalXP} XP</span>
-                    <span>{nextLevelXP - progress.totalXP} XP to next level</span>
+                    <span>{progress.total_xp} XP</span>
+                    <span>{nextLevelXP - progress.total_xp} XP to next level</span>
                   </div>
                 </div>
               </div>
@@ -170,7 +170,7 @@ export const AcademyProgressTracker: React.FC<AcademyProgressTrackerProps> = ({
                     <div className="flex items-center justify-center gap-1 mb-1">
                       <Star className="h-4 w-4 text-yellow-500" />
                       <span className="text-lg font-bold text-tennis-green-dark">
-                        {progress.totalXP}
+                        {progress.total_xp}
                       </span>
                     </div>
                     <div className="text-xs text-tennis-green-medium">Total XP</div>
@@ -180,7 +180,7 @@ export const AcademyProgressTracker: React.FC<AcademyProgressTrackerProps> = ({
                     <div className="flex items-center justify-center gap-1 mb-1">
                       <Award className="h-4 w-4 text-blue-500" />
                       <span className="text-lg font-bold text-tennis-green-dark">
-                        {progress.quizzesCompleted}
+                        {progress.quizzes_completed}
                       </span>
                     </div>
                     <div className="text-xs text-tennis-green-medium">Quizzes</div>
@@ -190,7 +190,7 @@ export const AcademyProgressTracker: React.FC<AcademyProgressTrackerProps> = ({
                     <div className="flex items-center justify-center gap-1 mb-1">
                       <Trophy className="h-4 w-4 text-orange-500" />
                       <span className="text-lg font-bold text-tennis-green-dark">
-                        {progress.dailyStreak}
+                        {progress.daily_streak}
                       </span>
                     </div>
                     <div className="text-xs text-tennis-green-medium">Day Streak</div>
@@ -200,7 +200,7 @@ export const AcademyProgressTracker: React.FC<AcademyProgressTrackerProps> = ({
                     <div className="flex items-center justify-center gap-1 mb-1">
                       <Zap className="h-4 w-4 text-purple-500" />
                       <span className="text-lg font-bold text-tennis-green-dark">
-                        {Math.floor(progress.totalXP / 50)}
+                        {Math.floor(progress.total_xp / 50)}
                       </span>
                     </div>
                     <div className="text-xs text-tennis-green-medium">Achievements</div>

@@ -8,10 +8,10 @@ import { SocialHub } from '@/components/academy/SocialHub';
 import { TokenMarketplace } from '@/components/academy/TokenMarketplace';
 import { PremiumQuizCategories } from '@/components/academy/PremiumQuizCategories';
 import { CampusCustomization } from '@/components/academy/CampusCustomization';
-import { useAcademyProgress } from '@/hooks/useAcademyProgress';
+import { useAcademyProgressDB } from '@/hooks/useAcademyProgressDB';
 
 const Academy = () => {
-  const { progress, isCompleted: isOnboardingCompleted, isLoading, completeOnboarding } = useAcademyProgress();
+  const { progress, isCompleted: isOnboardingCompleted, isLoading, completeOnboarding } = useAcademyProgressDB();
   const [activeView, setActiveView] = useState<'dashboard' | 'campus' | 'category' | 'drill' | 'social' | 'marketplace' | 'premium' | 'customize' | 'onboarding'>('dashboard');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
@@ -133,6 +133,20 @@ const Academy = () => {
       <DailyDrill
         onBack={handleBackToDashboard}
       />
+    );
+  }
+
+  // Don't render if no progress data yet
+  if (!progress) {
+    return (
+      <div className="min-h-screen bg-tennis-green-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-tennis-green-primary rounded-full flex items-center justify-center mb-4 mx-auto">
+            <span className="text-white text-xl">🎾</span>
+          </div>
+          <p className="text-tennis-green-medium">Setting up your Academy...</p>
+        </div>
+      </div>
     );
   }
 

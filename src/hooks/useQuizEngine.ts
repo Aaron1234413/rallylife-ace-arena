@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
-import { useAcademyProgress } from '@/hooks/useAcademyProgress';
+import { useAcademyProgressDB } from '@/hooks/useAcademyProgressDB';
 import { QuizQuestion } from '@/components/academy/QuizInterface';
 
 // Sample quiz questions for Phase 1
@@ -81,7 +81,7 @@ const QUIZ_QUESTIONS: QuizQuestion[] = [
 
 export function useQuizEngine() {
   const { addTokens } = usePlayerTokens();
-  const { completeQuiz } = useAcademyProgress();
+  const { updateProgress } = useAcademyProgressDB();
   
   const [quizQuestions, setQuizQuestions] = useState<QuizQuestion[]>([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -141,12 +141,16 @@ export function useQuizEngine() {
 
       setTokensEarned(totalTokens);
 
-      // Award tokens through the game's token system
+      // Award tokens through the game's token system and update academy progress
       try {
         await addTokens(totalTokens, 'regular', 'academy_quiz', `Quiz completed: ${newScore}/${quizQuestions.length} correct`);
         
-        // Update academy progress
-        completeQuiz(totalTokens, xpEarned);
+        // Update academy progress in database
+        updateProgress({
+          xpGained: xpEarned,
+          tokensGained: totalTokens,
+          quizCompleted: true
+        });
       } catch (error) {
         console.error('Error awarding quiz rewards:', error);
       }

@@ -19,7 +19,7 @@ import { AcademyProgressTracker } from './AcademyProgressTracker';
 import { LeaderboardWidget } from './LeaderboardWidget';
 import { ChallengeSystem } from './ChallengeSystem';
 import { StreakTracker } from './StreakTracker';
-import { AcademyProgress } from '@/hooks/useAcademyProgress';
+import { AcademyProgress } from '@/hooks/useAcademyProgressDB';
 
 interface AcademyDashboardProps {
   progress: AcademyProgress;
@@ -37,9 +37,9 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   onViewCampus,
   onViewSocial
 }) => {
-  const streakDays = Math.floor((Date.now() - new Date(progress.lastActivity).getTime()) / (1000 * 60 * 60 * 24));
-  const isToday = new Date().toDateString() === new Date(progress.lastActivity).toDateString();
-  const currentStreak = isToday ? progress.dailyStreak : 0;
+  const streakDays = Math.floor((Date.now() - new Date(progress.last_activity).getTime()) / (1000 * 60 * 60 * 24));
+  const isToday = new Date().toDateString() === new Date(progress.last_activity).toDateString();
+  const currentStreak = isToday ? progress.daily_streak : 0;
 
   return (
     <div className="min-h-screen bg-tennis-green-bg p-4 space-y-6">
@@ -71,7 +71,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                 Level {progress.level}
               </Badge>
               <p className="text-sm text-tennis-green-dark font-medium">
-                {progress.levelName}
+                {progress.level_name}
               </p>
             </div>
           </div>
@@ -81,7 +81,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
       {/* Token Display & Progress */}
       <div className="grid gap-4 md:grid-cols-2">
         <AcademyTokenDisplay 
-          dailyTokensEarned={progress.dailyTokensEarned}
+          dailyTokensEarned={progress.daily_tokens_earned}
           dailyTokenLimit={10}
         />
         <AcademyProgressTracker progress={progress} />
@@ -141,10 +141,10 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             <Button 
               onClick={() => onStartQuiz('daily')}
               className="w-full bg-tennis-green-primary hover:bg-tennis-green-dark"
-              disabled={progress.dailyTokensEarned >= 10}
+              disabled={progress.daily_tokens_earned >= 10}
             >
               <Zap className="h-4 w-4 mr-2" />
-              {progress.dailyTokensEarned >= 10 ? 'Daily Limit Reached' : 'Start Daily Drill'}
+              {progress.daily_tokens_earned >= 10 ? 'Daily Limit Reached' : 'Start Daily Drill'}
             </Button>
           </CardContent>
         </Card>
@@ -250,22 +250,22 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             <div className="flex justify-between text-sm">
               <span className="text-tennis-green-medium">Overall Progress</span>
               <span className="font-medium text-tennis-green-dark">
-                Level {progress.level} • {progress.totalXP} XP
+                Level {progress.level} • {progress.total_xp} XP
               </span>
             </div>
             <Progress 
-              value={(progress.totalXP % 100)} 
+              value={(progress.total_xp % 100)} 
               className="h-2"
             />
             <div className="flex justify-between text-xs text-tennis-green-medium">
               <span>Current Level</span>
-              <span>{100 - (progress.totalXP % 100)} XP to next level</span>
+              <span>{100 - (progress.total_xp % 100)} XP to next level</span>
             </div>
           </div>
           
           <div className="grid grid-cols-3 gap-4 pt-2">
             <div className="text-center">
-              <div className="text-lg font-bold text-tennis-green-dark">{progress.quizzesCompleted}</div>
+              <div className="text-lg font-bold text-tennis-green-dark">{progress.quizzes_completed}</div>
               <div className="text-xs text-tennis-green-medium">Quizzes Completed</div>
             </div>
             <div className="text-center">
@@ -273,7 +273,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               <div className="text-xs text-tennis-green-medium">Day Streak</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-blue-600">{Math.floor(progress.totalXP / 100)}</div>
+              <div className="text-lg font-bold text-blue-600">{Math.floor(progress.total_xp / 100)}</div>
               <div className="text-xs text-tennis-green-medium">Levels Earned</div>
             </div>
           </div>
