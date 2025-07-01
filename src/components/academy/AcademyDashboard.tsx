@@ -19,11 +19,13 @@ import { AcademyProgress } from '@/hooks/useAcademyProgress';
 interface AcademyDashboardProps {
   progress: AcademyProgress;
   onStartQuiz: (type: 'daily' | 'practice') => void;
+  onViewCampus: () => void;
 }
 
 export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   progress,
-  onStartQuiz
+  onStartQuiz,
+  onViewCampus
 }) => {
   const streakDays = Math.floor((Date.now() - new Date(progress.lastActivity).getTime()) / (1000 * 60 * 60 * 24));
   const isToday = new Date().toDateString() === new Date(progress.lastActivity).toDateString();
@@ -125,6 +127,35 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             >
               <Zap className="h-4 w-4 mr-2" />
               {progress.dailyTokensEarned >= 10 ? 'Daily Limit Reached' : 'Start Daily Drill'}
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Campus Access */}
+        <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20 hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
+              <BookOpen className="h-5 w-5 text-purple-600" />
+              Academy Campus
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm text-tennis-green-medium">
+                Explore specialized buildings and category quizzes
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-tennis-green-dark">6 Buildings:</span>
+                <Badge variant="outline" className="text-xs">Rules, Strategy, History</Badge>
+              </div>
+            </div>
+            <Button 
+              onClick={onViewCampus}
+              variant="outline"
+              className="w-full border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
+            >
+              <BookOpen className="h-4 w-4 mr-2" />
+              Enter Campus
             </Button>
           </CardContent>
         </Card>

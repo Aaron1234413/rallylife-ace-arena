@@ -31,7 +31,8 @@ interface QuizInterfaceProps {
   isComplete: boolean;
   score: number;
   tokensEarned: number;
-  quizType: 'daily' | 'practice';
+  quizType: 'daily' | 'practice' | 'category' | 'drill';
+  category?: string;
   onAnswerSelect: (answerIndex: number) => void;
   onNextQuestion: () => void;
   onComplete: () => void;
@@ -46,6 +47,7 @@ export const QuizInterface: React.FC<QuizInterfaceProps> = ({
   score,
   tokensEarned,
   quizType,
+  category,
   onAnswerSelect,
   onNextQuestion,
   onComplete
@@ -128,7 +130,10 @@ export const QuizInterface: React.FC<QuizInterfaceProps> = ({
       <div className="max-w-2xl mx-auto mb-6">
         <div className="flex items-center justify-between mb-4">
           <Badge variant="secondary" className="bg-tennis-green-primary text-white">
-            {quizType === 'daily' ? '🎯 Daily Drill' : '🧠 Practice Quiz'}
+            {quizType === 'daily' ? '🎯 Daily Drill' : 
+             quizType === 'practice' ? '🧠 Practice Quiz' :
+             quizType === 'category' ? `📚 ${category || 'Category'} Quiz` :
+             '⚡ Drill Session'}
           </Badge>
           <Badge variant="outline">
             {question.category}

@@ -163,6 +163,35 @@ export function useQuizEngine() {
     setTokensEarned(0);
   };
 
+  const startCategoryQuiz = (category: string, mode: string, questionCount: number) => {
+    // Filter questions by category and select random ones
+    const categoryQuestions = QUIZ_QUESTIONS.filter(q => q.category === category);
+    const shuffled = [...categoryQuestions].sort(() => 0.5 - Math.random());
+    const selectedQuestions = shuffled.slice(0, questionCount);
+    
+    setQuizQuestions(selectedQuestions);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setAnswers([]);
+    setIsQuizComplete(false);
+    setScore(0);
+    setTokensEarned(0);
+  };
+
+  const startDrill = (drillId: string, questionCount: number) => {
+    // Select random questions for drill
+    const shuffled = [...QUIZ_QUESTIONS].sort(() => 0.5 - Math.random());
+    const selectedQuestions = shuffled.slice(0, questionCount);
+    
+    setQuizQuestions(selectedQuestions);
+    setCurrentQuestionIndex(0);
+    setSelectedAnswer(null);
+    setAnswers([]);
+    setIsQuizComplete(false);
+    setScore(0);
+    setTokensEarned(0);
+  };
+
   return {
     currentQuestion,
     currentQuestionIndex,
@@ -174,6 +203,8 @@ export function useQuizEngine() {
     handleAnswerSelect,
     handleNextQuestion,
     startQuiz,
+    startCategoryQuiz,
+    startDrill,
     resetQuiz
   };
 }

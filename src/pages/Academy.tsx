@@ -1,29 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { AcademyDashboard } from '@/components/academy/AcademyDashboard';
 import { AcademyOnboarding } from '@/components/academy/AcademyOnboarding';
-import { QuizInterface } from '@/components/academy/QuizInterface';
+import { CampusView } from '@/components/academy/CampusView';
+import { CategoryQuiz } from '@/components/academy/CategoryQuiz';
+import { DailyDrill } from '@/components/academy/DailyDrill';
 import { useAcademyProgress } from '@/hooks/useAcademyProgress';
-import { useQuizEngine } from '@/hooks/useQuizEngine';
 
 const Academy = () => {
   const { progress, isCompleted: isOnboardingCompleted, completeOnboarding } = useAcademyProgress();
-  const [activeView, setActiveView] = useState<'dashboard' | 'quiz' | 'onboarding'>('dashboard');
-  const [quizType, setQuizType] = useState<'daily' | 'practice'>('daily');
-
-  // Quiz engine
-  const {
-    currentQuestion,
-    currentQuestionIndex,
-    quizQuestions,
-    selectedAnswer,
-    isQuizComplete,
-    score,
-    tokensEarned,
-    handleAnswerSelect,
-    handleNextQuestion,
-    startQuiz,
-    resetQuiz
-  } = useQuizEngine();
+  const [activeView, setActiveView] = useState<'dashboard' | 'campus' | 'category' | 'drill' | 'onboarding'>('dashboard');
+  const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   useEffect(() => {
     // Show onboarding if user hasn't completed it
@@ -33,14 +19,20 @@ const Academy = () => {
   }, [isOnboardingCompleted]);
 
   const handleStartQuiz = (type: 'daily' | 'practice') => {
-    setQuizType(type);
-    startQuiz(type);
-    setActiveView('quiz');
+    if (type === 'daily') {
+      setActiveView('drill');
+    } else {
+      setActiveView('campus');
+    }
   };
 
-  const handleQuizComplete = () => {
-    setActiveView('dashboard');
-    resetQuiz();
+  const handleBuildingSelect = (category: string) => {
+    setSelectedCategory(category);
+    setActiveView('category');
+  };
+
+  const handleDailyDrill = () => {
+    setActiveView('drill');
   };
 
   const handleOnboardingComplete = (startingLevel: number) => {
@@ -48,24 +40,41 @@ const Academy = () => {
     setActiveView('dashboard');
   };
 
+  const handleBackToCampus = () => {
+    setActiveView('campus');
+  };
+
+  const handleBackToDashboard = () => {
+    setActiveView('dashboard');
+  };
+
   if (activeView === 'onboarding') {
     return <AcademyOnboarding onComplete={handleOnboardingComplete} />;
   }
 
-  if (activeView === 'quiz') {
+  if (activeView === 'campus') {
     return (
-      <QuizInterface
-        question={currentQuestion}
-        questionIndex={currentQuestionIndex}
-        totalQuestions={quizQuestions.length}
-        selectedAnswer={selectedAnswer}
-        isComplete={isQuizComplete}
-        score={score}
-        tokensEarned={tokensEarned}
-        quizType={quizType}
-        onAnswerSelect={handleAnswerSelect}
-        onNextQuestion={handleNextQuestion}
-        onComplete={handleQuizComplete}
+      <CampusView
+        progress={progress}
+        onBuildingSelect={handleBuildingSelect}
+        onDailyDrill={handleDailyDrill}
+      />
+    );
+  }
+
+  if (activeView === 'category' && selectedCategory) {
+    return (
+      <CategoryQuiz
+        category={selectedCategory}
+        onBack={handleBackToCampus}
+      />
+    );
+  }
+
+  if (activeView === 'drill') {
+    return (
+      <DailyDrill
+        onBack={handleBackToDashboard}
       />
     );
   }
@@ -74,6 +83,7 @@ const Academy = () => {
     <AcademyDashboard
       progress={progress}
       onStartQuiz={handleStartQuiz}
+      onViewCampus={() => setActiveView('campus')}
     />
   );
 };
