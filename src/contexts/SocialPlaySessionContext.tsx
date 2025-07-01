@@ -93,10 +93,19 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
       toast.success('Session Completed', {
         description: `Great ${sessionTypeText} session with ${participantCount} players! You played for ${durationMinutes} minutes.`,
       });
+      
+      // Return session data for reward calculation
+      return {
+        durationMinutes,
+        sessionType: activeSession.sessionType,
+        participantCount,
+        location: activeSession.location
+      };
     } catch (error) {
       toast.error('Error', {
         description: 'Failed to end session',
       });
+      throw error;
     } finally {
       setLoading(false);
     }

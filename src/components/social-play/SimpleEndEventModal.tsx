@@ -8,16 +8,20 @@ import {
 } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { Trophy, Clock, Zap, Heart } from 'lucide-react';
-import { useDurationRewards } from '@/hooks/useDurationRewards';
+import { Textarea } from '@/components/ui/textarea';
+import { Trophy, Clock, Zap, Heart, Users, MapPin } from 'lucide-react';
+import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
+import { useActivityLogger } from '@/hooks/useActivityLogger';
+import { useNavigate } from 'react-router-dom';
+import { toast } from 'sonner';
 
 interface SimpleEndEventModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   durationMinutes: number;
   onConfirmEnd: () => Promise<void>;
-  onAddXP: (amount: number, type: string, desc?: string) => Promise<void>;
-  onRestoreHP: (amount: number, type: string, desc?: string) => Promise<void>;
+  onAddXP?: (amount: number, type: string, desc?: string) => Promise<void>;
+  onRestoreHP?: (amount: number, type: string, desc?: string) => Promise<void>;
 }
 
 export const SimpleEndEventModal: React.FC<SimpleEndEventModalProps> = ({
@@ -28,24 +32,43 @@ export const SimpleEndEventModal: React.FC<SimpleEndEventModalProps> = ({
   onAddXP,
   onRestoreHP
 }) => {
+  const { activeSession } = useSocialPlaySession();
+  const { logActivity } = useActivityLogger();
+  const navigate = useNavigate();
   const [isEnding, setIsEnding] = useState(false);
-  const { calculateRewards, applyRewards } = useDurationRewards();
-  
-  const rewards = calculateRewards(durationMinutes);
+  const [notes, setNotes] = useState('');
 
   const handleEndSession = async () => {
+    if (!activeSession || isEnding) return;
+    
     setIsEnding(true);
     
     try {
-      // Apply rewards first
-      await applyRewards(durationMinutes, onAddXP, onRestoreHP);
-      
-      // Then end the session
+      // Log the activity with rewards
+      await logActivity({
+        activity_type: 'social_play',
+        activity_category: 'on_court',
+        title: `${activeSession.sessionType === 'doubles' ? 'Doubles' : 'Singles'} Social Play`,
+        description: notes || `Fun ${activeSession.sessionType} session with friends`,
+        duration_minutes: durationMinutes,
+        intensity_level: 'medium',
+        location: activeSession.location || undefined,
+        notes: notes || undefined,
+        tags: ['social_play', activeSession.sessionType],
+        is_competitive: false,
+        enjoyment_rating: 5 // Default high enjoyment for social play
+      });
+
+      // End the session
       await onConfirmEnd();
       
+      toast.success(`Social play session completed! Earned rewards for ${durationMinutes} minutes of play`);
+      
       onOpenChange(false);
+      navigate('/');
     } catch (error) {
       console.error('Error ending session:', error);
+      toast.error('Failed to end session');
     } finally {
       setIsEnding(false);
     }
@@ -60,72 +83,81 @@ export const SimpleEndEventModal: React.FC<SimpleEndEventModalProps> = ({
     return `${hours}h ${remainingMinutes}m`;
   };
 
+  if (!activeSession) return null;
+
+  const participantCount = activeSession.participants?.length || 0;
+  const expectedXP = Math.floor(durationMinutes * 0.5);
+  const expectedHP = Math.floor(durationMinutes * 0.3);
+
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-w-md">
+      <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
-            <Trophy className="h-5 w-5 text-yellow-500" />
-            Great Session!
+            <Trophy className="h-5 w-5" />
+            End Social Play Session
           </DialogTitle>
         </DialogHeader>
-
+        
         <div className="space-y-4">
-          {/* Duration Display */}
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-center gap-2 text-lg font-semibold">
-                <Clock className="h-5 w-5 text-blue-500" />
-                {formatDuration(durationMinutes)}
+          {/* Session Summary */}
+          <div className="bg-gray-50 rounded-lg p-4 space-y-3">
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Users className="h-4 w-4" />
+              <span>{activeSession.sessionType === 'doubles' ? 'Doubles' : 'Singles'} with {participantCount} players</span>
+            </div>
+            
+            <div className="flex items-center gap-2 text-sm text-gray-600">
+              <Clock className="h-4 w-4" />
+              <span>{durationMinutes} minutes played</span>
+            </div>
+            
+            {activeSession.location && (
+              <div className="flex items-center gap-2 text-sm text-gray-600">
+                <MapPin className="h-4 w-4" />
+                <span>{activeSession.location}</span>
               </div>
-              <p className="text-center text-sm text-muted-foreground mt-1">
-                Time played
-              </p>
-            </CardContent>
-          </Card>
+            )}
+          </div>
 
           {/* Rewards Preview */}
-          <Card className="bg-green-50 border-green-200">
-            <CardContent className="p-4">
-              <h3 className="font-semibold text-center mb-3">Session Rewards</h3>
-              <div className="grid grid-cols-2 gap-4">
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-lg font-bold text-blue-600">
-                    <Zap className="h-4 w-4" />
-                    +{rewards.xp}
-                  </div>
-                  <p className="text-xs text-muted-foreground">XP</p>
-                </div>
-                <div className="text-center">
-                  <div className="flex items-center justify-center gap-1 text-lg font-bold text-red-500">
-                    <Heart className="h-4 w-4" />
-                    +{rewards.hp}
-                  </div>
-                  <p className="text-xs text-muted-foreground">HP</p>
-                </div>
+          <div className="bg-green-50 rounded-lg p-4">
+            <h4 className="font-medium text-green-800 mb-2">Session Rewards</h4>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <span className="text-green-600">XP: +{expectedXP}</span>
               </div>
-              
-              {rewards.description.includes('bonus') && (
-                <div className="mt-3 p-2 bg-yellow-100 rounded-lg">
-                  <p className="text-xs text-yellow-800 text-center font-medium">
-                    🎉 Extended play bonus applied!
-                  </p>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+              <div>
+                <span className="text-green-600">HP: +{expectedHP}</span>
+              </div>
+            </div>
+          </div>
 
-          {/* Action Buttons */}
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
+          {/* Optional Notes */}
+          <div>
+            <label className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Session Notes (Optional)
+            </label>
+            <Textarea
+              placeholder="How was the session? Any highlights or thoughts to remember?"
+              value={notes}
+              onChange={(e) => setNotes(e.target.value)}
+              className="mt-2"
+              rows={3}
+            />
+          </div>
+
+          {/* Actions */}
+          <div className="flex gap-3">
+            <Button 
+              variant="outline" 
               onClick={() => onOpenChange(false)}
               className="flex-1"
               disabled={isEnding}
             >
-              Keep Playing
+              Cancel
             </Button>
-            <Button
+            <Button 
               onClick={handleEndSession}
               disabled={isEnding}
               className="flex-1"
