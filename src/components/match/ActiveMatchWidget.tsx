@@ -7,9 +7,10 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, RefreshCw, AlertCircle, Mail } from 'lucide-react';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
-import { useInvitations } from '@/hooks/useInvitations';
+import { useMatchInvitations } from '@/hooks/useMatchInvitations';
 import { MidMatchCheckInModal } from './MidMatchCheckInModal';
-import { InvitationCard, PendingInvitationCard } from '@/components/invitations';
+import { MatchInvitationCard } from './MatchInvitationCard';
+import { PendingInvitationCard } from './PendingInvitationCard';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
@@ -24,14 +25,10 @@ export const ActiveMatchWidget = () => {
   } = useMatchSession();
   
   const {
-    getInvitationsByCategory,
+    receivedInvitations,
+    sentInvitations,
     loading: invitationsLoading
-  } = useInvitations();
-  
-  // Get only match invitations
-  const matchInvitations = getInvitationsByCategory('match');
-  const receivedInvitations = matchInvitations.received;
-  const sentInvitations = matchInvitations.sent;
+  } = useMatchInvitations();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [matchDuration, setMatchDuration] = useState(0);
@@ -428,7 +425,7 @@ export const ActiveMatchWidget = () => {
                 {receivedInvitations.map((invitation) => {
                   console.log('🎾 [WIDGET] Rendering received invitation:', invitation.id);
                   return (
-                    <InvitationCard key={invitation.id} invitation={invitation} />
+                    <MatchInvitationCard key={invitation.id} invitation={invitation} />
                   );
                 })}
               </div>
