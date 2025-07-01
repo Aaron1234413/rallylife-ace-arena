@@ -75,8 +75,10 @@ export function useInvitations() {
   const [receivedInvitations, setReceivedInvitations] = useState<Invitation[]>([]);
   const [sentInvitations, setSentInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<any>(null);
   const subscriptionInitialized = useRef(false);
+  const isSubscribing = useRef(false);
 
   const fetchReceivedInvitations = async () => {
     if (!user) return;
@@ -92,6 +94,7 @@ export function useInvitations() {
 
       if (error) {
         console.error('❌ [INVITATIONS] Error fetching received invitations:', error);
+        setError(`Failed to fetch invitations: ${error.message}`);
         return;
       }
 
@@ -108,8 +111,10 @@ export function useInvitations() {
       });
       
       setReceivedInvitations(invitations);
+      setError(null);
     } catch (error) {
       console.error('💥 [INVITATIONS] Error in fetchReceivedInvitations:', error);
+      setError('Failed to load invitations');
     }
   };
 
@@ -127,6 +132,7 @@ export function useInvitations() {
 
       if (error) {
         console.error('❌ [INVITATIONS] Error fetching sent invitations:', error);
+        setError(`Failed to fetch sent invitations: ${error.message}`);
         return;
       }
 
@@ -143,8 +149,10 @@ export function useInvitations() {
       });
       
       setSentInvitations(invitations);
+      setError(null);
     } catch (error) {
       console.error('💥 [INVITATIONS] Error in fetchSentInvitations:', error);
+      setError('Failed to load sent invitations');
     }
   };
 
@@ -452,32 +460,59 @@ export function useInvitations() {
   const cleanupChannel = () => {
     if (channelRef.current) {
       console.log('🧹 [INVITATIONS] Cleaning up invitations channel subscription');
-      supabase.removeChannel(channelRef.current);
+      try {
+        supabase.removeChannel(channelRef.current);
+      } catch (error) {
+        console.error('❌ [INVITATIONS] Error removing channel:', error);
+      }
       channelRef.current = null;
       subscriptionInitialized.current = false;
+      isSubscribing.current = false;
     }
   };
 
   const refreshInvitations = async () => {
+    if (!user) return;
+    
     console.log('🔄 [INVITATIONS] Manually refreshing all invitations...');
-    await Promise.all([
-      fetchReceivedInvitations(),
-      fetchSentInvitations()
-    ]);
-    console.log('✅ [INVITATIONS] Manual refresh completed');
+    setLoading(true);
+    setError(null);
+    
+    try {
+      await Promise.all([
+        fetchReceivedInvitations(),
+        fetchSentInvitations()
+      ]);
+      console.log('✅ [INVITATIONS] Manual refresh completed');
+    } catch (error) {
+      console.error('❌ [INVITATIONS] Error during refresh:', error);
+      setError('Failed to refresh invitations');
+    } finally {
+      setLoading(false);
+    }
   };
 
   useEffect(() => {
-    if (user && !subscriptionInitialized.current) {
+    if (user && !subscriptionInitialized.current && !isSubscribing.current) {
+      isSubscribing.current = true;
+      
       const loadData = async () => {
         console.log('🏗️ [INVITATIONS] Initial data load started for user:', user.id);
         setLoading(true);
-        await Promise.all([
-          fetchReceivedInvitations(),
-          fetchSentInvitations()
-        ]);
-        setLoading(false);
-        console.log('✅ [INVITATIONS] Initial data load completed');
+        setError(null);
+        
+        try {
+          await Promise.all([
+            fetchReceivedInvitations(),
+            fetchSentInvitations()
+          ]);
+          console.log('✅ [INVITATIONS] Initial data load completed');
+        } catch (error) {
+          console.error('❌ [INVITATIONS] Error in initial data load:', error);
+          setError('Failed to load invitations');
+        } finally {
+          setLoading(false);
+        }
       };
 
       loadData();
@@ -487,45 +522,61 @@ export function useInvitations() {
       const channelName = `invitations-${user.id}-${Date.now()}`;
       console.log('📡 [INVITATIONS] Setting up real-time channel:', channelName);
       
-      const channel = supabase.channel(channelName);
-      
-      channel.on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'match_invitations',
-          filter: `inviter_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('📨 [INVITATIONS] Real-time update for sent invitations:', payload);
-          fetchSentInvitations();
-        }
-      );
+      try {
+        const channel = supabase.channel(channelName, {
+          config: {
+            broadcast: { self: false },
+            presence: { key: user.id }
+          }
+        });
+        
+        channel.on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'match_invitations',
+            filter: `inviter_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('📨 [INVITATIONS] Real-time update for sent invitations:', payload);
+            fetchSentInvitations().catch(console.error);
+          }
+        );
 
-      channel.on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'match_invitations',
-          filter: `invitee_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('📨 [INVITATIONS] Real-time update for received invitations:', payload);
-          fetchReceivedInvitations();
-        }
-      );
+        channel.on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'match_invitations',
+            filter: `invitee_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('📨 [INVITATIONS] Real-time update for received invitations:', payload);
+            fetchReceivedInvitations().catch(console.error);
+          }
+        );
 
-      channel.subscribe((status) => {
-        console.log('📡 [INVITATIONS] Channel subscription status:', status);
-        if (status === 'SUBSCRIBED') {
-          subscriptionInitialized.current = true;
-          console.log('✅ [INVITATIONS] Real-time subscription active');
-        }
-      });
+        channel.subscribe((status) => {
+          console.log('📡 [INVITATIONS] Channel subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            subscriptionInitialized.current = true;
+            isSubscribing.current = false;
+            console.log('✅ [INVITATIONS] Real-time subscription active');
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('❌ [INVITATIONS] Channel subscription error');
+            isSubscribing.current = false;
+            setError('Real-time connection failed');
+          }
+        });
 
-      channelRef.current = channel;
+        channelRef.current = channel;
+      } catch (error) {
+        console.error('❌ [INVITATIONS] Error setting up channel:', error);
+        isSubscribing.current = false;
+        setError('Failed to setup real-time connection');
+      }
 
       return () => {
         cleanupChannel();
@@ -535,6 +586,7 @@ export function useInvitations() {
       setReceivedInvitations([]);
       setSentInvitations([]);
       setLoading(false);
+      setError(null);
     }
   }, [user]);
 
@@ -549,6 +601,7 @@ export function useInvitations() {
     receivedInvitations,
     sentInvitations,
     loading,
+    error,
     
     // Creation methods
     createMatchInvitation,

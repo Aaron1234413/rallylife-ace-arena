@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Users, Mail, MailOpen, RefreshCw, Inbox } from 'lucide-react';
+import { Users, Mail, MailOpen, RefreshCw, Inbox, AlertTriangle } from 'lucide-react';
 import { useInvitations } from '@/hooks/useInvitations';
 import { InvitationCard } from './InvitationCard';
 import { PendingInvitationCard } from './PendingInvitationCard';
@@ -14,13 +14,22 @@ export const InvitationsWidget: React.FC = () => {
     receivedInvitations, 
     sentInvitations, 
     loading, 
+    error,
     refreshInvitations 
   } = useInvitations();
 
   const [activeTab, setActiveTab] = useState('received');
+  const [isRefreshing, setIsRefreshing] = useState(false);
 
   const handleRefresh = async () => {
-    await refreshInvitations();
+    setIsRefreshing(true);
+    try {
+      await refreshInvitations();
+    } catch (error) {
+      console.error('Error refreshing invitations:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   // Group invitations by category
@@ -37,7 +46,29 @@ export const InvitationsWidget: React.FC = () => {
   const totalReceived = receivedInvitations.length;
   const totalSent = sentInvitations.length;
 
-  if (loading) {
+  if (error && !loading) {
+    return (
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <AlertTriangle className="h-5 w-5 text-red-500" />
+            Invitations Error
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center space-y-4">
+            <p className="text-gray-600">{error}</p>
+            <Button onClick={handleRefresh} variant="outline" size="sm">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Try Again
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (loading && !receivedInvitations.length && !sentInvitations.length) {
     return (
       <Card>
         <CardHeader>
@@ -68,9 +99,9 @@ export const InvitationsWidget: React.FC = () => {
             onClick={handleRefresh}
             variant="outline"
             size="sm"
-            disabled={loading}
+            disabled={isRefreshing}
           >
-            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
+            <RefreshCw className={`h-4 w-4 ${isRefreshing ? 'animate-spin' : ''}`} />
           </Button>
         </CardTitle>
       </CardHeader>
@@ -99,6 +130,12 @@ export const InvitationsWidget: React.FC = () => {
           </TabsList>
 
           <TabsContent value="received" className="space-y-4">
+            {error && (
+              <div className="text-sm text-orange-600 bg-orange-50 p-2 rounded">
+                {error} - Some invitations may not be displayed.
+              </div>
+            )}
+            
             {totalReceived === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <Inbox className="h-12 w-12 mx-auto mb-4 text-gray-300" />
@@ -142,6 +179,12 @@ export const InvitationsWidget: React.FC = () => {
           </TabsContent>
 
           <TabsContent value="sent" className="space-y-4">
+            {error && (
+              <div className="text-sm text-orange-600 bg-orange-50 p-2 rounded">
+                {error} - Some invitations may not be displayed.
+              </div>
+            )}
+            
             {totalSent === 0 ? (
               <div className="text-center py-8 text-gray-500">
                 <MailOpen className="h-12 w-12 mx-auto mb-4 text-gray-300" />

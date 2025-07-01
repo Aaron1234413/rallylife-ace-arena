@@ -23,10 +23,6 @@ import { MobileActionPanel } from "@/components/dashboard/mobile";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
-import { 
-  Activity
-} from 'lucide-react';
-
 import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
 import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
 import { useSocialPlaySession } from "@/contexts/SocialPlaySessionContext";
@@ -34,11 +30,19 @@ import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPla
 import { FloatingCheckInTrigger } from "@/components/training/FloatingCheckInTrigger";
 import { FloatingCheckInButton } from "@/components/match/FloatingCheckInButton";
 import { InvitationsWidget } from "@/components/invitations/InvitationsWidget";
+import ErrorBoundary from "@/components/ErrorBoundary";
+import { toast } from "sonner";
 
 const Index = () => {
   console.log('🏠 [INDEX] Index component mounted');
   
   const { user } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+  const [dataInitialized, setDataInitialized] = useState(false);
+
+  // Player hooks with error handling
   const { hpData, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
   const { xpData, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
   const { tokenData, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
@@ -50,13 +54,8 @@ const Index = () => {
   const { tokenData: coachTokenData, loading: coachTokensLoading, addTokens: addCoachTokens, initializeTokens: initializeCoachTokens } = useCoachTokens();
   const { crpData, isLoading: crpLoading, initializeCRP } = useCoachCRP();
   
-  // Social Play Session Hook
+  // Social Play Session Hook with error boundary
   const { loading: socialPlayLoading } = useSocialPlaySession();
-  
-  const [profile, setProfile] = useState<any>(null);
-  const [profileLoading, setProfileLoading] = useState(true);
-  const [dataInitialized, setDataInitialized] = useState(false);
-  const [error, setError] = useState<string | null>(null);
 
   // Derive user role flags from profile
   const isPlayer = profile?.role === 'player';
@@ -66,59 +65,30 @@ const Index = () => {
     user: !!user,
     profile,
     profileLoading,
+    profileError,
     isPlayer,
-    isCoach,
-    error
+    isCoach
   });
 
-  useEffect(() => {
-    if (user) {
-      console.log('🏠 [INDEX] User found, fetching profile...');
-      fetchProfile();
-    } else {
-      console.log('🏠 [INDEX] No user found');
-      setProfileLoading(false);
-    }
-  }, [user]);
-
-  useEffect(() => {
-    // Initialize data based on user role - only once
-    if (user && profile && !dataInitialized) {
-      console.log('🏠 [INDEX] Initializing data for role:', profile.role);
-      
-      try {
-        if (profile.role === 'player') {
-          if (!hpData) initializeHP();
-          if (!xpData) initializeXP();
-          if (!tokenData) initializeTokens();
-          if (equippedItems.length === 0) initializeAvatar();
-        } else if (profile.role === 'coach') {
-          if (!cxpData) initializeCXP();
-          if (!coachTokenData) initializeCoachTokens();
-          if (!crpData) initializeCRP();
-        }
-        
-        setDataInitialized(true);
-      } catch (error) {
-        console.error('🏠 [INDEX] Error initializing data:', error);
-        setError('Failed to initialize user data');
-      }
-    }
-  }, [user, profile, dataInitialized, hpData, xpData, tokenData, equippedItems, cxpData, coachTokenData, crpData]);
-
   const fetchProfile = async () => {
+    if (!user) {
+      setProfileLoading(false);
+      return;
+    }
+
     try {
-      console.log('🏠 [INDEX] Fetching profile for user:', user?.id);
+      console.log('🏠 [INDEX] Fetching profile for user:', user.id);
+      setProfileError(null);
       
       const { data, error } = await supabase
         .from('profiles')
         .select('*')
-        .eq('id', user?.id)
+        .eq('id', user.id)
         .single();
 
       if (error) {
         console.error('🏠 [INDEX] Error fetching profile:', error);
-        setError(`Failed to load profile: ${error.message}`);
+        setProfileError(`Failed to load profile: ${error.message}`);
         return;
       }
 
@@ -126,11 +96,68 @@ const Index = () => {
       setProfile(data);
     } catch (error) {
       console.error('🏠 [INDEX] Unexpected error:', error);
-      setError('An unexpected error occurred while loading your profile');
+      setProfileError('An unexpected error occurred while loading your profile');
     } finally {
       setProfileLoading(false);
     }
   };
+
+  useEffect(() => {
+    fetchProfile();
+  }, [user]);
+
+  useEffect(() => {
+    // Initialize data based on user role - only once
+    if (user && profile && !dataInitialized) {
+      console.log('🏠 [INDEX] Initializing data for role:', profile.role);
+      
+      const initializeData = async () => {
+        try {
+          if (profile.role === 'player') {
+            // Initialize player data with error handling
+            if (!hpData) {
+              console.log('🏠 [INDEX] Initializing HP...');
+              await initializeHP();
+            }
+            if (!xpData) {
+              console.log('🏠 [INDEX] Initializing XP...');
+              await initializeXP();
+            }
+            if (!tokenData) {
+              console.log('🏠 [INDEX] Initializing tokens...');
+              await initializeTokens();
+            }
+            if (equippedItems.length === 0) {
+              console.log('🏠 [INDEX] Initializing avatar...');
+              await initializeAvatar();
+            }
+          } else if (profile.role === 'coach') {
+            // Initialize coach data with error handling
+            if (!cxpData) {
+              console.log('🏠 [INDEX] Initializing coach CXP...');
+              await initializeCXP();
+            }
+            if (!coachTokenData) {
+              console.log('🏠 [INDEX] Initializing coach tokens...');
+              await initializeCoachTokens();
+            }
+            if (!crpData) {
+              console.log('🏠 [INDEX] Initializing coach CRP...');
+              await initializeCRP();
+            }
+          }
+          
+          setDataInitialized(true);
+          console.log('🏠 [INDEX] Data initialization completed successfully');
+        } catch (error) {
+          console.error('🏠 [INDEX] Error initializing data:', error);
+          toast.error('Failed to initialize user data. Some features may not work properly.');
+        }
+      };
+
+      initializeData();
+    }
+  }, [user, profile, dataInitialized, hpData, xpData, tokenData, equippedItems, cxpData, coachTokenData, crpData]);
 
   // Enhanced XP earning function that checks for avatar unlocks and achievements
   const handleAddXP = async (amount: number, activityType: string, description?: string) => {
@@ -149,6 +176,7 @@ const Index = () => {
       return result;
     } catch (error) {
       console.error('🏠 [INDEX] Error adding XP:', error);
+      toast.error('Failed to add XP');
     }
   };
 
@@ -160,6 +188,7 @@ const Index = () => {
       await checkAllAchievements();
     } catch (error) {
       console.error('🏠 [INDEX] Error adding tokens:', error);
+      toast.error('Failed to add tokens');
     }
   };
 
@@ -176,25 +205,34 @@ const Index = () => {
       console.log('🏠 [INDEX] HP restoration completed');
     } catch (error) {
       console.error('🏠 [INDEX] Error restoring HP:', error);
+      toast.error('Failed to restore HP');
     }
   };
 
   const vitalsLoading = hpLoading || xpLoading || tokensLoading;
 
-  // Show error state if there's an error
-  if (error) {
-    console.log('🏠 [INDEX] Rendering error state:', error);
+  // Show error state if there's a profile error
+  if (profileError) {
+    console.log('🏠 [INDEX] Rendering profile error state:', profileError);
     return (
       <div className="min-h-screen bg-tennis-green-bg flex items-center justify-center">
         <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Something went wrong</h2>
-          <p className="text-gray-700 mb-4">{error}</p>
-          <button 
-            onClick={() => window.location.reload()} 
-            className="bg-tennis-green-dark text-white px-4 py-2 rounded hover:bg-tennis-green"
-          >
-            Reload Page
-          </button>
+          <h2 className="text-2xl font-bold text-red-600 mb-4">Profile Error</h2>
+          <p className="text-gray-700 mb-4">{profileError}</p>
+          <div className="flex gap-2 justify-center">
+            <button 
+              onClick={fetchProfile}
+              className="bg-tennis-green-dark text-white px-4 py-2 rounded hover:bg-tennis-green"
+            >
+              Retry
+            </button>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600"
+            >
+              Reload Page
+            </button>
+          </div>
         </div>
       </div>
     );
@@ -261,49 +299,65 @@ const Index = () => {
   return (
     <div className="min-h-screen bg-tennis-green-bg overflow-x-hidden">
       {/* Floating components that need to be inside the provider contexts */}
-      <FloatingCheckInTrigger />
-      <FloatingCheckInButton />
+      <ErrorBoundary fallbackTitle="Navigation Error">
+        <FloatingCheckInTrigger />
+        <FloatingCheckInButton />
+      </ErrorBoundary>
       
       <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Welcome Banner */}
-        <WelcomeBanner />
+        <ErrorBoundary fallbackTitle="Welcome Banner Error">
+          <WelcomeBanner />
+        </ErrorBoundary>
 
         {/* Player-specific content */}
         {isPlayer && (
           <>
             {/* Phase 1 & 2: Enhanced Player Vitals Hero Section with Recovery Integration */}
-            <PlayerVitalsHero
-              hpData={hpData}
-              xpData={xpData}
-              tokenData={tokenData}
-              loading={vitalsLoading}
-              onRestoreHP={handleRestoreHP}
-            />
+            <ErrorBoundary fallbackTitle="Player Vitals Error">
+              <PlayerVitalsHero
+                hpData={hpData}
+                xpData={xpData}
+                tokenData={tokenData}
+                loading={vitalsLoading}
+                onRestoreHP={handleRestoreHP}
+              />
+            </ErrorBoundary>
 
             {/* Social Play Section - Always show quick actions for Phase 1 */}
-            <SocialPlayQuickActions />
+            <ErrorBoundary fallbackTitle="Social Play Error">
+              <SocialPlayQuickActions />
+            </ErrorBoundary>
 
             {/* Active Session Widgets - Now includes match invitations */}
-            <ActiveSocialPlayWidget 
-              onAddXP={handleAddXP}
-              onRestoreHP={handleRestoreHP}
-            />
+            <ErrorBoundary fallbackTitle="Active Sessions Error">
+              <ActiveSocialPlayWidget 
+                onAddXP={handleAddXP}
+                onRestoreHP={handleRestoreHP}
+              />
+            </ErrorBoundary>
             
             {/* Unified Invitations Widget - Shows both match and social play invitations */}
-            <div className="mb-6">
-              <InvitationsWidget />
-            </div>
+            <ErrorBoundary fallbackTitle="Invitations Error">
+              <div className="mb-6">
+                <InvitationsWidget />
+              </div>
+            </ErrorBoundary>
             
-            <ActiveTrainingWidget />
+            <ErrorBoundary fallbackTitle="Training Widget Error">
+              <ActiveTrainingWidget />
+            </ErrorBoundary>
 
             {/* Enhanced Quick Actions - Now Available on All Devices */}
-            <EnhancedQuickActions
-              hpData={hpData}
-              xpData={xpData}
-              onAddXP={handleAddXP}
-              onRestoreHP={handleRestoreHP}
-              onAddTokens={handleAddTokens}
-            />
+            <ErrorBoundary fallbackTitle="Quick Actions Error">
+              <EnhancedQuickActions
+                hpData={hpData}
+                xpData={xpData}
+                onAddXP={handleAddXP}
+                onRestoreHP={handleRestoreHP}
+                onAddTokens={handleAddTokens}
+              />
+            </ErrorBoundary>
           </>
         )}
 
@@ -311,46 +365,64 @@ const Index = () => {
         {isCoach && (
           <>
             {/* Profile Card for Coaches */}
-            <ProfileCard
-              profile={profile}
-              user={user}
-              profileLoading={profileLoading}
-              isPlayer={isPlayer}
-            />
+            <ErrorBoundary fallbackTitle="Profile Card Error">
+              <ProfileCard
+                profile={profile}
+                user={user}
+                profileLoading={profileLoading}
+                isPlayer={isPlayer}
+              />
+            </ErrorBoundary>
 
             {/* Coach Overview Cards */}
-            <CoachOverviewCards
-              cxpData={cxpData}
-              tokenData={coachTokenData}
-              crpData={crpData}
-              cxpLoading={cxpLoading}
-              tokensLoading={coachTokensLoading}
-              crpLoading={crpLoading}
-            />
+            <ErrorBoundary fallbackTitle="Coach Overview Error">
+              <CoachOverviewCards
+                cxpData={cxpData}
+                tokenData={coachTokenData}
+                crpData={crpData}
+                cxpLoading={cxpLoading}
+                tokensLoading={coachTokensLoading}
+                crpLoading={crpLoading}
+              />
+            </ErrorBoundary>
 
             {/* Coach Quick Actions */}
-            <CoachQuickActions />
+            <ErrorBoundary fallbackTitle="Coach Actions Error">
+              <CoachQuickActions />
+            </ErrorBoundary>
 
             {/* Coach Avatar Customization */}
-            <CoachAvatarCustomization />
+            <ErrorBoundary fallbackTitle="Avatar Customization Error">
+              <CoachAvatarCustomization />
+            </ErrorBoundary>
 
             {/* Coach Achievements */}
-            <CoachAchievementsDisplay />
+            <ErrorBoundary fallbackTitle="Achievements Error">
+              <CoachAchievementsDisplay />
+            </ErrorBoundary>
 
             {/* CXP Earning Actions */}
-            <CXPEarnActions />
+            <ErrorBoundary fallbackTitle="CXP Actions Error">
+              <CXPEarnActions />
+            </ErrorBoundary>
 
             {/* CTK Earning Actions */}
-            <CTKEarnActions />
+            <ErrorBoundary fallbackTitle="CTK Actions Error">
+              <CTKEarnActions />
+            </ErrorBoundary>
 
             {/* CTK Store */}
-            <CTKStore />
+            <ErrorBoundary fallbackTitle="CTK Store Error">
+              <CTKStore />
+            </ErrorBoundary>
 
             {/* Activity Logs */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              <CXPActivityLog />
-              <CTKTransactionHistory />
-            </div>
+            <ErrorBoundary fallbackTitle="Activity Logs Error">
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                <CXPActivityLog />
+                <CTKTransactionHistory />
+              </div>
+            </ErrorBoundary>
           </>
         )}
 
