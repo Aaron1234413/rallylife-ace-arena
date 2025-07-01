@@ -93,12 +93,15 @@ export function useCoachTokens() {
       source: string;
       description?: string;
     }) => {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error("Not authenticated");
+      
       const { data, error } = await supabase.rpc('add_coach_tokens', {
-        user_id: (await supabase.auth.getUser()).data.user?.id,
+        coach_id: user.data.user.id,
         amount,
         source,
         description
-      });
+      } as any);
 
       if (error) {
         console.error('Error adding tokens:', error);
@@ -145,12 +148,15 @@ export function useCoachTokens() {
       source: string;
       description?: string;
     }) => {
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error("Not authenticated");
+      
       const { data, error } = await supabase.rpc('spend_coach_tokens', {
-        user_id: (await supabase.auth.getUser()).data.user?.id,
+        coach_id: user.data.user.id,
         amount,
         source,
         description
-      });
+      } as any);
 
       if (error) {
         console.error('Error spending tokens:', error);
@@ -198,9 +204,12 @@ export function useCoachTokens() {
   const initializeTokensMutation = useMutation({
     mutationFn: async () => {
       console.log('Initializing coach tokens...');
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error("Not authenticated");
+      
       const { data, error } = await supabase.rpc('initialize_coach_tokens', {
-        user_id: (await supabase.auth.getUser()).data.user?.id
-      });
+        coach_id: user.data.user.id
+      } as any);
 
       if (error) {
         console.error('Error initializing coach tokens:', error);

@@ -1,4 +1,3 @@
-
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
@@ -63,7 +62,14 @@ export function useCoachCXP() {
   // Initialize CXP for new coaches
   const { mutate: initializeCXP, isPending: isInitializingCXP } = useMutation({
     mutationFn: async () => {
-      const { data, error } = await supabase.rpc("initialize_coach_cxp");
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error("Not authenticated");
+      
+      const { data, error } = await supabase
+        .from('coach_cxp')
+        .insert({ coach_id: user.data.user.id })
+        .select()
+        .single();
       if (error) throw error;
       return data;
     },
@@ -72,7 +78,7 @@ export function useCoachCXP() {
     },
   });
 
-  // Add CXP
+  // Add CXP using the new database function
   const addCXP = useMutation({
     mutationFn: async ({
       amount,
@@ -87,14 +93,20 @@ export function useCoachCXP() {
       sourcePlayerId?: string;
       metadata?: any;
     }) => {
-      const { data, error } = await supabase.rpc("add_cxp", {
-        user_id: (await supabase.auth.getUser()).data.user?.id,
-        cxp_amount: amount,
-        activity_type: activityType,
-        description,
-        source_player_id: sourcePlayerId,
-        metadata,
-      });
+      const user = await supabase.auth.getUser();
+      if (!user.data.user) throw new Error("Not authenticated");
+      
+      // Call the database function directly using a manual RPC call
+      const { data, error } = await supabase
+        .rpc('add_cxp', {
+          coach_id: user.data.user.id,
+          amount: amount,
+          activity_type: activityType,
+          description: description || null,
+          source_player_id: sourcePlayerId || null,
+          metadata: metadata || null,
+        } as any);
+      
       if (error) throw error;
       return data;
     },
@@ -102,7 +114,7 @@ export function useCoachCXP() {
       if (data?.level_up) {
         toast({
           title: "Level Up!",
-          description: `Congratulations! You've reached CXP level ${data.current_level}!`,
+          description: `Congratulations! You've reached CXP level ${data.new_level}!`,
         });
       }
       
@@ -110,7 +122,7 @@ export function useCoachCXP() {
       queryClient.invalidateQueries({ queryKey: ["coach_cxp"] });
       queryClient.invalidateQueries({ queryKey: ["cxp_activities"] });
       
-      // Check achievements after CXP gain using generic rpc call
+      // Check achievements after CXP gain
       try {
         await supabase.rpc('check_all_coach_achievements' as any, {
           user_id: (await supabase.auth.getUser()).data.user?.id
