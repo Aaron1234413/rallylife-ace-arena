@@ -1,117 +1,72 @@
-
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { Button } from '@/components/ui/button';
-import { 
-  Home, 
-  MessageSquare, 
-  Rss,
-  LogOut,
+import {
+  Home,
+  Activity,
   Search,
-  User,
-  Bolt,
-  Store
+  MessageCircle,
+  MapPin,
+  ShoppingBag,
+  Users,
+  Calendar,
+  GraduationCap
 } from 'lucide-react';
-import { useAuth } from '@/hooks/useAuth';
+import { NavLink } from 'react-router-dom';
+import { useIsMobile } from '@/hooks/use-mobile';
 
-export function AppNavigation() {
-  const { signOut, user } = useAuth();
-  const location = useLocation();
+interface NavItem {
+  name: string;
+  href: string;
+  icon: React.ComponentType<any>;
+}
 
-  // Basic navigation items available to all users
-  const navItems = [
-    { path: '/dashboard', label: 'Dashboard', icon: Home },
-    { path: '/pulse', label: 'Pulse', icon: Bolt },
-    { path: '/search', label: 'Search', icon: Search },
-    { path: '/messages', label: 'Messages', icon: MessageSquare },
-    { path: '/feed', label: 'Feed', icon: Rss },
-    { path: '/store', label: 'Store', icon: Store },
-    { path: '/profile', label: 'Profile', icon: User },
-  ];
+const navigationItems = [
+  { name: 'Dashboard', href: '/', icon: Home },
+  { name: 'Academy', href: '/academy', icon: GraduationCap },
+  { name: 'Pulse', href: '/pulse', icon: Activity },
+  { name: 'Search', href: '/search', icon: Search },
+  { name: 'Messages', href: '/messages', icon: MessageCircle },
+  { name: 'Maps', href: '/maps', icon: MapPin },
+  { name: 'Store', href: '/store', icon: ShoppingBag },
+  { name: 'Feed', href: '/feed', icon: Users },
+  { name: 'Schedule', href: '/scheduling', icon: Calendar },
+];
 
-  const isActive = (path: string) => location.pathname === path;
+export const AppNavigation: React.FC = () => {
+  const isMobile = useIsMobile();
 
   return (
-    <nav className="fixed top-0 left-0 right-0 z-50 bg-gradient-to-r from-white via-white/95 to-white backdrop-blur-md border-b border-tennis-green-light/30 shadow-lg">
-      <div className="max-w-7xl mx-auto px-4">
-        <div className="flex justify-between items-center h-16">
-          {/* Logo */}
-          <div className="flex items-center">
-            <Link to="/dashboard" className="text-xl font-bold text-tennis-green-dark hover:text-tennis-green-primary transition-all duration-300 hover:scale-105">
-              🎾 <span className="font-orbitron">Rako</span>
-            </Link>
-          </div>
-
-          {/* Desktop Navigation Links */}
-          <div className="hidden md:flex items-center space-x-1">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-all duration-300 flex items-center gap-2 transform hover:scale-105 ${
-                    isActive(item.path)
-                      ? 'bg-gradient-to-r from-tennis-green-primary to-tennis-green-medium text-white shadow-lg shadow-tennis-green-primary/25'
-                      : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gradient-to-r hover:from-tennis-green-bg/30 hover:to-tennis-green-subtle/20 hover:shadow-md'
-                  }`}
-                >
-                  <Icon className="h-4 w-4" />
-                  {item.label}
-                </Link>
-              );
-            })}
-          </div>
-
-          {/* Desktop Sign Out Button */}
-          <div className="hidden md:block">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={signOut}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 hover:shadow-md transition-all duration-300 hover:scale-105"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-
-          {/* Mobile Sign Out Button */}
-          <div className="md:hidden">
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={signOut}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2 hover:shadow-md transition-all duration-300"
-            >
-              <LogOut className="h-4 w-4" />
-            </Button>
-          </div>
-        </div>
-
-        {/* Mobile Navigation - Grid Layout */}
-        <div className="md:hidden pb-3 pt-2">
-          <div className="grid grid-cols-4 gap-2">
-            {navItems.map((item) => {
-              const Icon = item.icon;
-              return (
-                <Link
-                  key={item.path}
-                  to={item.path}
-                  className={`flex flex-col items-center justify-center p-3 rounded-xl text-xs font-medium transition-all duration-300 min-h-[60px] transform hover:scale-105 ${
-                    isActive(item.path)
-                      ? 'bg-gradient-to-b from-tennis-green-primary to-tennis-green-medium text-white shadow-lg shadow-tennis-green-primary/25'
-                      : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gradient-to-b hover:from-tennis-green-bg/30 hover:to-tennis-green-subtle/20 hover:shadow-md'
-                  }`}
-                >
-                  <Icon className="h-4 w-4 mb-1" />
-                  <span className="text-center leading-tight">{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </div>
+    <nav className="bg-tennis-green-bg-alt border-r border-tennis-green-medium w-64 flex-shrink-0 h-full overflow-y-auto">
+      <div className="p-4">
+        <h1 className="text-2xl font-bold text-tennis-green-dark">
+          RAKO
+        </h1>
+        <p className="text-sm text-tennis-green-medium">
+          Your Tennis Companion
+        </p>
       </div>
+      <ul className="space-y-2 p-4">
+        {navigationItems.map((item) => (
+          <li key={item.name}>
+            <NavLink
+              to={item.href}
+              className={({ isActive }) =>
+                `flex items-center gap-3 p-3 rounded-lg transition-colors
+                ${isActive
+                  ? 'bg-tennis-green-light text-tennis-green-dark font-semibold'
+                  : 'text-gray-600 hover:bg-tennis-green-bg'}`
+              }
+            >
+              <item.icon className="h-5 w-5" />
+              <span>{item.name}</span>
+            </NavLink>
+          </li>
+        ))}
+      </ul>
+      {isMobile && (
+        <div className="p-4 text-center text-gray-500">
+          Mobile Navigation
+        </div>
+      )}
     </nav>
   );
-}
+};
