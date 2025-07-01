@@ -46,10 +46,22 @@ function App() {
                 <Routes>
                   <Route path="/" element={<Landing />} />
                   <Route path="/landing" element={<Landing />} />
-                  <Route path="/auth" element={<Auth />} />
-                  <Route path="/auth/login" element={<Auth />} />
-                  <Route path="/auth/signup" element={<Auth />} />
-                  <Route path="/auth/forgot-password" element={<Auth />} />
+                  <Route 
+                    path="/auth" 
+                    element={<Auth />} 
+                  />
+                  <Route 
+                    path="/auth/login" 
+                    element={<Auth />} 
+                  />
+                  <Route 
+                    path="/auth/signup" 
+                    element={<Auth />} 
+                  />
+                  <Route 
+                    path="/auth/forgot-password" 
+                    element={<Auth />} 
+                  />
                   <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
                   <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
                   <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
