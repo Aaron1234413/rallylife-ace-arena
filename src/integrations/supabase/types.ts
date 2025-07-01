@@ -9,6 +9,54 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      academy_progress: {
+        Row: {
+          created_at: string
+          daily_streak: number
+          daily_tokens_earned: number
+          id: string
+          is_onboarding_completed: boolean
+          last_activity: string
+          level: number
+          level_name: string
+          placement_quiz_completed: boolean
+          player_id: string
+          quizzes_completed: number
+          total_xp: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          daily_streak?: number
+          daily_tokens_earned?: number
+          id?: string
+          is_onboarding_completed?: boolean
+          last_activity?: string
+          level?: number
+          level_name?: string
+          placement_quiz_completed?: boolean
+          player_id: string
+          quizzes_completed?: number
+          total_xp?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          daily_streak?: number
+          daily_tokens_earned?: number
+          id?: string
+          is_onboarding_completed?: boolean
+          last_activity?: string
+          level?: number
+          level_name?: string
+          placement_quiz_completed?: boolean
+          player_id?: string
+          quizzes_completed?: number
+          total_xp?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       achievement_progress: {
         Row: {
           achievement_id: string
@@ -1587,6 +1635,33 @@ export type Database = {
         }
         Relationships: []
       }
+      hint_purchases: {
+        Row: {
+          cost_tokens: number
+          hint_type: string
+          id: string
+          player_id: string
+          purchased_at: string
+          question_id: string
+        }
+        Insert: {
+          cost_tokens?: number
+          hint_type: string
+          id?: string
+          player_id: string
+          purchased_at?: string
+          question_id: string
+        }
+        Update: {
+          cost_tokens?: number
+          hint_type?: string
+          id?: string
+          player_id?: string
+          purchased_at?: string
+          question_id?: string
+        }
+        Relationships: []
+      }
       hp_activities: {
         Row: {
           activity_type: string
@@ -2510,6 +2585,101 @@ export type Database = {
             columns: ["player_id"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quiz_attempts: {
+        Row: {
+          category: string
+          completed_at: string
+          created_at: string
+          hints_used: number
+          id: string
+          player_id: string
+          questions_correct: number
+          questions_total: number
+          quiz_type: string
+          score_percentage: number
+          time_taken_seconds: number | null
+          tokens_earned: number
+          xp_earned: number
+        }
+        Insert: {
+          category: string
+          completed_at?: string
+          created_at?: string
+          hints_used?: number
+          id?: string
+          player_id: string
+          questions_correct?: number
+          questions_total: number
+          quiz_type?: string
+          score_percentage?: number
+          time_taken_seconds?: number | null
+          tokens_earned?: number
+          xp_earned?: number
+        }
+        Update: {
+          category?: string
+          completed_at?: string
+          created_at?: string
+          hints_used?: number
+          id?: string
+          player_id?: string
+          questions_correct?: number
+          questions_total?: number
+          quiz_type?: string
+          score_percentage?: number
+          time_taken_seconds?: number | null
+          tokens_earned?: number
+          xp_earned?: number
+        }
+        Relationships: []
+      }
+      quiz_results: {
+        Row: {
+          attempt_id: string
+          correct_answer: number
+          created_at: string
+          hints_used: number
+          id: string
+          is_correct: boolean
+          question_id: string
+          question_text: string
+          selected_answer: number | null
+          time_taken_seconds: number | null
+        }
+        Insert: {
+          attempt_id: string
+          correct_answer: number
+          created_at?: string
+          hints_used?: number
+          id?: string
+          is_correct: boolean
+          question_id: string
+          question_text: string
+          selected_answer?: number | null
+          time_taken_seconds?: number | null
+        }
+        Update: {
+          attempt_id?: string
+          correct_answer?: number
+          created_at?: string
+          hints_used?: number
+          id?: string
+          is_correct?: boolean
+          question_id?: string
+          question_text?: string
+          selected_answer?: number | null
+          time_taken_seconds?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quiz_results_attempt_id_fkey"
+            columns: ["attempt_id"]
+            isOneToOne: false
+            referencedRelation: "quiz_attempts"
             referencedColumns: ["id"]
           },
         ]
