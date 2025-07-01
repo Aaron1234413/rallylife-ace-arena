@@ -1,146 +1,163 @@
-
-import { useState, useEffect, useRef } from 'react';
-
-interface LiveNotification {
-  id: string;
-  type: 'achievement' | 'level_up' | 'match_win' | 'milestone';
-  player_name: string;
-  message: string;
-  timestamp: string;
-  details?: {
-    level?: number;
-    xp_earned?: number;
-    achievement_name?: string;
-  };
-}
+import { useEffect, useRef } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 export function useLiveNotifications() {
-  const [currentNotification, setCurrentNotification] = useState<LiveNotification | null>(null);
-  const [pendingCount, setPendingCount] = useState(0);
-  const intervalRef = useRef<NodeJS.Timeout | null>(null);
-  const notificationQueue = useRef<LiveNotification[]>([]);
-
-  const generateNotification = (): LiveNotification => {
-    const players = [
-      'Alex Johnson', 'Maria Garcia', 'David Chen', 'Sarah Wilson', 'Mike Rodriguez',
-      'Emma Thompson', 'James Lee', 'Lisa Anderson', 'Tom Brown', 'Anna Martinez'
-    ];
-
-    const notificationTypes = [
-      {
-        type: 'achievement' as const,
-        messages: [
-          'unlocked "Ace Master" achievement!',
-          'earned "Marathon Player" badge!',
-          'achieved "Perfect Form" status!',
-          'unlocked "Speed Demon" achievement!'
-        ]
-      },
-      {
-        type: 'level_up' as const,
-        messages: [
-          'reached Level 15!',
-          'advanced to Level 22!',
-          'leveled up to 18!',
-          'hit Level 25!'
-        ]
-      },
-      {
-        type: 'match_win' as const,
-        messages: [
-          'won an epic 3-set match!',
-          'dominated in straight sets!',
-          'came back from 2 sets down!',
-          'won a nail-biting tiebreaker!'
-        ]
-      },
-      {
-        type: 'milestone' as const,
-        messages: [
-          'played their 100th match!',
-          'reached 1000 total XP!',
-          'completed 50 training sessions!',
-          'achieved 10-match win streak!'
-        ]
-      }
-    ];
-
-    const selectedType = notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
-    const player = players[Math.floor(Math.random() * players.length)];
-    const message = selectedType.messages[Math.floor(Math.random() * selectedType.messages.length)];
-
-    let details = {};
-    if (selectedType.type === 'level_up') {
-      details = {
-        level: Math.floor(Math.random() * 30) + 15,
-        xp_earned: Math.floor(Math.random() * 200) + 100
-      };
-    } else if (selectedType.type === 'achievement') {
-      details = {
-        xp_earned: Math.floor(Math.random() * 150) + 50,
-        achievement_name: message.split('"')[1]
-      };
-    }
-
-    return {
-      id: `notification-${Date.now()}-${Math.random()}`,
-      type: selectedType.type,
-      player_name: player,
-      message,
-      timestamp: new Date().toISOString(),
-      details: Object.keys(details).length > 0 ? details : undefined
-    };
-  };
-
-  const showNextNotification = () => {
-    if (notificationQueue.current.length > 0) {
-      const nextNotification = notificationQueue.current.shift()!;
-      setCurrentNotification(nextNotification);
-      setPendingCount(notificationQueue.current.length);
-
-      // Hide notification after 4 seconds
-      setTimeout(() => {
-        setCurrentNotification(null);
-        
-        // Show next notification after a brief delay
-        setTimeout(showNextNotification, 1000);
-      }, 4000);
-    }
-  };
-
-  const addNotification = (notification: LiveNotification) => {
-    notificationQueue.current.push(notification);
-    setPendingCount(notificationQueue.current.length);
-    
-    // If no notification is currently showing, show this one immediately
-    if (!currentNotification) {
-      showNextNotification();
-    }
-  };
+  const { user } = useAuth();
+  const channelRef = useRef<any>(null);
+  const isInitialized = useRef(false);
 
   useEffect(() => {
-    // Generate notifications every 8-15 seconds
-    const generateNotifications = () => {
-      const notification = generateNotification();
-      addNotification(notification);
-      
-      // Schedule next notification
-      const delay = Math.random() * 7000 + 8000; // 8-15 seconds
-      intervalRef.current = setTimeout(generateNotifications, delay);
-    };
+    if (!user || isInitialized.current) return;
 
-    // Start generating notifications after initial delay
-    intervalRef.current = setTimeout(generateNotifications, 3000);
+    isInitialized.current = true;
+    const channelName = `live-notifications-${user.id}`;
+    console.log('🔔 [NOTIFICATIONS] Setting up live notification channel:', channelName);
+
+    const channel = supabase.channel(channelName);
+
+    // Listen for invitation updates for current user
+    channel.on(
+      'postgres_changes',
+      {
+        event: 'UPDATE',
+        schema: 'public',
+        table: 'match_invitations',
+        filter: `inviter_id=eq.${user.id}`
+      },
+      (payload) => {
+        const invitation = payload.new as any;
+        if (invitation?.status === 'accepted') {
+          toast.success(`🎾 Your ${invitation.invitation_category} invitation was accepted!`, {
+            description: `${invitation.invitee_name} accepted your invitation`,
+            duration: 5000,
+          });
+        } else if (invitation?.status === 'declined') {
+          toast.info(`❌ Invitation declined`, {
+            description: `${invitation.invitee_name} declined your ${invitation.invitation_category} invitation`,
+            duration: 4000,
+          });
+        }
+      }
+    );
+
+    // Listen for new invitations received
+    channel.on(
+      'postgres_changes',
+      {
+        event: 'INSERT',
+        schema: 'public',
+        table: 'match_invitations',
+        filter: `invitee_id=eq.${user.id}`
+      },
+      (payload) => {
+        const invitation = payload.new as any;
+        const category = invitation?.invitation_category === 'match' ? 'Match' : 'Social Play';
+        toast.success(`📨 New ${category} Invitation!`, {
+          description: `You received an invitation from someone`,
+          duration: 6000,
+          action: {
+            label: 'View',
+            onClick: () => {
+              // Could navigate to invitations or specific invitation
+              console.log('Navigate to invitations');
+            },
+          },
+        });
+      }
+    );
+
+    // Listen for active match session updates
+    channel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'active_match_sessions',
+        filter: `player_id=eq.${user.id}`
+      },
+      (payload) => {
+        if (payload.eventType === 'INSERT') {
+          toast.success('🎾 Match Started!', {
+            description: 'Your match session is now active',
+            duration: 4000,
+          });
+        } else if (payload.eventType === 'UPDATE' && (payload.new as any)?.status === 'completed') {
+          toast.info('🏆 Match Completed!', {
+            description: 'Your match session has ended',
+            duration: 4000,
+          });
+        }
+      }
+    );
+
+    // Listen for social play session updates
+    channel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'social_play_sessions',
+        filter: `created_by=eq.${user.id}`
+      },
+      (payload) => {
+        if (payload.eventType === 'INSERT') {
+          toast.success('👥 Social Play Created!', {
+            description: 'Your social play session is ready',
+            duration: 4000,
+          });
+        } else if (payload.eventType === 'UPDATE' && (payload.new as any)?.status === 'active') {
+          toast.success('🎉 Social Play Started!', {
+            description: 'Your social play session is now active',
+            duration: 4000,
+          });
+        }
+      }
+    );
+
+    // Listen for participant join/leave in social play sessions
+    channel.on(
+      'postgres_changes',
+      {
+        event: '*',
+        schema: 'public',
+        table: 'social_play_participants'
+      },
+      (payload) => {
+        // Only show notifications for sessions the user created or participates in
+        if (payload.eventType === 'INSERT' && (payload.new as any)?.status === 'joined') {
+          toast.info('👋 Player Joined!', {
+            description: 'Someone joined your social play session',
+            duration: 3000,
+          });
+        } else if (payload.eventType === 'UPDATE' && (payload.new as any)?.status === 'left') {
+          toast.info('👋 Player Left', {
+            description: 'A player left the social play session',
+            duration: 3000,
+          });
+        }
+      }
+    );
+
+    channel.subscribe((status) => {
+      console.log('🔔 [NOTIFICATIONS] Channel status:', status);
+      if (status === 'SUBSCRIBED') {
+        console.log('✅ [NOTIFICATIONS] Live notifications active');
+      }
+    });
+
+    channelRef.current = channel;
 
     return () => {
-      if (intervalRef.current) {
-        clearTimeout(intervalRef.current);
+      if (channelRef.current) {
+        console.log('🧹 [NOTIFICATIONS] Cleaning up notification channel');
+        supabase.removeChannel(channelRef.current);
+        channelRef.current = null;
+        isInitialized.current = false;
       }
     };
-  }, [currentNotification]);
+  }, [user]);
 
-  return {
-    currentNotification,
-    pendingCount
-  };
+  return {};
 }

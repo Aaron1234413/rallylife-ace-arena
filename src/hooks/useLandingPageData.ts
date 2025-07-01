@@ -28,9 +28,9 @@ export function useLandingPageData() {
     // Global activity map data
     activityLocations: globalActivity.activityLocations || [],
     
-    // Live notifications
-    currentNotification: notifications.currentNotification,
-    pendingNotifications: notifications.pendingCount,
+    // Live notifications - placeholder for now since useLiveNotifications doesn't return data
+    currentNotification: null,
+    pendingNotifications: 0,
     
     // Loading states
     loading: landingData.loading || globalActivity.loading,
@@ -44,9 +44,7 @@ export function useLandingPageData() {
     landingData.loading,
     landingData.refreshData,
     globalActivity.activityLocations,
-    globalActivity.loading,
-    notifications.currentNotification,
-    notifications.pendingCount
+    globalActivity.loading
   ]);
 
   return memoizedData;

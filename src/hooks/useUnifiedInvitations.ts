@@ -550,7 +550,18 @@ export function useUnifiedInvitations() {
           filter: `inviter_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('📨 [UNIFIED] Real-time update for sent invitations:', payload.eventType);
+          const invitationData = payload.new as any;
+          console.log('📨 [UNIFIED] Real-time update for sent invitations:', payload.eventType, invitationData?.status);
+          
+          // Show live status updates with detailed notifications
+          if (payload.eventType === 'UPDATE' && invitationData?.status) {
+            console.log('🔄 [UNIFIED] Sent invitation status changed:', {
+              id: invitationData.id,
+              status: invitationData.status,
+              invitee: invitationData.invitee_name
+            });
+          }
+          
           fetchSentInvitations();
         }
       );
@@ -564,7 +575,18 @@ export function useUnifiedInvitations() {
           filter: `invitee_id=eq.${user.id}`
         },
         (payload) => {
-          console.log('📨 [UNIFIED] Real-time update for received invitations:', payload.eventType);
+          const invitationData = payload.new as any;
+          console.log('📨 [UNIFIED] Real-time update for received invitations:', payload.eventType, invitationData?.status);
+          
+          // Show live status updates for received invitations
+          if (payload.eventType === 'INSERT') {
+            console.log('📩 [UNIFIED] New invitation received:', {
+              id: invitationData?.id,
+              category: invitationData?.invitation_category,
+              from: invitationData?.inviter_id
+            });
+          }
+          
           fetchReceivedInvitations();
         }
       );

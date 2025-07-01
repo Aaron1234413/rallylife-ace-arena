@@ -8,6 +8,9 @@ import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { useSessionRecovery } from '@/hooks/useSessionRecovery';
+import { InvitationNotificationBadge } from './InvitationNotificationBadge';
+import { useLiveNotifications } from '@/hooks/useLiveNotifications';
+import { LiveSessionStatusUpdater } from '@/components/session/LiveSessionStatusUpdater';
 
 interface WelcomeBannerProps {
   profile?: any;
@@ -32,6 +35,9 @@ export function WelcomeBanner({
   const { tokenData: fetchedTokenData } = usePlayerTokens();
   const sessionRecovery = useSessionRecovery();
   
+  // Initialize live notifications
+  useLiveNotifications();
+  
   // Use provided data or fallback to fetched data
   const finalXpData = xpData || fetchedXpData;
   const finalHpData = hpData || fetchedHpData;
@@ -42,6 +48,7 @@ export function WelcomeBanner({
 
   return (
     <div className="space-y-4">
+      <LiveSessionStatusUpdater />
       {/* Session Recovery Alert */}
       {(sessionRecovery.hasActiveMatchSession || sessionRecovery.hasActiveSocialPlaySession) && (
         <Card className="border-hsl(var(--tennis-yellow)/20) bg-hsl(var(--tennis-yellow-light)/10)">
@@ -69,9 +76,12 @@ export function WelcomeBanner({
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
-              <h1 className="text-2xl font-bold mb-2 font-orbitron">
-                Welcome back, {userName}!
-              </h1>
+              <div className="flex items-center gap-3 mb-2">
+                <h1 className="text-2xl font-bold font-orbitron">
+                  Welcome back, {userName}!
+                </h1>
+                <InvitationNotificationBadge />
+              </div>
               <p className="text-hsl(var(--tennis-green-light)) mb-4">
                 Ready to elevate your tennis game today?
               </p>

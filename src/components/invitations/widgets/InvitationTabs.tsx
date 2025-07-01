@@ -23,7 +23,7 @@ export const InvitationTabs: React.FC<InvitationTabsProps> = ({
           <Inbox className="h-4 w-4" />
           Received
           {totalReceived > 0 && (
-            <Badge variant="secondary" className="ml-1">
+            <Badge variant="secondary" className="ml-1 bg-hsl(var(--tennis-green-accent)) text-white animate-pulse">
               {totalReceived}
             </Badge>
           )}
@@ -32,7 +32,7 @@ export const InvitationTabs: React.FC<InvitationTabsProps> = ({
           <MailOpen className="h-4 w-4" />
           Sent
           {totalSent > 0 && (
-            <Badge variant="outline" className="ml-1">
+            <Badge variant="outline" className="ml-1 border-hsl(var(--tennis-yellow)) text-hsl(var(--tennis-yellow))">
               {totalSent}
             </Badge>
           )}

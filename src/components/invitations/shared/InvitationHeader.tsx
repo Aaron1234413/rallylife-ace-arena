@@ -2,6 +2,7 @@ import React from 'react';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Users } from 'lucide-react';
 import type { UnifiedInvitation } from '@/types/invitation';
+import { LiveStatusIndicator } from './LiveStatusIndicator';
 
 interface InvitationHeaderProps {
   invitation: UnifiedInvitation;
@@ -33,6 +34,7 @@ export const InvitationHeader: React.FC<InvitationHeaderProps> = ({ invitation, 
       <div className="flex items-center gap-2">
         <Users className={`h-5 w-5 ${getIconColor()}`} />
         <span className="text-lg font-medium">{getHeaderTitle()}</span>
+        <LiveStatusIndicator invitation={invitation} />
       </div>
       <Badge variant="outline" className="flex items-center gap-1">
         <Clock className="h-3 w-3" />
