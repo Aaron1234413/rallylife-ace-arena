@@ -8,16 +8,19 @@ import { SocialHub } from '@/components/academy/SocialHub';
 import { useAcademyProgress } from '@/hooks/useAcademyProgress';
 
 const Academy = () => {
-  const { progress, isCompleted: isOnboardingCompleted, completeOnboarding } = useAcademyProgress();
+  const { progress, isCompleted: isOnboardingCompleted, isLoading, completeOnboarding } = useAcademyProgress();
   const [activeView, setActiveView] = useState<'dashboard' | 'campus' | 'category' | 'drill' | 'social' | 'onboarding'>('dashboard');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   useEffect(() => {
-    // Show onboarding if user hasn't completed it
-    if (!isOnboardingCompleted) {
+    // Only show onboarding if we're not loading and onboarding is not completed
+    if (!isLoading && !isOnboardingCompleted) {
       setActiveView('onboarding');
+    } else if (!isLoading && isOnboardingCompleted && activeView === 'onboarding') {
+      // If onboarding was completed but we're still on onboarding view, go to dashboard
+      setActiveView('dashboard');
     }
-  }, [isOnboardingCompleted]);
+  }, [isOnboardingCompleted, isLoading, activeView]);
 
   const handleStartQuiz = (type: 'daily' | 'practice') => {
     if (type === 'daily') {
@@ -52,6 +55,20 @@ const Academy = () => {
   const handleViewSocial = () => {
     setActiveView('social');
   };
+
+  // Show loading state while checking onboarding status
+  if (isLoading) {
+    return (
+      <div className="min-h-screen bg-tennis-green-bg flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 bg-tennis-green-primary rounded-full flex items-center justify-center mb-4 mx-auto">
+            <span className="text-white text-xl">🎾</span>
+          </div>
+          <p className="text-tennis-green-medium">Loading Academy...</p>
+        </div>
+      </div>
+    );
+  }
 
   if (activeView === 'onboarding') {
     return <AcademyOnboarding onComplete={handleOnboardingComplete} />;

@@ -35,20 +35,45 @@ export function useAcademyProgress() {
     lastActivity: new Date().toISOString(),
     onboardingCompleted: false
   });
+  const [isLoading, setIsLoading] = useState(true);
 
   const getStorageKey = (key: string) => `academy_${user?.id}_${key}`;
+  
+  // Global onboarding completion key (not user-dependent)
+  const GLOBAL_ONBOARDING_KEY = 'academy_onboarding_completed';
 
   // Load progress from localStorage
   useEffect(() => {
+    // First check global onboarding completion (immediate, no user dependency)
+    const globalOnboardingCompleted = localStorage.getItem(GLOBAL_ONBOARDING_KEY) === 'true';
+    
     if (user) {
       const savedProgress = localStorage.getItem(getStorageKey('progress'));
       if (savedProgress) {
         const parsed = JSON.parse(savedProgress);
         setProgress({
           ...parsed,
-          levelName: LEVEL_NAMES[parsed.level] || 'Rookie'
+          levelName: LEVEL_NAMES[parsed.level] || 'Rookie',
+          // Ensure onboarding completion is preserved
+          onboardingCompleted: parsed.onboardingCompleted || globalOnboardingCompleted
         });
+      } else if (globalOnboardingCompleted) {
+        // If no user-specific progress but global onboarding is complete
+        setProgress(prev => ({
+          ...prev,
+          onboardingCompleted: true
+        }));
       }
+      setIsLoading(false);
+    } else if (globalOnboardingCompleted) {
+      // Even without user, if onboarding was completed globally, set it
+      setProgress(prev => ({
+        ...prev,
+        onboardingCompleted: true
+      }));
+      setIsLoading(false);
+    } else {
+      setIsLoading(false);
     }
   }, [user]);
 
@@ -56,8 +81,12 @@ export function useAcademyProgress() {
   const saveProgress = (newProgress: AcademyProgress) => {
     if (user) {
       localStorage.setItem(getStorageKey('progress'), JSON.stringify(newProgress));
-      setProgress(newProgress);
     }
+    // Always save global onboarding completion state
+    if (newProgress.onboardingCompleted) {
+      localStorage.setItem(GLOBAL_ONBOARDING_KEY, 'true');
+    }
+    setProgress(newProgress);
   };
 
   const completeOnboarding = (startingLevel: number) => {
@@ -69,6 +98,9 @@ export function useAcademyProgress() {
       onboardingCompleted: true,
       lastActivity: new Date().toISOString()
     };
+    
+    // Immediately save global onboarding completion (independent of user state)
+    localStorage.setItem(GLOBAL_ONBOARDING_KEY, 'true');
     saveProgress(newProgress);
   };
 
@@ -128,6 +160,7 @@ export function useAcademyProgress() {
   return {
     progress,
     isCompleted: progress.onboardingCompleted,
+    isLoading,
     completeOnboarding,
     addXP,
     completeQuiz,
