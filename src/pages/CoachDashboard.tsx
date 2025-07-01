@@ -10,6 +10,7 @@ import { ClientManagementPanel } from '@/components/coach/dashboard/ClientManage
 import { CoachAnalytics } from '@/components/coach/dashboard/CoachAnalytics';
 import { CoachQuickActions } from '@/components/coach/dashboard/CoachQuickActions';
 import { RecentActivity } from '@/components/coach/dashboard/RecentActivity';
+import { CoachActionPanel } from '@/components/coach/CoachActionPanel';
 
 const CoachDashboard = () => {
   const { user } = useAuth();
@@ -41,6 +42,9 @@ const CoachDashboard = () => {
 
       {/* Quick Actions */}
       <CoachQuickActions />
+      
+      {/* Action Panel for Testing */}
+      <CoachActionPanel />
 
       {/* Main Content Grid */}
       <div className="grid gap-4 lg:gap-6 lg:grid-cols-3">
