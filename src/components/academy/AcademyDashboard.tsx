@@ -26,6 +26,9 @@ interface AcademyDashboardProps {
   onStartQuiz: (type: 'daily' | 'practice') => void;
   onViewCampus: () => void;
   onViewSocial: () => void;
+  onViewMarketplace?: () => void;
+  onViewPremium?: () => void;
+  onViewCustomize?: () => void;
 }
 
 export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({

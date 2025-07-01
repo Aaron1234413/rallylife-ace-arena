@@ -5,11 +5,14 @@ import { CampusView } from '@/components/academy/CampusView';
 import { CategoryQuiz } from '@/components/academy/CategoryQuiz';
 import { DailyDrill } from '@/components/academy/DailyDrill';
 import { SocialHub } from '@/components/academy/SocialHub';
+import { TokenMarketplace } from '@/components/academy/TokenMarketplace';
+import { PremiumQuizCategories } from '@/components/academy/PremiumQuizCategories';
+import { CampusCustomization } from '@/components/academy/CampusCustomization';
 import { useAcademyProgress } from '@/hooks/useAcademyProgress';
 
 const Academy = () => {
   const { progress, isCompleted: isOnboardingCompleted, isLoading, completeOnboarding } = useAcademyProgress();
-  const [activeView, setActiveView] = useState<'dashboard' | 'campus' | 'category' | 'drill' | 'social' | 'onboarding'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'campus' | 'category' | 'drill' | 'social' | 'marketplace' | 'premium' | 'customize' | 'onboarding'>('dashboard');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   useEffect(() => {
@@ -78,6 +81,30 @@ const Academy = () => {
     return (
       <div className="min-h-screen bg-tennis-green-bg p-4">
         <SocialHub className="max-w-4xl mx-auto" />
+      </div>
+    );
+  }
+
+  if (activeView === 'marketplace') {
+    return (
+      <div className="min-h-screen bg-tennis-green-bg p-4">
+        <TokenMarketplace className="max-w-6xl mx-auto" />
+      </div>
+    );
+  }
+
+  if (activeView === 'premium') {
+    return (
+      <div className="min-h-screen bg-tennis-green-bg p-4">
+        <PremiumQuizCategories className="max-w-6xl mx-auto" />
+      </div>
+    );
+  }
+
+  if (activeView === 'customize') {
+    return (
+      <div className="min-h-screen bg-tennis-green-bg p-4">
+        <CampusCustomization className="max-w-4xl mx-auto" />
       </div>
     );
   }
