@@ -6,7 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { Users, Clock, Play, Square, MapPin, User, RefreshCw } from 'lucide-react';
 import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
 import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
-import { useInvitations } from '@/hooks/useInvitations';
+import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { ShareLinkGenerator } from './ShareLinkGenerator';
 import { SimpleEndEventModal } from './SimpleEndEventModal';
 import { toast } from 'sonner';
@@ -22,7 +22,7 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
 }) => {
   const { activeSession, startSession, endSession, getDurationMinutes, loading } = useSocialPlaySession();
   const { activeSession: dbSession, cleanupExpiredSessions, isCleaningUp } = useSocialPlaySessions();
-  const { receivedInvitations, sentInvitations } = useInvitations();
+  const { receivedInvitations, sentInvitations } = useUnifiedInvitations();
   const [duration, setDuration] = useState(0);
   const [showEndModal, setShowEndModal] = useState(false);
   const [acceptedInvitations, setAcceptedInvitations] = useState(0);

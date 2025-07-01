@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Users, MessageCircle, X, MapPin, Calendar } from 'lucide-react';
-import { useInvitations } from '@/hooks/useInvitations';
+import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { toast } from 'sonner';
 
 interface PendingInvitationCardProps {
@@ -23,7 +23,7 @@ interface PendingInvitationCardProps {
 }
 
 export const PendingInvitationCard: React.FC<PendingInvitationCardProps> = ({ invitation }) => {
-  const { cancelInvitation } = useInvitations();
+  const { cancelInvitation } = useUnifiedInvitations();
 
   const handleCancel = async () => {
     try {

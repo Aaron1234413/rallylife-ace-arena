@@ -20,7 +20,7 @@ import { cn } from '@/lib/utils';
 import { useSocialPlayEvents } from '@/hooks/useSocialPlayEvents';
 import { SocialPlayParticipantSelector } from './SocialPlayParticipantSelector';
 import { SocialPlayStakesPreview } from './SocialPlayStakesPreview';
-import { useInvitations } from '@/hooks/useInvitations';
+import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { toast } from 'sonner';
 
 export interface SelectedPlayer {
@@ -46,7 +46,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const { createEvent, isCreatingEvent } = useSocialPlayEvents();
-  const { createSocialPlayInvitation } = useInvitations();
+  const { createSocialPlayInvitation } = useUnifiedInvitations();
 
   // Form state
   const [title, setTitle] = useState('');

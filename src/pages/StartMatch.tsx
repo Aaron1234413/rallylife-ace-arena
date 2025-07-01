@@ -11,7 +11,7 @@ import { MatchTypeToggle } from '@/components/ui/match-type-toggle';
 import { OpponentSearchSelector, SelectedOpponent } from '@/components/match/OpponentSearchSelector';
 import { StakesPreview } from '@/components/match/StakesPreview';
 import { useMatchRewards } from '@/hooks/useMatchRewards';
-import { useInvitations } from '@/hooks/useInvitations';
+import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { getRandomMessage } from '@/utils/motivationalMessages';
 import { toast } from 'sonner';
 
@@ -27,7 +27,7 @@ const StartMatch = () => {
   const {
     createMatchInvitation,
     refreshInvitations
-  } = useInvitations();
+  } = useUnifiedInvitations();
   
   // Updated state to use SelectedOpponent objects
   const [opponent, setOpponent] = useState<SelectedOpponent | null>(null);

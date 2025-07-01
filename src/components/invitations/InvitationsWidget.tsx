@@ -5,7 +5,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Users, Mail, MailOpen, RefreshCw, Inbox, AlertTriangle } from 'lucide-react';
-import { useInvitations } from '@/hooks/useInvitations';
+import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { InvitationCard } from './InvitationCard';
 import { PendingInvitationCard } from './PendingInvitationCard';
 
@@ -16,7 +16,7 @@ export const InvitationsWidget: React.FC = () => {
     loading, 
     error,
     refreshInvitations 
-  } = useInvitations();
+  } = useUnifiedInvitations();
 
   const [activeTab, setActiveTab] = useState('received');
   const [isRefreshing, setIsRefreshing] = useState(false);

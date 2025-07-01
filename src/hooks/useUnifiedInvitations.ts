@@ -3,7 +3,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-interface Invitation {
+// Unified invitation interface that works for both match and social play
+interface UnifiedInvitation {
   id: string;
   inviter_id: string;
   invitee_id?: string;
@@ -21,6 +22,7 @@ interface Invitation {
   session_data?: Record<string, any>;
 }
 
+// Create match invitation parameters
 interface CreateMatchInvitationParams {
   invitedUserName: string;
   invitedUserId?: string;
@@ -39,6 +41,7 @@ interface CreateMatchInvitationParams {
   message?: string;
 }
 
+// Create social play invitation parameters
 interface CreateSocialPlayInvitationParams {
   invitedUserName: string;
   invitedUserId?: string;
@@ -52,7 +55,7 @@ interface CreateSocialPlayInvitationParams {
 }
 
 // Helper function to cast database response to our interface
-const toInvitation = (data: any): Invitation => ({
+const toUnifiedInvitation = (data: any): UnifiedInvitation => ({
   id: data.id,
   inviter_id: data.inviter_id,
   invitee_id: data.invitee_id,
@@ -70,10 +73,10 @@ const toInvitation = (data: any): Invitation => ({
   session_data: data.session_data || {},
 });
 
-export function useInvitations() {
+export function useUnifiedInvitations() {
   const { user } = useAuth();
-  const [receivedInvitations, setReceivedInvitations] = useState<Invitation[]>([]);
-  const [sentInvitations, setSentInvitations] = useState<Invitation[]>([]);
+  const [receivedInvitations, setReceivedInvitations] = useState<UnifiedInvitation[]>([]);
+  const [sentInvitations, setSentInvitations] = useState<UnifiedInvitation[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const channelRef = useRef<any>(null);
@@ -84,7 +87,7 @@ export function useInvitations() {
     if (!user) return;
 
     try {
-      console.log('🔍 [INVITATIONS] Fetching received invitations for user:', user.id);
+      console.log('🔍 [UNIFIED] Fetching received invitations for user:', user.id);
       const { data, error } = await supabase
         .from('match_invitations')
         .select('*')
@@ -93,27 +96,24 @@ export function useInvitations() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ [INVITATIONS] Error fetching received invitations:', error);
+        console.error('❌ [UNIFIED] Error fetching received invitations:', error);
         setError(`Failed to fetch invitations: ${error.message}`);
         return;
       }
 
-      const invitations = (data || []).map(toInvitation);
-      console.log('✅ [INVITATIONS] Fetched received invitations:', {
+      const invitations = (data || []).map(toUnifiedInvitation);
+      console.log('✅ [UNIFIED] Fetched received invitations:', {
         count: invitations.length,
-        invitations: invitations.map(i => ({
-          id: i.id,
-          from: i.invitee_name,
-          type: i.invitation_type,
-          category: i.invitation_category,
-          status: i.status
-        }))
+        breakdown: {
+          match: invitations.filter(i => i.invitation_category === 'match').length,
+          social_play: invitations.filter(i => i.invitation_category === 'social_play').length
+        }
       });
       
       setReceivedInvitations(invitations);
       setError(null);
     } catch (error) {
-      console.error('💥 [INVITATIONS] Error in fetchReceivedInvitations:', error);
+      console.error('💥 [UNIFIED] Error in fetchReceivedInvitations:', error);
       setError('Failed to load invitations');
     }
   };
@@ -122,7 +122,7 @@ export function useInvitations() {
     if (!user) return;
 
     try {
-      console.log('🔍 [INVITATIONS] Fetching sent invitations for user:', user.id);
+      console.log('🔍 [UNIFIED] Fetching sent invitations for user:', user.id);
       const { data, error } = await supabase
         .from('match_invitations')
         .select('*')
@@ -131,28 +131,86 @@ export function useInvitations() {
         .order('created_at', { ascending: false });
 
       if (error) {
-        console.error('❌ [INVITATIONS] Error fetching sent invitations:', error);
+        console.error('❌ [UNIFIED] Error fetching sent invitations:', error);
         setError(`Failed to fetch sent invitations: ${error.message}`);
         return;
       }
 
-      const invitations = (data || []).map(toInvitation);
-      console.log('✅ [INVITATIONS] Fetched sent invitations:', {
+      const invitations = (data || []).map(toUnifiedInvitation);
+      console.log('✅ [UNIFIED] Fetched sent invitations:', {
         count: invitations.length,
-        invitations: invitations.map(i => ({
-          id: i.id,
-          to: i.invitee_name,
-          type: i.invitation_type,
-          category: i.invitation_category,
-          status: i.status
-        }))
+        breakdown: {
+          match: invitations.filter(i => i.invitation_category === 'match').length,
+          social_play: invitations.filter(i => i.invitation_category === 'social_play').length
+        }
       });
       
       setSentInvitations(invitations);
       setError(null);
     } catch (error) {
-      console.error('💥 [INVITATIONS] Error in fetchSentInvitations:', error);
+      console.error('💥 [UNIFIED] Error in fetchSentInvitations:', error);
       setError('Failed to load sent invitations');
+    }
+  };
+
+  const createMatchInvitation = async (params: CreateMatchInvitationParams) => {
+    if (!user) {
+      throw new Error('User not authenticated');
+    }
+
+    try {
+      console.log('🚀 [UNIFIED] Creating match invitation with params:', {
+        invitedUserName: params.invitedUserName,
+        matchType: params.matchType,
+        isDoubles: params.isDoubles
+      });
+
+      const invitationData = {
+        inviter_id: user.id,
+        invitee_id: params.invitedUserId || null,
+        invitee_name: params.invitedUserName,
+        invitee_email: params.invitedUserEmail || null,
+        invitation_type: params.matchType,
+        invitation_category: 'match' as const,
+        match_session_id: null, // Will be set when invitation is accepted
+        message: params.message || null,
+        status: 'pending' as const,
+        session_data: {
+          matchType: params.matchType,
+          isDoubles: params.isDoubles,
+          startTime: params.startTime.toISOString(),
+          opponentName: params.opponentName,
+          opponentId: params.opponentId,
+          partnerName: params.partnerName,
+          partnerId: params.partnerId,
+          opponent1Name: params.opponent1Name,
+          opponent1Id: params.opponent1Id,
+          opponent2Name: params.opponent2Name,
+          opponent2Id: params.opponent2Id,
+        }
+      };
+
+      console.log('📤 [UNIFIED] Sending match invitation data to database');
+
+      const { data, error } = await supabase
+        .from('match_invitations')
+        .insert(invitationData)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('❌ [UNIFIED] Database error creating match invitation:', error);
+        throw new Error(`Failed to create invitation: ${error.message}`);
+      }
+
+      console.log('✅ [UNIFIED] Match invitation created successfully:', data);
+      
+      await fetchSentInvitations();
+      
+      return toUnifiedInvitation(data);
+    } catch (error) {
+      console.error('💥 [UNIFIED] Error in createMatchInvitation:', error);
+      throw error;
     }
   };
 
@@ -162,7 +220,7 @@ export function useInvitations() {
     }
 
     try {
-      console.log('🚀 [INVITATIONS] Creating social play invitation with params:', {
+      console.log('🚀 [UNIFIED] Creating social play invitation with params:', {
         invitedUserName: params.invitedUserName,
         sessionType: params.sessionType,
         eventTitle: params.eventTitle
@@ -204,7 +262,7 @@ export function useInvitations() {
         }
       };
 
-      console.log('📤 [INVITATIONS] Sending social play invitation data to database:', invitationData);
+      console.log('📤 [UNIFIED] Sending social play invitation data to database');
 
       const { data, error } = await supabase
         .from('match_invitations')
@@ -213,78 +271,17 @@ export function useInvitations() {
         .single();
 
       if (error) {
-        console.error('❌ [INVITATIONS] Database error creating social play invitation:', error);
+        console.error('❌ [UNIFIED] Database error creating social play invitation:', error);
         throw new Error(`Failed to create invitation: ${error.message}`);
       }
 
-      console.log('✅ [INVITATIONS] Social play invitation created successfully:', data);
+      console.log('✅ [UNIFIED] Social play invitation created successfully:', data);
       
       await fetchSentInvitations();
       
-      return toInvitation(data);
+      return toUnifiedInvitation(data);
     } catch (error) {
-      console.error('💥 [INVITATIONS] Error in createSocialPlayInvitation:', error);
-      throw error;
-    }
-  };
-
-  const createMatchInvitation = async (params: CreateMatchInvitationParams) => {
-    if (!user) {
-      throw new Error('User not authenticated');
-    }
-
-    try {
-      console.log('🚀 [INVITATIONS] Creating match invitation with params:', {
-        invitedUserName: params.invitedUserName,
-        matchType: params.matchType,
-        isDoubles: params.isDoubles
-      });
-
-      const invitationData = {
-        inviter_id: user.id,
-        invitee_id: params.invitedUserId || null,
-        invitee_name: params.invitedUserName,
-        invitee_email: params.invitedUserEmail || null,
-        invitation_type: params.matchType,
-        invitation_category: 'match' as const,
-        match_session_id: null,
-        message: params.message || null,
-        status: 'pending' as const,
-        session_data: {
-          matchType: params.matchType,
-          isDoubles: params.isDoubles,
-          startTime: params.startTime.toISOString(),
-          opponentName: params.opponentName,
-          opponentId: params.opponentId,
-          partnerName: params.partnerName,
-          partnerId: params.partnerId,
-          opponent1Name: params.opponent1Name,
-          opponent1Id: params.opponent1Id,
-          opponent2Name: params.opponent2Name,
-          opponent2Id: params.opponent2Id,
-        }
-      };
-
-      console.log('📤 [INVITATIONS] Sending match invitation data to database:', invitationData);
-
-      const { data, error } = await supabase
-        .from('match_invitations')
-        .insert(invitationData)
-        .select()
-        .single();
-
-      if (error) {
-        console.error('❌ [INVITATIONS] Database error creating match invitation:', error);
-        throw new Error(`Failed to create invitation: ${error.message}`);
-      }
-
-      console.log('✅ [INVITATIONS] Match invitation created successfully:', data);
-      
-      await fetchSentInvitations();
-      
-      return toInvitation(data);
-    } catch (error) {
-      console.error('💥 [INVITATIONS] Error in createMatchInvitation:', error);
+      console.error('💥 [UNIFIED] Error in createSocialPlayInvitation:', error);
       throw error;
     }
   };
@@ -293,7 +290,7 @@ export function useInvitations() {
     if (!user) return;
 
     try {
-      console.log('✅ [INVITATIONS] Accepting invitation:', invitationId);
+      console.log('✅ [UNIFIED] Accepting invitation:', invitationId);
 
       const { data: invitation, error: fetchError } = await supabase
         .from('match_invitations')
@@ -303,13 +300,13 @@ export function useInvitations() {
         .single();
 
       if (fetchError || !invitation) {
-        console.error('❌ [INVITATIONS] Error fetching invitation:', fetchError);
+        console.error('❌ [UNIFIED] Error fetching invitation:', fetchError);
         throw new Error('Invitation not found');
       }
 
       if (invitation.invitation_category === 'match') {
         // Handle match invitation acceptance
-        console.log('🎾 [INVITATIONS] Creating match session for accepted invitation...');
+        console.log('🎾 [UNIFIED] Creating match session for accepted invitation...');
 
         const sessionData = {
           player_id: invitation.inviter_id,
@@ -330,7 +327,7 @@ export function useInvitations() {
           .single();
 
         if (sessionError) {
-          console.error('❌ [INVITATIONS] Error creating match session:', sessionError);
+          console.error('❌ [UNIFIED] Error creating match session:', sessionError);
           throw sessionError;
         }
 
@@ -347,10 +344,12 @@ export function useInvitations() {
 
         if (updateError) throw updateError;
 
-        return session;
+        console.log('✅ [UNIFIED] Match invitation accepted and session created');
+        return { type: 'match', session };
+
       } else {
         // Handle social play invitation acceptance
-        console.log('👥 [INVITATIONS] Accepting social play invitation...');
+        console.log('👥 [UNIFIED] Accepting social play invitation...');
         
         // Update invitation status
         const { error: updateError } = await supabase
@@ -383,10 +382,11 @@ export function useInvitations() {
           }
         }
 
-        return { accepted: true, invitation_category: 'social_play', session_id: invitation.match_session_id };
+        console.log('✅ [UNIFIED] Social play invitation accepted');
+        return { type: 'social_play', session_id: invitation.match_session_id };
       }
     } catch (error) {
-      console.error('💥 [INVITATIONS] Error in acceptInvitation:', error);
+      console.error('💥 [UNIFIED] Error in acceptInvitation:', error);
       throw error;
     } finally {
       await fetchReceivedInvitations();
@@ -412,7 +412,7 @@ export function useInvitations() {
         throw error;
       }
 
-      console.log('Invitation declined successfully');
+      console.log('✅ [UNIFIED] Invitation declined successfully');
       
       await fetchReceivedInvitations();
       await fetchSentInvitations();
@@ -441,7 +441,7 @@ export function useInvitations() {
         throw error;
       }
 
-      console.log('Invitation canceled successfully');
+      console.log('✅ [UNIFIED] Invitation canceled successfully');
       
       await fetchSentInvitations();
       
@@ -459,11 +459,11 @@ export function useInvitations() {
 
   const cleanupChannel = () => {
     if (channelRef.current) {
-      console.log('🧹 [INVITATIONS] Cleaning up invitations channel subscription');
+      console.log('🧹 [UNIFIED] Cleaning up invitations channel subscription');
       try {
         supabase.removeChannel(channelRef.current);
       } catch (error) {
-        console.error('❌ [INVITATIONS] Error removing channel:', error);
+        console.error('❌ [UNIFIED] Error removing channel:', error);
       }
       channelRef.current = null;
       subscriptionInitialized.current = false;
@@ -474,7 +474,7 @@ export function useInvitations() {
   const refreshInvitations = async () => {
     if (!user) return;
     
-    console.log('🔄 [INVITATIONS] Manually refreshing all invitations...');
+    console.log('🔄 [UNIFIED] Manually refreshing all invitations...');
     setLoading(true);
     setError(null);
     
@@ -483,9 +483,9 @@ export function useInvitations() {
         fetchReceivedInvitations(),
         fetchSentInvitations()
       ]);
-      console.log('✅ [INVITATIONS] Manual refresh completed');
+      console.log('✅ [UNIFIED] Manual refresh completed');
     } catch (error) {
-      console.error('❌ [INVITATIONS] Error during refresh:', error);
+      console.error('❌ [UNIFIED] Error during refresh:', error);
       setError('Failed to refresh invitations');
     } finally {
       setLoading(false);
@@ -497,101 +497,92 @@ export function useInvitations() {
       isSubscribing.current = true;
       
       const loadData = async () => {
-        console.log('🏗️ [INVITATIONS] Initial data load started for user:', user.id);
+        console.log('🏗️ [UNIFIED] Initial data load started for user:', user.id);
         setLoading(true);
-        setError(null);
-        
-        try {
-          await Promise.all([
-            fetchReceivedInvitations(),
-            fetchSentInvitations()
-          ]);
-          console.log('✅ [INVITATIONS] Initial data load completed');
-        } catch (error) {
-          console.error('❌ [INVITATIONS] Error in initial data load:', error);
-          setError('Failed to load invitations');
-        } finally {
-          setLoading(false);
-        }
+        await Promise.all([
+          fetchReceivedInvitations(),
+          fetchSentInvitations()
+        ]);
+        setLoading(false);
+        console.log('✅ [UNIFIED] Initial data load completed');
       };
 
       loadData();
 
+      // Clean up any existing channel
       cleanupChannel();
 
-      const channelName = `invitations-${user.id}-${Date.now()}`;
-      console.log('📡 [INVITATIONS] Setting up real-time channel:', channelName);
+      // Set up real-time subscription
+      const channelName = `unified-invitations-${user.id}-${Date.now()}`;
+      console.log('📡 [UNIFIED] Setting up real-time channel:', channelName);
       
-      try {
-        const channel = supabase.channel(channelName, {
-          config: {
-            broadcast: { self: false },
-            presence: { key: user.id }
-          }
-        });
-        
-        channel.on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'match_invitations',
-            filter: `inviter_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('📨 [INVITATIONS] Real-time update for sent invitations:', payload);
-            fetchSentInvitations().catch(console.error);
-          }
-        );
+      const channel = supabase.channel(channelName);
+      
+      // Listen for changes to invitations where user is involved
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'match_invitations',
+          filter: `inviter_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('📨 [UNIFIED] Real-time update for sent invitations:', payload.eventType);
+          fetchSentInvitations();
+        }
+      );
 
-        channel.on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'match_invitations',
-            filter: `invitee_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('📨 [INVITATIONS] Real-time update for received invitations:', payload);
-            fetchReceivedInvitations().catch(console.error);
-          }
-        );
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'match_invitations',
+          filter: `invitee_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('📨 [UNIFIED] Real-time update for received invitations:', payload.eventType);
+          fetchReceivedInvitations();
+        }
+      );
 
-        channel.subscribe((status) => {
-          console.log('📡 [INVITATIONS] Channel subscription status:', status);
-          if (status === 'SUBSCRIBED') {
-            subscriptionInitialized.current = true;
-            isSubscribing.current = false;
-            console.log('✅ [INVITATIONS] Real-time subscription active');
-          } else if (status === 'CHANNEL_ERROR') {
-            console.error('❌ [INVITATIONS] Channel subscription error');
-            isSubscribing.current = false;
-            setError('Real-time connection failed');
-          }
-        });
+      // Subscribe to the channel
+      channel.subscribe((status) => {
+        console.log('📡 [UNIFIED] Channel subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          subscriptionInitialized.current = true;
+          isSubscribing.current = false;
+          console.log('✅ [UNIFIED] Real-time subscription active');
+        } else if (status === 'CHANNEL_ERROR') {
+          console.error('❌ [UNIFIED] Channel subscription error');
+          subscriptionInitialized.current = false;
+          isSubscribing.current = false;
+        } else if (status === 'TIMED_OUT') {
+          console.warn('⏰ [UNIFIED] Channel subscription timed out');
+          subscriptionInitialized.current = false;
+          isSubscribing.current = false;
+        }
+      });
 
-        channelRef.current = channel;
-      } catch (error) {
-        console.error('❌ [INVITATIONS] Error setting up channel:', error);
-        isSubscribing.current = false;
-        setError('Failed to setup real-time connection');
-      }
+      channelRef.current = channel;
 
       return () => {
         cleanupChannel();
       };
     } else if (!user) {
+      console.log('👋 [UNIFIED] User logged out, cleaning up data');
       cleanupChannel();
       setReceivedInvitations([]);
       setSentInvitations([]);
       setLoading(false);
-      setError(null);
     }
   }, [user]);
 
+  // Cleanup on unmount
   useEffect(() => {
     return () => {
+      console.log('🏁 [UNIFIED] Component unmounting, cleaning up');
       cleanupChannel();
     };
   }, []);
@@ -607,16 +598,13 @@ export function useInvitations() {
     createMatchInvitation,
     createSocialPlayInvitation,
     
-    // Action methods
+    // Response methods
     acceptInvitation,
     declineInvitation,
     cancelInvitation,
-    refreshInvitations,
     
     // Utility methods
     getInvitationsByCategory,
-    
-    // Legacy compatibility for match invitations
-    createInvitation: createMatchInvitation,
+    refreshInvitations,
   };
 }

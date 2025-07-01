@@ -7,7 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@/components/ui/table';
 import { Clock, Users, MessageCircle, Square, Save, Plus, Wifi, WifiOff, RefreshCw, AlertCircle, Mail } from 'lucide-react';
 import { useMatchSession } from '@/contexts/MatchSessionContext';
-import { useMatchInvitations } from '@/hooks/useMatchInvitations';
+import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { MidMatchCheckInModal } from './MidMatchCheckInModal';
 import { MatchInvitationCard } from './MatchInvitationCard';
 import { PendingInvitationCard } from './PendingInvitationCard';
@@ -28,7 +28,7 @@ export const ActiveMatchWidget = () => {
     receivedInvitations,
     sentInvitations,
     loading: invitationsLoading
-  } = useMatchInvitations();
+  } = useUnifiedInvitations();
   
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [matchDuration, setMatchDuration] = useState(0);

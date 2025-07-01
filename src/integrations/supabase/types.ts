@@ -1944,6 +1944,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "fk_match_invitations_session"
+            columns: ["match_session_id"]
+            isOneToOne: false
+            referencedRelation: "active_match_sessions"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "match_invitations_invitee_id_fkey"
             columns: ["invitee_id"]
             isOneToOne: false
@@ -2953,6 +2960,7 @@ export type Database = {
           id: string
           invited_at: string
           joined_at: string | null
+          role: string | null
           session_creator_id: string
           session_id: string
           status: string
@@ -2962,6 +2970,7 @@ export type Database = {
           id?: string
           invited_at?: string
           joined_at?: string | null
+          role?: string | null
           session_creator_id: string
           session_id: string
           status?: string
@@ -2971,12 +2980,20 @@ export type Database = {
           id?: string
           invited_at?: string
           joined_at?: string | null
+          role?: string | null
           session_creator_id?: string
           session_id?: string
           status?: string
           user_id?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "fk_social_participants_session"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "social_play_sessions"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "social_play_participants_session_creator_id_fkey"
             columns: ["session_creator_id"]

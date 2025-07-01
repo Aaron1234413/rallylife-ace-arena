@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useMatchInvitations } from '@/hooks/useMatchInvitations';
+import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -72,9 +72,9 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
     receivedInvitations,
     sentInvitations,
     loading: invitationsLoading,
-    createInvitation,
+    createMatchInvitation: createInvitation,
     refreshInvitations
-  } = useMatchInvitations();
+  } = useUnifiedInvitations();
 
   // Helper function to safely parse sets data
   const parseSetsData = (sets: any): SetData[] => {

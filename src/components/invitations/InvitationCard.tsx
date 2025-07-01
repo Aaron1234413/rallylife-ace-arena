@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Clock, Users, MessageCircle, Check, X, MapPin, Calendar } from 'lucide-react';
-import { useInvitations } from '@/hooks/useInvitations';
+import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { toast } from 'sonner';
 
 interface InvitationCardProps {
@@ -23,7 +23,7 @@ interface InvitationCardProps {
 }
 
 export const InvitationCard: React.FC<InvitationCardProps> = ({ invitation }) => {
-  const { acceptInvitation, declineInvitation } = useInvitations();
+  const { acceptInvitation, declineInvitation } = useUnifiedInvitations();
 
   const handleAccept = async () => {
     try {
