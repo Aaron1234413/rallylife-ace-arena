@@ -2,6 +2,7 @@ import React from 'react';
 import { Button } from '@/components/ui/button';
 import { Check, X } from 'lucide-react';
 import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 import type { UnifiedInvitation, InvitationAction } from '@/types/invitation';
 
@@ -12,13 +13,19 @@ interface InvitationActionsProps {
 
 export const InvitationActions: React.FC<InvitationActionsProps> = ({ invitation, variant }) => {
   const { acceptInvitation, declineInvitation, cancelInvitation } = useUnifiedInvitations();
+  const navigate = useNavigate();
 
   const handleAction = async (action: InvitationAction) => {
     try {
       switch (action) {
         case 'accept':
-          await acceptInvitation(invitation.id);
+          const result = await acceptInvitation(invitation.id);
           toast.success(getSuccessMessage(action, invitation.invitation_category));
+          
+          // Navigate to appropriate page after acceptance
+          if (result?.navigationPath) {
+            navigate(result.navigationPath);
+          }
           break;
         case 'decline':
           await declineInvitation(invitation.id);

@@ -308,16 +308,27 @@ export function useUnifiedInvitations() {
         // Handle match invitation acceptance
         console.log('🎾 [UNIFIED] Creating match session for accepted invitation...');
 
+        // Use proper player mapping - invitee becomes the main player
+        const sessionDataObj = invitation.session_data as Record<string, any> || {};
         const sessionData = {
-          player_id: invitation.inviter_id,
-          opponent_name: user.email?.split('@')[0] || 'Unknown',
-          opponent_id: user.id,
+          player_id: user.id, // The accepting user becomes the player
+          opponent_name: sessionDataObj.opponentName || 'Invited Player',
+          opponent_id: invitation.inviter_id, // The inviter becomes the opponent
           is_doubles: invitation.invitation_type === 'doubles',
           match_type: invitation.invitation_type,
           start_time: new Date().toISOString(),
           status: 'active' as const,
           sets: [{ playerScore: '', opponentScore: '', completed: false }],
-          current_set: 0
+          current_set: 0,
+          // Map doubles participants if applicable
+          ...(invitation.invitation_type === 'doubles' && sessionDataObj && {
+            partner_name: sessionDataObj.partnerName,
+            partner_id: sessionDataObj.partnerId,
+            opponent_1_name: sessionDataObj.opponent1Name || sessionDataObj.opponentName,
+            opponent_1_id: sessionDataObj.opponent1Id || invitation.inviter_id,
+            opponent_2_name: sessionDataObj.opponent2Name,
+            opponent_2_id: sessionDataObj.opponent2Id,
+          })
         };
 
         const { data: session, error: sessionError } = await supabase
@@ -345,17 +356,23 @@ export function useUnifiedInvitations() {
         if (updateError) throw updateError;
 
         console.log('✅ [UNIFIED] Match invitation accepted and session created');
-        return { type: 'match', session };
+        return { 
+          type: 'match', 
+          session, 
+          navigationPath: '/', // Navigate to dashboard to show active match widget
+          shouldRefreshSession: true 
+        };
 
       } else {
         // Handle social play invitation acceptance
         console.log('👥 [UNIFIED] Accepting social play invitation...');
         
-        // Update invitation status
+        // Update invitation status first
         const { error: updateError } = await supabase
           .from('match_invitations')
           .update({
             status: 'accepted',
+            match_session_id: invitation.match_session_id,
             responded_at: new Date().toISOString()
           })
           .eq('id', invitationId)
@@ -363,7 +380,7 @@ export function useUnifiedInvitations() {
 
         if (updateError) throw updateError;
 
-        // If there's a linked session, add the user as a participant
+        // Add the user as a participant to the social play session
         if (invitation.match_session_id) {
           const { error: participantError } = await supabase
             .from('social_play_participants')
@@ -383,7 +400,12 @@ export function useUnifiedInvitations() {
         }
 
         console.log('✅ [UNIFIED] Social play invitation accepted');
-        return { type: 'social_play', session_id: invitation.match_session_id };
+        return { 
+          type: 'social_play', 
+          session_id: invitation.match_session_id,
+          navigationPath: '/', // Navigate to dashboard to show waiting session
+          shouldRefreshSession: true 
+        };
       }
     } catch (error) {
       console.error('💥 [UNIFIED] Error in acceptInvitation:', error);

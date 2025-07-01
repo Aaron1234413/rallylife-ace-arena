@@ -1,0 +1,102 @@
+import { useState, useEffect } from 'react';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+
+interface SessionRecovery {
+  hasActiveMatchSession: boolean;
+  hasActiveSocialPlaySession: boolean;
+  matchSessionId?: string;
+  socialPlaySessionId?: string;
+  loading: boolean;
+}
+
+export function useSessionRecovery(): SessionRecovery {
+  const { user } = useAuth();
+  const [recovery, setRecovery] = useState<SessionRecovery>({
+    hasActiveMatchSession: false,
+    hasActiveSocialPlaySession: false,
+    loading: true
+  });
+
+  useEffect(() => {
+    const detectActiveSessions = async () => {
+      if (!user) {
+        setRecovery({
+          hasActiveMatchSession: false,
+          hasActiveSocialPlaySession: false,
+          loading: false
+        });
+        return;
+      }
+
+      try {
+        // Check for active match sessions
+        const { data: matchSession } = await supabase
+          .from('active_match_sessions')
+          .select('id')
+          .or(`player_id.eq.${user.id},opponent_id.eq.${user.id},partner_id.eq.${user.id},opponent_1_id.eq.${user.id},opponent_2_id.eq.${user.id}`)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        // Check for active social play sessions
+        const { data: socialSession } = await supabase
+          .from('social_play_sessions')
+          .select('id')
+          .or(`created_by.eq.${user.id}`)
+          .eq('status', 'active')
+          .maybeSingle();
+
+        // Check if user is participant in any active social play session
+        const { data: participantSession } = await supabase
+          .from('social_play_participants')
+          .select('session_id, social_play_sessions!inner(id, status)')
+          .eq('user_id', user.id)
+          .eq('status', 'joined')
+          .eq('social_play_sessions.status', 'active')
+          .maybeSingle();
+
+        const hasActiveMatch = !!matchSession;
+        const hasActiveSocialPlay = !!socialSession || !!participantSession;
+
+        if (hasActiveMatch || hasActiveSocialPlay) {
+          console.log('🔄 [SESSION_RECOVERY] Active sessions detected:', {
+            match: hasActiveMatch,
+            socialPlay: hasActiveSocialPlay,
+            matchId: matchSession?.id,
+            socialId: socialSession?.id || participantSession?.session_id
+          });
+
+          // Show recovery notification
+          if (hasActiveMatch && hasActiveSocialPlay) {
+            toast.info('Active sessions detected! Check your dashboard for ongoing activities.');
+          } else if (hasActiveMatch) {
+            toast.info('Active match session detected! Resume playing from your dashboard.');
+          } else if (hasActiveSocialPlay) {
+            toast.info('Active social play session detected! Check your dashboard to rejoin.');
+          }
+        }
+
+        setRecovery({
+          hasActiveMatchSession: hasActiveMatch,
+          hasActiveSocialPlaySession: hasActiveSocialPlay,
+          matchSessionId: matchSession?.id,
+          socialPlaySessionId: socialSession?.id || participantSession?.session_id,
+          loading: false
+        });
+
+      } catch (error) {
+        console.error('Error detecting active sessions:', error);
+        setRecovery({
+          hasActiveMatchSession: false,
+          hasActiveSocialPlaySession: false,
+          loading: false
+        });
+      }
+    };
+
+    detectActiveSessions();
+  }, [user]);
+
+  return recovery;
+}
