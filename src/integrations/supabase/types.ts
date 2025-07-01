@@ -3784,6 +3784,10 @@ export type Database = {
         Args: { user_id: string; achievement_id: string }
         Returns: Json
       }
+      complete_academy_onboarding: {
+        Args: { user_id: string; starting_level?: number }
+        Returns: undefined
+      }
       complete_meditation_session: {
         Args: {
           user_id: string
@@ -4317,6 +4321,10 @@ export type Database = {
       gidx_out: {
         Args: { "": unknown }
         Returns: unknown
+      }
+      initialize_academy_progress: {
+        Args: { user_id: string }
+        Returns: undefined
       }
       initialize_coach_avatar: {
         Args: { user_id: string }
@@ -5783,6 +5791,15 @@ export type Database = {
       unlockrows: {
         Args: { "": string }
         Returns: number
+      }
+      update_academy_progress: {
+        Args: {
+          user_id: string
+          xp_gained?: number
+          tokens_gained?: number
+          quiz_completed?: boolean
+        }
+        Returns: Json
       }
       update_user_location: {
         Args: {
