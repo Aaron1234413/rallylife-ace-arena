@@ -10,22 +10,29 @@ import {
   Calendar,
   Zap,
   Brain,
-  TrendingUp
+  TrendingUp,
+  Users,
+  Medal
 } from 'lucide-react';
 import { AcademyTokenDisplay } from './AcademyTokenDisplay';
 import { AcademyProgressTracker } from './AcademyProgressTracker';
+import { LeaderboardWidget } from './LeaderboardWidget';
+import { ChallengeSystem } from './ChallengeSystem';
+import { StreakTracker } from './StreakTracker';
 import { AcademyProgress } from '@/hooks/useAcademyProgress';
 
 interface AcademyDashboardProps {
   progress: AcademyProgress;
   onStartQuiz: (type: 'daily' | 'practice') => void;
   onViewCampus: () => void;
+  onViewSocial: () => void;
 }
 
 export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   progress,
   onStartQuiz,
-  onViewCampus
+  onViewCampus,
+  onViewSocial
 }) => {
   const streakDays = Math.floor((Date.now() - new Date(progress.lastActivity).getTime()) / (1000 * 60 * 60 * 24));
   const isToday = new Date().toDateString() === new Date(progress.lastActivity).toDateString();
@@ -100,8 +107,16 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
         </CardContent>
       </Card>
 
+      {/* Social & Engagement Features */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        <LeaderboardWidget />
+        <StreakTracker currentStreak={currentStreak} longestStreak={currentStreak + 5} />
+      </div>
+
+      <ChallengeSystem />
+
       {/* Quick Access Cards */}
-      <div className="grid gap-4 md:grid-cols-2">
+      <div className="grid gap-4 md:grid-cols-3">
         {/* Daily Drill */}
         <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20 hover:shadow-lg transition-shadow">
           <CardHeader className="pb-3">
@@ -185,6 +200,35 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             >
               <BookOpen className="h-4 w-4 mr-2" />
               Practice Now
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Social Hub */}
+        <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20 hover:shadow-lg transition-shadow">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
+              <Users className="h-5 w-5 text-blue-600" />
+              Social Hub
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <p className="text-sm text-tennis-green-medium">
+                Connect with friends and join study groups
+              </p>
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-medium text-tennis-green-dark">Features:</span>
+                <Badge variant="outline" className="text-xs">Friends & Groups</Badge>
+              </div>
+            </div>
+            <Button 
+              onClick={onViewSocial}
+              variant="outline"
+              className="w-full border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
+            >
+              <Users className="h-4 w-4 mr-2" />
+              Open Social Hub
             </Button>
           </CardContent>
         </Card>

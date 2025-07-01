@@ -4,11 +4,12 @@ import { AcademyOnboarding } from '@/components/academy/AcademyOnboarding';
 import { CampusView } from '@/components/academy/CampusView';
 import { CategoryQuiz } from '@/components/academy/CategoryQuiz';
 import { DailyDrill } from '@/components/academy/DailyDrill';
+import { SocialHub } from '@/components/academy/SocialHub';
 import { useAcademyProgress } from '@/hooks/useAcademyProgress';
 
 const Academy = () => {
   const { progress, isCompleted: isOnboardingCompleted, completeOnboarding } = useAcademyProgress();
-  const [activeView, setActiveView] = useState<'dashboard' | 'campus' | 'category' | 'drill' | 'onboarding'>('dashboard');
+  const [activeView, setActiveView] = useState<'dashboard' | 'campus' | 'category' | 'drill' | 'social' | 'onboarding'>('dashboard');
   const [selectedCategory, setSelectedCategory] = useState<string>('');
 
   useEffect(() => {
@@ -48,8 +49,20 @@ const Academy = () => {
     setActiveView('dashboard');
   };
 
+  const handleViewSocial = () => {
+    setActiveView('social');
+  };
+
   if (activeView === 'onboarding') {
     return <AcademyOnboarding onComplete={handleOnboardingComplete} />;
+  }
+
+  if (activeView === 'social') {
+    return (
+      <div className="min-h-screen bg-tennis-green-bg p-4">
+        <SocialHub className="max-w-4xl mx-auto" />
+      </div>
+    );
   }
 
   if (activeView === 'campus') {
@@ -84,6 +97,7 @@ const Academy = () => {
       progress={progress}
       onStartQuiz={handleStartQuiz}
       onViewCampus={() => setActiveView('campus')}
+      onViewSocial={handleViewSocial}
     />
   );
 };
