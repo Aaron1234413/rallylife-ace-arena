@@ -20,6 +20,7 @@ import Search from "@/pages/Search";
 import Store from "@/pages/Store";
 import Profile from "@/pages/Profile";
 import Pulse from "@/pages/Pulse";
+import Academy from "@/pages/Academy";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Messages from "@/pages/Messages";
 import Scheduling from "@/pages/Scheduling";
@@ -56,6 +57,7 @@ function App() {
                   <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
                   <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
                   <Route path="/pulse" element={<ProtectedRoute><Pulse /></ProtectedRoute>} />
+                  <Route path="/academy" element={<ProtectedRoute><Academy /></ProtectedRoute>} />
                   <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
                   <Route path="/scheduling" element={<ProtectedRoute><Scheduling /></ProtectedRoute>} />
                   <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />

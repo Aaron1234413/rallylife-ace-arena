@@ -10,7 +10,8 @@ import {
   Search,
   User,
   Bolt,
-  Store
+  Store,
+  GraduationCap
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -22,6 +23,7 @@ export function AppNavigation() {
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: Home },
     { path: '/pulse', label: 'Pulse', icon: Bolt },
+    { path: '/academy', label: 'Academy', icon: GraduationCap },
     { path: '/search', label: 'Search', icon: Search },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
     { path: '/feed', label: 'Feed', icon: Rss },
