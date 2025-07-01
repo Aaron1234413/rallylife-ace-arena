@@ -11,9 +11,12 @@ import {
   Award, 
   Users, 
   TrendingUp,
-  Clock
+  Clock,
+  Coins,
+  Target
 } from 'lucide-react';
 import { formatDistanceToNow } from 'date-fns';
+import { useCoachRecentActivity } from '@/hooks/useCoachRecentActivity';
 
 interface RecentActivityProps {
   cxpActivities: any[];
@@ -28,61 +31,33 @@ export function RecentActivity({
   cxpLoading, 
   tokensLoading 
 }: RecentActivityProps) {
-  // Mock recent activities for demonstration
-  const mockActivities = [
-    {
-      id: '1',
-      type: 'session',
-      title: 'Completed session with Sarah Johnson',
-      description: 'Forehand technique improvement',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      icon: Calendar,
-      color: 'text-blue-600',
-      badge: '+15 CXP'
-    },
-    {
-      id: '2',
-      type: 'message',
-      title: 'New message from Mike Chen',
-      description: 'Question about backhand drills',
-      timestamp: new Date(Date.now() - 4 * 60 * 60 * 1000), // 4 hours ago
-      icon: MessageSquare,
-      color: 'text-green-600',
-      badge: null
-    },
-    {
-      id: '3',
-      type: 'achievement',
-      title: 'Client achievement unlocked',
-      description: 'Emma Davis reached Level 20',
-      timestamp: new Date(Date.now() - 6 * 60 * 60 * 1000), // 6 hours ago
-      icon: Award,
-      color: 'text-yellow-600',
-      badge: '+25 CTK'
-    },
-    {
-      id: '4',
-      type: 'client',
-      title: 'New client registration',
-      description: 'Alex Rodriguez joined your program',
-      timestamp: new Date(Date.now() - 8 * 60 * 60 * 1000), // 8 hours ago
-      icon: Users,
-      color: 'text-purple-600',
-      badge: 'New'
-    },
-    {
-      id: '5',
-      type: 'milestone',
-      title: 'Monthly goal achieved',
-      description: 'Completed 30 coaching sessions',
-      timestamp: new Date(Date.now() - 12 * 60 * 60 * 1000), // 12 hours ago
-      icon: TrendingUp,
-      color: 'text-orange-600',
-      badge: '+100 CTK'
-    }
-  ];
+  const { data: activities, isLoading: activitiesLoading } = useCoachRecentActivity();
 
-  if (cxpLoading || tokensLoading) {
+  const getActivityIcon = (type: string) => {
+    switch (type) {
+      case 'cxp': return Award;
+      case 'token': return Coins;
+      case 'crp': return Target;
+      case 'assignment': return Calendar;
+      case 'appointment': return MessageSquare;
+      case 'challenge': return TrendingUp;
+      default: return Activity;
+    }
+  };
+
+  const getActivityColor = (type: string) => {
+    switch (type) {
+      case 'cxp': return 'text-blue-600';
+      case 'token': return 'text-green-600';
+      case 'crp': return 'text-orange-600';
+      case 'assignment': return 'text-purple-600';
+      case 'appointment': return 'text-indigo-600';
+      case 'challenge': return 'text-yellow-600';
+      default: return 'text-gray-600';
+    }
+  };
+
+  if (cxpLoading || tokensLoading || activitiesLoading) {
     return (
       <Card>
         <CardHeader>
@@ -122,44 +97,55 @@ export function RecentActivity({
       <CardContent>
         <ScrollArea className="h-96">
           <div className="space-y-3">
-            {mockActivities.map((activity) => {
-              const Icon = activity.icon;
-              return (
-                <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
-                  <div className="flex-shrink-0">
-                    <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
-                      <Icon className={`h-4 w-4 ${activity.color}`} />
-                    </div>
-                  </div>
-                  <div className="flex-grow min-w-0">
-                    <div className="flex items-start justify-between gap-2">
-                      <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-gray-900 truncate">
-                          {activity.title}
-                        </p>
-                        <p className="text-xs text-gray-500 mt-1">
-                          {activity.description}
-                        </p>
+            {activities && activities.length > 0 ? (
+              activities.map((activity) => {
+                const Icon = getActivityIcon(activity.type);
+                return (
+                  <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg border border-gray-100 hover:bg-gray-50 transition-colors">
+                    <div className="flex-shrink-0">
+                      <div className="h-8 w-8 rounded-full bg-gray-100 flex items-center justify-center">
+                        <Icon className={`h-4 w-4 ${getActivityColor(activity.type)}`} />
                       </div>
-                      {activity.badge && (
-                        <Badge 
-                          variant="outline" 
-                          className="text-xs flex-shrink-0"
-                        >
-                          {activity.badge}
-                        </Badge>
-                      )}
                     </div>
-                    <div className="flex items-center gap-1 mt-2">
-                      <Clock className="h-3 w-3 text-gray-400" />
-                      <span className="text-xs text-gray-500">
-                        {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
-                      </span>
+                    <div className="flex-grow min-w-0">
+                      <div className="flex items-start justify-between gap-2">
+                        <div className="min-w-0 flex-1">
+                          <p className="text-sm font-medium text-gray-900 truncate">
+                            {activity.title}
+                          </p>
+                          <p className="text-xs text-gray-500 mt-1">
+                            {activity.description}
+                            {activity.player_name && ` • ${activity.player_name}`}
+                          </p>
+                        </div>
+                        {activity.reward_amount && (
+                          <Badge 
+                            variant="outline" 
+                            className="text-xs flex-shrink-0"
+                          >
+                            {activity.reward_amount > 0 ? '+' : ''}{activity.reward_amount}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="flex items-center gap-1 mt-2">
+                        <Clock className="h-3 w-3 text-gray-400" />
+                        <span className="text-xs text-gray-500">
+                          {formatDistanceToNow(new Date(activity.timestamp), { addSuffix: true })}
+                        </span>
+                      </div>
                     </div>
                   </div>
-                </div>
-              );
-            })}
+                );
+              })
+            ) : (
+              <div className="text-center py-8">
+                <Activity className="h-12 w-12 mx-auto text-muted-foreground mb-4" />
+                <h3 className="text-lg font-medium mb-2">No Recent Activity</h3>
+                <p className="text-muted-foreground">
+                  Your coaching activities will appear here as you work with players.
+                </p>
+              </div>
+            )}
           </div>
         </ScrollArea>
       </CardContent>

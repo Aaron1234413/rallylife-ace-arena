@@ -1068,6 +1068,45 @@ export type Database = {
           },
         ]
       }
+      coach_invitations: {
+        Row: {
+          accepted_at: string | null
+          coach_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          invitation_code: string
+          message: string | null
+          player_email: string
+          player_id: string | null
+          status: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          coach_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitation_code?: string
+          message?: string | null
+          player_email: string
+          player_id?: string | null
+          status?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          coach_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitation_code?: string
+          message?: string | null
+          player_email?: string
+          player_id?: string | null
+          status?: string
+        }
+        Relationships: []
+      }
       coach_leaderboards: {
         Row: {
           calculated_at: string
@@ -1120,6 +1159,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      coach_player_relationships: {
+        Row: {
+          coach_id: string
+          created_at: string
+          id: string
+          notes: string | null
+          player_id: string
+          relationship_type: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          player_id: string
+          relationship_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          id?: string
+          notes?: string | null
+          player_id?: string
+          relationship_type?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       coach_profiles: {
         Row: {
@@ -3584,6 +3656,10 @@ export type Database = {
         Args: { geom1: unknown; geom2: unknown }
         Returns: boolean
       }
+      accept_coach_invitation: {
+        Args: { invitation_code_param: string }
+        Returns: Json
+      }
       accept_match_invitation: {
         Args: { invitation_id: string }
         Returns: Json
@@ -4651,6 +4727,10 @@ export type Database = {
           metadata?: Json
         }
         Returns: string
+      }
+      send_coach_invitation: {
+        Args: { player_email_param: string; message_param?: string }
+        Returns: Json
       }
       send_message: {
         Args: {

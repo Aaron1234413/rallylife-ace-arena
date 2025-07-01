@@ -33,15 +33,19 @@ interface CoachAnalyticsProps {
   crpData: any;
 }
 
-// Mock data for charts
-const monthlyProgress = [
-  { month: 'Jan', cxp: 120, ctk: 350, clients: 8 },
-  { month: 'Feb', cxp: 180, ctk: 420, clients: 10 },
-  { month: 'Mar', cxp: 240, ctk: 580, clients: 12 },
-  { month: 'Apr', cxp: 320, ctk: 720, clients: 12 },
-  { month: 'May', cxp: 380, ctk: 890, clients: 15 },
-  { month: 'Jun', cxp: 450, ctk: 1200, clients: 12 }
-];
+// Generate dynamic monthly progress data based on current data
+const generateMonthlyProgress = (cxpData: any, tokenData: any) => {
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun'];
+  const currentCXP = cxpData?.total_cxp_earned || 450;
+  const currentCTK = tokenData?.lifetime_earned || 1200;
+  
+  return months.map((month, index) => ({
+    month,
+    cxp: Math.round(currentCXP * (index + 1) / 6),
+    ctk: Math.round(currentCTK * (index + 1) / 6),
+    clients: Math.min(8 + index * 0.7, 15)
+  }));
+};
 
 const clientProgress = [
   { name: 'Beginner', value: 30, color: '#8884d8' },
@@ -60,6 +64,7 @@ const weeklyActivity = [
 ];
 
 export function CoachAnalytics({ cxpData, tokenData, crpData }: CoachAnalyticsProps) {
+  const monthlyProgress = generateMonthlyProgress(cxpData, tokenData);
   return (
     <div className="space-y-6">
       <div>
@@ -167,7 +172,7 @@ export function CoachAnalytics({ cxpData, tokenData, crpData }: CoachAnalyticsPr
                   </div>
                   <div>
                     <p className="text-muted-foreground">Coaching Tier</p>
-                    <p className="font-semibold">{cxpData?.coaching_tier || 'Bronze'}</p>
+                    <p className="font-semibold capitalize">{cxpData?.coaching_tier || 'Novice'}</p>
                   </div>
                 </div>
               </CardContent>
@@ -211,38 +216,38 @@ export function CoachAnalytics({ cxpData, tokenData, crpData }: CoachAnalyticsPr
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Total Clients</CardTitle>
+                <CardTitle className="text-sm font-medium">Current Level</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">12</div>
-                <p className="text-xs text-muted-foreground">+3 this month</p>
+                <div className="text-2xl font-bold">{cxpData?.current_level || 1}</div>
+                <p className="text-xs text-muted-foreground">{cxpData?.coaching_tier || 'Novice'} tier</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Active This Week</CardTitle>
+                <CardTitle className="text-sm font-medium">Coach Tokens</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">10</div>
-                <p className="text-xs text-muted-foreground">83% retention</p>
+                <div className="text-2xl font-bold">{tokenData?.current_tokens?.toLocaleString() || '0'}</div>
+                <p className="text-xs text-muted-foreground">{tokenData?.lifetime_earned?.toLocaleString() || '0'} earned total</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Avg Progress</CardTitle>
+                <CardTitle className="text-sm font-medium">Reputation (CRP)</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">78%</div>
-                <p className="text-xs text-muted-foreground">+5% vs last month</p>
+                <div className="text-2xl font-bold">{crpData?.current_crp?.toFixed(1) || '100.0'}</div>
+                <p className="text-xs text-muted-foreground">{crpData?.reputation_level || 'Bronze'} level</p>
               </CardContent>
             </Card>
             <Card>
               <CardHeader className="pb-2">
-                <CardTitle className="text-sm font-medium">Sessions This Month</CardTitle>
+                <CardTitle className="text-sm font-medium">Commission Rate</CardTitle>
               </CardHeader>
               <CardContent>
-                <div className="text-2xl font-bold">145</div>
-                <p className="text-xs text-muted-foreground">12.1 avg per client</p>
+                <div className="text-2xl font-bold">{((cxpData?.commission_rate || 0.15) * 100).toFixed(1)}%</div>
+                <p className="text-xs text-muted-foreground">Current earning rate</p>
               </CardContent>
             </Card>
           </div>

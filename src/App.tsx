@@ -32,6 +32,7 @@ import StartTraining from "@/pages/StartTraining";
 import EndTraining from "@/pages/EndTraining";
 import StartSocialPlay from "@/pages/StartSocialPlay";
 import JoinSocialPlay from "@/pages/JoinSocialPlay";
+import CoachDashboard from "@/pages/CoachDashboard";
 
 const queryClient = new QueryClient();
 
@@ -52,6 +53,7 @@ function App() {
                   <Route path="/auth/signup" element={<Auth />} />
                   <Route path="/auth/forgot-password" element={<Auth />} />
                   <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+                  <Route path="/coach-dashboard" element={<ProtectedRoute><CoachDashboard /></ProtectedRoute>} />
                   <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
                   <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
                   <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />

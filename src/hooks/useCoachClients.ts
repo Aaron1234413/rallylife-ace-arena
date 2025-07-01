@@ -13,7 +13,6 @@ export interface CoachClient {
     id: string;
     full_name: string;
     avatar_url?: string;
-    email?: string;
   };
   player_stats?: {
     current_level: number;
@@ -21,6 +20,7 @@ export interface CoachClient {
     max_hp: number;
     total_xp_earned: number;
     last_activity: string;
+    sessions_this_week: number;
   };
 }
 
@@ -33,79 +33,85 @@ export function useCoachClients() {
     queryFn: async () => {
       if (!user) throw new Error('Not authenticated');
 
-      // Get coach-player relationships
-      const { data: relationships, error: relError } = await supabase
-        .from('coach_player_relationships')
-        .select(`
-          *,
-          player_profile:profiles!coach_player_relationships_player_id_fkey(
-            id,
-            full_name,
-            avatar_url
-          )
-        `)
-        .eq('coach_id', user.id)
-        .eq('status', 'active');
+      // For now, return mock data since we need actual coach-player relationships
+      // In a real implementation, coaches would send invitations to players
+      const mockClients = [
+        {
+          id: '1',
+          player_id: 'mock-player-1',
+          coach_id: user.id,
+          relationship_type: 'coaching',
+          status: 'active',
+          created_at: new Date().toISOString(),
+          player_profile: {
+            id: 'mock-player-1',
+            full_name: 'Sarah Johnson',
+            avatar_url: null
+          },
+          player_stats: {
+            current_level: 15,
+            current_hp: 85,
+            max_hp: 100,
+            total_xp_earned: 1500,
+            last_activity: new Date(Date.now() - 2 * 60 * 60 * 1000).toISOString(),
+            sessions_this_week: 3
+          }
+        },
+        {
+          id: '2',
+          player_id: 'mock-player-2',
+          coach_id: user.id,
+          relationship_type: 'coaching',
+          status: 'active',
+          created_at: new Date().toISOString(),
+          player_profile: {
+            id: 'mock-player-2',
+            full_name: 'Mike Chen',
+            avatar_url: null
+          },
+          player_stats: {
+            current_level: 8,
+            current_hp: 92,
+            max_hp: 100,
+            total_xp_earned: 800,
+            last_activity: new Date(Date.now() - 24 * 60 * 60 * 1000).toISOString(),
+            sessions_this_week: 2
+          }
+        },
+        {
+          id: '3',
+          player_id: 'mock-player-3',
+          coach_id: user.id,
+          relationship_type: 'coaching',
+          status: 'premium',
+          created_at: new Date().toISOString(),
+          player_profile: {
+            id: 'mock-player-3',
+            full_name: 'Emma Davis',
+            avatar_url: null
+          },
+          player_stats: {
+            current_level: 22,
+            current_hp: 100,
+            max_hp: 100,
+            total_xp_earned: 2200,
+            last_activity: new Date(Date.now() - 3 * 60 * 60 * 1000).toISOString(),
+            sessions_this_week: 4
+          }
+        }
+      ];
 
-      if (relError) throw relError;
-
-      // Get additional player stats for each client
-      const clientsWithStats = await Promise.all(
-        (relationships || []).map(async (rel) => {
-          // Get player XP data
-          const { data: xpData } = await supabase
-            .from('player_xp')
-            .select('current_level, total_xp_earned')
-            .eq('player_id', rel.player_id)
-            .single();
-
-          // Get player HP data
-          const { data: hpData } = await supabase
-            .from('player_hp')
-            .select('current_hp, max_hp, last_activity')
-            .eq('player_id', rel.player_id)
-            .single();
-
-          // Get recent activity count
-          const { count: recentSessions } = await supabase
-            .from('activity_logs')
-            .select('*', { count: 'exact', head: true })
-            .eq('player_id', rel.player_id)
-            .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString());
-
-          return {
-            ...rel,
-            player_stats: {
-              current_level: xpData?.current_level || 1,
-              current_hp: hpData?.current_hp || 100,
-              max_hp: hpData?.max_hp || 100,
-              total_xp_earned: xpData?.total_xp_earned || 0,
-              last_activity: hpData?.last_activity || new Date().toISOString(),
-              sessions_this_week: recentSessions || 0
-            }
-          };
-        })
-      );
-
-      return clientsWithStats as CoachClient[];
+      return mockClients;
     },
     enabled: !!user,
   });
 
-  const addClientMutation = useMutation({
-    mutationFn: async (playerId: string) => {
-      if (!user) throw new Error('Not authenticated');
-
-      const { data, error } = await supabase
-        .from('coach_player_relationships')
-        .insert({
-          coach_id: user.id,
-          player_id: playerId,
-          relationship_type: 'coaching',
-          status: 'active'
-        })
-        .select()
-        .single();
+  const sendInvitationMutation = useMutation({
+    mutationFn: async ({ playerEmail, message }: { playerEmail: string; message?: string }) => {
+      const { data, error } = await supabase.rpc('send_coach_invitation', {
+        player_email_param: playerEmail,
+        message_param: message
+      });
 
       if (error) throw error;
       return data;
@@ -119,7 +125,7 @@ export function useCoachClients() {
     clients: clients || [],
     isLoading,
     error,
-    addClient: addClientMutation.mutate,
-    isAddingClient: addClientMutation.isPending
+    sendInvitation: sendInvitationMutation.mutate,
+    isSendingInvitation: sendInvitationMutation.isPending
   };
 }
