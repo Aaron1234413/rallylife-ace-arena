@@ -23,10 +23,6 @@ import { MobileActionPanel } from "@/components/dashboard/mobile";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
-import { 
-  Activity
-} from 'lucide-react';
-
 import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
 import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
 import { useSocialPlaySession } from "@/contexts/SocialPlaySessionContext";
@@ -38,6 +34,11 @@ import { InvitationSystemTest } from "@/components/testing/InvitationSystemTest"
 
 const Index = () => {
   const { user } = useAuth();
+  const [profile, setProfile] = useState<any>(null);
+  const [profileLoading, setProfileLoading] = useState(true);
+  const [profileError, setProfileError] = useState<string | null>(null);
+
+  // Initialize hooks with error boundaries
   const { hpData, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
   const { xpData, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
   const { tokenData, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
@@ -49,11 +50,9 @@ const Index = () => {
   const { tokenData: coachTokenData, loading: coachTokensLoading, addTokens: addCoachTokens, initializeTokens: initializeCoachTokens } = useCoachTokens();
   const { crpData, isLoading: crpLoading, initializeCRP } = useCoachCRP();
   
-  // Social Play Session Hook - removed joinEvent as it doesn't exist
+  // Social Play Session Hook
   const { loading } = useSocialPlaySession();
   
-  const [profile, setProfile] = useState<any>(null);
-  const [profileLoading, setProfileLoading] = useState(true);
   const [dataInitialized, setDataInitialized] = useState(false);
   const [showTestSuite, setShowTestSuite] = useState(false);
 
@@ -61,17 +60,50 @@ const Index = () => {
   const isPlayer = profile?.role === 'player';
   const isCoach = profile?.role === 'coach';
 
+  // Fetch profile with better error handling
   useEffect(() => {
-    if (user) {
-      fetchProfile();
+    if (!user) {
+      setProfileLoading(false);
+      return;
     }
+
+    const fetchProfile = async () => {
+      try {
+        console.log('Index: Fetching profile for user:', user.id);
+        setProfileError(null);
+        
+        const { data, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', user.id)
+          .single();
+
+        if (error) {
+          console.error('Error fetching profile:', error);
+          setProfileError(error.message);
+          return;
+        }
+
+        console.log('Index: Profile fetched successfully:', data);
+        setProfile(data);
+      } catch (error) {
+        console.error('Error in fetchProfile:', error);
+        setProfileError('Failed to load profile');
+      } finally {
+        setProfileLoading(false);
+      }
+    };
+
+    fetchProfile();
   }, [user]);
 
+  // Initialize data based on user role with better error handling
   useEffect(() => {
-    // Initialize data based on user role - only once
-    if (user && profile && !dataInitialized) {
-      console.log('Index: Initializing data for role:', profile.role);
-      
+    if (!user || !profile || dataInitialized) return;
+    
+    console.log('Index: Initializing data for role:', profile.role);
+    
+    try {
       if (profile.role === 'player') {
         if (!hpData) initializeHP();
         if (!xpData) initializeXP();
@@ -84,29 +116,10 @@ const Index = () => {
       }
       
       setDataInitialized(true);
+    } catch (error) {
+      console.error('Error initializing data:', error);
     }
   }, [user, profile, dataInitialized, hpData, xpData, tokenData, equippedItems, cxpData, coachTokenData, crpData]);
-
-  const fetchProfile = async () => {
-    try {
-      const { data, error } = await supabase
-        .from('profiles')
-        .select('*')
-        .eq('id', user?.id)
-        .single();
-
-      if (error) {
-        console.error('Error fetching profile:', error);
-        return;
-      }
-
-      setProfile(data);
-    } catch (error) {
-      console.error('Error:', error);
-    } finally {
-      setProfileLoading(false);
-    }
-  };
 
   // Enhanced XP earning function that checks for avatar unlocks and achievements
   const handleAddXP = async (amount: number, activityType: string, description?: string) => {
@@ -153,6 +166,46 @@ const Index = () => {
           <div className="animate-pulse">
             <div className="h-32 bg-tennis-neutral-100 rounded-lg mb-6"></div>
             <div className="h-48 bg-tennis-neutral-100 rounded-lg mb-6"></div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error state if profile failed to load
+  if (profileError) {
+    return (
+      <div className="min-h-screen bg-tennis-green-bg">
+        <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
+          <div className="bg-red-50 border border-red-200 rounded-lg p-6 text-center">
+            <h2 className="text-xl font-semibold text-red-800">Error Loading Dashboard</h2>
+            <p className="text-red-600 mt-2">{profileError}</p>
+            <button 
+              onClick={() => window.location.reload()} 
+              className="mt-4 px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700"
+            >
+              Reload Page
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Show message if no profile exists
+  if (!profile) {
+    return (
+      <div className="min-h-screen bg-tennis-green-bg">
+        <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
+          <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-6 text-center">
+            <h2 className="text-xl font-semibold text-yellow-800">Profile Not Found</h2>
+            <p className="text-yellow-600 mt-2">Please complete the onboarding process.</p>
+            <button 
+              onClick={() => window.location.href = '/onboarding'} 
+              className="mt-4 px-4 py-2 bg-yellow-600 text-white rounded hover:bg-yellow-700"
+            >
+              Go to Onboarding
+            </button>
           </div>
         </div>
       </div>
