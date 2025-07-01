@@ -12,7 +12,7 @@ interface AcademyOnboardingProps {
 export const AcademyOnboarding: React.FC<AcademyOnboardingProps> = ({
   onComplete
 }) => {
-  const [currentStep, setCurrentStep] = useState(0);
+  const [currentStep, setCurrentStep] = useState<'welcome' | number>('welcome');
   const [placementAnswers, setPlacementAnswers] = useState<string[]>([]);
 
   const placementQuestions = [
@@ -47,7 +47,7 @@ export const AcademyOnboarding: React.FC<AcademyOnboardingProps> = ({
       setCurrentStep(2);
     } else {
       // Continue with next question
-      setCurrentStep(currentStep + 1);
+      setCurrentStep((prev) => typeof prev === 'number' ? prev + 1 : 1);
     }
   };
 
@@ -138,7 +138,7 @@ export const AcademyOnboarding: React.FC<AcademyOnboardingProps> = ({
     );
   }
 
-  if (currentStep >= 1 && currentStep <= placementQuestions.length) {
+  if (typeof currentStep === 'number' && currentStep >= 1 && currentStep <= placementQuestions.length) {
     const questionIndex = currentStep - 1;
     const question = placementQuestions[questionIndex];
     
@@ -237,32 +237,5 @@ export const AcademyOnboarding: React.FC<AcademyOnboardingProps> = ({
   }
 
   // Default to welcome screen
-  return (
-    <div className="min-h-screen bg-tennis-green-bg flex items-center justify-center p-4">
-      <Card className="max-w-2xl w-full">
-        <CardHeader className="text-center">
-          <div className="w-16 h-16 bg-tennis-green-dark rounded-full flex items-center justify-center mx-auto mb-4">
-            <GraduationCap className="h-8 w-8 text-white" />
-          </div>
-          <CardTitle className="text-3xl text-tennis-green-dark">
-            Welcome to RAKO Academy! 🎾
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6 text-center">
-          <p className="text-lg text-gray-700">
-            Ready to serve up some knowledge? Let's find your perfect starting point!
-          </p>
-          
-          <Button 
-            onClick={() => setCurrentStep(1)}
-            className="w-full bg-tennis-green-dark hover:bg-tennis-green-medium"
-            size="lg"
-          >
-            Start Academy Enrollment
-            <ArrowRight className="h-5 w-5 ml-2" />
-          </Button>
-        </CardContent>
-      </Card>
-    </div>
-  );
+  return null;
 };
