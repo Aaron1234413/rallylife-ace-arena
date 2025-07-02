@@ -359,7 +359,7 @@ export function useUnifiedInvitations() {
         return { 
           type: 'match', 
           session, 
-          navigationPath: `/active-match?invitation=${invitation.id}`,
+          navigationPath: '/', // Navigate to dashboard to show active match widget
           shouldRefreshSession: true 
         };
 
@@ -403,7 +403,7 @@ export function useUnifiedInvitations() {
         return { 
           type: 'social_play', 
           session_id: invitation.match_session_id,
-          navigationPath: `/active-social-play?invitation=${invitation.id}`,
+          navigationPath: '/', // Navigate to dashboard to show waiting session
           shouldRefreshSession: true 
         };
       }
