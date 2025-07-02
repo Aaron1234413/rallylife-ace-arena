@@ -1,10 +1,10 @@
-
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Users, MessageCircle, Check, X, MapPin, Calendar, Coins, Zap } from 'lucide-react';
+import { Clock, Users, MessageCircle, Check, X, MapPin, Calendar, Coins, Zap, Trophy } from 'lucide-react';
 import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
+import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
 
 interface InvitationCardProps {
@@ -27,33 +27,53 @@ interface InvitationCardProps {
 
 export const InvitationCard: React.FC<InvitationCardProps> = ({ invitation }) => {
   const { acceptInvitation, declineInvitation } = useUnifiedInvitations();
+  const navigate = useNavigate();
+  const [isProcessing, setIsProcessing] = useState(false);
 
   const handleAccept = async () => {
     try {
-      await acceptInvitation(invitation.id);
-      const successMessage = invitation.invitation_category === 'match' 
-        ? 'Match invitation accepted! Starting match...'
-        : 'Social play invitation accepted! Joining event...';
-      toast.success(successMessage);
+      setIsProcessing(true);
+      console.log('🎾 [INVITATION] Accepting invitation:', invitation.id);
+      
+      const result = await acceptInvitation(invitation.id);
+      console.log('✅ [INVITATION] Invitation accepted successfully:', result);
+      
+      // Navigate based on invitation type
+      if (invitation.invitation_category === 'match') {
+        // If it's a match invitation, navigate to the active match or dashboard
+        navigate('/dashboard');
+        toast.success('Match invitation accepted! Match has started.');
+      } else {
+        // If it's a social play invitation, navigate to dashboard
+        navigate('/dashboard');
+        toast.success('Social play invitation accepted!');
+      }
     } catch (error) {
-      console.error('Error accepting invitation:', error);
-      toast.error('Failed to accept invitation');
+      console.error('❌ [INVITATION] Error accepting invitation:', error);
+      toast.error('Failed to accept invitation. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleDecline = async () => {
     try {
+      setIsProcessing(true);
+      console.log('❌ [INVITATION] Declining invitation:', invitation.id);
+      
       await declineInvitation(invitation.id);
-      const successMessage = invitation.invitation_category === 'match'
-        ? 'Match invitation declined'
-        : 'Social play invitation declined';
-      toast.success(successMessage);
+      console.log('✅ [INVITATION] Invitation declined successfully');
+      
+      toast.success('Invitation declined');
     } catch (error) {
-      console.error('Error declining invitation:', error);
-      toast.error('Failed to decline invitation');
+      console.error('❌ [INVITATION] Error declining invitation:', error);
+      toast.error('Failed to decline invitation. Please try again.');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
+  // Existing functions for formatting time and date
   const formatTime = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -84,30 +104,29 @@ export const InvitationCard: React.FC<InvitationCardProps> = ({ invitation }) =>
     if (invitation.invitation_category === 'match') {
       return {
         title: invitation.invitation_type === 'singles' ? 'Singles Match' : 'Doubles Match',
-        subtitle: `From ${invitation.invitee_name}`,
-        icon: Users
+        subtitle: `From: ${invitation.invitee_name}`
       };
     } else {
       return {
         title: invitation.session_data?.eventTitle || 'Social Play Event',
-        subtitle: `From ${invitation.invitee_name}`,
-        icon: Users
+        subtitle: `From: ${invitation.invitee_name}`
       };
     }
   };
 
   const details = getInvitationDetails();
-  const IconComponent = details.icon;
 
   return (
     <Card className={cardStyle}>
       <CardHeader className="pb-3">
         <CardTitle className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <IconComponent className={`h-5 w-5 ${iconColor}`} />
-            <span className="text-lg">
-              {invitation.invitation_category === 'match' ? 'Match Invitation' : 'Social Play Invitation'}
-            </span>
+            {invitation.invitation_category === 'match' ? (
+              <Trophy className={`h-5 w-5 ${iconColor}`} />
+            ) : (
+              <Users className={`h-5 w-5 ${iconColor}`} />
+            )}
+            <span className="text-lg">Match Invitation</span>
           </div>
           <Badge variant="outline" className="flex items-center gap-1">
             <Clock className="h-3 w-3" />
@@ -179,7 +198,7 @@ export const InvitationCard: React.FC<InvitationCardProps> = ({ invitation }) =>
             </div>
           )}
 
-          {/* Stakes Display */}
+          {/* Stakes Display for Challenges */}
           {invitation.is_challenge && (invitation.stakes_tokens! > 0 || invitation.stakes_premium_tokens! > 0) && (
             <div className="bg-orange-50 border border-orange-200 rounded p-3">
               <div className="flex items-center gap-2 mb-2">
@@ -200,7 +219,7 @@ export const InvitationCard: React.FC<InvitationCardProps> = ({ invitation }) =>
                   </div>
                 )}
                 <p className="text-xs text-orange-700 mt-1">
-                  {invitation.invitation_category === 'match' ? 'Winner takes all!' : 'Entry fee for premium session'}
+                  {invitation.invitation_category === 'match' ? 'Winner takes all tokens' : 'Entry fee for premium session'}
                 </p>
               </div>
             </div>
@@ -216,20 +235,38 @@ export const InvitationCard: React.FC<InvitationCardProps> = ({ invitation }) =>
             <Button
               onClick={handleAccept}
               className="flex-1 bg-green-600 hover:bg-green-700 text-white"
-              size="sm"
+              disabled={isProcessing}
             >
               <Check className="h-4 w-4 mr-2" />
-              Accept
+              {isProcessing ? 'Accepting...' : 'Accept'}
             </Button>
             <Button
               onClick={handleDecline}
               variant="outline"
               className="flex-1"
-              size="sm"
+              disabled={isProcessing}
             >
               <X className="h-4 w-4 mr-2" />
-              Decline
+              {isProcessing ? 'Declining...' : 'Decline'}
             </Button>
+          </div>
+        )}
+
+        {invitation.status === 'accepted' && (
+          <div className="text-center py-2">
+            <Badge variant="secondary" className="bg-green-100 text-green-800">
+              <Check className="h-3 w-3 mr-1" />
+              Accepted
+            </Badge>
+          </div>
+        )}
+
+        {invitation.status === 'declined' && (
+          <div className="text-center py-2">
+            <Badge variant="secondary" className="bg-red-100 text-red-800">
+              <X className="h-3 w-3 mr-1" />
+              Declined
+            </Badge>
           </div>
         )}
       </CardContent>
