@@ -2893,6 +2893,133 @@ export type Database = {
         }
         Relationships: []
       }
+      session_notifications: {
+        Row: {
+          created_at: string
+          id: string
+          message: string
+          read_at: string | null
+          session_id: string
+          type: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          message: string
+          read_at?: string | null
+          session_id: string
+          type: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          message?: string
+          read_at?: string | null
+          session_id?: string
+          type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_notifications_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      session_participants: {
+        Row: {
+          created_at: string
+          id: string
+          joined_at: string
+          session_id: string
+          stakes_contributed: number
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          joined_at?: string
+          session_id: string
+          stakes_contributed?: number
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          joined_at?: string
+          session_id?: string
+          stakes_contributed?: number
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_participants_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      sessions: {
+        Row: {
+          created_at: string
+          creator_id: string
+          format: string | null
+          id: string
+          invitation_code: string | null
+          is_private: boolean
+          location: string | null
+          max_players: number
+          notes: string | null
+          session_type: string
+          stakes_amount: number
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          creator_id: string
+          format?: string | null
+          id?: string
+          invitation_code?: string | null
+          is_private?: boolean
+          location?: string | null
+          max_players: number
+          notes?: string | null
+          session_type: string
+          stakes_amount?: number
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          creator_id?: string
+          format?: string | null
+          id?: string
+          invitation_code?: string | null
+          is_private?: boolean
+          location?: string | null
+          max_players?: number
+          notes?: string | null
+          session_type?: string
+          stakes_amount?: number
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       social_play_access: {
         Row: {
           access_type: string
@@ -3908,6 +4035,10 @@ export type Database = {
         }
         Returns: Json
       }
+      complete_session: {
+        Args: { session_id_param: string; winner_id_param: string }
+        Returns: Json
+      }
       complete_social_play_session: {
         Args: {
           session_id: string
@@ -4049,6 +4180,10 @@ export type Database = {
           city: string
           last_updated: string
         }[]
+      }
+      generate_invitation_code: {
+        Args: Record<PropertyKey, never>
+        Returns: string
       }
       geography: {
         Args: { "": string } | { "": unknown }
@@ -4504,12 +4639,24 @@ export type Database = {
         Args: { session_id: string }
         Returns: boolean
       }
+      join_session: {
+        Args: { session_id_param: string; user_id_param: string }
+        Returns: Json
+      }
       json: {
         Args: { "": unknown }
         Returns: Json
       }
       jsonb: {
         Args: { "": unknown }
+        Returns: Json
+      }
+      kick_participant: {
+        Args: {
+          session_id_param: string
+          participant_id_param: string
+          kicker_id_param: string
+        }
         Returns: Json
       }
       log_comprehensive_activity: {
@@ -5878,6 +6025,10 @@ export type Database = {
       st_zmin: {
         Args: { "": unknown }
         Returns: number
+      }
+      start_session: {
+        Args: { session_id_param: string; starter_id_param: string }
+        Returns: Json
       }
       submit_player_feedback: {
         Args: {
