@@ -173,7 +173,7 @@ const StartMatch = () => {
         
         // Navigate to dashboard
         console.log('🏠 [CREATE] Navigating to dashboard...');
-        navigate('/');
+        navigate('/dashboard');
       } else {
         throw new Error('Invalid invitation parameters');
       }
