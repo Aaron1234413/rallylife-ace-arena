@@ -1,0 +1,128 @@
+-- Phase 1: Database Schema Unification & Analysis (Fixed PostgreSQL syntax)
+-- Step 1: Analyze current state and migrate social_play_sessions to unified sessions table
+
+-- First, let's check if we have any existing social_play_sessions to migrate
+DO $$
+DECLARE
+  social_play_count INTEGER;
+  existing_sessions_count INTEGER;
+BEGIN
+  -- Count existing social play sessions
+  SELECT COUNT(*) INTO social_play_count FROM public.social_play_sessions;
+  
+  -- Count existing sessions that might be social play
+  SELECT COUNT(*) INTO existing_sessions_count 
+  FROM public.sessions 
+  WHERE session_type = 'social_play';
+  
+  RAISE NOTICE 'Found % social_play_sessions to migrate', social_play_count;
+  RAISE NOTICE 'Found % existing social_play sessions in unified table', existing_sessions_count;
+END $$;
+
+-- Migrate social_play_sessions to unified sessions table
+INSERT INTO public.sessions (
+  id, creator_id, session_type, format, max_players, 
+  stakes_amount, location, notes, status, is_private,
+  created_at, updated_at
+)
+SELECT 
+  sps.id, 
+  sps.created_by, 
+  'social_play'::text as session_type,
+  CASE 
+    WHEN sps.session_type = 'doubles' THEN 'doubles'::text 
+    ELSE 'singles'::text 
+  END as format,
+  CASE 
+    WHEN sps.session_type = 'doubles' THEN 4 
+    ELSE 2 
+  END as max_players,
+  0 as stakes_amount, -- Social play typically has no stakes
+  sps.location, 
+  sps.notes, 
+  CASE 
+    WHEN sps.status = 'pending' THEN 'waiting'::text
+    WHEN sps.status = 'active' THEN 'active'::text
+    WHEN sps.status = 'completed' THEN 'completed'::text
+    WHEN sps.status = 'paused' THEN 'active'::text -- Map paused to active
+    ELSE 'cancelled'::text
+  END as status,
+  false as is_private, -- Social play is typically public
+  sps.created_at, 
+  sps.updated_at
+FROM public.social_play_sessions sps
+WHERE sps.id NOT IN (
+  SELECT id FROM public.sessions WHERE session_type = 'social_play'
+)
+ON CONFLICT (id) DO NOTHING;
+
+-- Migrate social_play_participants to session_participants 
+-- Only migrate participants who have actually joined (have joined_at timestamp)
+INSERT INTO public.session_participants (
+  session_id, user_id, status, joined_at
+)
+SELECT 
+  sp.session_id, 
+  sp.user_id, 
+  'joined'::text as status,
+  COALESCE(sp.joined_at, sp.invited_at) as joined_at -- Use invited_at as fallback if joined_at is null
+FROM public.social_play_participants sp
+WHERE sp.status = 'joined' -- Only migrate actually joined participants
+  AND sp.joined_at IS NOT NULL -- Ensure we have a valid timestamp
+  AND NOT EXISTS (
+    SELECT 1 FROM public.session_participants 
+    WHERE session_id = sp.session_id AND user_id = sp.user_id
+  )
+ON CONFLICT (session_id, user_id) DO NOTHING;
+
+-- Verification: Check migration results
+DO $$
+DECLARE
+  migrated_sessions INTEGER;
+  migrated_participants INTEGER;
+  total_social_sessions INTEGER;
+  total_joined_participants INTEGER;
+  skipped_invited_participants INTEGER;
+  rec RECORD;
+BEGIN
+  -- Count migrated sessions
+  SELECT COUNT(*) INTO migrated_sessions 
+  FROM public.sessions 
+  WHERE session_type = 'social_play';
+  
+  -- Count migrated participants
+  SELECT COUNT(*) INTO migrated_participants 
+  FROM public.session_participants sp
+  JOIN public.sessions s ON sp.session_id = s.id
+  WHERE s.session_type = 'social_play';
+  
+  -- Count original data
+  SELECT COUNT(*) INTO total_social_sessions FROM public.social_play_sessions;
+  
+  SELECT COUNT(*) INTO total_joined_participants 
+  FROM public.social_play_participants 
+  WHERE status = 'joined' AND joined_at IS NOT NULL;
+  
+  SELECT COUNT(*) INTO skipped_invited_participants 
+  FROM public.social_play_participants 
+  WHERE status = 'invited' OR joined_at IS NULL;
+  
+  RAISE NOTICE 'Migration Results:';
+  RAISE NOTICE 'Sessions migrated: % out of %', migrated_sessions, total_social_sessions;
+  RAISE NOTICE 'Participants migrated: % (joined participants only)', migrated_participants;
+  RAISE NOTICE 'Participants skipped: % (invited but not joined)', skipped_invited_participants;
+  
+  -- Final verification query to show session types
+  RAISE NOTICE 'Current session distribution:';
+  FOR rec IN 
+    SELECT session_type, COUNT(*) as count, status
+    FROM public.sessions 
+    GROUP BY session_type, status
+    ORDER BY session_type, status
+  LOOP
+    RAISE NOTICE '  %: % sessions with status %', rec.session_type, rec.count, rec.status;
+  END LOOP;
+  
+  RAISE NOTICE 'Phase 1 migration completed successfully!';
+  RAISE NOTICE 'Note: Only participants who actually joined were migrated to maintain data integrity';
+END $$;
