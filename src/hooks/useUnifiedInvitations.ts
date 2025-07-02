@@ -3,24 +3,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
-// Unified invitation interface that works for both match and social play
-interface UnifiedInvitation {
-  id: string;
-  inviter_id: string;
-  invitee_id?: string;
-  invitee_name: string;
-  invitee_email?: string;
-  invitation_type: string;
-  invitation_category: 'match' | 'social_play';
-  match_session_id: string | null;
-  status: 'pending' | 'accepted' | 'declined' | 'expired';
-  message?: string;
-  created_at: string;
-  expires_at: string;
-  responded_at?: string;
-  updated_at: string;
-  session_data?: Record<string, any>;
-}
+// Import the unified interface instead of redefining it
+import type { UnifiedInvitation } from '@/types/invitation';
 
 // Create match invitation parameters
 interface CreateMatchInvitationParams {
@@ -54,24 +38,31 @@ interface CreateSocialPlayInvitationParams {
   message?: string;
 }
 
-// Helper function to cast database response to our interface
-const toUnifiedInvitation = (data: any): UnifiedInvitation => ({
-  id: data.id,
-  inviter_id: data.inviter_id,
-  invitee_id: data.invitee_id,
-  invitee_name: data.invitee_name,
-  invitee_email: data.invitee_email,
-  invitation_type: data.invitation_type,
-  invitation_category: data.invitation_category as 'match' | 'social_play',
-  match_session_id: data.match_session_id,
-  status: data.status as 'pending' | 'accepted' | 'declined' | 'expired',
-  message: data.message,
-  created_at: data.created_at,
-  expires_at: data.expires_at,
-  responded_at: data.responded_at,
-  updated_at: data.updated_at,
-  session_data: data.session_data || {},
-});
+// Helper function to cast database response to our interface with proper error handling
+const toUnifiedInvitation = (data: any): UnifiedInvitation => {
+  try {
+    return {
+      id: data.id || '',
+      inviter_id: data.inviter_id || '',
+      invitee_id: data.invitee_id || null,
+      invitee_name: data.invitee_name || 'Unknown',
+      invitee_email: data.invitee_email || null,
+      invitation_type: data.invitation_type || 'singles',
+      invitation_category: (data.invitation_category as 'match' | 'social_play') || 'match',
+      match_session_id: data.match_session_id || null,
+      status: (data.status as 'pending' | 'accepted' | 'declined' | 'expired') || 'pending',
+      message: data.message || null,
+      created_at: data.created_at || new Date().toISOString(),
+      expires_at: data.expires_at || new Date().toISOString(),
+      responded_at: data.responded_at || null,
+      updated_at: data.updated_at || new Date().toISOString(),
+      session_data: data.session_data || {},
+    };
+  } catch (error) {
+    console.error('❌ [UNIFIED] Error mapping invitation data:', error, data);
+    throw new Error(`Failed to map invitation data: ${error}`);
+  }
+};
 
 export function useUnifiedInvitations() {
   const { user } = useAuth();
@@ -101,9 +92,18 @@ export function useUnifiedInvitations() {
         return;
       }
 
-      const invitations = (data || []).map(toUnifiedInvitation);
+      const invitations = (data || []).map((item, index) => {
+        try {
+          return toUnifiedInvitation(item);
+        } catch (error) {
+          console.error(`❌ [UNIFIED] Failed to map invitation ${index}:`, error, item);
+          return null;
+        }
+      }).filter(Boolean) as UnifiedInvitation[];
+      
       console.log('✅ [UNIFIED] Fetched received invitations:', {
         count: invitations.length,
+        rawDataCount: data?.length || 0,
         breakdown: {
           match: invitations.filter(i => i.invitation_category === 'match').length,
           social_play: invitations.filter(i => i.invitation_category === 'social_play').length
@@ -136,9 +136,18 @@ export function useUnifiedInvitations() {
         return;
       }
 
-      const invitations = (data || []).map(toUnifiedInvitation);
+      const invitations = (data || []).map((item, index) => {
+        try {
+          return toUnifiedInvitation(item);
+        } catch (error) {
+          console.error(`❌ [UNIFIED] Failed to map sent invitation ${index}:`, error, item);
+          return null;
+        }
+      }).filter(Boolean) as UnifiedInvitation[];
+      
       console.log('✅ [UNIFIED] Fetched sent invitations:', {
         count: invitations.length,
+        rawDataCount: data?.length || 0,
         breakdown: {
           match: invitations.filter(i => i.invitation_category === 'match').length,
           social_play: invitations.filter(i => i.invitation_category === 'social_play').length

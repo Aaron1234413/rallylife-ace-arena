@@ -21,6 +21,8 @@ export const PendingInvitationCard: React.FC<PendingInvitationCardProps> = ({ in
   const unifiedInvitation = {
     ...invitation,
     invitation_category: 'match' as const,
+    match_session_id: null,
+    updated_at: invitation.created_at,
     session_data: {}
   };
 
