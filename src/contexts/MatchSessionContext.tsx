@@ -1,10 +1,8 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { SafeContextProvider } from '@/components/ui/safe-context-provider';
 
 interface SetData {
   playerScore: string;
@@ -45,11 +43,6 @@ interface MatchSessionContextType {
   logSetScore: (playerScore: string, opponentScore: string) => Promise<void>;
   startNextSet: () => Promise<void>;
   endMatch: (finalNotes?: string, endMood?: string) => Promise<void>;
-  createInvitation: (params: any) => Promise<any>;
-  refreshInvitations: () => Promise<void>;
-  receivedInvitations: any[];
-  sentInvitations: any[];
-  invitationsLoading: boolean;
 }
 
 const MatchSessionContext = createContext<MatchSessionContextType | undefined>(undefined);
@@ -65,17 +58,8 @@ export const useMatchSession = () => {
 export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ children }) => {
   const { user } = useAuth();
   const [sessionData, setSessionData] = useState<MatchSessionData | null>(null);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  
-  // Use the match invitations hook
-  const {
-    receivedInvitations,
-    sentInvitations,
-    loading: invitationsLoading,
-    createMatchInvitation: createInvitation,
-    refreshInvitations
-  } = useUnifiedInvitations();
 
   // Helper function to safely parse sets data
   const parseSetsData = (sets: any): SetData[] => {
@@ -279,27 +263,12 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
     updateSessionData,
     logSetScore,
     startNextSet,
-    endMatch,
-    createInvitation,
-    refreshInvitations,
-    receivedInvitations,
-    sentInvitations,
-    invitationsLoading
+    endMatch
   };
 
   return (
-    <SafeContextProvider 
-      requireAuth={true}
-      loadingMessage="Loading match session..."
-      fallbackComponent={
-        <div className="text-center p-4">
-          <p className="text-muted-foreground">Match sessions unavailable</p>
-        </div>
-      }
-    >
-      <MatchSessionContext.Provider value={value}>
-        {children}
-      </MatchSessionContext.Provider>
-    </SafeContextProvider>
+    <MatchSessionContext.Provider value={value}>
+      {children}
+    </MatchSessionContext.Provider>
   );
 };
