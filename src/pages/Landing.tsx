@@ -10,6 +10,8 @@ import { LiveStatsCounter } from '@/components/landing/LiveStatsCounter';
 import { HowItWorks } from '@/components/landing/HowItWorks';
 
 export default function Landing() {
+  console.log('🏞️ [LANDING] Landing page rendering...');
+  
   return (
     <div className="min-h-screen bg-gradient-to-br from-tennis-green-medium via-tennis-green-bg to-tennis-green-dark text-white overflow-hidden relative">
       {/* Animated Star Background */}

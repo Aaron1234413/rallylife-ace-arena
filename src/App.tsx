@@ -41,6 +41,8 @@ import ClubDirectory from "@/pages/ClubDirectory";
 const queryClient = new QueryClient();
 
 function App() {
+  console.log('🏠 [APP] App component rendering...');
+  
   return (
     <QueryClientProvider client={queryClient}>
       <TrainingSessionProvider>
