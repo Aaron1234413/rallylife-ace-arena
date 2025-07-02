@@ -41,7 +41,10 @@ const STORAGE_KEY = 'training_session_data';
 export function TrainingSessionProvider({ children }: { children: ReactNode }) {
   const [sessionData, setSessionData] = useState<TrainingSessionData>({});
   const { user } = useAuth();
-  const { completeSession } = useRealTimeSessions('my-sessions', user?.id);
+  
+  // Only call useRealTimeSessions when user is available to prevent crashes
+  const realTimeSessionsHook = user?.id ? useRealTimeSessions('my-sessions', user.id) : null;
+  const completeSession = realTimeSessionsHook?.completeSession;
 
   // Load session data from localStorage on mount
   useEffect(() => {
@@ -117,6 +120,9 @@ export function TrainingSessionProvider({ children }: { children: ReactNode }) {
 
   // Complete training session using unified completion
   const completeTrainingSession = async (sessionId: string, duration: number): Promise<void> => {
+    if (!completeSession) {
+      throw new Error('Cannot complete session: User not authenticated');
+    }
     await completeSession(sessionId, undefined, duration);
   };
 

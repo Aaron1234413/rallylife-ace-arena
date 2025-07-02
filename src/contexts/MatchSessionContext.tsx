@@ -126,7 +126,7 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
           .select('*')
           .eq('player_id', user.id)
           .eq('status', 'active')
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching active match session:', error);
