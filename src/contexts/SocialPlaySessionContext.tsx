@@ -1,8 +1,6 @@
 
 import React, { createContext, useContext, ReactNode, useState } from 'react';
 import { toast } from 'sonner';
-import { useUnifiedSocialPlay } from '@/hooks/useUnifiedSocialPlay';
-import { SafeContextProvider } from '@/components/ui/safe-context-provider';
 
 interface ActiveSession {
   id: string;
@@ -35,16 +33,6 @@ const SocialPlaySessionContext = createContext<SocialPlaySessionContextType | un
 export function SocialPlaySessionProvider({ children }: { children: ReactNode }) {
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [loading, setLoading] = useState(false);
-  
-  // Use the unified social play hook with safety features
-  const { updateSessionStatus, error } = useUnifiedSocialPlay({
-    useUnified: false, // Start with legacy system for safety
-    fallbackToLegacy: true,
-    onError: (error, source) => {
-      console.error(`SocialPlaySession error from ${source}:`, error);
-      toast.error('Session system error - using fallback');
-    }
-  });
 
   const startSession = (sessionData: { 
     id: string; 
@@ -62,13 +50,6 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
     
     setActiveSession(newSession);
     
-    // Update session status to active
-    updateSessionStatus({
-      sessionId: sessionData.id,
-      status: 'active',
-      updates: { start_time: new Date().toISOString() }
-    });
-    
     const participantNames = sessionData.participants?.map(p => p.name).join(', ') || 'players';
     
     toast.success('Session Started', {
@@ -83,16 +64,6 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
     
     try {
       const durationMinutes = getDurationMinutes();
-      
-      // Update session status to completed
-      updateSessionStatus({
-        sessionId: activeSession.id,
-        status: 'completed',
-        updates: { 
-          end_time: new Date().toISOString(),
-          paused_duration: 0
-        }
-      });
       
       setActiveSession(null);
       
@@ -129,27 +100,17 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
   };
 
   return (
-    <SafeContextProvider 
-      requireAuth={true}
-      loadingMessage="Loading social play session..."
-      fallbackComponent={
-        <div className="text-center p-4">
-          <p className="text-muted-foreground">Social play unavailable</p>
-        </div>
-      }
+    <SocialPlaySessionContext.Provider
+      value={{
+        activeSession,
+        startSession,
+        endSession,
+        getDurationMinutes,
+        loading
+      }}
     >
-      <SocialPlaySessionContext.Provider
-        value={{
-          activeSession,
-          startSession,
-          endSession,
-          getDurationMinutes,
-          loading
-        }}
-      >
-        {children}
-      </SocialPlaySessionContext.Provider>
-    </SafeContextProvider>
+      {children}
+    </SocialPlaySessionContext.Provider>
   );
 }
 

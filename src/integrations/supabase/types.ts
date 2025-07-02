@@ -3788,13 +3788,6 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "social_play_access_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "social_play_sessions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "social_play_access_user_id_fkey"
             columns: ["user_id"]
             isOneToOne: false
@@ -3830,136 +3823,8 @@ export type Database = {
         }
         Relationships: [
           {
-            foreignKeyName: "social_play_checkins_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "social_play_sessions"
-            referencedColumns: ["id"]
-          },
-          {
             foreignKeyName: "social_play_checkins_user_id_fkey"
             columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      social_play_participants: {
-        Row: {
-          id: string
-          invited_at: string
-          joined_at: string | null
-          role: string | null
-          session_creator_id: string
-          session_id: string
-          status: string
-          user_id: string
-        }
-        Insert: {
-          id?: string
-          invited_at?: string
-          joined_at?: string | null
-          role?: string | null
-          session_creator_id: string
-          session_id: string
-          status?: string
-          user_id: string
-        }
-        Update: {
-          id?: string
-          invited_at?: string
-          joined_at?: string | null
-          role?: string | null
-          session_creator_id?: string
-          session_id?: string
-          status?: string
-          user_id?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "fk_social_participants_session"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "social_play_sessions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "social_play_participants_session_creator_id_fkey"
-            columns: ["session_creator_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "social_play_participants_session_id_fkey"
-            columns: ["session_id"]
-            isOneToOne: false
-            referencedRelation: "social_play_sessions"
-            referencedColumns: ["id"]
-          },
-          {
-            foreignKeyName: "social_play_participants_user_id_fkey"
-            columns: ["user_id"]
-            isOneToOne: false
-            referencedRelation: "profiles"
-            referencedColumns: ["id"]
-          },
-        ]
-      }
-      social_play_sessions: {
-        Row: {
-          competitive_level: string
-          created_at: string
-          created_by: string
-          end_time: string | null
-          final_score: string | null
-          id: string
-          location: string | null
-          mood: string | null
-          notes: string | null
-          paused_duration: number | null
-          session_type: string
-          start_time: string | null
-          status: string
-          updated_at: string
-        }
-        Insert: {
-          competitive_level?: string
-          created_at?: string
-          created_by: string
-          end_time?: string | null
-          final_score?: string | null
-          id?: string
-          location?: string | null
-          mood?: string | null
-          notes?: string | null
-          paused_duration?: number | null
-          session_type: string
-          start_time?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Update: {
-          competitive_level?: string
-          created_at?: string
-          created_by?: string
-          end_time?: string | null
-          final_score?: string | null
-          id?: string
-          location?: string | null
-          mood?: string | null
-          notes?: string | null
-          paused_duration?: number | null
-          session_type?: string
-          start_time?: string | null
-          status?: string
-          updated_at?: string
-        }
-        Relationships: [
-          {
-            foreignKeyName: "social_play_sessions_created_by_fkey"
-            columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
             referencedColumns: ["id"]
