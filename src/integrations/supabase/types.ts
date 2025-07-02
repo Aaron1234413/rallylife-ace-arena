@@ -3624,6 +3624,7 @@ export type Database = {
           created_at: string
           id: string
           joined_at: string
+          left_at: string | null
           session_id: string
           stakes_contributed: number
           status: string
@@ -3634,6 +3635,7 @@ export type Database = {
           created_at?: string
           id?: string
           joined_at?: string
+          left_at?: string | null
           session_id: string
           stakes_contributed?: number
           status?: string
@@ -3644,6 +3646,7 @@ export type Database = {
           created_at?: string
           id?: string
           joined_at?: string
+          left_at?: string | null
           session_id?: string
           stakes_contributed?: number
           status?: string
