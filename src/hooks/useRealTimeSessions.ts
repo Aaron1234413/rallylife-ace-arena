@@ -71,19 +71,24 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
       } else if (activeTab === 'available') {
         query = query.eq('status', 'waiting').eq('is_private', false);
       } else if (activeTab === 'completed') {
-        // For completed sessions, get sessions where user is creator or participant
-        const { data: participantSessions } = await supabase
-          .from('session_participants')
-          .select('session_id')
-          .eq('user_id', userId)
-          .eq('status', 'joined');
-        
-        const sessionIds = participantSessions?.map(p => p.session_id) || [];
-        
-        if (sessionIds.length > 0) {
-          query = query.eq('status', 'completed').or(`creator_id.eq.${userId},id.in.(${sessionIds.join(',')})`);
+        // For completed sessions, show sessions where user is creator or participant
+        if (userId) {
+          const { data: participantSessions } = await supabase
+            .from('session_participants')
+            .select('session_id')
+            .eq('user_id', userId)
+            .eq('status', 'joined');
+          
+          const sessionIds = participantSessions?.map(p => p.session_id) || [];
+          
+          if (sessionIds.length > 0) {
+            query = query.eq('status', 'completed').or(`creator_id.eq.${userId},id.in.(${sessionIds.join(',')})`);
+          } else {
+            query = query.eq('status', 'completed').eq('creator_id', userId);
+          }
         } else {
-          query = query.eq('status', 'completed').eq('creator_id', userId);
+          // If no userId, don't show any completed sessions
+          query = query.eq('status', 'completed').eq('id', '00000000-0000-0000-0000-000000000000');
         }
       }
 
@@ -296,7 +301,12 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
 
   const completeSession = async (sessionId: string, winnerId?: string, sessionDurationMinutes?: number) => {
     try {
-      console.log('Completing session:', sessionId, 'winner:', winnerId, 'duration:', sessionDurationMinutes);
+      console.log('🎾 Starting session completion:', {
+        sessionId,
+        winnerId,
+        sessionDurationMinutes,
+        userId
+      });
       
       const { data, error } = await supabase.rpc('complete_session', {
         session_id_param: sessionId,
@@ -305,7 +315,7 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
       });
 
       if (error) {
-        console.error('Database error completing session:', error);
+        console.error('❌ Database error completing session:', error);
         throw error;
       }
 
@@ -324,9 +334,11 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
         hp_granted?: number;
         participant_count?: number;
         total_stakes_refunded?: number;
+        debug?: string;
       };
 
-      console.log('Complete session result:', result);
+      console.log('✅ Complete session result:', result);
+      console.log('🔍 Debug info from database:', result.debug);
 
       if (result.success) {
         if (result.session_type === 'wellbeing') {
@@ -368,11 +380,22 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
           toast.success(message);
         }
         // Force refresh sessions after successful completion
-        console.log('Session completed successfully, refreshing sessions...');
+        console.log('🔄 Session completed successfully, refreshing sessions...');
         await fetchSessions();
-        console.log('Sessions refreshed after completion');
+        console.log('✅ Sessions refreshed after completion');
+        
+        // Verify the session was actually completed
+        const { data: completedCheck } = await supabase
+          .from('sessions')
+          .select('id, status')
+          .eq('id', sessionId)
+          .single();
+        
+        console.log('🔍 Session status after completion:', completedCheck);
+        
       } else {
-        console.error('Session completion failed:', result.error);
+        console.error('❌ Session completion failed:', result.error);
+        console.error('🔍 Debug info:', result.debug);
         toast.error(result.error || 'Failed to complete session');
       }
     } catch (error) {
