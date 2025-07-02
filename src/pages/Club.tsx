@@ -23,6 +23,7 @@ import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
 import { ClubDashboard } from '@/components/club/ClubDashboard';
 import { MembersList } from '@/components/club/MembersList';
+import { ClubSettings } from '@/components/club/ClubSettings';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -192,21 +193,7 @@ export default function Club() {
 
           {canEditClub && (
             <TabsContent value="settings">
-              <Card>
-                <CardHeader>
-                  <CardTitle className="flex items-center gap-2">
-                    <Settings className="h-5 w-5" />
-                    Club Settings
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <div className="text-center py-8 text-gray-500">
-                    <Settings className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <h3 className="font-medium mb-2">Coming Soon</h3>
-                    <p className="text-sm">Club settings and configuration will be available soon.</p>
-                  </div>
-                </CardContent>
-              </Card>
+              <ClubSettings club={club} onSettingsUpdate={handleRefresh} />
             </TabsContent>
           )}
         </Tabs>

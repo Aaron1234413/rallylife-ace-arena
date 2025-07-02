@@ -1,10 +1,12 @@
 import React from 'react';
+import { Link } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import { EmptyState } from '@/components/ui/empty-state';
 import { ClubCard } from './ClubCard';
 import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
-import { Search, Globe } from 'lucide-react';
+import { Search, Globe, ExternalLink } from 'lucide-react';
 
 export function ClubDiscovery() {
   const { clubs, myClubs, loading, joinClub } = useClubs();
@@ -39,10 +41,18 @@ export function ClubDiscovery() {
   return (
     <Card>
       <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Search className="h-5 w-5" />
-          Discover Clubs
-        </CardTitle>
+        <div className="flex items-center justify-between">
+          <CardTitle className="flex items-center gap-2">
+            <Search className="h-5 w-5" />
+            Discover Clubs
+          </CardTitle>
+          <Button asChild variant="outline" size="sm">
+            <Link to="/clubs" className="flex items-center gap-2">
+              <Globe className="h-4 w-4" />
+              Browse All Clubs
+            </Link>
+          </Button>
+        </div>
       </CardHeader>
       <CardContent>
         {availableClubs.length === 0 ? (
