@@ -151,6 +151,8 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
 
   const joinSession = async (sessionId: string) => {
     try {
+      console.log('Attempting to join session:', sessionId, 'for user:', userId);
+      
       const { data, error } = await supabase.rpc('join_session', {
         session_id_param: sessionId,
         user_id_param: userId
@@ -159,12 +161,15 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
       if (error) throw error;
 
       const result = data as { success: boolean; error?: string; participant_count?: number; session_ready?: boolean };
+      console.log('Join session result:', result);
 
       if (result.success) {
         toast.success('Successfully joined session!');
         if (result.session_ready) {
           toast.success('Session is ready to start!');
         }
+        // Force a refresh of sessions after successful join
+        fetchSessions();
       } else {
         toast.error(result.error || 'Failed to join session');
       }
