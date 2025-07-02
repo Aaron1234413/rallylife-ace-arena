@@ -47,9 +47,9 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
             user_id,
             status,
             joined_at,
-            user:profiles!session_participants_user_id_fkey(full_name)
+            user:profiles(full_name)
           ),
-          creator:profiles!sessions_creator_id_fkey(full_name)
+          creator:profiles(full_name)
         `);
 
       // Apply tab-specific filtering
