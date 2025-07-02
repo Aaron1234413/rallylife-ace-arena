@@ -412,10 +412,6 @@ export function EnhancedQuickActions({
       role="main"
       aria-label="Tennis Activity Quick Actions"
     >
-      {/* Skip link for accessibility */}
-      <a href="#quick-actions" className="skip-link">
-        Skip to Quick Actions
-      </a>
 
       {/* Smart Recommendations - Simplified */}
       <SmartRecommendations 
