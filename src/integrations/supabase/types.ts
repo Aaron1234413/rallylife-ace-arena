@@ -738,6 +738,53 @@ export type Database = {
           },
         ]
       }
+      club_courts: {
+        Row: {
+          club_id: string
+          created_at: string
+          description: string | null
+          hourly_rate_money: number | null
+          hourly_rate_tokens: number
+          id: string
+          is_active: boolean
+          name: string
+          surface_type: string
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          description?: string | null
+          hourly_rate_money?: number | null
+          hourly_rate_tokens?: number
+          id?: string
+          is_active?: boolean
+          name: string
+          surface_type?: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          description?: string | null
+          hourly_rate_money?: number | null
+          hourly_rate_tokens?: number
+          id?: string
+          is_active?: boolean
+          name?: string
+          surface_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_courts_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_invitations: {
         Row: {
           accepted_at: string | null
@@ -1675,6 +1722,144 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      court_availability: {
+        Row: {
+          court_id: string
+          created_at: string
+          day_of_week: number
+          end_time: string
+          id: string
+          is_bookable: boolean
+          start_time: string
+          updated_at: string
+        }
+        Insert: {
+          court_id: string
+          created_at?: string
+          day_of_week: number
+          end_time: string
+          id?: string
+          is_bookable?: boolean
+          start_time: string
+          updated_at?: string
+        }
+        Update: {
+          court_id?: string
+          created_at?: string
+          day_of_week?: number
+          end_time?: string
+          id?: string
+          is_bookable?: boolean
+          start_time?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "court_availability_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "club_courts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      court_booking_payments: {
+        Row: {
+          amount_money: number
+          amount_tokens: number
+          booking_id: string
+          created_at: string
+          id: string
+          payment_reference: string | null
+          payment_status: string
+          processed_at: string | null
+          updated_at: string
+        }
+        Insert: {
+          amount_money?: number
+          amount_tokens?: number
+          booking_id: string
+          created_at?: string
+          id?: string
+          payment_reference?: string | null
+          payment_status?: string
+          processed_at?: string | null
+          updated_at?: string
+        }
+        Update: {
+          amount_money?: number
+          amount_tokens?: number
+          booking_id?: string
+          created_at?: string
+          id?: string
+          payment_reference?: string | null
+          payment_status?: string
+          processed_at?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "court_booking_payments_booking_id_fkey"
+            columns: ["booking_id"]
+            isOneToOne: false
+            referencedRelation: "court_bookings"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      court_bookings: {
+        Row: {
+          court_id: string
+          created_at: string
+          end_datetime: string
+          id: string
+          notes: string | null
+          payment_method: string
+          player_id: string
+          start_datetime: string
+          status: string
+          total_cost_money: number
+          total_cost_tokens: number
+          updated_at: string
+        }
+        Insert: {
+          court_id: string
+          created_at?: string
+          end_datetime: string
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          player_id: string
+          start_datetime: string
+          status?: string
+          total_cost_money?: number
+          total_cost_tokens?: number
+          updated_at?: string
+        }
+        Update: {
+          court_id?: string
+          created_at?: string
+          end_datetime?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          player_id?: string
+          start_datetime?: string
+          status?: string
+          total_cost_money?: number
+          total_cost_tokens?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "court_bookings_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "club_courts"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       crp_activities: {
         Row: {
@@ -4186,6 +4371,14 @@ export type Database = {
         Args: { "": unknown } | { "": unknown }
         Returns: string
       }
+      calculate_booking_cost: {
+        Args: {
+          p_court_id: string
+          p_start_datetime: string
+          p_end_datetime: string
+        }
+        Returns: Json
+      }
       calculate_coach_leaderboards: {
         Args: { leaderboard_type?: string; period_type?: string }
         Returns: Json
@@ -4213,6 +4406,15 @@ export type Database = {
       check_achievement_unlock: {
         Args: { user_id: string; achievement_id: string }
         Returns: Json
+      }
+      check_booking_conflict: {
+        Args: {
+          p_court_id: string
+          p_start_datetime: string
+          p_end_datetime: string
+          p_exclude_booking_id?: string
+        }
+        Returns: boolean
       }
       check_coach_availability: {
         Args: {
@@ -4314,6 +4516,16 @@ export type Database = {
           due_date?: string
           reward_xp?: number
           reward_tokens?: number
+        }
+        Returns: Json
+      }
+      create_court_booking: {
+        Args: {
+          p_court_id: string
+          p_start_datetime: string
+          p_end_datetime: string
+          p_payment_method?: string
+          p_notes?: string
         }
         Returns: Json
       }
