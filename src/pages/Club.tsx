@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   ArrowLeft, 
   Users, 
@@ -13,23 +14,44 @@ import {
   Calendar,
   Settings,
   UserPlus,
-  MapPin
+  MapPin,
+  Activity
 } from 'lucide-react';
 import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
+import { ClubDashboard } from '@/components/club/ClubDashboard';
+import { MembersList } from '@/components/club/MembersList';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { clubs, myClubs, loading } = useClubs();
+  const { 
+    clubs, 
+    myClubs, 
+    clubMembers, 
+    loading, 
+    fetchClubMembers 
+  } = useClubs();
+  const [refreshing, setRefreshing] = useState(false);
 
   // Find the club in either clubs or myClubs
   const club = [...clubs, ...myClubs].find(c => c.id === clubId);
   const isMember = myClubs.some(c => c.id === clubId);
   const isOwner = user?.id === club?.owner_id;
+  
+  const userMembership = clubMembers.find(m => m.user_id === user?.id);
+  const canManageMembers = userMembership?.permissions?.can_manage_members || false;
+  const canEditClub = userMembership?.permissions?.can_edit_club || false;
+
+  const handleRefresh = async () => {
+    if (!club?.id) return;
+    setRefreshing(true);
+    await fetchClubMembers(club.id);
+    setRefreshing(false);
+  };
 
   if (loading) {
     return (
@@ -147,59 +169,47 @@ export default function Club() {
           </CardHeader>
         </Card>
 
-        {/* Club Content - Coming Soon Message */}
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-          {/* Court Booking Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <MapPin className="h-5 w-5" />
-                Court Booking
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <MapPin className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="font-medium mb-2">Coming Soon</h3>
-                <p className="text-sm">Court booking and management features will be available in Phase 3.</p>
-              </div>
-            </CardContent>
-          </Card>
+        {/* Club Content */}
+        <Tabs defaultValue="overview" className="space-y-6">
+          <TabsList className="bg-white border">
+            <TabsTrigger value="overview">Overview</TabsTrigger>
+            <TabsTrigger value="members">Members</TabsTrigger>
+            {canEditClub && <TabsTrigger value="settings">Settings</TabsTrigger>}
+          </TabsList>
 
-          {/* Members Section */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Users className="h-5 w-5" />
-                Members
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="font-medium mb-2">Coming Soon</h3>
-                <p className="text-sm">Member management and directory will be available in Phase 2.</p>
-              </div>
-            </CardContent>
-          </Card>
+          <TabsContent value="overview">
+            <ClubDashboard club={club} />
+          </TabsContent>
 
-          {/* Coach Directory */}
-          <Card>
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Crown className="h-5 w-5" />
-                Coaches
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="text-center py-8 text-gray-500">
-                <Crown className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="font-medium mb-2">Coming Soon</h3>
-                <p className="text-sm">Coach directory and integration will be available in Phase 4.</p>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
+          <TabsContent value="members">
+            <MembersList 
+              club={club} 
+              members={clubMembers}
+              canManageMembers={canManageMembers}
+              onRefresh={handleRefresh}
+            />
+          </TabsContent>
+
+          {canEditClub && (
+            <TabsContent value="settings">
+              <Card>
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Settings className="h-5 w-5" />
+                    Club Settings
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-center py-8 text-gray-500">
+                    <Settings className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                    <h3 className="font-medium mb-2">Coming Soon</h3>
+                    <p className="text-sm">Club settings and configuration will be available soon.</p>
+                  </div>
+                </CardContent>
+              </Card>
+            </TabsContent>
+          )}
+        </Tabs>
       </div>
     </div>
   );
