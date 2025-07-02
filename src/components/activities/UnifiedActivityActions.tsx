@@ -15,6 +15,11 @@ import {
   Activity
 } from 'lucide-react';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
+import { useTrainingSession } from '@/contexts/TrainingSessionContext';
+import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
+import { useAuth } from '@/hooks/useAuth';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface UnifiedActivityActionsProps {
@@ -168,13 +173,93 @@ const unifiedActivities = [
 
 export function UnifiedActivityActions({ onActivityCompleted, className }: UnifiedActivityActionsProps) {
   const { logActivity, refreshData } = useActivityLogs();
+  const { createTrainingSession, startTrainingSession, updateSessionData } = useTrainingSession();
+  const { user } = useAuth();
+  const { completeSession } = useRealTimeSessions('my-sessions', user?.id);
+  const navigate = useNavigate();
   const [loadingActivity, setLoadingActivity] = useState<string | null>(null);
 
   const handleActivityLog = async (activity: typeof unifiedActivities[0]) => {
     try {
       setLoadingActivity(activity.id);
       
-      console.log('Logging unified activity:', {
+      // Handle training and lesson sessions through unified session system
+      if (activity.id === 'training' || activity.id === 'lesson') {
+        console.log('Creating unified training/lesson session:', activity);
+        
+        // Create session in unified sessions table
+        const sessionId = await createTrainingSession({
+          sessionType: activity.id,
+          intensity: activity.intensity,
+          estimatedDuration: activity.estimatedDuration,
+          startTime: new Date().toISOString()
+        });
+        
+        // Update local session data with session ID
+        updateSessionData({
+          sessionId,
+          sessionType: activity.id,
+          intensity: activity.intensity,
+          estimatedDuration: activity.estimatedDuration,
+          startTime: new Date().toISOString()
+        });
+        
+        // Start the session
+        await startTrainingSession(sessionId);
+        
+        toast.success(`${activity.title} started!`, {
+          description: 'Session is now active in your Sessions tab'
+        });
+        
+        // Navigate to training session (you can create a training UI or redirect to sessions)
+        navigate('/sessions');
+        return;
+      }
+      
+      // Handle wellbeing sessions through unified session system  
+      if (activity.id === 'wellbeing') {
+        console.log('Creating unified wellbeing session:', activity);
+        
+        // Create wellbeing session in unified sessions table
+        const { data, error } = await supabase
+          .from('sessions')
+          .insert({
+            creator_id: user.id,
+            session_type: 'wellbeing',
+            format: 'singles',
+            max_players: 1,
+            stakes_amount: 0,
+            status: 'active', // Start immediately
+            is_private: true
+          })
+          .select('id')
+          .single();
+          
+        if (error) throw error;
+        
+        // Add participant
+        await supabase
+          .from('session_participants')
+          .insert({
+            session_id: data.id,
+            user_id: user.id,
+            status: 'joined'
+          });
+        
+        // Complete immediately with HP restoration
+        await completeSession(data.id, undefined, activity.estimatedDuration);
+        
+        toast.success(`${activity.title} completed!`, {
+          description: 'HP restored • Check your Sessions tab'
+        });
+        
+        await refreshData();
+        onActivityCompleted?.();
+        return;
+      }
+      
+      // Handle other activities (match, social, practice, daily_login, achievement) with instant logging
+      console.log('Logging non-session activity:', {
         ...activity.activityData,
         title: activity.title,
         description: activity.description
@@ -186,7 +271,7 @@ export function UnifiedActivityActions({ onActivityCompleted, className }: Unifi
         description: activity.description
       });
       
-      console.log('Unified activity logged successfully:', result);
+      console.log('Activity logged successfully:', result);
       
       // Show comprehensive success message
       const rewards = [];
@@ -208,8 +293,8 @@ export function UnifiedActivityActions({ onActivityCompleted, className }: Unifi
       onActivityCompleted?.();
       
     } catch (error) {
-      console.error('Error logging unified activity:', error);
-      toast.error('Failed to log activity. Please try again.');
+      console.error('Error handling unified activity:', error);
+      toast.error('Failed to process activity. Please try again.');
     } finally {
       setLoadingActivity(null);
     }

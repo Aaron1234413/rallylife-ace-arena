@@ -7,7 +7,6 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { CheckCircle, Clock, Trophy, Heart, Plus, Minus } from 'lucide-react';
 import { useTrainingSession } from '@/contexts/TrainingSessionContext';
-import { useActivityLogger } from '@/hooks/useActivityLogger';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { useSearchUsers } from '@/hooks/useSearchUsers';
@@ -16,8 +15,7 @@ import { EmojiPicker } from './EmojiPicker';
 
 export function TrainingWrapUp() {
   const navigate = useNavigate();
-  const { sessionData, clearSession } = useTrainingSession();
-  const { logActivity } = useActivityLogger();
+  const { sessionData, clearSession, completeTrainingSession } = useTrainingSession();
   const { hpData } = usePlayerHP();
   const { xpData } = usePlayerXP();
 
@@ -163,31 +161,26 @@ export function TrainingWrapUp() {
     setIsSubmitting(true);
     
     try {
-      const activityData = {
-        activity_type: isLesson ? 'lesson' : 'training',
-        activity_category: 'on_court',
-        title: `${sessionData.sessionType?.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) || 'Training'} Session`,
-        description: sessionNotes || `${sessionData.intensity} intensity ${isLesson ? 'lesson' : 'training'} session`,
-        duration_minutes: adjustedDuration,
-        intensity_level: sessionData.intensity || 'medium',
-        coach_name: sessionData.coachName || undefined,
-        coach_id: isLesson && coachId ? coachId : undefined,
-        skills_practiced: sessionData.skillsFocus || [],
-        notes: sessionNotes,
-        energy_after: mood ? parseInt(mood) : undefined,
-        tags: [sessionData.sessionType || 'general'].filter(Boolean)
-      };
+      // Complete training session using unified session system
+      if (!sessionData.sessionId) {
+        throw new Error('No active session found');
+      }
 
-      console.log('Logging activity with data:', activityData);
+      console.log('Completing training session:', {
+        sessionId: sessionData.sessionId,
+        duration: adjustedDuration,
+        sessionNotes,
+        mood
+      });
 
-      await logActivity(activityData);
+      await completeTrainingSession(sessionData.sessionId, adjustedDuration);
       clearSession();
       toast.success(`${isLesson ? 'Lesson' : 'Training session'} completed successfully!`);
-      navigate('/');
+      navigate('/sessions');
       
     } catch (error) {
       console.error('Error completing training session:', error);
-      toast.error('Failed to save training session');
+      toast.error('Failed to complete training session');
     } finally {
       setIsSubmitting(false);
     }
