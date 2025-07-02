@@ -43,14 +43,14 @@ export function TrainingSessionProvider({ children }: { children: ReactNode }) {
   const [sessionData, setSessionData] = useState<TrainingSessionData>({});
   const { user } = useAuth();
   
-  // Safely use real-time sessions only when user is available
-  const realTimeSessions = user?.id ? useSafeRealTimeSessions('my-sessions', user.id, {
+  // Always call the hook, but conditionally enable it
+  const realTimeSessions = useSafeRealTimeSessions('my-sessions', user?.id, {
     enabled: !!user?.id,
     onError: (error) => {
       console.error('Training session real-time error:', error);
       toast.error('Training session sync error');
     }
-  }) : null;
+  });
 
   // Load session data from localStorage on mount
   useEffect(() => {
