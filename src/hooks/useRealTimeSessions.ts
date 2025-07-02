@@ -235,7 +235,8 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
     try {
       const { data, error } = await supabase.rpc('kick_participant', {
         session_id_param: sessionId,
-        participant_id_param: participantId
+        participant_id_param: participantId,
+        kicker_id_param: userId
       });
 
       if (error) throw error;
@@ -256,7 +257,8 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
   const startSession = async (sessionId: string) => {
     try {
       const { data, error } = await supabase.rpc('start_session', {
-        session_id_param: sessionId
+        session_id_param: sessionId,
+        starter_id_param: userId
       });
 
       if (error) throw error;
