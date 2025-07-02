@@ -703,6 +703,80 @@ export type Database = {
           },
         ]
       }
+      club_memberships: {
+        Row: {
+          club_id: string
+          id: string
+          joined_at: string
+          role: string
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          club_id: string
+          id?: string
+          joined_at?: string
+          role?: string
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          club_id?: string
+          id?: string
+          joined_at?: string
+          role?: string
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_memberships_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clubs: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          is_public: boolean
+          logo_url: string | null
+          member_count: number
+          name: string
+          owner_id: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          logo_url?: string | null
+          member_count?: number
+          name: string
+          owner_id: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          is_public?: boolean
+          logo_url?: string | null
+          member_count?: number
+          name?: string
+          owner_id?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       coach_achievement_progress: {
         Row: {
           achievement_id: string

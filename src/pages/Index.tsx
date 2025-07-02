@@ -20,6 +20,7 @@ import { CoachAchievementsDisplay } from "@/components/achievements/CoachAchieve
 import { CoachOverviewCards } from "@/components/coach/dashboard/CoachOverviewCards";
 import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickActions";
 import { MobileActionPanel } from "@/components/dashboard/mobile";
+import { MyClubsSection, ClubDiscovery } from "@/components/clubs";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
@@ -317,6 +318,16 @@ const Index = () => {
                 onRestoreHP={handleRestoreHP}
                 onAddTokens={handleAddTokens}
               />
+            </ErrorBoundary>
+
+            {/* My Clubs Section */}
+            <ErrorBoundary fallbackTitle="My Clubs Error">
+              <MyClubsSection />
+            </ErrorBoundary>
+
+            {/* Club Discovery Section */}
+            <ErrorBoundary fallbackTitle="Club Discovery Error">
+              <ClubDiscovery />
             </ErrorBoundary>
           </>
         )}

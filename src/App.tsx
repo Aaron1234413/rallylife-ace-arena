@@ -35,6 +35,7 @@ import JoinSocialPlay from "@/pages/JoinSocialPlay";
 import CoachDashboard from "@/pages/CoachDashboard";
 import Sessions from "@/pages/Sessions";
 import CreateSession from "@/pages/CreateSession";
+import Club from "@/pages/Club";
 
 const queryClient = new QueryClient();
 
@@ -74,6 +75,7 @@ function App() {
                   <Route path="/end-training" element={<ProtectedRoute><EndTraining /></ProtectedRoute>} />
                   <Route path="/start-social-play" element={<ProtectedRoute><StartSocialPlay /></ProtectedRoute>} />
                   <Route path="/join-social-play" element={<ProtectedRoute><JoinSocialPlay /></ProtectedRoute>} />
+                  <Route path="/club/:clubId" element={<ProtectedRoute><Club /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </AppLayout>
