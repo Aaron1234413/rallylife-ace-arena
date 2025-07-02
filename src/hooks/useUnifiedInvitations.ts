@@ -348,6 +348,13 @@ export function useUnifiedInvitations() {
       if (invitation.invitation_category === 'match') {
         // Handle match invitation acceptance
         console.log('🎾 [UNIFIED] Creating match session for accepted invitation...');
+        
+        // DEBUG: Log the complete invitation object to see all fields
+        console.log('🔍 [DEBUG] Complete invitation object:', invitation);
+        console.log('🔍 [DEBUG] invitation.invitation_type:', invitation.invitation_type);
+        console.log('🔍 [DEBUG] invitation.inviter_id:', invitation.inviter_id);
+        console.log('🔍 [DEBUG] user.id:', user.id);
+        console.log('🔍 [DEBUG] user.email:', user.email);
 
         const sessionData = {
           player_id: invitation.inviter_id,
@@ -362,6 +369,9 @@ export function useUnifiedInvitations() {
           // Add stakes information to session metadata
           match_notes: invitation.is_challenge ? `Challenge stakes: ${invitation.stakes_tokens} tokens` : null
         };
+        
+        // DEBUG: Log the sessionData being inserted
+        console.log('🔍 [DEBUG] Session data to be inserted:', sessionData);
 
         const { data: session, error: sessionError } = await supabase
           .from('active_match_sessions')
