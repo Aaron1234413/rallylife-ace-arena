@@ -71,7 +71,20 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
       } else if (activeTab === 'available') {
         query = query.eq('status', 'waiting').eq('is_private', false);
       } else if (activeTab === 'completed') {
-        query = query.eq('status', 'completed');
+        // For completed sessions, get sessions where user is creator or participant
+        const { data: participantSessions } = await supabase
+          .from('session_participants')
+          .select('session_id')
+          .eq('user_id', userId)
+          .eq('status', 'joined');
+        
+        const sessionIds = participantSessions?.map(p => p.session_id) || [];
+        
+        if (sessionIds.length > 0) {
+          query = query.eq('status', 'completed').or(`creator_id.eq.${userId},id.in.(${sessionIds.join(',')})`);
+        } else {
+          query = query.eq('status', 'completed').eq('creator_id', userId);
+        }
       }
 
       const { data, error } = await query.order('created_at', { ascending: false });
@@ -291,7 +304,10 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
         session_duration_minutes: sessionDurationMinutes || null
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Database error completing session:', error);
+        throw error;
+      }
 
       const result = data as { 
         success: boolean; 
@@ -352,8 +368,11 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
           toast.success(message);
         }
         // Force refresh sessions after successful completion
-        fetchSessions();
+        console.log('Session completed successfully, refreshing sessions...');
+        await fetchSessions();
+        console.log('Sessions refreshed after completion');
       } else {
+        console.error('Session completion failed:', result.error);
         toast.error(result.error || 'Failed to complete session');
       }
     } catch (error) {
