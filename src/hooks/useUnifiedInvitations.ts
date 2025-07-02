@@ -20,6 +20,10 @@ interface UnifiedInvitation {
   responded_at?: string;
   updated_at: string;
   session_data?: Record<string, any>;
+  stakes_tokens?: number;
+  stakes_premium_tokens?: number;
+  challenge_id?: string;
+  is_challenge?: boolean;
 }
 
 // Create match invitation parameters
@@ -71,6 +75,10 @@ const toUnifiedInvitation = (data: any): UnifiedInvitation => ({
   responded_at: data.responded_at,
   updated_at: data.updated_at,
   session_data: data.session_data || {},
+  stakes_tokens: data.stakes_tokens || 0,
+  stakes_premium_tokens: data.stakes_premium_tokens || 0,
+  challenge_id: data.challenge_id,
+  is_challenge: data.is_challenge || false,
 });
 
 export function useUnifiedInvitations() {
@@ -304,6 +312,39 @@ export function useUnifiedInvitations() {
         throw new Error('Invitation not found');
       }
 
+      // Validate token balance for stakes-based challenges
+      if (invitation.is_challenge && invitation.stakes_tokens > 0) {
+        console.log('💰 [UNIFIED] Validating token balance for stakes challenge...');
+        
+        const { data: tokenBalance, error: balanceError } = await supabase
+          .from('token_balances')
+          .select('regular_tokens, premium_tokens')
+          .eq('player_id', user.id)
+          .single();
+
+        if (balanceError || !tokenBalance) {
+          throw new Error('Unable to verify token balance');
+        }
+
+        if (tokenBalance.regular_tokens < invitation.stakes_tokens) {
+          throw new Error(`Insufficient tokens. You need ${invitation.stakes_tokens} tokens but only have ${tokenBalance.regular_tokens}`);
+        }
+
+        // Escrow the invitee's tokens (match the stakes)
+        console.log('🔒 [UNIFIED] Escrowing invitee tokens for challenge...');
+        const escrowResult = await supabase.rpc('spend_tokens', {
+          user_id: user.id,
+          amount: invitation.stakes_tokens,
+          token_type: 'regular',
+          source: 'challenge_stakes',
+          description: 'Stakes escrowed for challenge acceptance'
+        });
+
+        if (escrowResult.error) {
+          throw new Error('Failed to escrow tokens for challenge');
+        }
+      }
+
       if (invitation.invitation_category === 'match') {
         // Handle match invitation acceptance
         console.log('🎾 [UNIFIED] Creating match session for accepted invitation...');
@@ -317,7 +358,9 @@ export function useUnifiedInvitations() {
           start_time: new Date().toISOString(),
           status: 'active' as const,
           sets: [{ playerScore: '', opponentScore: '', completed: false }],
-          current_set: 0
+          current_set: 0,
+          // Add stakes information to session metadata
+          match_notes: invitation.is_challenge ? `Challenge stakes: ${invitation.stakes_tokens} tokens` : null
         };
 
         const { data: session, error: sessionError } = await supabase
@@ -328,6 +371,16 @@ export function useUnifiedInvitations() {
 
         if (sessionError) {
           console.error('❌ [UNIFIED] Error creating match session:', sessionError);
+          // If session creation fails and we escrowed tokens, we should refund them
+          if (invitation.is_challenge && invitation.stakes_tokens > 0) {
+            await supabase.rpc('add_tokens', {
+              user_id: user.id,
+              amount: invitation.stakes_tokens,
+              token_type: 'regular',
+              source: 'challenge_refund',
+              description: 'Refund for failed challenge acceptance'
+            });
+          }
           throw sessionError;
         }
 
@@ -345,7 +398,14 @@ export function useUnifiedInvitations() {
         if (updateError) throw updateError;
 
         console.log('✅ [UNIFIED] Match invitation accepted and session created');
-        return { type: 'match', session };
+        
+        if (invitation.is_challenge) {
+          toast.success(`Challenge accepted! Match started with ${invitation.stakes_tokens} token stakes!`);
+        } else {
+          toast.success('Match invitation accepted! Match started!');
+        }
+        
+        return { type: 'match', session, stakes: invitation.stakes_tokens || 0 };
 
       } else {
         // Handle social play invitation acceptance
@@ -383,10 +443,13 @@ export function useUnifiedInvitations() {
         }
 
         console.log('✅ [UNIFIED] Social play invitation accepted');
+        toast.success('Social play invitation accepted!');
+        
         return { type: 'social_play', session_id: invitation.match_session_id };
       }
     } catch (error) {
       console.error('💥 [UNIFIED] Error in acceptInvitation:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to accept invitation');
       throw error;
     } finally {
       await fetchReceivedInvitations();
@@ -398,6 +461,33 @@ export function useUnifiedInvitations() {
     if (!user) return;
 
     try {
+      console.log('❌ [UNIFIED] Declining invitation:', invitationId);
+
+      // First fetch the invitation to check for stakes and refund to inviter
+      const { data: invitation, error: fetchError } = await supabase
+        .from('match_invitations')
+        .select('*')
+        .eq('id', invitationId)
+        .eq('invitee_id', user.id)
+        .single();
+
+      if (fetchError || !invitation) {
+        console.error('❌ [UNIFIED] Error fetching invitation for decline:', fetchError);
+        throw new Error('Invitation not found');
+      }
+
+      // Refund escrowed tokens to the inviter if it's a challenge
+      if (invitation.is_challenge && invitation.stakes_tokens > 0) {
+        console.log('💰 [UNIFIED] Refunding escrowed tokens to inviter for declined challenge...');
+        await supabase.rpc('add_tokens', {
+          user_id: invitation.inviter_id,
+          amount: invitation.stakes_tokens,
+          token_type: 'regular',
+          source: 'challenge_refund',
+          description: 'Refund for declined challenge invitation'
+        });
+      }
+
       const { error } = await supabase
         .from('match_invitations')
         .update({
@@ -414,11 +504,18 @@ export function useUnifiedInvitations() {
 
       console.log('✅ [UNIFIED] Invitation declined successfully');
       
+      if (invitation.is_challenge && invitation.stakes_tokens > 0) {
+        toast.success(`Challenge declined and ${invitation.stakes_tokens} tokens refunded to challenger`);
+      } else {
+        toast.success('Invitation declined');
+      }
+      
       await fetchReceivedInvitations();
       await fetchSentInvitations();
       
     } catch (error) {
       console.error('Error in declineInvitation:', error);
+      toast.error('Failed to decline invitation');
       throw error;
     }
   };
@@ -427,6 +524,33 @@ export function useUnifiedInvitations() {
     if (!user) return;
 
     try {
+      console.log('❌ [UNIFIED] Canceling invitation:', invitationId);
+
+      // First fetch the invitation to check for stakes
+      const { data: invitation, error: fetchError } = await supabase
+        .from('match_invitations')
+        .select('*')
+        .eq('id', invitationId)
+        .eq('inviter_id', user.id)
+        .single();
+
+      if (fetchError || !invitation) {
+        console.error('❌ [UNIFIED] Error fetching invitation for cancellation:', fetchError);
+        throw new Error('Invitation not found');
+      }
+
+      // Refund escrowed tokens if it's a challenge
+      if (invitation.is_challenge && invitation.stakes_tokens > 0) {
+        console.log('💰 [UNIFIED] Refunding escrowed tokens for canceled challenge...');
+        await supabase.rpc('add_tokens', {
+          user_id: user.id,
+          amount: invitation.stakes_tokens,
+          token_type: 'regular',
+          source: 'challenge_refund',
+          description: 'Refund for canceled challenge invitation'
+        });
+      }
+
       const { error } = await supabase
         .from('match_invitations')
         .update({
@@ -443,10 +567,17 @@ export function useUnifiedInvitations() {
 
       console.log('✅ [UNIFIED] Invitation canceled successfully');
       
+      if (invitation.is_challenge && invitation.stakes_tokens > 0) {
+        toast.success(`Challenge canceled and ${invitation.stakes_tokens} tokens refunded`);
+      } else {
+        toast.success('Invitation canceled successfully');
+      }
+      
       await fetchSentInvitations();
       
     } catch (error) {
       console.error('Error in cancelInvitation:', error);
+      toast.error('Failed to cancel invitation');
       throw error;
     }
   };
