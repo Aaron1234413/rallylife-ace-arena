@@ -10,7 +10,6 @@ import {
   Zap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
-import { getActivityRecommendations, calculateRecoveryNeeded } from '@/utils/hpCalculations';
 
 interface HPStatusAlertProps {
   hpPercentage: number;
@@ -30,20 +29,12 @@ export function HPStatusAlert({
   className 
 }: HPStatusAlertProps) {
   const getStatusConfig = () => {
-    const recommendations = getActivityRecommendations(currentHP, maxHP);
-    const recoveryForMatch = calculateRecoveryNeeded('match', 90);
-    
     if (hpPercentage >= 80) {
-      const topRecommendations = recommendations.slice(0, 2);
-      const recText = topRecommendations.length > 0 
-        ? `✅ Current HP supports ${topRecommendations.map(r => r.description).join(' or ')}`
-        : '✅ Ready for any activity!';
-      
       return {
         icon: CheckCircle,
         iconColor: 'text-green-500',
         message: 'Excellent health! You\'re ready for any challenge.',
-        subMessage: recText,
+        subMessage: 'Keep up the great work with consistent activity!',
         bgColor: 'bg-green-50 border-green-200',
         showAction: false,
         ariaLabel: 'Health status is excellent'
@@ -51,16 +42,11 @@ export function HPStatusAlert({
     }
     
     if (hpPercentage >= 60) {
-      const topRecommendation = recommendations[0];
-      const recText = topRecommendation 
-        ? `✅ Current HP supports ${topRecommendation.description}`
-        : '💡 Consider lighter activities to preserve HP';
-      
       return {
         icon: Heart,
         iconColor: 'text-blue-500',
         message: 'Good health status. Stay active to maintain your momentum.',
-        subMessage: recText,
+        subMessage: 'Consider a light training session to boost your HP.',
         bgColor: 'bg-blue-50 border-blue-200',
         showAction: false,
         ariaLabel: 'Health status is good'
@@ -72,7 +58,7 @@ export function HPStatusAlert({
         icon: AlertTriangle,
         iconColor: 'text-yellow-500',
         message: 'Your HP is getting low. Time for some wellbeing!',
-        subMessage: `🔋 Need ${recoveryForMatch.description.split(' ').slice(0, 2).join(' ')} to offset intensive activities`,
+        subMessage: 'Regular wellbeing sessions help maintain peak performance.',
         bgColor: 'bg-yellow-50 border-yellow-200',
         showAction: true,
         actionText: 'Open Recovery Center',
@@ -86,7 +72,7 @@ export function HPStatusAlert({
         icon: AlertTriangle,
         iconColor: 'text-orange-500',
         message: 'Low HP detected! Recovery is strongly recommended.',
-        subMessage: '💡 After 1hr of activity, additional time has minimal HP cost',
+        subMessage: 'Don\'t push yourself too hard - rest and recharge.',
         bgColor: 'bg-orange-50 border-orange-200',
         showAction: true,
         actionText: 'Start Recovery Now',
@@ -99,7 +85,7 @@ export function HPStatusAlert({
       icon: Zap,
       iconColor: 'text-red-500',
       message: 'CRITICAL: Your HP is dangerously low!',
-      subMessage: `🔋 Need ${recoveryForMatch.description} for safe activity`,
+      subMessage: 'Immediate recovery is essential for your wellbeing.',
       bgColor: 'bg-red-50 border-red-200',
       showAction: true,
       actionText: 'Emergency Recovery',
