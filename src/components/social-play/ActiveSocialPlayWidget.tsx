@@ -20,11 +20,9 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
   onAddXP,
   onRestoreHP
 }) => {
-  console.log('🎾 [ACTIVE_SOCIAL_PLAY] Widget mounted');
-  
   const { activeSession, startSession, endSession, getDurationMinutes, loading } = useSocialPlaySession();
   const { activeSession: dbSession, cleanupExpiredSessions, isCleaningUp } = useSocialPlaySessions();
-  const { receivedInvitations, sentInvitations, loading: invitationsLoading } = useUnifiedInvitations();
+  const { receivedInvitations, sentInvitations } = useUnifiedInvitations();
   const [duration, setDuration] = useState(0);
   const [showEndModal, setShowEndModal] = useState(false);
   const [acceptedInvitations, setAcceptedInvitations] = useState(0);
@@ -44,22 +42,15 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
 
   // Calculate accepted invitations for current session
   useEffect(() => {
-    try {
-      if (!dbSession) return;
-      
-      const socialPlayInvitations = sentInvitations.filter(
-        inv => inv.invitation_category === 'social_play' && 
-               inv.session_data?.eventTitle === dbSession.notes
-      );
-      
-      const acceptedCount = socialPlayInvitations.filter(inv => inv.status === 'accepted').length;
-      setAcceptedInvitations(acceptedCount);
-      
-      console.log('🎾 [ACTIVE_SOCIAL_PLAY] Calculated accepted invitations:', acceptedCount);
-    } catch (error) {
-      console.error('❌ [ACTIVE_SOCIAL_PLAY] Error calculating accepted invitations:', error);
-      setAcceptedInvitations(0);
-    }
+    if (!dbSession) return;
+    
+    const socialPlayInvitations = sentInvitations.filter(
+      inv => inv.invitation_category === 'social_play' && 
+             inv.session_data?.eventTitle === dbSession.notes
+    );
+    
+    const acceptedCount = socialPlayInvitations.filter(inv => inv.status === 'accepted').length;
+    setAcceptedInvitations(acceptedCount);
   }, [sentInvitations, dbSession]);
 
   const handleEndSession = async () => {

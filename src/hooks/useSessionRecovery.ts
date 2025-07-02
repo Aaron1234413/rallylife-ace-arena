@@ -22,7 +22,6 @@ export function useSessionRecovery(): SessionRecovery {
   useEffect(() => {
     const detectActiveSessions = async () => {
       if (!user) {
-        console.log('🔄 [SESSION_RECOVERY] No user, setting loading false');
         setRecovery({
           hasActiveMatchSession: false,
           hasActiveSocialPlaySession: false,
@@ -32,7 +31,6 @@ export function useSessionRecovery(): SessionRecovery {
       }
 
       try {
-        console.log('🔄 [SESSION_RECOVERY] Detecting active sessions for user:', user.id);
         // Check for active match sessions
         const { data: matchSession } = await supabase
           .from('active_match_sessions')
@@ -103,7 +101,7 @@ export function useSessionRecovery(): SessionRecovery {
         });
 
       } catch (error) {
-        console.error('❌ [SESSION_RECOVERY] Error detecting active sessions:', error);
+        console.error('Error detecting active sessions:', error);
         setRecovery({
           hasActiveMatchSession: false,
           hasActiveSocialPlaySession: false,
