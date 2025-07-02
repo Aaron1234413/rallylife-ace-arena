@@ -10,6 +10,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { MatchSessionProvider } from "@/contexts/MatchSessionContext";
 import { TrainingSessionProvider } from "@/contexts/TrainingSessionContext";
 import { SocialPlaySessionProvider } from "@/contexts/SocialPlaySessionContext";
+import { FeatureFlagProvider } from "@/contexts/FeatureFlagContext";
 
 import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
@@ -43,9 +44,10 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <TrainingSessionProvider>
-        <MatchSessionProvider>
-          <SocialPlaySessionProvider>
+      <FeatureFlagProvider>
+        <TrainingSessionProvider>
+          <MatchSessionProvider>
+            <SocialPlaySessionProvider>
             <BrowserRouter>
               <AppLayout>
                 <Toaster />
@@ -81,10 +83,11 @@ function App() {
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </AppLayout>
-            </BrowserRouter>
-          </SocialPlaySessionProvider>
-        </MatchSessionProvider>
-      </TrainingSessionProvider>
+              </BrowserRouter>
+            </SocialPlaySessionProvider>
+          </MatchSessionProvider>
+        </TrainingSessionProvider>
+      </FeatureFlagProvider>
     </QueryClientProvider>
   );
 }

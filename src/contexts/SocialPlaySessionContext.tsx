@@ -2,6 +2,7 @@
 import React, { createContext, useContext, ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 import { useUnifiedSocialPlay } from '@/hooks/useUnifiedSocialPlay';
+import { useFeatureFlagContext } from '@/contexts/FeatureFlagContext';
 import { SafeContextProvider } from '@/components/ui/safe-context-provider';
 
 interface ActiveSession {
@@ -36,9 +37,12 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [loading, setLoading] = useState(false);
   
-  // Use the unified social play hook with safety features
+  // Get feature flags to determine which system to use
+  const { shouldUseUnifiedSessions, shouldMigrateSocialPlay } = useFeatureFlagContext();
+  
+  // Use the unified social play hook with intelligent feature flag control
   const { updateSessionStatus, error } = useUnifiedSocialPlay({
-    useUnified: false, // Start with legacy system for safety
+    useUnified: shouldUseUnifiedSessions && shouldMigrateSocialPlay,
     fallbackToLegacy: true,
     onError: (error, source) => {
       console.error(`SocialPlaySession error from ${source}:`, error);
