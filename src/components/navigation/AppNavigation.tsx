@@ -7,11 +7,11 @@ import {
   MessageSquare, 
   Rss,
   LogOut,
-  Search,
   User,
   Bolt,
   Store,
-  GraduationCap
+  GraduationCap,
+  Users
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -22,9 +22,9 @@ export function AppNavigation() {
   // Basic navigation items available to all users
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: Home },
+    { path: '/sessions', label: 'Sessions', icon: Users },
     { path: '/pulse', label: 'Pulse', icon: Bolt },
     { path: '/academy', label: 'Academy', icon: GraduationCap },
-    { path: '/search', label: 'Search', icon: Search },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
     { path: '/feed', label: 'Feed', icon: Rss },
     { path: '/store', label: 'Store', icon: Store },
