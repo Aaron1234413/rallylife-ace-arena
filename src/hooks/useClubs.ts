@@ -117,8 +117,12 @@ export function useClubs() {
   }) => {
     if (!user) throw new Error('User not authenticated');
 
+    console.log('Creating club with data:', clubData);
+    console.log('Current user:', user.id);
+
     try {
       // Create the club first
+      console.log('Inserting club...');
       const { data: club, error: clubError } = await supabase
         .from('clubs')
         .insert({
@@ -130,9 +134,15 @@ export function useClubs() {
         .select()
         .single();
 
-      if (clubError) throw clubError;
+      if (clubError) {
+        console.error('Club creation error:', clubError);
+        throw clubError;
+      }
+
+      console.log('Club created successfully:', club);
 
       // Create the owner membership
+      console.log('Creating owner membership...');
       const { error: membershipError } = await supabase
         .from('club_memberships')
         .insert({
@@ -148,7 +158,12 @@ export function useClubs() {
           }
         });
 
-      if (membershipError) throw membershipError;
+      if (membershipError) {
+        console.error('Membership creation error:', membershipError);
+        throw membershipError;
+      }
+
+      console.log('Membership created successfully');
 
       toast.success('Club created successfully!');
       await fetchMyClubs();
