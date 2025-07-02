@@ -234,21 +234,21 @@ export function useUnifiedInvitations() {
         eventTitle: params.eventTitle
       });
 
-      // Find the session by title to link the invitation
-      const { data: sessions, error: sessionError } = await supabase
-        .from('social_play_sessions')
-        .select('id')
-        .eq('created_by', user.id)
-        .eq('notes', params.eventTitle)
-        .eq('status', 'pending')
-        .order('created_at', { ascending: false })
-        .limit(1);
+      // Temporarily disabled - social play sessions migration needed
+      // const { data: sessions, error: sessionError } = await supabase
+      //   .from('social_play_sessions')
+      //   .select('id')
+      //   .eq('created_by', user.id)
+      //   .eq('notes', params.eventTitle)
+      //   .eq('status', 'pending')
+      //   .order('created_at', { ascending: false })
+      //   .limit(1);
 
-      if (sessionError) {
-        console.error('Error finding session:', sessionError);
-      }
+      // if (sessionError) {
+      //   console.error('Error finding session:', sessionError);
+      // }
 
-      const sessionId = sessions?.[0]?.id || null;
+      const sessionId = null; // Disabled for now
 
       const invitationData = {
         inviter_id: user.id,
@@ -435,21 +435,22 @@ export function useUnifiedInvitations() {
 
         // If there's a linked session, add the user as a participant
         if (invitation.match_session_id) {
-          const { error: participantError } = await supabase
-            .from('social_play_participants')
-            .insert({
-              session_id: invitation.match_session_id,
-              user_id: user.id,
-              session_creator_id: invitation.inviter_id,
-              status: 'joined',
-              role: 'invited_player',
-              joined_at: new Date().toISOString()
-            });
+          // Temporarily disabled - social play participants migration needed
+          // const { error: participantError } = await supabase
+          //   .from('social_play_participants')
+          //   .insert({
+          //     session_id: invitation.match_session_id,
+          //     user_id: user.id,
+          //     session_creator_id: invitation.inviter_id,
+          //     status: 'joined',
+          //     role: 'invited_player',
+          //     joined_at: new Date().toISOString()
+          //   });
 
-          // Don't throw error if participant already exists
-          if (participantError && !participantError.message.includes('duplicate')) {
-            console.error('Error adding participant:', participantError);
-          }
+          // Don't throw error if participant already exists (disabled for now)
+          // if (participantError && !participantError.message.includes('duplicate')) {
+          //   console.error('Error adding participant:', participantError);
+          // }
         }
 
         console.log('✅ [UNIFIED] Social play invitation accepted');

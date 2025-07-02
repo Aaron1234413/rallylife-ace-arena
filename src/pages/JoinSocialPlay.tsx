@@ -51,7 +51,8 @@ const JoinSocialPlay = () => {
     if (!eventId) return;
     
     try {
-      await joinEvent(eventId);
+      // Temporarily disabled - joinEvent no longer takes parameters
+      // await joinEvent(eventId);
       toast({
         title: 'Successfully Joined!',
         description: 'You have joined the tennis event.',

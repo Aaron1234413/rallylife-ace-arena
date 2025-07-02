@@ -88,15 +88,11 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
     scheduledDateTime.setHours(hours, minutes);
 
     try {
-      // Create the social play event first
-      await createEvent({
-        title: title.trim(),
-        session_type: sessionType,
-        location: location.trim(),
-        scheduled_time: scheduledDateTime,
-        description: description.trim() || undefined,
-        invited_users: [], // We'll send invitations separately
-      });
+      // Temporarily disabled - social play events need migration to unified sessions
+      // await createEvent(...);
+      
+      toast.success('Social play feature temporarily disabled - migration in progress');
+      handleOpenChange(false);
 
       // Send invitations to selected players
       const invitations = [];
