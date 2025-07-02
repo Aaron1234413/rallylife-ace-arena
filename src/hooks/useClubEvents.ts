@@ -54,10 +54,7 @@ export function useClubEvents() {
     try {
       const { data, error } = await supabase
         .from('club_events')
-        .select(`
-          *,
-          organizer_profile:profiles!club_events_organizer_id_fkey(full_name, avatar_url)
-        `)
+        .select('*')
         .eq('club_id', clubId)
         .order('start_datetime', { ascending: true });
 
@@ -79,10 +76,18 @@ export function useClubEvents() {
           .eq('user_id', user?.id || '')
           .single();
 
+        // Get organizer profile
+        const { data: organizerProfile } = await supabase
+          .from('profiles')
+          .select('full_name, avatar_url')
+          .eq('id', event.organizer_id)
+          .single();
+
         return {
           ...event,
           participant_count: count || 0,
-          is_registered: !!userRegistration
+          is_registered: !!userRegistration,
+          organizer_profile: organizerProfile
         };
       }));
 
