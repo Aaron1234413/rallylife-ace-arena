@@ -290,6 +290,10 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
         success: boolean; 
         error?: string; 
         session_type: string;
+        session_duration_minutes?: number;
+        xp_granted?: number;
+        hp_cost?: number;
+        hp_cap_applied?: boolean;
         total_stakes?: number;
         distribution_type?: string;
         organizer_share?: number;
@@ -306,12 +310,37 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
           const refundMessage = result.total_stakes_refunded > 0 ? ` • ${result.total_stakes_refunded} tokens refunded` : '';
           
           toast.success(`Wellbeing session completed! ${hpMessage}${participantMessage}${refundMessage}`);
-        } else if (result.total_stakes && result.total_stakes > 0) {
-          toast.success(
-            `Session completed! Stakes distributed (${result.distribution_type})`
-          );
         } else {
-          toast.success('Session completed successfully!');
+          // Format duration for display
+          const duration = result.session_duration_minutes || 0;
+          const hours = Math.floor(duration / 60);
+          const minutes = duration % 60;
+          const durationText = hours > 0 ? `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}` : `${minutes}m`;
+          
+          // Create completion message with XP/HP details
+          const sessionTypeText = result.session_type === 'social_play' ? 'Social play' : 
+                                  result.session_type === 'match' ? 'Match' : 
+                                  result.session_type.charAt(0).toUpperCase() + result.session_type.slice(1);
+          
+          const xpText = result.xp_granted ? `+${result.xp_granted} XP` : '';
+          const hpText = result.hp_cost ? `-${result.hp_cost} HP` : '';
+          const capText = result.hp_cap_applied ? ' (capped)' : '';
+          
+          let message = `${durationText} ${sessionTypeText.toLowerCase()} complete!`;
+          if (xpText && hpText) {
+            message += ` ${xpText}, ${hpText}${capText}`;
+          } else if (xpText) {
+            message += ` ${xpText}`;
+          } else if (hpText) {
+            message += ` ${hpText}${capText}`;
+          }
+          
+          // Add stakes info if relevant
+          if (result.total_stakes && result.total_stakes > 0) {
+            message += ` • Stakes distributed`;
+          }
+          
+          toast.success(message);
         }
       } else {
         toast.error(result.error || 'Failed to complete session');
