@@ -4,7 +4,7 @@ import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
-import { SafeContextProvider } from '@/components/ui/safe-context-provider';
+
 
 interface TrainingSessionData {
   sessionId?: string;  // NEW: Track unified session ID
@@ -132,27 +132,17 @@ export function TrainingSessionProvider({ children }: { children: ReactNode }) {
   };
 
   return (
-    <SafeContextProvider 
-      requireAuth={true}
-      loadingMessage="Loading training session..."
-      fallbackComponent={
-        <div className="text-center p-4">
-          <p className="text-muted-foreground">Training sessions unavailable</p>
-        </div>
-      }
-    >
-      <TrainingSessionContext.Provider value={{
-        sessionData,
-        updateSessionData,
-        clearSession,
-        isSessionActive,
-        createTrainingSession,
-        startTrainingSession,
-        completeTrainingSession
-      }}>
-        {children}
-      </TrainingSessionContext.Provider>
-    </SafeContextProvider>
+    <TrainingSessionContext.Provider value={{
+      sessionData,
+      updateSessionData,
+      clearSession,
+      isSessionActive,
+      createTrainingSession,
+      startTrainingSession,
+      completeTrainingSession
+    }}>
+      {children}
+    </TrainingSessionContext.Provider>
   );
 }
 
