@@ -43,18 +43,19 @@ export function useSocialPlayEvents() {
     queryFn: async () => {
       if (!user?.id) return [];
       
-      // Get events user created
+      // Get events user created using unified sessions
       const { data: createdEvents, error: createdError } = await supabase
-        .from('social_play_sessions')
+        .from('sessions')
         .select(`
           *,
-          creator:profiles!social_play_sessions_created_by_fkey(id, full_name, avatar_url),
-          participants:social_play_participants(
+          creator:profiles!sessions_creator_id_fkey(id, full_name, avatar_url),
+          participants:session_participants(
             *,
-            user:profiles!social_play_participants_user_id_fkey(id, full_name, avatar_url)
+            user:profiles!session_participants_user_id_fkey(id, full_name, avatar_url)
           )
         `)
-        .eq('created_by', user.id)
+        .eq('creator_id', user.id)
+        .eq('session_type', 'social_play')
         .order('created_at', { ascending: false });
       
       if (createdError) throw createdError;
@@ -62,13 +63,13 @@ export function useSocialPlayEvents() {
       // Transform the results to match expected interface with proper type casting
       const transformedEvents: SocialPlayEvent[] = (createdEvents || []).map(event => ({
         id: event.id,
-        created_by: event.created_by,
-        title: `${event.session_type} Event`, // Generate title from session type
-        session_type: event.session_type as 'singles' | 'doubles', // Type cast to expected union type
+        created_by: event.creator_id, // Use creator_id from unified sessions
+        title: `${event.format} Event`, // Generate title from format
+        session_type: event.format as 'singles' | 'doubles', // Use format field
         location: event.location || '',
         scheduled_time: event.created_at, // Use created_at as scheduled time for now
         description: event.notes,
-        max_participants: event.session_type === 'singles' ? 2 : 4,
+        max_participants: event.max_players,
         status: 'open' as const, // Type cast to expected union type
         created_at: event.created_at,
         creator: event.creator,
@@ -99,16 +100,19 @@ export function useSocialPlayEvents() {
     }) => {
       if (!user?.id) throw new Error('User not authenticated');
       
-      // Create the event (reusing existing table structure)
+      // Create the event using unified sessions table
       const { data: event, error: eventError } = await supabase
-        .from('social_play_sessions')
+        .from('sessions')
         .insert({
-          created_by: user.id,
-          session_type: eventData.session_type,
-          competitive_level: 'medium', // Default for now
+          creator_id: user.id,
+          session_type: 'social_play',
+          format: eventData.session_type === 'singles' ? 'singles' : 'doubles',
+          max_players: eventData.session_type === 'singles' ? 2 : 4,
+          stakes_amount: 0, // Social events have no stakes by default
           location: eventData.location,
           notes: eventData.description,
-          status: 'pending' // Will be 'open' in future iterations
+          status: 'waiting',
+          is_private: false
         })
         .select()
         .single();
@@ -117,11 +121,10 @@ export function useSocialPlayEvents() {
 
       // Add creator as participant
       const { error: creatorError } = await supabase
-        .from('social_play_participants')
+        .from('session_participants')
         .insert({
           session_id: event.id,
           user_id: user.id,
-          session_creator_id: user.id,
           status: 'joined',
           joined_at: new Date().toISOString()
         });
@@ -133,12 +136,11 @@ export function useSocialPlayEvents() {
         const invitedParticipants = eventData.invited_users.map(userId => ({
           session_id: event.id,
           user_id: userId,
-          session_creator_id: user.id,
           status: 'invited' as const
         }));
 
         const { error: participantsError } = await supabase
-          .from('social_play_participants')
+          .from('session_participants')
           .insert(invitedParticipants);
         
         if (participantsError) throw participantsError;
@@ -169,7 +171,7 @@ export function useSocialPlayEvents() {
       
       // Check if user is already a participant
       const { data: existingParticipant, error: checkError } = await supabase
-        .from('social_play_participants')
+        .from('session_participants')
         .select('id')
         .eq('session_id', eventId)
         .eq('user_id', user.id)
@@ -183,11 +185,10 @@ export function useSocialPlayEvents() {
 
       // Add user as participant
       const { error: joinError } = await supabase
-        .from('social_play_participants')
+        .from('session_participants')
         .insert({
           session_id: eventId,
           user_id: user.id,
-          session_creator_id: user.id, // This should ideally be the actual creator ID
           status: 'joined',
           joined_at: new Date().toISOString()
         });
