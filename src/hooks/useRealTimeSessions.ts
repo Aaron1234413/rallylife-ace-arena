@@ -283,6 +283,8 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
 
   const completeSession = async (sessionId: string, winnerId?: string, sessionDurationMinutes?: number) => {
     try {
+      console.log('Completing session:', sessionId, 'winner:', winnerId, 'duration:', sessionDurationMinutes);
+      
       const { data, error } = await supabase.rpc('complete_session', {
         session_id_param: sessionId,
         winner_id_param: winnerId || null,
@@ -307,6 +309,8 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
         participant_count?: number;
         total_stakes_refunded?: number;
       };
+
+      console.log('Complete session result:', result);
 
       if (result.success) {
         if (result.session_type === 'wellbeing') {
@@ -347,6 +351,8 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
           
           toast.success(message);
         }
+        // Force refresh sessions after successful completion
+        fetchSessions();
       } else {
         toast.error(result.error || 'Failed to complete session');
       }
