@@ -73,9 +73,34 @@ export function WellbeingModeSelector({ onModeSelect, children }: WellbeingModeS
   const [open, setOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  const handleModeSelect = (mode: WellbeingMode) => {
-    onModeSelect(mode);
-    setOpen(false);
+  const handleModeSelect = async (mode: WellbeingMode) => {
+    try {
+      // Import supabase
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { toast } = await import('sonner');
+      
+      // Use the meditation RPC function for immediate completion
+      const { data, error } = await supabase.rpc('complete_meditation_session', {
+        meditation_type: mode.id,
+        duration_minutes: 15, // Default duration
+        notes: `${mode.title}: ${mode.description}`
+      });
+      
+      if (error) throw error;
+      
+      toast.success(`${mode.title} session completed!`, {
+        description: `+${(data as any).hp_restored} HP • +${(data as any).xp_gained} XP • +${(data as any).tokens_earned} Tokens`
+      });
+      
+      setOpen(false);
+      onModeSelect(mode);
+      
+    } catch (error) {
+      console.error('Error completing wellbeing session:', error);
+      const { toast } = await import('sonner');
+      toast.error('Failed to complete wellbeing session');
+      setOpen(false);
+    }
   };
 
   const content = (

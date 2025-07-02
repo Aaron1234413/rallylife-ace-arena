@@ -21,9 +21,33 @@ interface WellbeingQuickActionProps {
 export function WellbeingQuickAction({ className, currentHP = 100, maxHP = 100 }: WellbeingQuickActionProps) {
   const navigate = useNavigate();
 
-  const handleClick = () => {
-    // Navigate directly to wellbeing sessions
-    navigate('/sessions?type=wellbeing');
+  const handleClick = async () => {
+    try {
+      // Import supabase
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { toast } = await import('sonner');
+      
+      // Use the meditation RPC function for immediate completion
+      const { data, error } = await supabase.rpc('complete_meditation_session', {
+        meditation_type: 'meditation',
+        duration_minutes: recommendedDuration,
+        notes: `Quick wellbeing session - ${recommendedDuration} minutes`
+      });
+      
+      if (error) throw error;
+      
+      toast.success('Wellbeing session completed!', {
+        description: `+${(data as any).hp_restored} HP • +${(data as any).xp_gained} XP • +${(data as any).tokens_earned} Tokens`
+      });
+      
+      // Navigate to sessions to see the completed session
+      navigate('/sessions');
+      
+    } catch (error) {
+      console.error('Error completing wellbeing session:', error);
+      const { toast } = await import('sonner');
+      toast.error('Failed to complete wellbeing session');
+    }
   };
 
   // Calculate wellbeing session benefits

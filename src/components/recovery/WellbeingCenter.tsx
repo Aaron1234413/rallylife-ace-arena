@@ -46,11 +46,39 @@ const wellbeingModes = [
 export function WellbeingCenter({ onBack }: WellbeingCenterProps) {
   const [activeTab, setActiveTab] = useState('overview');
 
-  const handleModeSelect = (modeId: string) => {
+  const handleModeSelect = async (modeId: string) => {
     console.log('Wellbeing mode selected:', modeId);
     
-    // Navigate to wellbeing sessions
-    window.location.href = '/sessions?type=wellbeing';
+    // Find the selected mode
+    const selectedMode = wellbeingModes.find(mode => mode.id === modeId);
+    if (!selectedMode) return;
+    
+    try {
+      // Import supabase
+      const { supabase } = await import('@/integrations/supabase/client');
+      const { toast } = await import('sonner');
+      
+      // Use the meditation RPC function for immediate completion
+      const { data, error } = await supabase.rpc('complete_meditation_session', {
+        meditation_type: modeId,
+        duration_minutes: 15, // Default duration
+        notes: `${selectedMode.title}: ${selectedMode.description}`
+      });
+      
+      if (error) throw error;
+      
+      toast.success(`${selectedMode.title} session completed!`, {
+        description: `+${(data as any).hp_restored} HP • +${(data as any).xp_gained} XP • +${(data as any).tokens_earned} Tokens`
+      });
+      
+      // Navigate back or refresh
+      onBack();
+      
+    } catch (error) {
+      console.error('Error completing wellbeing session:', error);
+      const { toast } = await import('sonner');
+      toast.error('Failed to complete wellbeing session');
+    }
   };
 
   return (

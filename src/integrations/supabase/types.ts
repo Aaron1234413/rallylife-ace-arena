@@ -4793,11 +4793,13 @@ export type Database = {
         Returns: undefined
       }
       complete_meditation_session: {
-        Args: {
-          user_id: string
-          duration_minutes: number
-          session_type?: string
-        }
+        Args:
+          | {
+              meditation_type?: string
+              duration_minutes?: number
+              notes?: string
+            }
+          | { user_id: string; duration_minutes: number; session_type?: string }
         Returns: Json
       }
       complete_session: {

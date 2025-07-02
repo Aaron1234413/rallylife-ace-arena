@@ -220,37 +220,17 @@ export function UnifiedActivityActions({ onActivityCompleted, className }: Unifi
       if (activity.id === 'wellbeing') {
         console.log('Creating unified wellbeing session:', activity);
         
-        // Create wellbeing session in unified sessions table
-        const { data, error } = await supabase
-          .from('sessions')
-          .insert({
-            creator_id: user.id,
-            session_type: 'wellbeing',
-            format: 'singles',
-            max_players: 1,
-            stakes_amount: 0,
-            status: 'active', // Start immediately
-            is_private: true
-          })
-          .select('id')
-          .single();
-          
+        // Use the meditation RPC function for immediate completion
+        const { data, error } = await supabase.rpc('complete_meditation_session', {
+          meditation_type: 'meditation',
+          duration_minutes: activity.estimatedDuration,
+          notes: `Wellbeing session: ${activity.description}`
+        });
+        
         if (error) throw error;
         
-        // Add participant
-        await supabase
-          .from('session_participants')
-          .insert({
-            session_id: data.id,
-            user_id: user.id,
-            status: 'joined'
-          });
-        
-        // Complete immediately with HP restoration
-        await completeSession(data.id, undefined, activity.estimatedDuration);
-        
         toast.success(`${activity.title} completed!`, {
-          description: 'HP restored • Check your Sessions tab'
+          description: `+${(data as any).hp_restored} HP • +${(data as any).xp_gained} XP • +${(data as any).tokens_earned} Tokens`
         });
         
         await refreshData();
