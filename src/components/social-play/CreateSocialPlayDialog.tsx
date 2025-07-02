@@ -21,6 +21,8 @@ import { useSocialPlayEvents } from '@/hooks/useSocialPlayEvents';
 import { SocialPlayParticipantSelector } from './SocialPlayParticipantSelector';
 import { SocialPlayStakesPreview } from './SocialPlayStakesPreview';
 import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
+import { useUnifiedSocialPlay } from '@/hooks/useUnifiedSocialPlay';
+import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 export interface SelectedPlayer {
@@ -45,6 +47,14 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   onEventCreated,
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
+  const { user } = useAuth();
+  const unifiedSessions = useUnifiedSocialPlay({
+    useUnified: true,
+    fallbackToLegacy: true,
+    onError: (error, source) => {
+      console.error(`CreateSocialPlay error from ${source}:`, error);
+    }
+  });
   const { createEvent, isCreatingEvent } = useSocialPlayEvents();
   const { createSocialPlayInvitation } = useUnifiedInvitations();
 
