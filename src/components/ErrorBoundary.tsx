@@ -25,7 +25,12 @@ class ErrorBoundary extends Component<Props, State> {
   }
 
   public componentDidCatch(error: Error, errorInfo: ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
+    console.error('❌ [ERROR_BOUNDARY] Error caught:', {
+      title: this.props.fallbackTitle,
+      error: error.message,
+      stack: error.stack,
+      errorInfo
+    });
   }
 
   public render() {

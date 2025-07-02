@@ -74,8 +74,13 @@ export function useUnifiedInvitations() {
   const subscriptionInitialized = useRef(false);
   const isSubscribing = useRef(false);
 
+  console.log('🔄 [UNIFIED] Hook initialized with user:', !!user);
+
   const fetchReceivedInvitations = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('🔍 [UNIFIED] No user, skipping fetch received invitations');
+      return;
+    }
 
     try {
       console.log('🔍 [UNIFIED] Fetching received invitations for user:', user.id);
@@ -119,7 +124,10 @@ export function useUnifiedInvitations() {
   };
 
   const fetchSentInvitations = async () => {
-    if (!user) return;
+    if (!user) {
+      console.log('🔍 [UNIFIED] No user, skipping fetch sent invitations');
+      return;
+    }
 
     try {
       console.log('🔍 [UNIFIED] Fetching sent invitations for user:', user.id);
@@ -525,17 +533,27 @@ export function useUnifiedInvitations() {
 
   useEffect(() => {
     if (user && !subscriptionInitialized.current && !isSubscribing.current) {
+      console.log('🏗️ [UNIFIED] Starting initialization for user:', user.id);
       isSubscribing.current = true;
       
       const loadData = async () => {
-        console.log('🏗️ [UNIFIED] Initial data load started for user:', user.id);
-        setLoading(true);
-        await Promise.all([
-          fetchReceivedInvitations(),
-          fetchSentInvitations()
-        ]);
-        setLoading(false);
-        console.log('✅ [UNIFIED] Initial data load completed');
+        try {
+          console.log('🏗️ [UNIFIED] Initial data load started for user:', user.id);
+          setLoading(true);
+          setError(null);
+          
+          await Promise.all([
+            fetchReceivedInvitations(),
+            fetchSentInvitations()
+          ]);
+          
+          console.log('✅ [UNIFIED] Initial data load completed');
+        } catch (error) {
+          console.error('❌ [UNIFIED] Error in initial data load:', error);
+          setError('Failed to load invitation data');
+        } finally {
+          setLoading(false);
+        }
       };
 
       loadData();
@@ -629,6 +647,7 @@ export function useUnifiedInvitations() {
       setReceivedInvitations([]);
       setSentInvitations([]);
       setLoading(false);
+      setError(null);
     }
   }, [user]);
 
