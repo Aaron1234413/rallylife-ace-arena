@@ -7,6 +7,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Settings, 
   Globe, 
@@ -17,6 +18,8 @@ import {
 } from 'lucide-react';
 import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
+import { InviteMembersDialog } from './InviteMembersDialog';
+import { CourtManagement } from './courts/CourtManagement';
 import { toast } from 'sonner';
 
 interface ClubSettingsProps {
@@ -85,15 +88,31 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          Club Settings
-        </CardTitle>
-      </CardHeader>
-      <CardContent>
-        <form onSubmit={handleSubmit} className="space-y-6">
+    <div className="space-y-6">
+      <div>
+        <h2 className="text-2xl font-bold">Club Settings</h2>
+        <p className="text-muted-foreground">
+          Manage your club's settings and configuration
+        </p>
+      </div>
+
+      <Tabs defaultValue="general" className="space-y-6">
+        <TabsList>
+          <TabsTrigger value="general">General</TabsTrigger>
+          <TabsTrigger value="courts">Court Management</TabsTrigger>
+          <TabsTrigger value="invitations">Invitations</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="general">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Settings className="h-5 w-5" />
+                General Settings
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-6">
           {/* Club Logo */}
           <div className="space-y-3">
             <Label>Club Logo</Label>
@@ -224,9 +243,20 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
             >
               Reset Changes
             </Button>
-          </div>
-        </form>
-      </CardContent>
-    </Card>
+                </div>
+              </form>
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        <TabsContent value="courts">
+          <CourtManagement club={club} canManage={isOwner} />
+        </TabsContent>
+
+        <TabsContent value="invitations">
+          <InviteMembersDialog clubId={club.id} />
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }

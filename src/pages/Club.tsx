@@ -24,6 +24,8 @@ import { formatDistanceToNow } from 'date-fns';
 import { ClubDashboard } from '@/components/club/ClubDashboard';
 import { MembersList } from '@/components/club/MembersList';
 import { ClubSettings } from '@/components/club/ClubSettings';
+import { ClubCourtBooking } from '@/components/club/courts/ClubCourtBooking';
+import { MyClubBookings } from '@/components/club/courts/MyClubBookings';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -175,6 +177,8 @@ export default function Club() {
           <TabsList className="bg-white border">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="courts">Courts</TabsTrigger>
+            <TabsTrigger value="my-bookings">My Bookings</TabsTrigger>
             {canEditClub && <TabsTrigger value="settings">Settings</TabsTrigger>}
           </TabsList>
 
@@ -189,6 +193,23 @@ export default function Club() {
               canManageMembers={canManageMembers}
               onRefresh={handleRefresh}
             />
+          </TabsContent>
+
+          <TabsContent value="courts">
+            <ClubCourtBooking club={club} canBook={isMember} />
+          </TabsContent>
+
+          <TabsContent value="my-bookings">
+            {isMember ? (
+              <MyClubBookings club={club} />
+            ) : (
+              <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+                <h3 className="font-medium mb-2">Member Access Required</h3>
+                <p className="text-sm text-muted-foreground">
+                  You must be a club member to view your bookings.
+                </p>
+              </div>
+            )}
           </TabsContent>
 
           {canEditClub && (
