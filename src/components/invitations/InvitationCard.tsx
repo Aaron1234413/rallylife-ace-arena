@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Clock, Users, MessageCircle, Check, X, MapPin, Calendar } from 'lucide-react';
+import { Clock, Users, MessageCircle, Check, X, MapPin, Calendar, Coins, Zap } from 'lucide-react';
 import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { toast } from 'sonner';
 
@@ -19,6 +19,9 @@ interface InvitationCardProps {
     created_at: string;
     expires_at: string;
     session_data?: Record<string, any>;
+    stakes_tokens?: number;
+    stakes_premium_tokens?: number;
+    is_challenge?: boolean;
   };
 }
 
@@ -172,6 +175,33 @@ export const InvitationCard: React.FC<InvitationCardProps> = ({ invitation }) =>
               <div className="flex items-start gap-2">
                 <MessageCircle className="h-4 w-4 text-gray-500 mt-0.5" />
                 <p className="text-sm text-gray-700">{invitation.message}</p>
+              </div>
+            </div>
+          )}
+
+          {/* Stakes Display */}
+          {invitation.is_challenge && (invitation.stakes_tokens! > 0 || invitation.stakes_premium_tokens! > 0) && (
+            <div className="bg-orange-50 border border-orange-200 rounded p-3">
+              <div className="flex items-center gap-2 mb-2">
+                <Zap className="h-4 w-4 text-orange-600" />
+                <span className="text-sm font-medium text-orange-800">Challenge Stakes</span>
+              </div>
+              <div className="space-y-1">
+                {invitation.stakes_tokens! > 0 && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Coins className="h-3 w-3 text-yellow-500" />
+                    <span>{invitation.stakes_tokens} Regular Tokens</span>
+                  </div>
+                )}
+                {invitation.stakes_premium_tokens! > 0 && (
+                  <div className="flex items-center gap-2 text-sm">
+                    <Coins className="h-3 w-3 text-purple-500" />
+                    <span>{invitation.stakes_premium_tokens} Premium Tokens</span>
+                  </div>
+                )}
+                <p className="text-xs text-orange-700 mt-1">
+                  {invitation.invitation_category === 'match' ? 'Winner takes all!' : 'Entry fee for premium session'}
+                </p>
               </div>
             </div>
           )}
