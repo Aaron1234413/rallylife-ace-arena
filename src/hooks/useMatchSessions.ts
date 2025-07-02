@@ -47,6 +47,10 @@ interface CreateMatchSessionParams {
   opponent2Id?: string;
   matchType: 'singles' | 'doubles';
   startTime: Date;
+  stakesTokens?: number;
+  stakesPremiumTokens?: number;
+  challengeId?: string;
+  isChallenge?: boolean;
 }
 
 interface UpdateMatchSessionParams {
@@ -70,6 +74,8 @@ interface CompleteMatchSessionParams {
   endMood?: string;
   matchNotes?: string;
   result?: 'win' | 'loss';
+  winnerId?: string;
+  distributePrize?: boolean;
 }
 
 // Helper function to safely cast status field
@@ -170,23 +176,25 @@ export function useMatchSessions() {
     try {
       console.log('Creating match session with params:', params);
 
-      const sessionData = {
-        player_id: user.id,
-        opponent_name: params.opponentName,
-        opponent_id: params.opponentId,
-        is_doubles: params.isDoubles,
-        partner_name: params.partnerName,
-        partner_id: params.partnerId,
-        opponent_1_name: params.opponent1Name,
-        opponent_1_id: params.opponent1Id,
-        opponent_2_name: params.opponent2Name,
-        opponent_2_id: params.opponent2Id,
-        match_type: params.matchType,
-        start_time: params.startTime.toISOString(),
-        status: 'active' as const,
-        sets: [{ playerScore: '', opponentScore: '', completed: false }],
-        current_set: 0
-      };
+        const sessionData = {
+          player_id: user.id,
+          opponent_name: params.opponentName,
+          opponent_id: params.opponentId,
+          is_doubles: params.isDoubles,
+          partner_name: params.partnerName,
+          partner_id: params.partnerId,
+          opponent_1_name: params.opponent1Name,
+          opponent_1_id: params.opponent1Id,
+          opponent_2_name: params.opponent2Name,
+          opponent_2_id: params.opponent2Id,
+          match_type: params.matchType,
+          start_time: params.startTime.toISOString(),
+          status: 'active' as const,
+          sets: [{ playerScore: '', opponentScore: '', completed: false }],
+          current_set: 0,
+          // Add stakes information to session metadata
+          match_notes: params.isChallenge ? `Challenge stakes: ${params.stakesTokens || 0} tokens, ${params.stakesPremiumTokens || 0} premium tokens` : null
+        };
 
       const { data, error } = await supabase
         .from('active_match_sessions')
@@ -259,6 +267,32 @@ export function useMatchSessions() {
     try {
       console.log('Completing match session:', sessionId, params);
 
+      // First get the session to check for stakes info
+      const { data: sessionInfo, error: fetchError } = await supabase
+        .from('active_match_sessions')
+        .select('*, match_notes')
+        .eq('id', sessionId)
+        .eq('player_id', user.id)
+        .single();
+
+      if (fetchError) {
+        console.error('Error fetching session info:', fetchError);
+        throw fetchError;
+      }
+
+      // Check if this is a challenge with stakes
+      const isChallenge = sessionInfo.match_notes?.includes('Challenge stakes:');
+      let stakesTokens = 0;
+      let stakesPremiumTokens = 0;
+
+      if (isChallenge && sessionInfo.match_notes) {
+        const tokensMatch = sessionInfo.match_notes.match(/(\d+) tokens/);
+        const premiumMatch = sessionInfo.match_notes.match(/(\d+) premium tokens/);
+        stakesTokens = tokensMatch ? parseInt(tokensMatch[1]) : 0;
+        stakesPremiumTokens = premiumMatch ? parseInt(premiumMatch[1]) : 0;
+      }
+
+      // Update the session as completed
       const { data, error } = await supabase
         .from('active_match_sessions')
         .update({
@@ -278,6 +312,39 @@ export function useMatchSessions() {
       if (error) {
         console.error('Error completing match session:', error);
         throw error;
+      }
+
+      // Distribute stakes if this was a challenge and we have a winner
+      if (isChallenge && params.distributePrize && params.winnerId && (stakesTokens > 0 || stakesPremiumTokens > 0)) {
+        console.log('🏆 [MATCH] Distributing challenge rewards to winner:', params.winnerId);
+        
+        try {
+          // Award doubled stakes to winner (their escrowed amount + opponent's stakes)
+          if (stakesTokens > 0) {
+            await supabase.rpc('add_tokens', {
+              user_id: params.winnerId,
+              amount: stakesTokens * 2, // Winner gets both their stakes back plus opponent's
+              token_type: 'regular',
+              source: 'challenge_victory',
+              description: `Challenge victory reward: ${stakesTokens * 2} tokens`
+            });
+          }
+
+          if (stakesPremiumTokens > 0) {
+            await supabase.rpc('add_tokens', {
+              user_id: params.winnerId,
+              amount: stakesPremiumTokens * 2,
+              token_type: 'premium', 
+              source: 'challenge_victory',
+              description: `Challenge victory reward: ${stakesPremiumTokens * 2} premium tokens`
+            });
+          }
+
+          toast.success(`🏆 Challenge completed! Winner received ${stakesTokens * 2} tokens and ${stakesPremiumTokens * 2} premium tokens!`);
+        } catch (rewardError) {
+          console.error('Error distributing challenge rewards:', rewardError);
+          toast.error('Match completed but there was an error distributing rewards');
+        }
       }
 
       console.log('Match session completed successfully:', data);

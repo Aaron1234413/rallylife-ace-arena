@@ -203,6 +203,9 @@ export function useSocialPlaySessions() {
       competitive_level: 'low' | 'medium' | 'high';
       location?: string;
       title?: string;
+      stakesTokens?: number;
+      stakesPremiumTokens?: number;
+      isChallenge?: boolean;
     }) => {
       if (!user?.id) throw new Error('User not authenticated');
       
@@ -213,7 +216,9 @@ export function useSocialPlaySessions() {
           session_type: sessionData.session_type,
           competitive_level: sessionData.competitive_level,
           location: sessionData.location,
-          notes: sessionData.title,
+          notes: sessionData.isChallenge 
+            ? `${sessionData.title} - Challenge: ${sessionData.stakesTokens || 0} tokens, ${sessionData.stakesPremiumTokens || 0} premium tokens`
+            : sessionData.title,
           status: 'pending' // Will be activated when invitations are accepted
         })
         .select()
@@ -249,6 +254,141 @@ export function useSocialPlaySessions() {
       toast({
         title: 'Error',
         description: error.message || 'Failed to create social play session',
+        variant: 'destructive',
+      });
+    }
+  });
+
+  // Complete social play session with reward distribution
+  const completeSession = useMutation({
+    mutationFn: async ({ sessionId, finalScore, mood, winnerId }: {
+      sessionId: string;
+      finalScore?: string;
+      mood?: string;
+      winnerId?: string;
+    }) => {
+      if (!user?.id) throw new Error('User not authenticated');
+
+      // Get session info and participants
+      const { data: sessionInfo, error: sessionError } = await supabase
+        .from('social_play_sessions')
+        .select(`
+          *,
+          participants:social_play_participants(
+            *,
+            user:profiles!social_play_participants_user_id_fkey(id, full_name)
+          )
+        `)
+        .eq('id', sessionId)
+        .single();
+
+      if (sessionError) throw sessionError;
+
+      // Check if this is a challenge with stakes
+      const isChallenge = sessionInfo.notes?.includes('Challenge:');
+      let stakesTokens = 0;
+      let stakesPremiumTokens = 0;
+
+      if (isChallenge && sessionInfo.notes) {
+        const tokensMatch = sessionInfo.notes.match(/(\d+) tokens/);
+        const premiumMatch = sessionInfo.notes.match(/(\d+) premium tokens/);
+        stakesTokens = tokensMatch ? parseInt(tokensMatch[1]) : 0;
+        stakesPremiumTokens = premiumMatch ? parseInt(premiumMatch[1]) : 0;
+      }
+
+      // Update session as completed
+      const updateData = {
+        status: 'completed' as const,
+        end_time: new Date().toISOString(),
+        final_score: finalScore,
+        mood: mood,
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('social_play_sessions')
+        .update(updateData)
+        .eq('id', sessionId)
+        .select()
+        .single();
+      
+      if (error) throw error;
+
+      // Distribute rewards based on session type
+      if (isChallenge && winnerId && (stakesTokens > 0 || stakesPremiumTokens > 0)) {
+        // Challenge mode: winner takes all stakes
+        console.log('🏆 [SOCIAL] Distributing challenge rewards to winner:', winnerId);
+        
+        try {
+          const participantCount = sessionInfo.participants?.length || 1;
+          
+          if (stakesTokens > 0) {
+            await supabase.rpc('add_tokens', {
+              user_id: winnerId,
+              amount: stakesTokens * participantCount, // Winner gets all participants' stakes
+              token_type: 'regular',
+              source: 'social_challenge_victory',
+              description: `Social challenge victory: ${stakesTokens * participantCount} tokens`
+            });
+          }
+
+          if (stakesPremiumTokens > 0) {
+            await supabase.rpc('add_tokens', {
+              user_id: winnerId,
+              amount: stakesPremiumTokens * participantCount,
+              token_type: 'premium',
+              source: 'social_challenge_victory',
+              description: `Social challenge victory: ${stakesPremiumTokens * participantCount} premium tokens`
+            });
+          }
+
+          toast({
+            title: '🏆 Challenge Complete!',
+            description: `Winner received ${stakesTokens * participantCount} tokens and ${stakesPremiumTokens * participantCount} premium tokens!`,
+          });
+        } catch (rewardError) {
+          console.error('Error distributing challenge rewards:', rewardError);
+          toast({
+            title: 'Session Complete',
+            description: 'There was an error distributing rewards',
+            variant: 'destructive',
+          });
+        }
+      } else {
+        // Regular social play: distribute participation rewards based on competitive level
+        const baseReward = sessionInfo.competitive_level === 'high' ? 15 : 
+                          sessionInfo.competitive_level === 'medium' ? 10 : 5;
+        
+        for (const participant of sessionInfo.participants || []) {
+          try {
+            await supabase.rpc('add_tokens', {
+              user_id: participant.user_id,
+              amount: baseReward,
+              token_type: 'regular',
+              source: 'social_play_participation',
+              description: `Social play participation reward: ${baseReward} tokens`
+            });
+          } catch (error) {
+            console.error('Error rewarding participant:', participant.user_id, error);
+          }
+        }
+
+        toast({
+          title: 'Session Complete!',
+          description: `All participants received ${baseReward} tokens for playing!`,
+        });
+      }
+
+      return data;
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['social-play-sessions'] });
+      queryClient.invalidateQueries({ queryKey: ['active-social-play-session'] });
+    },
+    onError: (error: any) => {
+      toast({
+        title: 'Error',
+        description: error.message || 'Failed to complete session',
         variant: 'destructive',
       });
     }
@@ -295,9 +435,11 @@ export function useSocialPlaySessions() {
     activeSession,
     isLoading: sessionsLoading,
     createSession: createSession.mutate,
+    completeSession: completeSession.mutate,
     updateSessionStatus: updateSessionStatus.mutate,
     cleanupExpiredSessions: cleanupExpiredSessions.mutate,
     isCreatingSession: createSession.isPending,
+    isCompletingSession: completeSession.isPending,
     isUpdatingSession: updateSessionStatus.isPending,
     isCleaningUp: cleanupExpiredSessions.isPending,
   };
