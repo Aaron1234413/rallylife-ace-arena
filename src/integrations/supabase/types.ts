@@ -703,6 +703,113 @@ export type Database = {
           },
         ]
       }
+      club_achievement_progress: {
+        Row: {
+          achievement_id: string
+          club_id: string
+          completed_at: string | null
+          current_progress: number
+          id: string
+          is_completed: boolean
+          last_updated: string
+          user_id: string
+        }
+        Insert: {
+          achievement_id: string
+          club_id: string
+          completed_at?: string | null
+          current_progress?: number
+          id?: string
+          is_completed?: boolean
+          last_updated?: string
+          user_id: string
+        }
+        Update: {
+          achievement_id?: string
+          club_id?: string
+          completed_at?: string | null
+          current_progress?: number
+          id?: string
+          is_completed?: boolean
+          last_updated?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_achievement_progress_achievement_id_fkey"
+            columns: ["achievement_id"]
+            isOneToOne: false
+            referencedRelation: "club_achievements"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_achievement_progress_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_achievements: {
+        Row: {
+          category: string
+          club_id: string
+          created_at: string
+          description: string
+          icon_url: string | null
+          id: string
+          is_active: boolean
+          name: string
+          requirement_type: string
+          requirement_value: number
+          reward_premium_tokens: number | null
+          reward_tokens: number | null
+          tier: string
+          updated_at: string
+        }
+        Insert: {
+          category: string
+          club_id: string
+          created_at?: string
+          description: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          name: string
+          requirement_type: string
+          requirement_value: number
+          reward_premium_tokens?: number | null
+          reward_tokens?: number | null
+          tier?: string
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          club_id?: string
+          created_at?: string
+          description?: string
+          icon_url?: string | null
+          id?: string
+          is_active?: boolean
+          name?: string
+          requirement_type?: string
+          requirement_value?: number
+          reward_premium_tokens?: number | null
+          reward_tokens?: number | null
+          tier?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_achievements_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_activity_feed: {
         Row: {
           activity_data: Json
@@ -778,6 +885,112 @@ export type Database = {
         Relationships: [
           {
             foreignKeyName: "club_courts_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_event_participants: {
+        Row: {
+          attendance_status: string
+          event_id: string
+          id: string
+          notes: string | null
+          payment_status: string
+          registration_datetime: string
+          user_id: string
+        }
+        Insert: {
+          attendance_status?: string
+          event_id: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          registration_datetime?: string
+          user_id: string
+        }
+        Update: {
+          attendance_status?: string
+          event_id?: string
+          id?: string
+          notes?: string | null
+          payment_status?: string
+          registration_datetime?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_event_participants_event_id_fkey"
+            columns: ["event_id"]
+            isOneToOne: false
+            referencedRelation: "club_events"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_events: {
+        Row: {
+          club_id: string
+          created_at: string
+          description: string | null
+          end_datetime: string
+          event_type: string
+          id: string
+          is_public: boolean
+          location: string | null
+          max_participants: number | null
+          metadata: Json | null
+          organizer_id: string
+          registration_fee_money: number | null
+          registration_fee_tokens: number | null
+          start_datetime: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          description?: string | null
+          end_datetime: string
+          event_type: string
+          id?: string
+          is_public?: boolean
+          location?: string | null
+          max_participants?: number | null
+          metadata?: Json | null
+          organizer_id: string
+          registration_fee_money?: number | null
+          registration_fee_tokens?: number | null
+          start_datetime: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          description?: string | null
+          end_datetime?: string
+          event_type?: string
+          id?: string
+          is_public?: boolean
+          location?: string | null
+          max_participants?: number | null
+          metadata?: Json | null
+          organizer_id?: string
+          registration_fee_money?: number | null
+          registration_fee_tokens?: number | null
+          start_datetime?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_events_club_id_fkey"
             columns: ["club_id"]
             isOneToOne: false
             referencedRelation: "clubs"
@@ -1180,6 +1393,78 @@ export type Database = {
           },
         ]
       }
+      coach_bookings: {
+        Row: {
+          club_id: string
+          coach_id: string
+          created_at: string
+          end_datetime: string
+          feedback_comment: string | null
+          feedback_rating: number | null
+          id: string
+          notes: string | null
+          payment_method: string
+          player_id: string
+          service_id: string
+          start_datetime: string
+          status: string
+          total_cost_money: number
+          total_cost_tokens: number
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          coach_id: string
+          created_at?: string
+          end_datetime: string
+          feedback_comment?: string | null
+          feedback_rating?: number | null
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          player_id: string
+          service_id: string
+          start_datetime: string
+          status?: string
+          total_cost_money?: number
+          total_cost_tokens?: number
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          coach_id?: string
+          created_at?: string
+          end_datetime?: string
+          feedback_comment?: string | null
+          feedback_rating?: number | null
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          player_id?: string
+          service_id?: string
+          start_datetime?: string
+          status?: string
+          total_cost_money?: number
+          total_cost_tokens?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_bookings_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "coach_bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "coach_services"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       coach_crp: {
         Row: {
           booking_rate_bonus: number
@@ -1437,6 +1722,62 @@ export type Database = {
           updated_at?: string
         }
         Relationships: []
+      }
+      coach_services: {
+        Row: {
+          club_id: string
+          coach_id: string
+          created_at: string
+          description: string | null
+          duration_minutes: number
+          id: string
+          is_active: boolean
+          max_participants: number
+          rate_money: number
+          rate_tokens: number
+          service_type: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          coach_id: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          max_participants?: number
+          rate_money?: number
+          rate_tokens?: number
+          service_type: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          coach_id?: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number
+          id?: string
+          is_active?: boolean
+          max_participants?: number
+          rate_money?: number
+          rate_tokens?: number
+          service_type?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "coach_services_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       coach_token_transactions: {
         Row: {
