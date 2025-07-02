@@ -321,6 +321,24 @@ const Index = () => {
               />
             </ErrorBoundary>
 
+            {/* Subscription Models Quick Access */}
+            <ErrorBoundary fallbackTitle="Subscription Models Error">
+              <div className="bg-white rounded-lg shadow-lg p-4 border-l-4 border-tennis-green">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="font-semibold text-tennis-green-dark">Subscription Models</h3>
+                    <p className="text-sm text-gray-600">View the proposed subscription plans</p>
+                  </div>
+                  <button 
+                    onClick={() => window.location.href = '/subscription-models'}
+                    className="bg-tennis-green-dark text-white px-4 py-2 rounded hover:bg-tennis-green transition-colors"
+                  >
+                    View Models
+                  </button>
+                </div>
+              </div>
+            </ErrorBoundary>
+
             {/* My Clubs Section */}
             <ErrorBoundary fallbackTitle="My Clubs Error">
               <MyClubsSection />

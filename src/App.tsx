@@ -37,6 +37,7 @@ import Sessions from "@/pages/Sessions";
 import CreateSession from "@/pages/CreateSession";
 import Club from "@/pages/Club";
 import ClubDirectory from "@/pages/ClubDirectory";
+import SubscriptionModels from "@/pages/SubscriptionModels";
 
 const queryClient = new QueryClient();
 
@@ -78,6 +79,7 @@ function App() {
                   <Route path="/join-social-play" element={<ProtectedRoute><JoinSocialPlay /></ProtectedRoute>} />
                   <Route path="/clubs" element={<ProtectedRoute><ClubDirectory /></ProtectedRoute>} />
                   <Route path="/club/:clubId" element={<ProtectedRoute><Club /></ProtectedRoute>} />
+                  <Route path="/subscription-models" element={<ProtectedRoute><SubscriptionModels /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </AppLayout>
