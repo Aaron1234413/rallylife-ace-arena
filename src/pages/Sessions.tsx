@@ -15,12 +15,16 @@ import {
   Trophy,
   GraduationCap,
   Heart,
-  Gamepad2
+  Gamepad2,
+  Play,
+  UserMinus,
+  LogOut
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
+import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
 
 interface Session {
   id: string;
@@ -39,13 +43,20 @@ interface Session {
   participant_count?: number;
   creator_name?: string;
   user_joined?: boolean;
+  participants?: Array<{
+    id: string;
+    user_id: string;
+    status: string;
+    joined_at: string;
+    user: {
+      full_name: string;
+    }
+  }>;
 }
 
 const Sessions = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const [sessions, setSessions] = useState<Session[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState('available');
   
   // Filters
@@ -53,83 +64,23 @@ const Sessions = () => {
   const [typeFilter, setTypeFilter] = useState('all');
   const [stakesFilter, setStakesFilter] = useState('all');
 
-  const fetchSessions = async () => {
-    try {
-      setLoading(true);
-      
-      let query = supabase
-        .from('sessions')
-        .select(`
-          *,
-          participants:session_participants!inner(user_id, status),
-          creator:profiles!sessions_creator_id_fkey(full_name)
-        `);
-
-      // Apply tab-specific filtering
-      if (activeTab === 'my-sessions') {
-        query = query.or(`creator_id.eq.${user?.id},participants.user_id.eq.${user?.id}`);
-      } else if (activeTab === 'available') {
-        query = query.eq('status', 'waiting').eq('is_private', false);
-      } else if (activeTab === 'completed') {
-        query = query.eq('status', 'completed');
-      }
-
-      const { data, error } = await query.order('created_at', { ascending: false });
-
-      if (error) throw error;
-
-      // Process the data to add participant count and user join status
-      const processedSessions = data?.map((session: any) => {
-        const participants = session.participants || [];
-        const activeParticipants = participants.filter((p: any) => p.status === 'joined');
-        
-        return {
-          ...session,
-          participant_count: activeParticipants.length,
-          creator_name: session.creator?.full_name || 'Unknown',
-          user_joined: activeParticipants.some((p: any) => p.user_id === user?.id)
-        };
-      }) || [];
-
-      setSessions(processedSessions);
-    } catch (error) {
-      console.error('Error fetching sessions:', error);
-      toast.error('Failed to load sessions');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    if (user) {
-      fetchSessions();
-    }
-  }, [user, activeTab]);
+  // Use real-time hook
+  const { sessions, loading, joinSession, leaveSession, kickParticipant, startSession } = useRealTimeSessions(activeTab, user?.id);
 
   const handleJoinSession = async (sessionId: string) => {
-    try {
-      const { data, error } = await supabase.rpc('join_session', {
-        session_id_param: sessionId,
-        user_id_param: user?.id
-      });
+    await joinSession(sessionId);
+  };
 
-      if (error) throw error;
+  const handleLeaveSession = async (sessionId: string) => {
+    await leaveSession(sessionId);
+  };
 
-      const result = data as { success: boolean; error?: string; participant_count?: number; session_ready?: boolean };
+  const handleKickParticipant = async (sessionId: string, participantId: string) => {
+    await kickParticipant(sessionId, participantId);
+  };
 
-      if (result.success) {
-        toast.success('Successfully joined session!');
-        if (result.session_ready) {
-          toast.success('Session is ready to start!');
-        }
-        fetchSessions(); // Refresh the list
-      } else {
-        toast.error(result.error || 'Failed to join session');
-      }
-    } catch (error) {
-      console.error('Error joining session:', error);
-      toast.error('Failed to join session');
-    }
+  const handleStartSession = async (sessionId: string) => {
+    await startSession(sessionId);
   };
 
   const getSessionIcon = (type: string) => {
@@ -255,6 +206,9 @@ const Sessions = () => {
               sessions={filteredSessions} 
               loading={loading}
               onJoinSession={handleJoinSession}
+              onLeaveSession={handleLeaveSession}
+              onKickParticipant={handleKickParticipant}
+              onStartSession={handleStartSession}
               showJoinButton={true}
             />
           </TabsContent>
@@ -264,6 +218,9 @@ const Sessions = () => {
               sessions={filteredSessions} 
               loading={loading}
               onJoinSession={handleJoinSession}
+              onLeaveSession={handleLeaveSession}
+              onKickParticipant={handleKickParticipant}
+              onStartSession={handleStartSession}
               showJoinButton={false}
             />
           </TabsContent>
@@ -273,6 +230,9 @@ const Sessions = () => {
               sessions={filteredSessions} 
               loading={loading}
               onJoinSession={handleJoinSession}
+              onLeaveSession={handleLeaveSession}
+              onKickParticipant={handleKickParticipant}
+              onStartSession={handleStartSession}
               showJoinButton={false}
             />
           </TabsContent>
@@ -287,13 +247,19 @@ interface SessionsListProps {
   sessions: Session[];
   loading: boolean;
   onJoinSession: (sessionId: string) => void;
+  onLeaveSession: (sessionId: string) => void;
+  onKickParticipant: (sessionId: string, participantId: string) => void;
+  onStartSession: (sessionId: string) => void;
   showJoinButton: boolean;
 }
 
 const SessionsList: React.FC<SessionsListProps> = ({ 
   sessions, 
   loading, 
-  onJoinSession, 
+  onJoinSession,
+  onLeaveSession,
+  onKickParticipant,
+  onStartSession,
   showJoinButton 
 }) => {
   if (loading) {
@@ -335,6 +301,9 @@ const SessionsList: React.FC<SessionsListProps> = ({
           key={session.id} 
           session={session} 
           onJoinSession={onJoinSession}
+          onLeaveSession={onLeaveSession}
+          onKickParticipant={onKickParticipant}
+          onStartSession={onStartSession}
           showJoinButton={showJoinButton}
         />
       ))}
@@ -346,10 +315,20 @@ const SessionsList: React.FC<SessionsListProps> = ({
 interface SessionCardProps {
   session: Session;
   onJoinSession: (sessionId: string) => void;
+  onLeaveSession: (sessionId: string) => void;
+  onKickParticipant: (sessionId: string, participantId: string) => void;
+  onStartSession: (sessionId: string) => void;
   showJoinButton: boolean;
 }
 
-const SessionCard: React.FC<SessionCardProps> = ({ session, onJoinSession, showJoinButton }) => {
+const SessionCard: React.FC<SessionCardProps> = ({ 
+  session, 
+  onJoinSession, 
+  onLeaveSession, 
+  onKickParticipant, 
+  onStartSession, 
+  showJoinButton 
+}) => {
   const { user } = useAuth();
   
   const getSessionIcon = (type: string) => {
@@ -376,6 +355,8 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onJoinSession, showJ
   const isCreator = session.creator_id === user?.id;
   const isFull = session.participant_count >= session.max_players;
   const canJoin = showJoinButton && !session.user_joined && !isCreator && !isFull && session.status === 'waiting';
+  const canStart = isCreator && session.status === 'waiting' && isFull;
+  const canLeave = session.user_joined && !isCreator && session.status === 'waiting';
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -439,8 +420,35 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onJoinSession, showJ
           {new Date(session.created_at).toLocaleDateString()}
         </div>
 
+        {/* Participants List (for My Sessions) */}
+        {!showJoinButton && session.participants && session.participants.length > 0 && (
+          <div className="space-y-2">
+            <h4 className="text-sm font-medium text-gray-700">Participants:</h4>
+            <div className="space-y-1">
+              {session.participants.map((participant) => (
+                <div key={participant.id} className="flex items-center justify-between text-sm">
+                  <span className="text-gray-600">
+                    {participant.user.full_name}
+                    {participant.user_id === session.creator_id && ' (Creator)'}
+                  </span>
+                  {isCreator && participant.user_id !== session.creator_id && session.status === 'waiting' && (
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => onKickParticipant(session.id, participant.id)}
+                      className="h-6 px-2 text-red-600 hover:text-red-700"
+                    >
+                      <UserMinus className="h-3 w-3" />
+                    </Button>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         {/* Action Buttons */}
-        <div className="pt-2">
+        <div className="pt-2 space-y-2">
           {canJoin && (
             <Button 
               onClick={() => onJoinSession(session.id)}
@@ -449,16 +457,43 @@ const SessionCard: React.FC<SessionCardProps> = ({ session, onJoinSession, showJ
               Join Session
             </Button>
           )}
+
+          {canStart && (
+            <Button 
+              onClick={() => onStartSession(session.id)}
+              className="w-full bg-green-600 hover:bg-green-700 text-white"
+            >
+              <Play className="h-4 w-4 mr-2" />
+              Start Session
+            </Button>
+          )}
+
+          {canLeave && (
+            <Button 
+              onClick={() => onLeaveSession(session.id)}
+              variant="outline"
+              className="w-full text-red-600 hover:text-red-700 border-red-200"
+            >
+              <LogOut className="h-4 w-4 mr-2" />
+              Leave Session
+            </Button>
+          )}
           
-          {session.user_joined && session.status === 'waiting' && (
+          {session.user_joined && session.status === 'waiting' && !canLeave && (
             <Button variant="outline" className="w-full" disabled>
               Joined - Waiting for Players
             </Button>
           )}
           
-          {isCreator && session.status === 'waiting' && (
+          {isCreator && session.status === 'waiting' && !canStart && (
             <Button variant="outline" className="w-full" disabled>
               Your Session - {isFull ? 'Ready to Start' : 'Waiting for Players'}
+            </Button>
+          )}
+          
+          {session.status === 'active' && (
+            <Button variant="outline" className="w-full" disabled>
+              Session Active
             </Button>
           )}
           
