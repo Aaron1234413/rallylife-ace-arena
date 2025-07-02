@@ -5,13 +5,13 @@ import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
-import { Heart, MessageCircle, Trophy, Target, Send, Users, Clock, Star, MapPin, Zap, Coins, Swords } from 'lucide-react';
+import { Heart, MessageCircle, Trophy, Target, Send, Users, Clock, Star, MapPin } from 'lucide-react';
 import { format } from 'date-fns';
 
 interface FeedPostProps {
   post: {
     id: string;
-    type: 'level_up' | 'match_result' | 'achievement' | 'activity' | 'social_play' | 'training' | 'lesson' | 'challenge_sent' | 'challenge_accepted' | 'challenge_completed';
+    type: 'level_up' | 'match_result' | 'achievement' | 'activity' | 'social_play' | 'training' | 'lesson';
     user: {
       id: string;
       full_name: string;
@@ -35,13 +35,6 @@ interface FeedPostProps {
         participant_names?: string[];
         mood?: string;
         notes?: string;
-        // Challenge specific stats
-        stakes_tokens?: number;
-        stakes_premium_tokens?: number;
-        challenge_type?: 'match' | 'social_play';
-        winner_name?: string;
-        challenger_name?: string;
-        challenged_name?: string;
       };
     };
     likes: number;
@@ -251,122 +244,6 @@ export function FeedPost({ post, onLike, onComment, onChallenge }: FeedPostProps
           </div>
         );
 
-      case 'challenge_sent':
-        return (
-          <div className="bg-gradient-to-r from-orange-50 to-red-50 rounded-lg p-6 mb-4 border border-orange-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-orange-600 rounded-full flex items-center justify-center">
-                  <Swords className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="font-semibold text-orange-900">Challenge Sent!</div>
-                  <div className="text-sm text-orange-700">
-                    {post.content.stats.challenge_type === 'match' ? 'Tennis Match' : 'Social Play'} Challenge
-                  </div>
-                </div>
-              </div>
-              <div className="text-2xl">⚔️</div>
-            </div>
-
-            {(post.content.stats.stakes_tokens && post.content.stats.stakes_tokens > 0) || 
-             (post.content.stats.stakes_premium_tokens && post.content.stats.stakes_premium_tokens > 0) ? (
-              <div className="bg-orange-100 border border-orange-300 rounded p-3 mb-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Zap className="h-4 w-4 text-orange-600" />
-                  <span className="text-sm font-medium text-orange-800">Challenge Stakes</span>
-                </div>
-                <div className="space-y-1">
-                  {post.content.stats.stakes_tokens && post.content.stats.stakes_tokens > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-orange-700">
-                      <Coins className="h-3 w-3 text-yellow-500" />
-                      <span>{post.content.stats.stakes_tokens} Tokens</span>
-                    </div>
-                  )}
-                  {post.content.stats.stakes_premium_tokens && post.content.stats.stakes_premium_tokens > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-orange-700">
-                      <Coins className="h-3 w-3 text-purple-500" />
-                      <span>{post.content.stats.stakes_premium_tokens} Premium Tokens</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : null}
-
-            <div className="text-sm text-orange-700 italic">
-              "{post.content.stats.challenger_name} challenged {post.content.stats.challenged_name} to a duel!"
-            </div>
-          </div>
-        );
-
-      case 'challenge_accepted':
-        return (
-          <div className="bg-gradient-to-r from-green-50 to-emerald-50 rounded-lg p-6 mb-4 border border-green-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-green-600 rounded-full flex items-center justify-center">
-                  <Trophy className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="font-semibold text-green-900">Challenge Accepted!</div>
-                  <div className="text-sm text-green-700">The battle begins</div>
-                </div>
-              </div>
-              <div className="text-2xl">🔥</div>
-            </div>
-
-            <div className="text-sm text-green-700 italic">
-              "{post.content.stats.challenged_name} accepted the challenge. Let the games begin!"
-            </div>
-          </div>
-        );
-
-      case 'challenge_completed':
-        return (
-          <div className="bg-gradient-to-r from-purple-50 to-indigo-50 rounded-lg p-6 mb-4 border border-purple-200">
-            <div className="flex items-center justify-between mb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-purple-600 rounded-full flex items-center justify-center">
-                  <Trophy className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <div className="font-semibold text-purple-900">Challenge Complete!</div>
-                  <div className="text-sm text-purple-700">Victory achieved</div>
-                </div>
-              </div>
-              <div className="text-2xl">👑</div>
-            </div>
-
-            {(post.content.stats.stakes_tokens && post.content.stats.stakes_tokens > 0) || 
-             (post.content.stats.stakes_premium_tokens && post.content.stats.stakes_premium_tokens > 0) ? (
-              <div className="bg-purple-100 border border-purple-300 rounded p-3 mb-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Trophy className="h-4 w-4 text-purple-600" />
-                  <span className="text-sm font-medium text-purple-800">Prize Awarded</span>
-                </div>
-                <div className="space-y-1">
-                  {post.content.stats.stakes_tokens && post.content.stats.stakes_tokens > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-purple-700">
-                      <Coins className="h-3 w-3 text-yellow-500" />
-                      <span>{post.content.stats.stakes_tokens} Tokens</span>
-                    </div>
-                  )}
-                  {post.content.stats.stakes_premium_tokens && post.content.stats.stakes_premium_tokens > 0 && (
-                    <div className="flex items-center gap-2 text-sm text-purple-700">
-                      <Coins className="h-3 w-3 text-purple-500" />
-                      <span>{post.content.stats.stakes_premium_tokens} Premium Tokens</span>
-                    </div>
-                  )}
-                </div>
-              </div>
-            ) : null}
-
-            <div className="text-sm text-purple-700 italic">
-              "🎉 {post.content.stats.winner_name} emerged victorious in this epic challenge!"
-            </div>
-          </div>
-        );
-
       default:
         return (
           <div className="bg-gray-50 rounded-lg p-4 mb-4">
@@ -414,12 +291,6 @@ export function FeedPost({ post, onLike, onComment, onChallenge }: FeedPostProps
         return 'Completed a match';
       case 'achievement':
         return 'Unlocked an achievement!';
-      case 'challenge_sent':
-        return 'Sent a challenge!';
-      case 'challenge_accepted':
-        return 'Accepted a challenge!';
-      case 'challenge_completed':
-        return 'Completed a challenge!';
       default:
         return post.content.title;
     }

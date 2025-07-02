@@ -346,33 +346,6 @@ export function useSocialPlaySessions() {
             title: '🏆 Challenge Complete!',
             description: `Winner received ${stakesTokens * participantCount} tokens and ${stakesPremiumTokens * participantCount} premium tokens!`,
           });
-          
-          // Create challenge completion feed post
-          try {
-            const { data: winnerProfile } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('id', winnerId)
-              .single();
-
-            await supabase
-              .from('activity_logs')
-              .insert({
-                player_id: winnerId,
-                activity_category: 'challenge',
-                activity_type: 'challenge_completed',
-                title: 'Social Challenge Completed!',
-                description: `${winnerProfile?.full_name || 'Someone'} won the social play challenge!`,
-                metadata: {
-                  challenge_type: 'social_play',
-                  winner_name: winnerProfile?.full_name || 'Someone',
-                  stakes_tokens: stakesTokens * participantCount,
-                  stakes_premium_tokens: stakesPremiumTokens * participantCount
-                }
-              });
-          } catch (feedError) {
-            console.error('Error creating challenge completion feed post:', feedError);
-          }
         } catch (rewardError) {
           console.error('Error distributing challenge rewards:', rewardError);
           toast({

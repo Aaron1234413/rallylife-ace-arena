@@ -341,33 +341,6 @@ export function useMatchSessions() {
           }
 
           toast.success(`🏆 Challenge completed! Winner received ${stakesTokens * 2} tokens and ${stakesPremiumTokens * 2} premium tokens!`);
-          
-          // Create challenge completion feed post
-          try {
-            const { data: winnerProfile } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('id', params.winnerId)
-              .single();
-
-            await supabase
-              .from('activity_logs')
-              .insert({
-                player_id: params.winnerId,
-                activity_category: 'challenge',
-                activity_type: 'challenge_completed',
-                title: 'Challenge Completed!',
-                description: `${winnerProfile?.full_name || 'Someone'} won the challenge and claimed the prize!`,
-                metadata: {
-                  challenge_type: 'match',
-                  winner_name: winnerProfile?.full_name || 'Someone',
-                  stakes_tokens: stakesTokens * 2,
-                  stakes_premium_tokens: stakesPremiumTokens * 2
-                }
-              });
-          } catch (feedError) {
-            console.error('Error creating challenge completion feed post:', feedError);
-          }
         } catch (rewardError) {
           console.error('Error distributing challenge rewards:', rewardError);
           toast.error('Match completed but there was an error distributing rewards');

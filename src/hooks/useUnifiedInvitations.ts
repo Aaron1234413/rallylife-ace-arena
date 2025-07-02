@@ -213,36 +213,6 @@ export function useUnifiedInvitations() {
 
       console.log('✅ [UNIFIED] Match invitation created successfully:', data);
       
-      // Create challenge feed post if this is a challenge (has stakes)
-      if (data.is_challenge && (data.stakes_tokens > 0 || data.stakes_premium_tokens > 0)) {
-        try {
-          const { data: inviterProfile } = await supabase
-            .from('profiles')
-            .select('full_name')
-            .eq('id', user.id)
-            .single();
-
-          await supabase
-            .from('activity_logs')
-            .insert({
-              player_id: user.id,
-              activity_category: 'challenge',
-              activity_type: 'challenge_sent',
-              title: 'Challenge Sent!',
-              description: `${inviterProfile?.full_name || 'Someone'} challenged ${params.invitedUserName} to a ${params.matchType} match!`,
-              metadata: {
-                challenge_type: 'match',
-                challenger_name: inviterProfile?.full_name || 'Someone',
-                challenged_name: params.invitedUserName,
-                stakes_tokens: data.stakes_tokens || 0,
-                stakes_premium_tokens: data.stakes_premium_tokens || 0
-              }
-            });
-        } catch (feedError) {
-          console.error('Error creating challenge feed post:', feedError);
-        }
-      }
-      
       await fetchSentInvitations();
       
       return toUnifiedInvitation(data);
@@ -428,42 +398,6 @@ export function useUnifiedInvitations() {
         if (updateError) throw updateError;
 
         console.log('✅ [UNIFIED] Match invitation accepted and session created');
-        
-        // Create challenge acceptance feed post if this is a challenge
-        if (invitation.is_challenge && (invitation.stakes_tokens > 0 || invitation.stakes_premium_tokens > 0)) {
-          try {
-            const { data: inviterProfile } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('id', invitation.inviter_id)
-              .single();
-
-            const { data: inviteeProfile } = await supabase
-              .from('profiles')
-              .select('full_name')
-              .eq('id', user.id)
-              .single();
-
-            await supabase
-              .from('activity_logs')
-              .insert({
-                player_id: user.id,
-                activity_category: 'challenge',
-                activity_type: 'challenge_accepted',
-                title: 'Challenge Accepted!',
-                description: `${inviteeProfile?.full_name || 'Someone'} accepted ${inviterProfile?.full_name || 'Someone'}\'s challenge!`,
-                metadata: {
-                  challenge_type: 'match',
-                  challenger_name: inviterProfile?.full_name || 'Someone',
-                  challenged_name: inviteeProfile?.full_name || 'Someone',
-                  stakes_tokens: invitation.stakes_tokens || 0,
-                  stakes_premium_tokens: invitation.stakes_premium_tokens || 0
-                }
-              });
-          } catch (feedError) {
-            console.error('Error creating challenge acceptance feed post:', feedError);
-          }
-        }
         
         if (invitation.is_challenge) {
           toast.success(`Challenge accepted! Match started with ${invitation.stakes_tokens} token stakes!`);
