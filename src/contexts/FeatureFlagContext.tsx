@@ -27,19 +27,9 @@ export function FeatureFlagProvider({ children }: { children: ReactNode }) {
   const featureFlags = useFeatureFlags();
 
   return (
-    <SafeContextProvider 
-      requireAuth={false}
-      loadingMessage="Loading feature configuration..."
-      fallbackComponent={
-        <div className="text-center p-4">
-          <p className="text-muted-foreground">Feature flags unavailable</p>
-        </div>
-      }
-    >
-      <FeatureFlagContext.Provider value={featureFlags}>
-        {children}
-      </FeatureFlagContext.Provider>
-    </SafeContextProvider>
+    <FeatureFlagContext.Provider value={featureFlags}>
+      {children}
+    </FeatureFlagContext.Provider>
   );
 }
 
