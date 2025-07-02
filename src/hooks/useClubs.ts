@@ -118,7 +118,8 @@ export function useClubs() {
     if (!user) throw new Error('User not authenticated');
 
     try {
-      const { data, error } = await supabase
+      // Create the club first
+      const { data: club, error: clubError } = await supabase
         .from('clubs')
         .insert({
           name: clubData.name,
@@ -129,7 +130,25 @@ export function useClubs() {
         .select()
         .single();
 
-      if (error) throw error;
+      if (clubError) throw clubError;
+
+      // Create the owner membership
+      const { error: membershipError } = await supabase
+        .from('club_memberships')
+        .insert({
+          club_id: club.id,
+          user_id: user.id,
+          role: 'owner',
+          status: 'active',
+          permissions: {
+            can_invite: true,
+            can_manage_members: true,
+            can_edit_club: true,
+            can_manage_courts: true
+          }
+        });
+
+      if (membershipError) throw membershipError;
 
       toast.success('Club created successfully!');
       await fetchMyClubs();
@@ -137,7 +156,7 @@ export function useClubs() {
         await fetchPublicClubs();
       }
       
-      return data;
+      return club;
     } catch (error) {
       console.error('Error creating club:', error);
       toast.error('Failed to create club');
