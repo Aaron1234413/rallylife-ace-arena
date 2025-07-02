@@ -1,8 +1,9 @@
 
 import React, { createContext, useContext, ReactNode, useState } from 'react';
 import { toast } from 'sonner';
-import { useUnifiedSocialPlay } from '@/hooks/useUnifiedSocialPlay';
+import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
 import { useFeatureFlagContext } from '@/contexts/FeatureFlagContext';
+import { useAuth } from '@/hooks/useAuth';
 import { SafeContextProvider } from '@/components/ui/safe-context-provider';
 
 interface ActiveSession {
@@ -37,17 +38,13 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [loading, setLoading] = useState(false);
   
-  // Get feature flags to determine which system to use
+  const { user } = useAuth();
   const { shouldUseUnifiedSessions, shouldMigrateSocialPlay } = useFeatureFlagContext();
   
-  // Use the unified social play hook with intelligent feature flag control
-  const { updateSessionStatus, error } = useUnifiedSocialPlay({
-    useUnified: shouldUseUnifiedSessions && shouldMigrateSocialPlay,
-    fallbackToLegacy: true,
-    onError: (error, source) => {
-      console.error(`SocialPlaySession error from ${source}:`, error);
-      toast.error('Session system error - using fallback');
-    }
+  // Use the unified sessions system
+  const realTimeSessions = useRealTimeSessions('my-sessions', user?.id, {
+    sessionTypes: ['social_play'],
+    includePrivate: true
   });
 
   const startSession = (sessionData: { 
@@ -67,11 +64,7 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
     setActiveSession(newSession);
     
     // Update session status to active
-    updateSessionStatus({
-      sessionId: sessionData.id,
-      status: 'active',
-      updates: { start_time: new Date().toISOString() }
-    });
+    realTimeSessions.startSession(sessionData.id);
     
     const participantNames = sessionData.participants?.map(p => p.name).join(', ') || 'players';
     
@@ -88,15 +81,8 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
     try {
       const durationMinutes = getDurationMinutes();
       
-      // Update session status to completed
-      updateSessionStatus({
-        sessionId: activeSession.id,
-        status: 'completed',
-        updates: { 
-          end_time: new Date().toISOString(),
-          paused_duration: 0
-        }
-      });
+      // Complete session using unified system
+      await realTimeSessions.completeSession(activeSession.id, undefined, durationMinutes);
       
       setActiveSession(null);
       

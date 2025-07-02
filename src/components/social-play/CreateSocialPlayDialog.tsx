@@ -21,7 +21,7 @@ import { useSocialPlayEvents } from '@/hooks/useSocialPlayEvents';
 import { SocialPlayParticipantSelector } from './SocialPlayParticipantSelector';
 import { SocialPlayStakesPreview } from './SocialPlayStakesPreview';
 import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
-import { useUnifiedSocialPlay } from '@/hooks/useUnifiedSocialPlay';
+import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
@@ -48,12 +48,9 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const { user } = useAuth();
-  const unifiedSessions = useUnifiedSocialPlay({
-    useUnified: true,
-    fallbackToLegacy: true,
-    onError: (error, source) => {
-      console.error(`CreateSocialPlay error from ${source}:`, error);
-    }
+  const unifiedSessions = useRealTimeSessions('my-sessions', user?.id, {
+    sessionTypes: ['social_play'],
+    includePrivate: true
   });
   const { createEvent, isCreatingEvent } = useSocialPlayEvents();
   const { createSocialPlayInvitation } = useUnifiedInvitations();

@@ -1,6 +1,6 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
+import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -44,12 +44,9 @@ export function TrainingSessionProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
   
   // Always call the hook, but conditionally enable it
-  const realTimeSessions = useSafeRealTimeSessions('my-sessions', user?.id, {
-    enabled: !!user?.id,
-    onError: (error) => {
-      console.error('Training session real-time error:', error);
-      toast.error('Training session sync error');
-    }
+  const realTimeSessions = useRealTimeSessions('my-sessions', user?.id, {
+    sessionTypes: ['training'],
+    includePrivate: true
   });
 
   // Load session data from localStorage on mount
@@ -126,11 +123,11 @@ export function TrainingSessionProvider({ children }: { children: ReactNode }) {
 
   // Complete training session using unified completion
   const completeTrainingSession = async (sessionId: string, duration: number): Promise<void> => {
-    if (realTimeSessions?.completeSession) {
+    try {
       await realTimeSessions.completeSession(sessionId, undefined, duration);
-    } else {
-      console.warn('Real-time sessions not available for completion');
-      toast.error('Session completion unavailable');
+    } catch (error) {
+      console.error('Training session completion error:', error);
+      toast.error('Failed to complete training session');
     }
   };
 
