@@ -1,9 +1,10 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
-import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
+import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { SafeContextProvider } from '@/components/ui/safe-context-provider';
 
 interface TrainingSessionData {
   sessionId?: string;  // NEW: Track unified session ID
@@ -41,7 +42,15 @@ const STORAGE_KEY = 'training_session_data';
 export function TrainingSessionProvider({ children }: { children: ReactNode }) {
   const [sessionData, setSessionData] = useState<TrainingSessionData>({});
   const { user } = useAuth();
-  const { completeSession } = useRealTimeSessions('my-sessions', user?.id);
+  
+  // Safely use real-time sessions only when user is available
+  const realTimeSessions = user?.id ? useSafeRealTimeSessions('my-sessions', user.id, {
+    enabled: !!user?.id,
+    onError: (error) => {
+      console.error('Training session real-time error:', error);
+      toast.error('Training session sync error');
+    }
+  }) : null;
 
   // Load session data from localStorage on mount
   useEffect(() => {
@@ -117,21 +126,36 @@ export function TrainingSessionProvider({ children }: { children: ReactNode }) {
 
   // Complete training session using unified completion
   const completeTrainingSession = async (sessionId: string, duration: number): Promise<void> => {
-    await completeSession(sessionId, undefined, duration);
+    if (realTimeSessions?.completeSession) {
+      await realTimeSessions.completeSession(sessionId, undefined, duration);
+    } else {
+      console.warn('Real-time sessions not available for completion');
+      toast.error('Session completion unavailable');
+    }
   };
 
   return (
-    <TrainingSessionContext.Provider value={{
-      sessionData,
-      updateSessionData,
-      clearSession,
-      isSessionActive,
-      createTrainingSession,
-      startTrainingSession,
-      completeTrainingSession
-    }}>
-      {children}
-    </TrainingSessionContext.Provider>
+    <SafeContextProvider 
+      requireAuth={true}
+      loadingMessage="Loading training session..."
+      fallbackComponent={
+        <div className="text-center p-4">
+          <p className="text-muted-foreground">Training sessions unavailable</p>
+        </div>
+      }
+    >
+      <TrainingSessionContext.Provider value={{
+        sessionData,
+        updateSessionData,
+        clearSession,
+        isSessionActive,
+        createTrainingSession,
+        startTrainingSession,
+        completeTrainingSession
+      }}>
+        {children}
+      </TrainingSessionContext.Provider>
+    </SafeContextProvider>
   );
 }
 

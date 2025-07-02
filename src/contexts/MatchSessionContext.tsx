@@ -4,6 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { SafeContextProvider } from '@/components/ui/safe-context-provider';
 
 interface SetData {
   playerScore: string;
@@ -126,7 +127,7 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
           .select('*')
           .eq('player_id', user.id)
           .eq('status', 'active')
-          .single();
+          .maybeSingle();
 
         if (error) {
           console.error('Error fetching active match session:', error);
@@ -287,8 +288,18 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
   };
 
   return (
-    <MatchSessionContext.Provider value={value}>
-      {children}
-    </MatchSessionContext.Provider>
+    <SafeContextProvider 
+      requireAuth={true}
+      loadingMessage="Loading match session..."
+      fallbackComponent={
+        <div className="text-center p-4">
+          <p className="text-muted-foreground">Match sessions unavailable</p>
+        </div>
+      }
+    >
+      <MatchSessionContext.Provider value={value}>
+        {children}
+      </MatchSessionContext.Provider>
+    </SafeContextProvider>
   );
 };
