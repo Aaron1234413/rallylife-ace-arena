@@ -89,11 +89,11 @@ const CreateSession = () => {
       color: 'text-green-600'
     },
     { 
-      value: 'recovery', 
-      label: 'Recovery Session', 
+      value: 'wellbeing', 
+      label: 'Wellbeing Session', 
       icon: Heart, 
-      description: 'Light activity and recovery work',
-      color: 'text-red-600'
+      description: 'Recovery and mental wellness activities',
+      color: 'text-pink-600'
     }
   ];
 
