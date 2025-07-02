@@ -703,11 +703,97 @@ export type Database = {
           },
         ]
       }
+      club_activity_feed: {
+        Row: {
+          activity_data: Json
+          activity_type: string
+          club_id: string
+          created_at: string
+          id: string
+          user_id: string
+        }
+        Insert: {
+          activity_data?: Json
+          activity_type: string
+          club_id: string
+          created_at?: string
+          id?: string
+          user_id: string
+        }
+        Update: {
+          activity_data?: Json
+          activity_type?: string
+          club_id?: string
+          created_at?: string
+          id?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_activity_feed_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_invitations: {
+        Row: {
+          accepted_at: string | null
+          club_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          invitation_code: string
+          invitee_email: string
+          inviter_id: string
+          message: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          club_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitation_code?: string
+          invitee_email: string
+          inviter_id: string
+          message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          club_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          invitation_code?: string
+          invitee_email?: string
+          inviter_id?: string
+          message?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_invitations_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_memberships: {
         Row: {
           club_id: string
           id: string
           joined_at: string
+          permissions: Json | null
           role: string
           status: string
           updated_at: string
@@ -717,6 +803,7 @@ export type Database = {
           club_id: string
           id?: string
           joined_at?: string
+          permissions?: Json | null
           role?: string
           status?: string
           updated_at?: string
@@ -726,6 +813,7 @@ export type Database = {
           club_id?: string
           id?: string
           joined_at?: string
+          permissions?: Json | null
           role?: string
           status?: string
           updated_at?: string
@@ -3931,6 +4019,10 @@ export type Database = {
         Args: { geom1: unknown; geom2: unknown }
         Returns: boolean
       }
+      accept_club_invitation: {
+        Args: { invitation_code_param: string }
+        Returns: Json
+      }
       accept_coach_invitation: {
         Args: { invitation_code_param: string }
         Returns: Json
@@ -4782,6 +4874,15 @@ export type Database = {
           kicker_id_param: string
         }
         Returns: Json
+      }
+      log_club_activity: {
+        Args: {
+          p_club_id: string
+          p_user_id: string
+          p_activity_type: string
+          p_activity_data?: Json
+        }
+        Returns: undefined
       }
       log_comprehensive_activity: {
         Args: {
