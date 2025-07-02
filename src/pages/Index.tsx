@@ -24,7 +24,6 @@ import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
 import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
-import { ActiveMatchWidget } from "@/components/match/ActiveMatchWidget";
 import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
 import { useSocialPlaySession } from "@/contexts/SocialPlaySessionContext";
 import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
@@ -345,9 +344,6 @@ const Index = () => {
               </div>
             </ErrorBoundary>
             
-            <ErrorBoundary fallbackTitle="Match Widget Error">
-              <ActiveMatchWidget />
-            </ErrorBoundary>
             
             <ErrorBoundary fallbackTitle="Training Widget Error">
               <ActiveTrainingWidget />
