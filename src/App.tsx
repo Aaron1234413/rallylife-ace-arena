@@ -10,7 +10,6 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { MatchSessionProvider } from "@/contexts/MatchSessionContext";
 import { TrainingSessionProvider } from "@/contexts/TrainingSessionContext";
 import { SocialPlaySessionProvider } from "@/contexts/SocialPlaySessionContext";
-import { FeatureFlagProvider } from "@/contexts/FeatureFlagContext";
 
 import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
@@ -44,9 +43,8 @@ const queryClient = new QueryClient();
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <FeatureFlagProvider>
-        <TrainingSessionProvider>
-          <MatchSessionProvider>
+      <TrainingSessionProvider>
+        <MatchSessionProvider>
             <SocialPlaySessionProvider>
             <BrowserRouter>
               <AppLayout>
@@ -85,9 +83,8 @@ function App() {
               </AppLayout>
               </BrowserRouter>
             </SocialPlaySessionProvider>
-          </MatchSessionProvider>
-        </TrainingSessionProvider>
-      </FeatureFlagProvider>
+        </MatchSessionProvider>
+      </TrainingSessionProvider>
     </QueryClientProvider>
   );
 }

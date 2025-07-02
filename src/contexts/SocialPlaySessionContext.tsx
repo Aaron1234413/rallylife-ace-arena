@@ -2,7 +2,6 @@
 import React, { createContext, useContext, ReactNode, useState } from 'react';
 import { toast } from 'sonner';
 import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
-import { useFeatureFlagContext } from '@/contexts/FeatureFlagContext';
 import { useAuth } from '@/hooks/useAuth';
 import { SafeContextProvider } from '@/components/ui/safe-context-provider';
 
@@ -39,7 +38,6 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
   const [loading, setLoading] = useState(false);
   
   const { user } = useAuth();
-  const { shouldUseUnifiedSessions, shouldMigrateSocialPlay } = useFeatureFlagContext();
   
   // Use the unified sessions system
   const realTimeSessions = useRealTimeSessions('my-sessions', user?.id, {
