@@ -168,72 +168,70 @@ export function HPStatusAlert({
             </div>
           )}
 
-          {/* Session Capacity Recommendations */}
+          {/* Session Capacity Recommendations - Compact Layout */}
           {config.showCapacity && hpPercentage >= 20 && (
-            <div className="mt-3 pt-3 border-t border-gray-200">
-              <div className="space-y-2">
-                <h4 className="text-xs font-medium text-gray-700 flex items-center gap-1">
-                  <Activity className="h-3 w-3" />
-                  Session Capacity
-                </h4>
-                <div className="grid grid-cols-1 gap-1 text-xs">
-                  {/* Calculate what sessions are available */}
-                  {(() => {
-                    const matchCost = calculateSessionCosts('match', 90).hpCost;
-                    const trainingCost = calculateSessionCosts('training', 60).hpCost;
-                    const socialCost = calculateSessionCosts('social_play', 45).hpCost;
-                    
-                    const availableSessions = [];
-                    if (currentHP >= matchCost) {
-                      const count = Math.floor(currentHP / matchCost);
-                      availableSessions.push(
-                        <div key="match" className="flex items-center justify-between text-blue-600">
-                          <span className="flex items-center gap-1">
-                            <Zap className="h-3 w-3" />
-                            Matches (90min)
-                          </span>
-                          <Badge variant="outline" className="text-xs h-5 px-2">{count}</Badge>
-                        </div>
-                      );
+            <div className="mt-2 pt-2 border-t border-gray-200">
+              <h4 className="text-xs font-medium text-gray-700 flex items-center gap-1 mb-2">
+                <Activity className="h-3 w-3" />
+                Session Capacity
+              </h4>
+              <div className="grid grid-cols-3 gap-2 text-xs">
+                {/* Calculate what sessions are available */}
+                {(() => {
+                  const matchCost = calculateSessionCosts('match', 90).hpCost;
+                  const trainingCost = calculateSessionCosts('training', 60).hpCost;
+                  const socialCost = calculateSessionCosts('social_play', 45).hpCost;
+                  
+                  const sessions = [
+                    {
+                      key: 'match',
+                      icon: Zap,
+                      label: 'Matches',
+                      cost: matchCost,
+                      color: 'text-blue-600'
+                    },
+                    {
+                      key: 'training',
+                      icon: GraduationCap,
+                      label: 'Training',
+                      cost: trainingCost,
+                      color: 'text-green-600'
+                    },
+                    {
+                      key: 'social',
+                      icon: Users,
+                      label: 'Social',
+                      cost: socialCost,
+                      color: 'text-purple-600'
                     }
+                  ];
+                  
+                  return sessions.map((session) => {
+                    const SessionIcon = session.icon;
+                    const count = currentHP >= session.cost ? Math.floor(currentHP / session.cost) : 0;
+                    const available = count > 0;
                     
-                    if (currentHP >= trainingCost) {
-                      const count = Math.floor(currentHP / trainingCost);
-                      availableSessions.push(
-                        <div key="training" className="flex items-center justify-between text-green-600">
-                          <span className="flex items-center gap-1">
-                            <GraduationCap className="h-3 w-3" />
-                            Training (60min)
-                          </span>
-                          <Badge variant="outline" className="text-xs h-5 px-2">{count}</Badge>
-                        </div>
-                      );
-                    }
-                    
-                    if (currentHP >= socialCost) {
-                      const count = Math.floor(currentHP / socialCost);
-                      availableSessions.push(
-                        <div key="social" className="flex items-center justify-between text-purple-600">
-                          <span className="flex items-center gap-1">
-                            <Users className="h-3 w-3" />
-                            Social (45min)
-                          </span>
-                          <Badge variant="outline" className="text-xs h-5 px-2">{count}</Badge>
-                        </div>
-                      );
-                    }
-                    
-                    if (availableSessions.length === 0) {
-                      return (
-                        <div className="text-center text-gray-500 py-2">
-                          <span className="text-xs">Recovery needed for active sessions</span>
-                        </div>
-                      );
-                    }
-                    
-                    return availableSessions;
-                  })()}
-                </div>
+                    return (
+                      <div 
+                        key={session.key} 
+                        className={`flex flex-col items-center p-2 rounded border ${
+                          available 
+                            ? `${session.color} bg-gray-50 border-gray-200` 
+                            : 'text-gray-400 bg-gray-25 border-gray-100'
+                        }`}
+                      >
+                        <SessionIcon className="h-3 w-3 mb-1" />
+                        <span className="text-xs font-medium">{session.label}</span>
+                        <Badge 
+                          variant={available ? "default" : "outline"} 
+                          className="text-xs h-4 px-1 mt-1"
+                        >
+                          {count}
+                        </Badge>
+                      </div>
+                    );
+                  });
+                })()}
               </div>
             </div>
           )}
