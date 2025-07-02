@@ -21,6 +21,7 @@ import { ActionButton } from './ActionButton';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
 import { WellbeingCenter, WellbeingQuickAction } from '@/components/recovery';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { formatSessionPreview, calculateSessionCosts, isSessionTooRisky } from '@/utils/sessionCalculations';
 
 interface EnhancedQuickActionsProps {
   hpData: any;
@@ -126,7 +127,6 @@ export function EnhancedQuickActions({
         color: 'bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700',
         textColor: 'text-blue-700',
         bgColor: 'bg-blue-50',
-        rewards: { hp: -15, xp: 50, tokens: 25 },
         energyRequirement: 'high' as const,
         estimatedDuration: 90,
         difficulty: 'high' as const,
@@ -142,7 +142,6 @@ export function EnhancedQuickActions({
         color: 'bg-gradient-to-br from-green-500 via-green-600 to-emerald-700',
         textColor: 'text-green-700',
         bgColor: 'bg-green-50',
-        rewards: { hp: -8, xp: 30, tokens: 15 },
         energyRequirement: 'medium' as const,
         estimatedDuration: 60,
         difficulty: 'medium' as const,
@@ -158,7 +157,6 @@ export function EnhancedQuickActions({
         color: 'bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700',
         textColor: 'text-purple-700',
         bgColor: 'bg-purple-50',
-        rewards: { hp: 5, xp: 15, tokens: 12 },
         energyRequirement: 'low' as const,
         estimatedDuration: 45,
         difficulty: 'low' as const,
@@ -174,21 +172,35 @@ export function EnhancedQuickActions({
       let urgency: 'low' | 'medium' | 'high' = 'low';
       let availability = true;
       
-      // Updated energy-based recommendations using actual HP data
+      // Calculate realistic HP/XP costs for this action
+      const currentHP = hpData?.current_hp || 100;
+      const sessionType = action.id === 'social' ? 'social_play' : action.id;
+      const sessionPreview = formatSessionPreview(sessionType, action.estimatedDuration, currentHP);
+      const calculation = sessionPreview.costBreakdown;
+      
+      // Check if session is too risky
+      const tooRisky = isSessionTooRisky(currentHP, sessionType, action.estimatedDuration);
+      
+      // Use realistic session preview as the main description
+      contextualMessage = sessionPreview.preSessionText;
+      
+      // Add smart warnings if any
+      if (sessionPreview.smartWarnings.length > 0) {
+        contextualMessage += ` • ${sessionPreview.smartWarnings[0]}`;
+      }
+      
+      // Energy-based availability and recommendations
       const playerEnergyLevel = contextualData.recommendations.energy;
-      if (action.energyRequirement === 'high' && playerEnergyLevel === 'high') {
-        contextualMessage = `Perfect energy level for ${action.title.toLowerCase()}! Your HP (${Math.round(contextualData.playerState.hpPercentage)}%) is optimal for intense activity.`;
+      if (tooRisky) {
+        availability = false;
+        contextualMessage = `⚠️ Would drop you to ${Math.round(((currentHP - calculation.hpCost) / (hpData?.max_hp || 100)) * 100)}% HP - too risky! ${sessionPreview.recoveryAdvice}`;
+      } else if (action.energyRequirement === 'high' && playerEnergyLevel === 'high') {
         recommended = true;
         urgency = 'high';
-      } else if (action.energyRequirement === 'high' && hpPercentage <= 5) {
-        contextualMessage = `Wellbeing session needed first - your HP (${Math.round(contextualData.playerState.hpPercentage)}%) is critically low for intense activity`;
-        availability = false;
       } else if (action.energyRequirement === 'low' && playerEnergyLevel === 'low') {
-        contextualMessage = `Great low-energy option for your current state (${Math.round(contextualData.playerState.hpPercentage)}% HP)`;
         recommended = true;
         urgency = 'medium';
       } else if (action.energyRequirement === 'medium' && playerEnergyLevel === 'medium') {
-        contextualMessage = `Well-balanced activity for your current energy level (${Math.round(contextualData.playerState.hpPercentage)}% HP)`;
         recommended = true;
         urgency = 'medium';
       }
@@ -222,8 +234,8 @@ export function EnhancedQuickActions({
       }
 
       // Real XP progress recommendations using actual XP data
-      if (contextualData.playerState.nearLevelUp && action.rewards.xp >= 30) {
-        contextualMessage = `${action.rewards.xp} XP will help you reach Level ${xpData.current_level + 1}! Only ${xpData.xp_to_next_level} XP needed.`;
+      if (contextualData.playerState.nearLevelUp && calculation.xpGain >= 30) {
+        contextualMessage = `${calculation.xpGain} XP will help you reach Level ${xpData.current_level + 1}! Only ${xpData.xp_to_next_level} XP needed.`;
         recommended = true;
         urgency = 'high';
       }
@@ -252,13 +264,20 @@ export function EnhancedQuickActions({
         recommended,
         urgency,
         availability,
+        rewards: { 
+          hp: calculation.hpCost <= 0 ? Math.abs(calculation.hpCost) : -calculation.hpCost, 
+          xp: calculation.xpGain, 
+          tokens: Math.round(calculation.xpGain / 2) 
+        },
+        sessionPreview,
         contextualInfo: {
           energyMatch: action.energyRequirement === contextualData.recommendations.energy,
           timeMatch: action.timePreference?.includes(currentTimeContext),
           motivationBoost: contextualData.recommendations.motivation === 'high',
           varietyBonus: !contextualData.activity.recentTypes.includes(action.varietyType),
           perfectTiming: action.timePreference?.includes(currentTimeContext) && 
-                        contextualData.recommendations.energy === action.energyRequirement
+                        contextualData.recommendations.energy === action.energyRequirement,
+          tooRisky
         }
       };
     });
@@ -266,7 +285,11 @@ export function EnhancedQuickActions({
 
   const handleQuickAction = async (action: typeof quickActions[0]) => {
     if (!action.availability) {
-      toast.error(`This activity is not recommended with your current energy level (${Math.round(contextualData.playerState.hpPercentage)}% HP). Consider wellbeing sessions first.`);
+      if (action.contextualInfo?.tooRisky) {
+        toast.error(`This ${action.estimatedDuration}min ${action.title.toLowerCase()} would be too demanding for your current HP level. Try a shorter session or recover first.`);
+      } else {
+        toast.error(`This activity is not recommended with your current energy level (${Math.round(contextualData.playerState.hpPercentage)}% HP). Consider wellbeing sessions first.`);
+      }
       return;
     }
 

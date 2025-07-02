@@ -7,9 +7,13 @@ import {
   Sparkles, 
   AlertTriangle,
   CheckCircle,
-  Zap
+  Zap,
+  Activity,
+  Users,
+  GraduationCap
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { getHPRecommendations, calculateSessionCosts } from '@/utils/sessionCalculations';
 
 interface HPStatusAlertProps {
   hpPercentage: number;
@@ -29,14 +33,19 @@ export function HPStatusAlert({
   className 
 }: HPStatusAlertProps) {
   const getStatusConfig = () => {
+    // Get session capacity recommendations
+    const recommendations = getHPRecommendations(currentHP, 'match');
+    const capacityText = recommendations.length > 0 ? recommendations[0] : '';
+    
     if (hpPercentage >= 80) {
       return {
         icon: CheckCircle,
         iconColor: 'text-green-500',
         message: 'Excellent health! You\'re ready for any challenge.',
-        subMessage: 'Keep up the great work with consistent activity!',
+        subMessage: capacityText || 'Keep up the great work with consistent activity!',
         bgColor: 'bg-green-50 border-green-200',
         showAction: false,
+        showCapacity: true,
         ariaLabel: 'Health status is excellent'
       };
     }
@@ -46,9 +55,10 @@ export function HPStatusAlert({
         icon: Heart,
         iconColor: 'text-blue-500',
         message: 'Good health status. Stay active to maintain your momentum.',
-        subMessage: 'Consider a light training session to boost your HP.',
+        subMessage: capacityText || 'Consider a light training session to boost your HP.',
         bgColor: 'bg-blue-50 border-blue-200',
         showAction: false,
+        showCapacity: true,
         ariaLabel: 'Health status is good'
       };
     }
@@ -58,9 +68,10 @@ export function HPStatusAlert({
         icon: AlertTriangle,
         iconColor: 'text-yellow-500',
         message: 'Your HP is getting low. Time for some wellbeing!',
-        subMessage: 'Regular wellbeing sessions help maintain peak performance.',
+        subMessage: capacityText || 'Regular wellbeing sessions help maintain peak performance.',
         bgColor: 'bg-yellow-50 border-yellow-200',
         showAction: true,
+        showCapacity: true,
         actionText: 'Open Recovery Center',
         actionVariant: 'outline' as const,
         ariaLabel: 'Health status is fair - recovery recommended'
@@ -72,9 +83,10 @@ export function HPStatusAlert({
         icon: AlertTriangle,
         iconColor: 'text-orange-500',
         message: 'Low HP detected! Recovery is strongly recommended.',
-        subMessage: 'Don\'t push yourself too hard - rest and recharge.',
+        subMessage: capacityText || 'Don\'t push yourself too hard - rest and recharge.',
         bgColor: 'bg-orange-50 border-orange-200',
         showAction: true,
+        showCapacity: true,
         actionText: 'Start Recovery Now',
         actionVariant: 'default' as const,
         ariaLabel: 'Health status is low - recovery strongly recommended'
@@ -85,9 +97,10 @@ export function HPStatusAlert({
       icon: Zap,
       iconColor: 'text-red-500',
       message: 'CRITICAL: Your HP is dangerously low!',
-      subMessage: 'Immediate recovery is essential for your wellbeing.',
+      subMessage: capacityText || 'Immediate recovery is essential for your wellbeing.',
       bgColor: 'bg-red-50 border-red-200',
       showAction: true,
+      showCapacity: false, // Don't show capacity recommendations in critical state
       actionText: 'Emergency Recovery',
       actionVariant: 'destructive' as const,
       showQuickRestore: true,
@@ -152,6 +165,76 @@ export function HPStatusAlert({
                   <span className="whitespace-nowrap">+10 HP Quick Restore</span>
                 </Button>
               )}
+            </div>
+          )}
+
+          {/* Session Capacity Recommendations */}
+          {config.showCapacity && hpPercentage >= 20 && (
+            <div className="mt-3 pt-3 border-t border-gray-200">
+              <div className="space-y-2">
+                <h4 className="text-xs font-medium text-gray-700 flex items-center gap-1">
+                  <Activity className="h-3 w-3" />
+                  Session Capacity
+                </h4>
+                <div className="grid grid-cols-1 gap-1 text-xs">
+                  {/* Calculate what sessions are available */}
+                  {(() => {
+                    const matchCost = calculateSessionCosts('match', 90).hpCost;
+                    const trainingCost = calculateSessionCosts('training', 60).hpCost;
+                    const socialCost = calculateSessionCosts('social_play', 45).hpCost;
+                    
+                    const availableSessions = [];
+                    if (currentHP >= matchCost) {
+                      const count = Math.floor(currentHP / matchCost);
+                      availableSessions.push(
+                        <div key="match" className="flex items-center justify-between text-blue-600">
+                          <span className="flex items-center gap-1">
+                            <Zap className="h-3 w-3" />
+                            Matches (90min)
+                          </span>
+                          <Badge variant="outline" className="text-xs h-5 px-2">{count}</Badge>
+                        </div>
+                      );
+                    }
+                    
+                    if (currentHP >= trainingCost) {
+                      const count = Math.floor(currentHP / trainingCost);
+                      availableSessions.push(
+                        <div key="training" className="flex items-center justify-between text-green-600">
+                          <span className="flex items-center gap-1">
+                            <GraduationCap className="h-3 w-3" />
+                            Training (60min)
+                          </span>
+                          <Badge variant="outline" className="text-xs h-5 px-2">{count}</Badge>
+                        </div>
+                      );
+                    }
+                    
+                    if (currentHP >= socialCost) {
+                      const count = Math.floor(currentHP / socialCost);
+                      availableSessions.push(
+                        <div key="social" className="flex items-center justify-between text-purple-600">
+                          <span className="flex items-center gap-1">
+                            <Users className="h-3 w-3" />
+                            Social (45min)
+                          </span>
+                          <Badge variant="outline" className="text-xs h-5 px-2">{count}</Badge>
+                        </div>
+                      );
+                    }
+                    
+                    if (availableSessions.length === 0) {
+                      return (
+                        <div className="text-center text-gray-500 py-2">
+                          <span className="text-xs">Recovery needed for active sessions</span>
+                        </div>
+                      );
+                    }
+                    
+                    return availableSessions;
+                  })()}
+                </div>
+              </div>
             </div>
           )}
           
