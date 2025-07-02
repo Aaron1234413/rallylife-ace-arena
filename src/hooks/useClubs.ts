@@ -92,18 +92,30 @@ export function useClubs() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
+      // First get user's memberships
+      const { data: memberships, error: membershipError } = await supabase
+        .from('club_memberships')
+        .select('club_id')
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+
+      if (membershipError) throw membershipError;
+
+      if (!memberships || memberships.length === 0) {
+        setMyClubs([]);
+        return;
+      }
+
+      // Then get the clubs for those memberships
+      const clubIds = memberships.map(m => m.club_id);
+      const { data: clubs, error: clubsError } = await supabase
         .from('clubs')
-        .select(`
-          *,
-          club_memberships!inner(role, status)
-        `)
-        .eq('club_memberships.user_id', user.id)
-        .eq('club_memberships.status', 'active')
+        .select('*')
+        .in('id', clubIds)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
-      setMyClubs(data || []);
+      if (clubsError) throw clubsError;
+      setMyClubs(clubs || []);
     } catch (error) {
       console.error('Error fetching my clubs:', error);
       toast.error('Failed to load your clubs');
