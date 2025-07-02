@@ -232,7 +232,7 @@ const Index = () => {
 
   // Show loading state while profile is being fetched
   if (profileLoading) {
-    console.log('🏠 [INDEX] Rendering loading state');
+    console.log('🏠 [INDEX] Rendering loading state - profileLoading is true');
     return (
       <div className="min-h-screen bg-tennis-green-bg">
         <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
