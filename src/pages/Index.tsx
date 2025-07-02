@@ -23,13 +23,6 @@ import { MobileActionPanel } from "@/components/dashboard/mobile";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
-import { ActiveTrainingWidget } from "@/components/training/ActiveTrainingWidget";
-import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuickActions";
-import { useSocialPlaySession } from "@/contexts/SocialPlaySessionContext";
-import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
-import { FloatingCheckInTrigger } from "@/components/training/FloatingCheckInTrigger";
-import { FloatingCheckInButton } from "@/components/match/FloatingCheckInButton";
-import { InvitationsWidget } from "@/components/invitations/InvitationsWidget";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { toast } from "sonner";
 
@@ -53,9 +46,6 @@ const Index = () => {
   const { cxpData, loading: cxpLoading, addCXP, initializeCXP } = useCoachCXP();
   const { tokenData: coachTokenData, loading: coachTokensLoading, addTokens: addCoachTokens, initializeTokens: initializeCoachTokens } = useCoachTokens();
   const { crpData, isLoading: crpLoading, initializeCRP } = useCoachCRP();
-  
-  // Social Play Session Hook with error boundary
-  const { loading: socialPlayLoading } = useSocialPlaySession();
 
   // Derive user role flags from profile
   const isPlayer = profile?.role === 'player';
@@ -298,12 +288,6 @@ const Index = () => {
 
   return (
     <div className="min-h-screen bg-tennis-green-bg overflow-x-hidden">
-      {/* Floating components that need to be inside the provider contexts */}
-      <ErrorBoundary fallbackTitle="Navigation Error">
-        <FloatingCheckInTrigger />
-        <FloatingCheckInButton />
-      </ErrorBoundary>
-      
       <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Welcome Banner */}
         <ErrorBoundary fallbackTitle="Welcome Banner Error">
@@ -322,31 +306,6 @@ const Index = () => {
                 loading={vitalsLoading}
                 onRestoreHP={handleRestoreHP}
               />
-            </ErrorBoundary>
-
-            {/* Social Play Section - Always show quick actions for Phase 1 */}
-            <ErrorBoundary fallbackTitle="Social Play Error">
-              <SocialPlayQuickActions />
-            </ErrorBoundary>
-
-            {/* Active Session Widgets - Now includes match invitations */}
-            <ErrorBoundary fallbackTitle="Active Sessions Error">
-              <ActiveSocialPlayWidget 
-                onAddXP={handleAddXP}
-                onRestoreHP={handleRestoreHP}
-              />
-            </ErrorBoundary>
-            
-            {/* Unified Invitations Widget - Shows both match and social play invitations */}
-            <ErrorBoundary fallbackTitle="Invitations Error">
-              <div className="mb-6">
-                <InvitationsWidget />
-              </div>
-            </ErrorBoundary>
-            
-            
-            <ErrorBoundary fallbackTitle="Training Widget Error">
-              <ActiveTrainingWidget />
             </ErrorBoundary>
 
             {/* Enhanced Quick Actions - Now Available on All Devices */}

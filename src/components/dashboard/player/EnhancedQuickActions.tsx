@@ -130,7 +130,7 @@ export function EnhancedQuickActions({
         energyRequirement: 'high' as const,
         estimatedDuration: 90,
         difficulty: 'high' as const,
-        navigateTo: '/start-match',
+        navigateTo: '/sessions/create?type=match',
         timePreference: ['morning', 'evening'],
         varietyType: 'competitive'
       },
@@ -146,7 +146,7 @@ export function EnhancedQuickActions({
         energyRequirement: 'medium' as const,
         estimatedDuration: 60,
         difficulty: 'medium' as const,
-        navigateTo: '/start-training',
+        navigateTo: '/sessions/create?type=training',
         timePreference: ['morning', 'afternoon', 'evening'],
         varietyType: 'skill-building'
       },
@@ -162,7 +162,7 @@ export function EnhancedQuickActions({
         energyRequirement: 'low' as const,
         estimatedDuration: 45,
         difficulty: 'low' as const,
-        openDialog: true,
+        navigateTo: '/sessions/create?type=social_play',
         timePreference: ['afternoon', 'evening'],
         varietyType: 'social'
       }
@@ -270,17 +270,10 @@ export function EnhancedQuickActions({
       return;
     }
 
-    // Real backend integration for navigation
+    // All actions now navigate to sessions page
     if (action.navigateTo) {
       console.log(`Navigating to ${action.navigateTo} for ${action.title}`);
       navigate(action.navigateTo);
-      return;
-    }
-
-    // Real social play dialog integration
-    if (action.openDialog && action.id === 'social') {
-      console.log('Opening social play dialog with real contextual data:', contextualData);
-      setSocialPlayDialogOpen(true);
       return;
     }
 
