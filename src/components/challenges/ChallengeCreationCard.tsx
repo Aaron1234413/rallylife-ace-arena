@@ -92,32 +92,8 @@ export function ChallengeCreationCard({
           message: message || `${challengeTypes.find(t => t.value === challengeType)?.label} challenge!`,
         };
 
-        // Use the new function that handles stakes
-        const invitationData = {
-          invitee_user_id: selectedOpponent.id,
-          invitee_user_name: selectedOpponent.name,
-          invitee_user_email: selectedOpponent.email,
-          invitation_type_param: challengeType,
-          message_param: params.message,
-          session_data_param: {
-            matchType: challengeType,
-            isDoubles: challengeType === 'doubles',
-            startTime: params.startTime.toISOString(),
-            challengeCategory: 'match'
-          },
-          stakes_tokens_param: finalStakes,
-          stakes_premium_tokens_param: 0
-        };
-
-        await fetch('/rest/v1/rpc/create_match_invitation_with_stakes', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': `Bearer ${(await import('@/integrations/supabase/client')).supabase.auth.getSession().then(s => s.data.session?.access_token)}`,
-            'apikey': 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZ4cHptYmdzbGJxdXpkc3V0eGh2Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3NDk3NjI3NzcsImV4cCI6MjA2NTMzODc3N30.HG5Y-nyqnf_gDZ1vu1y5vFcJQEiNPSQxyBJE6yJiaOM'
-          },
-          body: JSON.stringify(invitationData)
-        });
+        // Use the existing createMatchInvitation function
+        await createMatchInvitation(params);
 
         toast.success(`Match challenge sent with ${finalStakes} token stakes!`);
       } else {
