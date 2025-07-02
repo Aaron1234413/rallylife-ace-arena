@@ -20,7 +20,10 @@ import { toast } from 'sonner';
 
 export const SessionsTestPanel = () => {
   const { user } = useAuth();
-  const { sessions, loading, joinSession, leaveSession, startSession, completeSession } = useRealTimeSessions('available', user?.id);
+  
+  // Only call useRealTimeSessions when user is available to prevent crashes
+  const realTimeSessionsHook = user?.id ? useRealTimeSessions('available', user.id) : { sessions: [], loading: false, joinSession: async () => {}, leaveSession: async () => {}, startSession: async () => {}, completeSession: async () => {} };
+  const { sessions, loading, joinSession, leaveSession, startSession, completeSession } = realTimeSessionsHook;
   const [testResults, setTestResults] = useState<Record<string, boolean>>({});
   const [testing, setTesting] = useState(false);
 

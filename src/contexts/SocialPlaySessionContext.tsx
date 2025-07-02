@@ -34,7 +34,11 @@ const SocialPlaySessionContext = createContext<SocialPlaySessionContextType | un
 
 export function SocialPlaySessionProvider({ children }: { children: ReactNode }) {
   const { user } = useAuth();
-  const { completeSession } = useRealTimeSessions('my-sessions', user?.id);
+  
+  // Only call useRealTimeSessions when user is available to prevent crashes
+  const realTimeSessionsHook = user?.id ? useRealTimeSessions('my-sessions', user.id) : null;
+  const completeSession = realTimeSessionsHook?.completeSession;
+  
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -73,6 +77,9 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
       const durationMinutes = getDurationMinutes();
       
       // Complete session using unified system
+      if (!completeSession) {
+        throw new Error('Cannot complete session: User not authenticated');
+      }
       await completeSession(activeSession.id, undefined, durationMinutes);
       
       setActiveSession(null);
