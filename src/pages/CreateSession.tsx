@@ -26,6 +26,8 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
+import { usePlayerHP } from '@/hooks/usePlayerHP';
+import { DurationEstimator } from '@/components/training/DurationEstimator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -34,6 +36,7 @@ const CreateSession = () => {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const { tokenData } = usePlayerTokens();
+  const { hpData } = usePlayerHP();
 
   // Form state
   const [sessionType, setSessionType] = useState(searchParams.get('type') || 'match');
@@ -46,6 +49,7 @@ const CreateSession = () => {
   const [invitationCode, setInvitationCode] = useState('');
   const [creating, setCreating] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [estimatedDuration, setEstimatedDuration] = useState<number>(60);
 
   // Set initial max players based on session type and format
   useEffect(() => {
@@ -393,6 +397,20 @@ const CreateSession = () => {
                 value={notes}
                 onChange={(e) => setNotes(e.target.value)}
                 rows={3}
+              />
+            </div>
+
+            
+            {/* Duration Estimator with Live Preview */}
+            <div className="space-y-3">
+              <Label className="text-base font-semibold">Session Duration</Label>
+              <DurationEstimator 
+                value={estimatedDuration}
+                onValueChange={setEstimatedDuration}
+                sessionType={sessionType}
+                currentHP={hpData?.current_hp}
+                maxHP={hpData?.max_hp}
+                showPreview={true}
               />
             </div>
 
