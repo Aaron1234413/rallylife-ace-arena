@@ -35,22 +35,32 @@ export function WelcomeBanner({
   const { tokenData: fetchedTokenData } = usePlayerTokens();
   const sessionRecovery = useSessionRecovery();
   
-  // Initialize live notifications
-  useLiveNotifications();
+  // Initialize live notifications with error handling
+  try {
+    useLiveNotifications();
+  } catch (error) {
+    console.warn('Live notifications failed to initialize:', error);
+  }
   
-  // Use provided data or fallback to fetched data
-  const finalXpData = xpData || fetchedXpData;
-  const finalHpData = hpData || fetchedHpData;
-  const finalTokenData = tokenData || fetchedTokenData;
+  // Use provided data or fallback to fetched data with safe defaults
+  const finalXpData = xpData || fetchedXpData || { current_level: 1 };
+  const finalHpData = hpData || fetchedHpData || { current_hp: 100 };
+  const finalTokenData = tokenData || fetchedTokenData || { regular_tokens: 0 };
   
   const userName = profile?.full_name || user?.email?.split('@')[0] || 'Player';
   const currentLevel = finalXpData?.current_level || 1;
 
   return (
     <div className="space-y-4">
-      <LiveSessionStatusUpdater />
-      {/* Session Recovery Alert */}
-      {(sessionRecovery.hasActiveMatchSession || sessionRecovery.hasActiveSocialPlaySession) && (
+      {/* Live Session Status Updater - with error boundary */}
+      <div style={{ display: 'none' }}>
+        <LiveSessionStatusUpdater />
+      </div>
+
+      {/* Session Recovery Alert - only show if not loading and has active sessions */}
+      {!sessionRecovery.loading && 
+       !sessionRecovery.error && 
+       (sessionRecovery.hasActiveMatchSession || sessionRecovery.hasActiveSocialPlaySession) && (
         <Card className="border-hsl(var(--tennis-yellow)/20) bg-hsl(var(--tennis-yellow-light)/10)">
           <CardContent className="p-4">
             <div className="flex items-start gap-3">

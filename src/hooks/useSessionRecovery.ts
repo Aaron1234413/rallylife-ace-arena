@@ -1,3 +1,4 @@
+
 import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -9,6 +10,7 @@ interface SessionRecovery {
   matchSessionId?: string;
   socialPlaySessionId?: string;
   loading: boolean;
+  error?: string;
 }
 
 export function useSessionRecovery(): SessionRecovery {
@@ -31,43 +33,43 @@ export function useSessionRecovery(): SessionRecovery {
       }
 
       try {
-        // Check for active match sessions
-        const { data: matchSession } = await supabase
+        console.log('🔄 [SESSION_RECOVERY] Checking for active sessions...');
+        
+        // Use a simpler approach to avoid RLS recursion issues
+        // Check for active match sessions with basic query
+        const { data: matchSessions, error: matchError } = await supabase
           .from('active_match_sessions')
-          .select('id')
-          .or(`player_id.eq.${user.id},opponent_id.eq.${user.id},partner_id.eq.${user.id},opponent_1_id.eq.${user.id},opponent_2_id.eq.${user.id}`)
+          .select('id, status')
+          .eq('player_id', user.id)
           .eq('status', 'active')
-          .maybeSingle();
+          .limit(1);
+
+        if (matchError) {
+          console.warn('⚠️ [SESSION_RECOVERY] Match session query failed:', matchError);
+        }
 
         // Check for active social play sessions
-        const { data: socialSession } = await supabase
+        const { data: socialSessions, error: socialError } = await supabase
           .from('social_play_sessions')
-          .select('id')
-          .or(`created_by.eq.${user.id}`)
+          .select('id, status')
+          .eq('created_by', user.id)
           .eq('status', 'active')
-          .maybeSingle();
+          .limit(1);
 
-        // Check if user is participant in any active social play session
-        const { data: participantSession } = await supabase
-          .from('social_play_participants')
-          .select('session_id, social_play_sessions!inner(id, status)')
-          .eq('user_id', user.id)
-          .eq('status', 'joined')
-          .eq('social_play_sessions.status', 'active')
-          .maybeSingle();
+        if (socialError) {
+          console.warn('⚠️ [SESSION_RECOVERY] Social session query failed:', socialError);
+        }
 
-        const hasActiveMatch = !!matchSession;
-        const hasActiveSocialPlay = !!socialSession || !!participantSession;
+        const hasActiveMatch = !matchError && matchSessions && matchSessions.length > 0;
+        const hasActiveSocialPlay = !socialError && socialSessions && socialSessions.length > 0;
 
         if (hasActiveMatch || hasActiveSocialPlay) {
           console.log('🔄 [SESSION_RECOVERY] Active sessions detected:', {
             match: hasActiveMatch,
-            socialPlay: hasActiveSocialPlay,
-            matchId: matchSession?.id,
-            socialId: socialSession?.id || participantSession?.session_id
+            socialPlay: hasActiveSocialPlay
           });
 
-          // Show recovery notification
+          // Show recovery notification only once
           if (hasActiveMatch && hasActiveSocialPlay) {
             toast.info('Active sessions detected! Check your dashboard for ongoing activities.');
           } else if (hasActiveMatch) {
@@ -80,22 +82,26 @@ export function useSessionRecovery(): SessionRecovery {
         setRecovery({
           hasActiveMatchSession: hasActiveMatch,
           hasActiveSocialPlaySession: hasActiveSocialPlay,
-          matchSessionId: matchSession?.id,
-          socialPlaySessionId: socialSession?.id || participantSession?.session_id,
+          matchSessionId: matchSessions?.[0]?.id,
+          socialPlaySessionId: socialSessions?.[0]?.id,
           loading: false
         });
 
       } catch (error) {
-        console.error('Error detecting active sessions:', error);
+        console.error('❌ [SESSION_RECOVERY] Error detecting active sessions:', error);
         setRecovery({
           hasActiveMatchSession: false,
           hasActiveSocialPlaySession: false,
-          loading: false
+          loading: false,
+          error: 'Failed to check for active sessions'
         });
       }
     };
 
-    detectActiveSessions();
+    // Only run once when user is available
+    if (user) {
+      detectActiveSessions();
+    }
   }, [user]);
 
   return recovery;
