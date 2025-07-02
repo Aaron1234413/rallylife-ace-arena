@@ -4806,17 +4806,6 @@ export type Database = {
           | {
               session_id_param: string
               winner_id_param?: string
-              completion_type?: string
-            }
-          | {
-              session_id_param: string
-              winner_id_param?: string
-              completion_type?: string
-              session_duration_minutes?: number
-            }
-          | {
-              session_id_param: string
-              winner_id_param?: string
               session_duration_minutes?: number
             }
         Returns: Json
