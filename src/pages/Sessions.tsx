@@ -458,7 +458,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
               {session.participants.map((participant) => (
                 <div key={participant.id} className="flex items-center justify-between text-sm">
                   <span className="text-gray-600">
-                    {participant.user.full_name}
+                    {participant.user?.full_name || 'Unknown User'}
                     {participant.user_id === session.creator_id && ' (Creator)'}
                   </span>
                   {isCreator && participant.user_id !== session.creator_id && session.status === 'waiting' && (
@@ -565,7 +565,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
                   className="w-full justify-start"
                 >
                   <Trophy className="h-4 w-4 mr-2" />
-                  {participant.user.full_name}
+                  {participant.user?.full_name || 'Unknown User'}
                   {participant.user_id === session.creator_id && ' (You)'}
                 </Button>
               ))}
