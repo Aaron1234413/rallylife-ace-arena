@@ -30,9 +30,23 @@ interface Session {
   }>;
 }
 
-export function useRealTimeSessions(activeTab: string, userId?: string) {
+interface UseRealTimeSessionsOptions {
+  sessionTypes?: Array<'match' | 'social_play' | 'training' | 'wellbeing'>;
+  includePrivate?: boolean;
+}
+
+export function useRealTimeSessions(
+  activeTab: string, 
+  userId?: string, 
+  options: UseRealTimeSessionsOptions = {}
+) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
+  
+  const { 
+    sessionTypes = ['match', 'social_play', 'training', 'wellbeing'],
+    includePrivate = true 
+  } = options;
 
   const fetchSessions = async () => {
     try {
@@ -52,6 +66,11 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
           creator:profiles(full_name)
         `);
 
+      // Apply session type filtering
+      if (sessionTypes.length < 4) {
+        query = query.in('session_type', sessionTypes);
+      }
+
       // Apply tab-specific filtering
       if (activeTab === 'my-sessions' && userId) {
         // For my sessions, get sessions where user is creator or participant
@@ -69,7 +88,10 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
           query = query.eq('creator_id', userId);
         }
       } else if (activeTab === 'available') {
-        query = query.eq('status', 'waiting').eq('is_private', false);
+        query = query.eq('status', 'waiting');
+        if (!includePrivate) {
+          query = query.eq('is_private', false);
+        }
       } else if (activeTab === 'completed') {
         // For completed sessions, show sessions where user is creator or participant
         if (userId) {
@@ -123,15 +145,17 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
     if (userId) {
       fetchSessions();
     }
-  }, [activeTab, userId]);
+  }, [activeTab, userId, sessionTypes, includePrivate]);
 
-  // Set up real-time subscriptions
+  // Set up real-time subscriptions (consolidated for all session types)
   useEffect(() => {
     if (!userId) return;
 
-    // Subscribe to sessions table changes
+    const channelId = `unified-sessions-${userId}-${Date.now()}`;
+    
+    // Single subscription to sessions table for all session types
     const sessionsChannel = supabase
-      .channel('sessions-changes')
+      .channel(`${channelId}-sessions`)
       .on(
         'postgres_changes',
         {
@@ -139,15 +163,16 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
           schema: 'public',
           table: 'sessions'
         },
-        () => {
+        (payload) => {
+          console.log('Sessions table change:', payload);
           fetchSessions();
         }
       )
       .subscribe();
 
-    // Subscribe to session_participants table changes
+    // Single subscription to session_participants table for all session types  
     const participantsChannel = supabase
-      .channel('participants-changes')
+      .channel(`${channelId}-participants`)
       .on(
         'postgres_changes',
         {
@@ -155,17 +180,21 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
           schema: 'public',
           table: 'session_participants'
         },
-        () => {
+        (payload) => {
+          console.log('Session participants change:', payload);
           fetchSessions();
         }
       )
       .subscribe();
 
+    console.log('✅ Unified real-time subscriptions established for session types:', sessionTypes);
+
     return () => {
+      console.log('🧹 Cleaning up unified session subscriptions');
       supabase.removeChannel(sessionsChannel);
       supabase.removeChannel(participantsChannel);
     };
-  }, [userId, activeTab]);
+  }, [userId, activeTab, sessionTypes]);
 
   const joinSession = async (sessionId: string) => {
     try {
@@ -411,6 +440,18 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
     leaveSession,
     kickParticipant,
     startSession,
-    completeSession
+    completeSession,
+    fetchSessions, // Expose for manual refresh
+    // Filtered session getters for convenience
+    getSessionsByType: (type: Session['session_type']) => 
+      sessions.filter(s => s.session_type === type),
+    getActiveSessions: () => 
+      sessions.filter(s => s.status === 'active'),
+    getWaitingSessions: () => 
+      sessions.filter(s => s.status === 'waiting'),
+    getMyCreatedSessions: () => 
+      sessions.filter(s => s.creator_id === userId),
+    getMyJoinedSessions: () => 
+      sessions.filter(s => s.user_joined && s.creator_id !== userId)
   };
 }

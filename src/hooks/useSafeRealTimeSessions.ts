@@ -194,67 +194,20 @@ export function useSafeRealTimeSessions(
     };
   }, [fetchSessions]);
 
-  // Set up real-time subscriptions with safety checks
+  // Real-time subscriptions are now handled by useRealTimeSessions
+  // This hook is kept for legacy compatibility but subscriptions are disabled
   useEffect(() => {
-    if (!enabled || !effectiveUserId) return;
-
-    try {
-      // Clear any existing channels first
-      clearChannels();
-
-      // Create unique channel names to avoid conflicts
-      const sessionChannelName = `safe-sessions-${effectiveUserId}-${Date.now()}`;
-      const participantChannelName = `safe-participants-${effectiveUserId}-${Date.now()}`;
-
-      // Subscribe to sessions table changes
-      const sessionsChannel = supabase
-        .channel(sessionChannelName)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'sessions'
-          },
-          () => {
-            fetchSessions();
-          }
-        )
-        .subscribe((status) => {
-          if (status === 'CHANNEL_ERROR') {
-            console.error('Session channel subscription error');
-          }
-        });
-
-      // Subscribe to session_participants table changes
-      const participantsChannel = supabase
-        .channel(participantChannelName)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'session_participants'
-          },
-          () => {
-            fetchSessions();
-          }
-        )
-        .subscribe((status) => {
-          if (status === 'CHANNEL_ERROR') {
-            console.error('Participants channel subscription error');
-          }
-        });
-
-      channelsRef.current = [sessionsChannel, participantsChannel];
-    } catch (error) {
-      console.error('Error setting up real-time subscriptions:', error);
+    if (!enabled || !effectiveUserId) {
+      return;
     }
 
+    console.log('ℹ️ Safe real-time sessions now delegates to unified useRealTimeSessions');
+    
+    // No real-time subscriptions here - they're handled by the unified hook
     return () => {
-      clearChannels();
+      console.log('🧹 Safe real-time sessions cleanup (no subscriptions to clean)');
     };
-  }, [effectiveUserId, activeTab, enabled, fetchSessions, clearChannels]);
+  }, [effectiveUserId, activeTab, enabled]);
 
   const joinSession = useCallback(async (sessionId: string) => {
     if (!effectiveUserId) {
