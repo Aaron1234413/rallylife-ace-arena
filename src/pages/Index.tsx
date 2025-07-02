@@ -28,7 +28,6 @@ import { SocialPlayQuickActions } from "@/components/social-play/SocialPlayQuick
 import { useSocialPlaySession } from "@/contexts/SocialPlaySessionContext";
 import { ActiveSocialPlayWidget } from "@/components/social-play/ActiveSocialPlayWidget";
 import { FloatingCheckInTrigger } from "@/components/training/FloatingCheckInTrigger";
-import { FloatingCheckInButton } from "@/components/match/FloatingCheckInButton";
 import { InvitationsWidget } from "@/components/invitations/InvitationsWidget";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { toast } from "sonner";
@@ -301,7 +300,6 @@ const Index = () => {
       {/* Floating components that need to be inside the provider contexts */}
       <ErrorBoundary fallbackTitle="Navigation Error">
         <FloatingCheckInTrigger />
-        <FloatingCheckInButton />
       </ErrorBoundary>
       
       <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-4 sm:space-y-6">
