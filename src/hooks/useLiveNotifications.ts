@@ -3,7 +3,7 @@ import { useState, useEffect, useRef } from 'react';
 
 interface LiveNotification {
   id: string;
-  type: 'achievement' | 'level_up' | 'match_win' | 'milestone';
+  type: 'achievement' | 'level_up' | 'match_win' | 'milestone' | 'challenge_sent' | 'challenge_accepted' | 'challenge_completed';
   player_name: string;
   message: string;
   timestamp: string;
@@ -11,6 +11,11 @@ interface LiveNotification {
     level?: number;
     xp_earned?: number;
     achievement_name?: string;
+    stakes_tokens?: number;
+    stakes_premium_tokens?: number;
+    challenger_name?: string;
+    challenged_name?: string;
+    winner_name?: string;
   };
 }
 
@@ -62,6 +67,33 @@ export function useLiveNotifications() {
           'completed 50 training sessions!',
           'achieved 10-match win streak!'
         ]
+      },
+      {
+        type: 'challenge_sent' as const,
+        messages: [
+          'sent an epic challenge!',
+          'threw down the gauntlet!',
+          'issued a bold challenge!',
+          'started a high-stakes duel!'
+        ]
+      },
+      {
+        type: 'challenge_accepted' as const,
+        messages: [
+          'accepted a fierce challenge!',
+          'stepped up to the duel!',
+          'took on the challenge!',
+          'entered the arena!'
+        ]
+      },
+      {
+        type: 'challenge_completed' as const,
+        messages: [
+          'conquered a challenge!',
+          'emerged victorious from battle!',
+          'claimed victory in their duel!',
+          'triumphed in epic combat!'
+        ]
       }
     ];
 
@@ -79,6 +111,19 @@ export function useLiveNotifications() {
       details = {
         xp_earned: Math.floor(Math.random() * 150) + 50,
         achievement_name: message.split('"')[1]
+      };
+    } else if (selectedType.type === 'challenge_sent' || selectedType.type === 'challenge_accepted') {
+      const otherPlayer = players[Math.floor(Math.random() * players.length)];
+      details = {
+        challenger_name: player,
+        challenged_name: otherPlayer,
+        stakes_tokens: Math.floor(Math.random() * 100) + 10
+      };
+    } else if (selectedType.type === 'challenge_completed') {
+      details = {
+        winner_name: player,
+        stakes_tokens: Math.floor(Math.random() * 200) + 50,
+        stakes_premium_tokens: Math.floor(Math.random() * 10) + 1
       };
     }
 
