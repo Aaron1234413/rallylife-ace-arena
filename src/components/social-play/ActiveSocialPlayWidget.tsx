@@ -1,11 +1,11 @@
+
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Users, Clock, Play, Square, MapPin, User } from 'lucide-react';
+import { Users, Clock, Play, Square, MapPin, User, RefreshCw } from 'lucide-react';
 import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
-import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
-import { useAuth } from '@/hooks/useAuth';
+import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
 import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { ShareLinkGenerator } from './ShareLinkGenerator';
 import { SimpleEndEventModal } from './SimpleEndEventModal';
@@ -20,19 +20,12 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
   onAddXP,
   onRestoreHP
 }) => {
-  const { user } = useAuth();
   const { activeSession, startSession, endSession, getDurationMinutes, loading } = useSocialPlaySession();
-  const { sessions: allSessions } = useRealTimeSessions('my-sessions', user?.id);
+  const { activeSession: dbSession, cleanupExpiredSessions, isCleaningUp } = useSocialPlaySessions();
   const { receivedInvitations, sentInvitations } = useUnifiedInvitations();
   const [duration, setDuration] = useState(0);
   const [showEndModal, setShowEndModal] = useState(false);
   const [acceptedInvitations, setAcceptedInvitations] = useState(0);
-  
-  // Get the active social play session from unified sessions
-  const dbSession = allSessions?.find(session => 
-    session.session_type === 'social_play' && 
-    (session.status === 'waiting' || session.status === 'active')
-  );
 
   // Update duration every minute
   useEffect(() => {
@@ -65,8 +58,12 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
     setShowEndModal(false);
   };
 
+  const handleCleanup = async () => {
+    await cleanupExpiredSessions();
+  };
+
   // Helper function to get participant role
-  const getParticipantRole = (participant: any, sessionFormat: string, createdBy: string) => {
+  const getParticipantRole = (participant: any, sessionType: string, createdBy: string) => {
     if (participant.role) {
       return participant.role;
     }
@@ -75,7 +72,7 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
       return 'creator';
     }
     
-    if (sessionFormat === 'singles') {
+    if (sessionType === 'singles') {
       return 'opponent';
     } else {
       return 'player';
@@ -83,10 +80,10 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
   };
 
   // Show database session that could be started
-  if (!activeSession && dbSession && dbSession.status === 'waiting') {
+  if (!activeSession && dbSession && dbSession.status === 'pending') {
     const joinedParticipants = dbSession.participants?.filter(p => p.status === 'joined') || [];
-    const maxParticipants = dbSession.format === 'singles' ? 2 : 4;
-    const minParticipants = dbSession.format === 'singles' ? 2 : 4;
+    const maxParticipants = dbSession.session_type === 'singles' ? 2 : 4;
+    const minParticipants = dbSession.session_type === 'singles' ? 2 : 4;
     const totalParticipants = joinedParticipants.length + acceptedInvitations;
     const isReady = totalParticipants >= minParticipants;
     
@@ -98,6 +95,16 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
               <Users className="h-5 w-5 text-purple-600" />
               Waiting for Players
             </div>
+            <Button
+              onClick={handleCleanup}
+              variant="ghost"
+              size="sm"
+              disabled={isCleaningUp}
+              className="text-xs"
+            >
+              <RefreshCw className={`h-3 w-3 ${isCleaningUp ? 'animate-spin' : ''}`} />
+              Cleanup
+            </Button>
           </CardTitle>
         </CardHeader>
         
@@ -106,10 +113,10 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium capitalize">
-                  {dbSession.format} Session
+                  {dbSession.session_type} Session
                 </h4>
                 <Badge variant="outline" className="capitalize">
-                  {dbSession.format}
+                  {dbSession.session_type}
                 </Badge>
               </div>
               
@@ -137,7 +144,7 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                   <div className="text-xs font-medium text-gray-600">Current Players:</div>
                   <div className="flex flex-wrap gap-1">
                     {joinedParticipants.map((participant, index) => {
-                      const role = getParticipantRole(participant, dbSession.format, dbSession.creator_id);
+                      const role = getParticipantRole(participant, dbSession.session_type, dbSession.created_by);
                       return (
                         <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
                           <User className="h-3 w-3" />
@@ -167,12 +174,12 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                   <Button
                     onClick={() => startSession({
                       id: dbSession.id,
-                      sessionType: dbSession.format as 'singles' | 'doubles',
+                      sessionType: dbSession.session_type as 'singles' | 'doubles',
                       location: dbSession.location || undefined,
                       participants: joinedParticipants.map(p => ({
                         id: p.id,
                         name: p.user?.full_name || 'Player',
-                        role: getParticipantRole(p, dbSession.format, dbSession.creator_id),
+                        role: getParticipantRole(p, dbSession.session_type, dbSession.created_by),
                         user_id: p.user_id
                       }))
                     })}

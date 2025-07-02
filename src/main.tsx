@@ -5,15 +5,8 @@ import App from './App.tsx';
 import { AuthProvider } from '@/hooks/useAuth';
 import './index.css';
 
-console.log('🚀 [MAIN] Starting app initialization...');
-
 const rootElement = document.getElementById("root");
-if (!rootElement) {
-  console.error('❌ [MAIN] Root element not found!');
-  throw new Error('Failed to find the root element');
-}
-
-console.log('✅ [MAIN] Root element found, rendering app...');
+if (!rootElement) throw new Error('Failed to find the root element');
 
 createRoot(rootElement).render(
   <React.StrictMode>
@@ -22,5 +15,3 @@ createRoot(rootElement).render(
     </AuthProvider>
   </React.StrictMode>
 );
-
-console.log('🎯 [MAIN] App render initiated');
