@@ -276,12 +276,48 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
     }
   };
 
+  const completeSession = async (sessionId: string, winnerId?: string) => {
+    try {
+      const { data, error } = await supabase.rpc('complete_session', {
+        session_id_param: sessionId,
+        winner_id_param: winnerId || null
+      });
+
+      if (error) throw error;
+
+      const result = data as { 
+        success: boolean; 
+        error?: string; 
+        total_stakes: number;
+        distribution_type: string;
+        organizer_share?: number;
+        participant_share?: number;
+      };
+
+      if (result.success) {
+        if (result.total_stakes > 0) {
+          toast.success(
+            `Session completed! Stakes distributed (${result.distribution_type})`
+          );
+        } else {
+          toast.success('Session completed successfully!');
+        }
+      } else {
+        toast.error(result.error || 'Failed to complete session');
+      }
+    } catch (error) {
+      console.error('Error completing session:', error);
+      toast.error('Failed to complete session');
+    }
+  };
+
   return {
     sessions,
     loading,
     joinSession,
     leaveSession,
     kickParticipant,
-    startSession
+    startSession,
+    completeSession
   };
 }

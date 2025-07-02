@@ -18,13 +18,15 @@ import {
   Gamepad2,
   Play,
   UserMinus,
-  LogOut
+  LogOut,
+  CheckCircle
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface Session {
   id: string;
@@ -65,7 +67,7 @@ const Sessions = () => {
   const [stakesFilter, setStakesFilter] = useState('all');
 
   // Use real-time hook
-  const { sessions, loading, joinSession, leaveSession, kickParticipant, startSession } = useRealTimeSessions(activeTab, user?.id);
+  const { sessions, loading, joinSession, leaveSession, kickParticipant, startSession, completeSession } = useRealTimeSessions(activeTab, user?.id);
 
   const handleJoinSession = async (sessionId: string) => {
     await joinSession(sessionId);
@@ -81,6 +83,10 @@ const Sessions = () => {
 
   const handleStartSession = async (sessionId: string) => {
     await startSession(sessionId);
+  };
+
+  const handleCompleteSession = async (sessionId: string, winnerId?: string) => {
+    await completeSession(sessionId, winnerId);
   };
 
   const getSessionIcon = (type: string) => {
@@ -209,6 +215,7 @@ const Sessions = () => {
               onLeaveSession={handleLeaveSession}
               onKickParticipant={handleKickParticipant}
               onStartSession={handleStartSession}
+              onCompleteSession={handleCompleteSession}
               showJoinButton={true}
             />
           </TabsContent>
@@ -221,6 +228,7 @@ const Sessions = () => {
               onLeaveSession={handleLeaveSession}
               onKickParticipant={handleKickParticipant}
               onStartSession={handleStartSession}
+              onCompleteSession={handleCompleteSession}
               showJoinButton={false}
             />
           </TabsContent>
@@ -233,6 +241,7 @@ const Sessions = () => {
               onLeaveSession={handleLeaveSession}
               onKickParticipant={handleKickParticipant}
               onStartSession={handleStartSession}
+              onCompleteSession={handleCompleteSession}
               showJoinButton={false}
             />
           </TabsContent>
@@ -250,6 +259,7 @@ interface SessionsListProps {
   onLeaveSession: (sessionId: string) => void;
   onKickParticipant: (sessionId: string, participantId: string) => void;
   onStartSession: (sessionId: string) => void;
+  onCompleteSession: (sessionId: string, winnerId?: string) => void;
   showJoinButton: boolean;
 }
 
@@ -260,6 +270,7 @@ const SessionsList: React.FC<SessionsListProps> = ({
   onLeaveSession,
   onKickParticipant,
   onStartSession,
+  onCompleteSession,
   showJoinButton 
 }) => {
   if (loading) {
@@ -304,6 +315,7 @@ const SessionsList: React.FC<SessionsListProps> = ({
           onLeaveSession={onLeaveSession}
           onKickParticipant={onKickParticipant}
           onStartSession={onStartSession}
+          onCompleteSession={onCompleteSession}
           showJoinButton={showJoinButton}
         />
       ))}
@@ -318,6 +330,7 @@ interface SessionCardProps {
   onLeaveSession: (sessionId: string) => void;
   onKickParticipant: (sessionId: string, participantId: string) => void;
   onStartSession: (sessionId: string) => void;
+  onCompleteSession: (sessionId: string, winnerId?: string) => void;
   showJoinButton: boolean;
 }
 
@@ -327,9 +340,11 @@ const SessionCard: React.FC<SessionCardProps> = ({
   onLeaveSession, 
   onKickParticipant, 
   onStartSession, 
+  onCompleteSession,
   showJoinButton 
 }) => {
   const { user } = useAuth();
+  const [showWinnerModal, setShowWinnerModal] = useState(false);
   
   const getSessionIcon = (type: string) => {
     switch (type) {
@@ -357,6 +372,21 @@ const SessionCard: React.FC<SessionCardProps> = ({
   const canJoin = showJoinButton && !session.user_joined && !isCreator && !isFull && session.status === 'waiting';
   const canStart = isCreator && session.status === 'waiting' && isFull;
   const canLeave = session.user_joined && !isCreator && session.status === 'waiting';
+  const canComplete = isCreator && session.status === 'active';
+
+  const handleCompleteSession = () => {
+    if (session.session_type === 'match') {
+      setShowWinnerModal(true);
+    } else {
+      // For non-match sessions, complete without selecting winner
+      onCompleteSession(session.id);
+    }
+  };
+
+  const handleWinnerSelection = (winnerId?: string) => {
+    onCompleteSession(session.id, winnerId);
+    setShowWinnerModal(false);
+  };
 
   return (
     <Card className="hover:shadow-lg transition-shadow">
@@ -478,6 +508,16 @@ const SessionCard: React.FC<SessionCardProps> = ({
               Leave Session
             </Button>
           )}
+
+          {canComplete && (
+            <Button 
+              onClick={handleCompleteSession}
+              className="w-full bg-blue-600 hover:bg-blue-700 text-white"
+            >
+              <CheckCircle className="h-4 w-4 mr-2" />
+              Complete Session
+            </Button>
+          )}
           
           {session.user_joined && session.status === 'waiting' && !canLeave && (
             <Button variant="outline" className="w-full" disabled>
@@ -491,7 +531,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
             </Button>
           )}
           
-          {session.status === 'active' && (
+          {session.status === 'active' && !canComplete && (
             <Button variant="outline" className="w-full" disabled>
               Session Active
             </Button>
@@ -504,6 +544,43 @@ const SessionCard: React.FC<SessionCardProps> = ({
           )}
         </div>
       </CardContent>
+
+      {/* Winner Selection Modal */}
+      <Dialog open={showWinnerModal} onOpenChange={setShowWinnerModal}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Select Winner</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-gray-600">
+              Who won the match? The winner will receive all stakes ({session.stakes_amount * session.max_players} tokens).
+            </p>
+            
+            <div className="space-y-2">
+              {session.participants?.map((participant) => (
+                <Button
+                  key={participant.id}
+                  variant="outline"
+                  onClick={() => handleWinnerSelection(participant.user_id)}
+                  className="w-full justify-start"
+                >
+                  <Trophy className="h-4 w-4 mr-2" />
+                  {participant.user.full_name}
+                  {participant.user_id === session.creator_id && ' (You)'}
+                </Button>
+              ))}
+              
+              <Button
+                variant="outline"
+                onClick={() => handleWinnerSelection()}
+                className="w-full text-gray-600"
+              >
+                No Winner / Draw
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
     </Card>
   );
 };

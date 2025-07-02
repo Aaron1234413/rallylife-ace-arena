@@ -2972,6 +2972,44 @@ export type Database = {
           },
         ]
       }
+      session_stakes_transactions: {
+        Row: {
+          amount: number
+          created_at: string
+          description: string | null
+          id: string
+          session_id: string
+          transaction_type: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          session_id: string
+          transaction_type: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          session_id?: string
+          transaction_type?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_stakes_transactions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       sessions: {
         Row: {
           created_at: string
@@ -4036,7 +4074,13 @@ export type Database = {
         Returns: Json
       }
       complete_session: {
-        Args: { session_id_param: string; winner_id_param: string }
+        Args:
+          | { session_id_param: string; winner_id_param: string }
+          | {
+              session_id_param: string
+              winner_id_param?: string
+              completion_type?: string
+            }
         Returns: Json
       }
       complete_social_play_session: {
@@ -4689,6 +4733,16 @@ export type Database = {
           metadata?: Json
         }
         Returns: Json
+      }
+      log_stakes_transaction: {
+        Args: {
+          session_id_param: string
+          user_id_param: string
+          transaction_type_param: string
+          amount_param: number
+          description_param: string
+        }
+        Returns: undefined
       }
       longtransactionsenabled: {
         Args: Record<PropertyKey, never>
