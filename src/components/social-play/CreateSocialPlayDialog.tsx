@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import {
   Dialog,
@@ -17,7 +16,8 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { MapPin, Calendar as CalendarIcon, Clock, Users } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
-import { useSocialPlayEvents } from '@/hooks/useSocialPlayEvents';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { SocialPlayParticipantSelector } from './SocialPlayParticipantSelector';
 import { SocialPlayStakesPreview } from './SocialPlayStakesPreview';
 import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
@@ -44,9 +44,10 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   onOpenChange,
   onEventCreated,
 }) => {
+  const { user } = useAuth();
   const [internalOpen, setInternalOpen] = useState(false);
-  const { createEvent, isCreatingEvent } = useSocialPlayEvents();
   const { createSocialPlayInvitation } = useUnifiedInvitations();
+  const [isCreatingEvent, setIsCreatingEvent] = useState(false);
 
   // Form state
   const [title, setTitle] = useState('');
@@ -88,15 +89,37 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
     scheduledDateTime.setHours(hours, minutes);
 
     try {
-      // Create the social play event first
-      await createEvent({
-        title: title.trim(),
-        session_type: sessionType,
-        location: location.trim(),
-        scheduled_time: scheduledDateTime,
-        description: description.trim() || undefined,
-        invited_users: [], // We'll send invitations separately
-      });
+      setIsCreatingEvent(true);
+      
+      // Create social play session in unified sessions table
+      const { data: session, error: sessionError } = await supabase
+        .from('sessions')
+        .insert({
+          creator_id: user?.id,
+          session_type: 'social_play',
+          format: sessionType,
+          max_players: sessionType === 'singles' ? 2 : 4,
+          stakes_amount: 0,
+          location: location.trim(),
+          notes: title.trim(),
+          status: 'waiting',
+          is_private: false
+        })
+        .select()
+        .single();
+
+      if (sessionError) throw sessionError;
+
+      // Add creator as participant
+      const { error: participantError } = await supabase
+        .from('session_participants')
+        .insert({
+          session_id: session.id,
+          user_id: user?.id,
+          status: 'joined'
+        });
+
+      if (participantError) throw participantError;
 
       // Send invitations to selected players
       const invitations = [];
@@ -152,7 +175,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
       await Promise.all(invitations);
       
       const invitationCount = invitations.length;
-      toast.success(`Social play event created and ${invitationCount} invitation${invitationCount > 1 ? 's' : ''} sent!`);
+      toast.success(`Social play session created and ${invitationCount} invitation${invitationCount > 1 ? 's' : ''} sent!`);
       
       // Reset form
       setTitle('');
@@ -167,8 +190,10 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
       handleOpenChange(false);
       onEventCreated?.();
     } catch (error) {
-      console.error('Failed to create event or send invitations:', error);
-      toast.error('Failed to create event or send invitations');
+      console.error('Failed to create session or send invitations:', error);
+      toast.error('Failed to create session or send invitations');
+    } finally {
+      setIsCreatingEvent(false);
     }
   };
 
@@ -327,7 +352,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
                 disabled={!isFormValid() || isCreatingEvent}
                 className="flex-1"
               >
-                {isCreatingEvent ? 'Creating Event...' : 'Create Event & Send Invitations'}
+                {isCreatingEvent ? 'Creating Session...' : 'Create Session & Send Invitations'}
               </Button>
             </div>
           </form>
