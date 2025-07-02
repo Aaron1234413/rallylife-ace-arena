@@ -9,14 +9,20 @@ import {
   Users,
   Clock
 } from 'lucide-react';
+import { calculateRecoveryNeeded } from '@/utils/hpCalculations';
 
 interface WellbeingQuickActionProps {
   className?: string;
+  currentHP?: number;
 }
 
-export function WellbeingQuickAction({ className }: WellbeingQuickActionProps) {
+export function WellbeingQuickAction({ className, currentHP }: WellbeingQuickActionProps) {
   const navigate = useNavigate();
-
+  
+  // Calculate smart recovery recommendations
+  const matchRecovery = calculateRecoveryNeeded('match', 90);
+  const trainingRecovery = calculateRecoveryNeeded('training', 60);
+  
   const handleClick = () => {
     // Navigate directly to wellbeing sessions
     navigate('/sessions?type=wellbeing');
@@ -31,8 +37,13 @@ export function WellbeingQuickAction({ className }: WellbeingQuickActionProps) {
           <h3 className="font-semibold">Wellbeing Session</h3>
         </div>
 
-        {/* Description - matches other cards */}
-        <p className="text-sm text-gray-600">Join or create wellbeing sessions to restore HP and improve mental health</p>
+        {/* Smart description based on HP status */}
+        <p className="text-sm text-gray-600">
+          {currentHP && currentHP < 50 
+            ? `🔋 ${matchRecovery.description.split(' ').slice(0, 2).join(' ')} restores HP for safe activities`
+            : 'Join or create wellbeing sessions to restore HP and improve mental health'
+          }
+        </p>
 
         {/* Duration and Difficulty badges - matches other cards layout */}
         <div className="flex items-center justify-between text-xs text-gray-500">
@@ -43,16 +54,22 @@ export function WellbeingQuickAction({ className }: WellbeingQuickActionProps) {
           <Badge variant="outline" className="text-xs">low intensity</Badge>
         </div>
 
-        {/* Rewards grid - matches other cards rewards layout */}
-        <div className="grid grid-cols-2 gap-2 text-xs">
+        {/* Smart rewards display */}
+        <div className="grid grid-cols-1 gap-1 text-xs">
           <div className="flex items-center gap-1 text-pink-600">
             <Heart className="h-3 w-3" />
-            <span>Auto HP restore</span>
+            <span>
+              {currentHP && currentHP < 50 
+                ? `Restore ${Math.min(25, Math.ceil(30 / 5))} HP in 30min session`
+                : 'Auto HP restore + group activities'
+              }
+            </span>
           </div>
-          <div className="flex items-center gap-1 text-blue-600 justify-end">
-            <Users className="h-3 w-3" />
-            <span>Group activities</span>
-          </div>
+          {currentHP && currentHP < 30 && (
+            <div className="text-xs text-orange-600 mt-1">
+              💡 Tip: Longer sessions (45-60min) maximize HP restoration
+            </div>
+          )}
         </div>
 
         {/* Main Action Button - link to wellbeing sessions */}
