@@ -66,22 +66,8 @@ const Sessions = () => {
   const [typeFilter, setTypeFilter] = useState('all');
   const [stakesFilter, setStakesFilter] = useState('all');
 
-  // Use enhanced real-time hook with all session types
-  const { 
-    sessions, 
-    loading, 
-    joinSession, 
-    leaveSession, 
-    kickParticipant, 
-    startSession, 
-    completeSession,
-    getSessionsByType,
-    getActiveSessions,
-    getWaitingSessions
-  } = useRealTimeSessions(activeTab, user?.id, {
-    sessionTypes: ['match', 'social_play', 'training', 'wellbeing'],
-    includePrivate: true
-  });
+  // Use real-time hook
+  const { sessions, loading, joinSession, leaveSession, kickParticipant, startSession, completeSession } = useRealTimeSessions(activeTab, user?.id);
 
   const handleJoinSession = async (sessionId: string) => {
     await joinSession(sessionId);

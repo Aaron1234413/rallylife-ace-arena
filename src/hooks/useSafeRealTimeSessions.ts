@@ -1,6 +1,7 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Session {
   id: string;
@@ -30,13 +31,58 @@ interface Session {
   }>;
 }
 
-export function useRealTimeSessions(activeTab: string, userId?: string) {
+interface UseSafeRealTimeSessionsOptions {
+  enabled?: boolean;
+  retryAttempts?: number;
+  retryDelay?: number;
+  onError?: (error: Error) => void;
+}
+
+export function useSafeRealTimeSessions(
+  activeTab: string, 
+  userId?: string,
+  options: UseSafeRealTimeSessionsOptions = {}
+) {
+  const { user } = useAuth();
+  const {
+    enabled = true,
+    retryAttempts = 3,
+    retryDelay = 1000,
+    onError
+  } = options;
+
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  
+  const retryTimeoutRef = useRef<NodeJS.Timeout>();
+  const channelsRef = useRef<any[]>([]);
 
-  const fetchSessions = async () => {
+  // Use the authenticated user's ID if no userId provided
+  const effectiveUserId = userId || user?.id;
+
+  const clearChannels = useCallback(() => {
+    channelsRef.current.forEach(channel => {
+      try {
+        supabase.removeChannel(channel);
+      } catch (err) {
+        console.warn('Error removing channel:', err);
+      }
+    });
+    channelsRef.current = [];
+  }, []);
+
+  const fetchSessions = useCallback(async () => {
+    // Safety check: don't fetch if disabled or no user
+    if (!enabled || !effectiveUserId) {
+      setLoading(false);
+      return;
+    }
+
     try {
       setLoading(true);
+      setError(null);
       
       let query = supabase
         .from('sessions')
@@ -52,43 +98,44 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
           creator:profiles(full_name)
         `);
 
-      // Apply tab-specific filtering
-      if (activeTab === 'my-sessions' && userId) {
-        // For my sessions, get sessions where user is creator or participant
-        const { data: participantSessions } = await supabase
+      // Apply tab-specific filtering with safety checks
+      if (activeTab === 'my-sessions') {
+        const { data: participantSessions, error: participantError } = await supabase
           .from('session_participants')
           .select('session_id')
-          .eq('user_id', userId)
+          .eq('user_id', effectiveUserId)
           .eq('status', 'joined');
+        
+        if (participantError) {
+          console.warn('Error fetching participant sessions:', participantError);
+        }
         
         const sessionIds = participantSessions?.map(p => p.session_id) || [];
         
         if (sessionIds.length > 0) {
-          query = query.or(`creator_id.eq.${userId},id.in.(${sessionIds.join(',')})`);
+          query = query.or(`creator_id.eq.${effectiveUserId},id.in.(${sessionIds.join(',')})`);
         } else {
-          query = query.eq('creator_id', userId);
+          query = query.eq('creator_id', effectiveUserId);
         }
       } else if (activeTab === 'available') {
         query = query.eq('status', 'waiting').eq('is_private', false);
       } else if (activeTab === 'completed') {
-        // For completed sessions, show sessions where user is creator or participant
-        if (userId) {
-          const { data: participantSessions } = await supabase
-            .from('session_participants')
-            .select('session_id')
-            .eq('user_id', userId)
-            .eq('status', 'joined');
-          
-          const sessionIds = participantSessions?.map(p => p.session_id) || [];
-          
-          if (sessionIds.length > 0) {
-            query = query.eq('status', 'completed').or(`creator_id.eq.${userId},id.in.(${sessionIds.join(',')})`);
-          } else {
-            query = query.eq('status', 'completed').eq('creator_id', userId);
-          }
+        const { data: participantSessions, error: participantError } = await supabase
+          .from('session_participants')
+          .select('session_id')
+          .eq('user_id', effectiveUserId)
+          .eq('status', 'joined');
+        
+        if (participantError) {
+          console.warn('Error fetching participant sessions:', participantError);
+        }
+        
+        const sessionIds = participantSessions?.map(p => p.session_id) || [];
+        
+        if (sessionIds.length > 0) {
+          query = query.eq('status', 'completed').or(`creator_id.eq.${effectiveUserId},id.in.(${sessionIds.join(',')})`);
         } else {
-          // If no userId, don't show any completed sessions
-          query = query.eq('status', 'completed').eq('id', '00000000-0000-0000-0000-000000000000');
+          query = query.eq('status', 'completed').eq('creator_id', effectiveUserId);
         }
       }
 
@@ -96,7 +143,7 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
 
       if (error) throw error;
 
-      // Process the data to add participant count and user join status
+      // Process the data with safety checks
       const processedSessions = data?.map((session: any) => {
         const participants = session.participants || [];
         const activeParticipants = participants.filter((p: any) => p.status === 'joined');
@@ -105,89 +152,132 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
           ...session,
           participant_count: activeParticipants.length,
           creator_name: session.creator?.full_name || 'Unknown',
-          user_joined: activeParticipants.some((p: any) => p.user_id === userId),
+          user_joined: activeParticipants.some((p: any) => p.user_id === effectiveUserId),
           participants: activeParticipants
         };
       }) || [];
 
       setSessions(processedSessions);
+      setRetryCount(0); // Reset retry count on success
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error fetching sessions:', error);
-      toast.error('Failed to load sessions');
+      setError(errorMessage);
+      onError?.(error instanceof Error ? error : new Error(errorMessage));
+      
+      // Retry logic
+      if (retryCount < retryAttempts) {
+        setRetryCount(prev => prev + 1);
+        retryTimeoutRef.current = setTimeout(() => {
+          fetchSessions();
+        }, retryDelay * Math.pow(2, retryCount)); // Exponential backoff
+      } else {
+        toast.error('Failed to load sessions after multiple attempts');
+      }
     } finally {
       setLoading(false);
     }
-  };
+  }, [activeTab, effectiveUserId, enabled, retryCount, retryAttempts, retryDelay, onError]);
 
+  // Initial fetch
   useEffect(() => {
-    if (userId) {
+    if (enabled && effectiveUserId) {
       fetchSessions();
+    } else {
+      setLoading(false);
     }
-  }, [activeTab, userId]);
-
-  // Set up real-time subscriptions
-  useEffect(() => {
-    if (!userId) return;
-
-    // Subscribe to sessions table changes
-    const sessionsChannel = supabase
-      .channel('sessions-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'sessions'
-        },
-        () => {
-          fetchSessions();
-        }
-      )
-      .subscribe();
-
-    // Subscribe to session_participants table changes
-    const participantsChannel = supabase
-      .channel('participants-changes')
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'session_participants'
-        },
-        () => {
-          fetchSessions();
-        }
-      )
-      .subscribe();
 
     return () => {
-      supabase.removeChannel(sessionsChannel);
-      supabase.removeChannel(participantsChannel);
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
     };
-  }, [userId, activeTab]);
+  }, [fetchSessions]);
 
-  const joinSession = async (sessionId: string) => {
+  // Set up real-time subscriptions with safety checks
+  useEffect(() => {
+    if (!enabled || !effectiveUserId) return;
+
     try {
-      console.log('Attempting to join session:', sessionId, 'for user:', userId);
-      
+      // Clear any existing channels first
+      clearChannels();
+
+      // Create unique channel names to avoid conflicts
+      const sessionChannelName = `safe-sessions-${effectiveUserId}-${Date.now()}`;
+      const participantChannelName = `safe-participants-${effectiveUserId}-${Date.now()}`;
+
+      // Subscribe to sessions table changes
+      const sessionsChannel = supabase
+        .channel(sessionChannelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'sessions'
+          },
+          () => {
+            fetchSessions();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR') {
+            console.error('Session channel subscription error');
+          }
+        });
+
+      // Subscribe to session_participants table changes
+      const participantsChannel = supabase
+        .channel(participantChannelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'session_participants'
+          },
+          () => {
+            fetchSessions();
+          }
+        )
+        .subscribe((status) => {
+          if (status === 'CHANNEL_ERROR') {
+            console.error('Participants channel subscription error');
+          }
+        });
+
+      channelsRef.current = [sessionsChannel, participantsChannel];
+    } catch (error) {
+      console.error('Error setting up real-time subscriptions:', error);
+    }
+
+    return () => {
+      clearChannels();
+    };
+  }, [effectiveUserId, activeTab, enabled, fetchSessions, clearChannels]);
+
+  const joinSession = useCallback(async (sessionId: string) => {
+    if (!effectiveUserId) {
+      toast.error('User not authenticated');
+      return;
+    }
+
+    try {
       const { data, error } = await supabase.rpc('join_session', {
         session_id_param: sessionId,
-        user_id_param: userId
+        user_id_param: effectiveUserId
       });
 
       if (error) throw error;
 
       const result = data as { success: boolean; error?: string; participant_count?: number; session_ready?: boolean };
-      console.log('Join session result:', result);
 
       if (result.success) {
         toast.success('Successfully joined session!');
         if (result.session_ready) {
           toast.success('Session is ready to start!');
         }
-        // Force a refresh of sessions after successful join
-        fetchSessions();
+        await fetchSessions();
       } else {
         toast.error(result.error || 'Failed to join session');
       }
@@ -195,25 +285,31 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
       console.error('Error joining session:', error);
       toast.error('Failed to join session');
     }
-  };
+  }, [effectiveUserId, fetchSessions]);
 
-  const leaveSession = async (sessionId: string) => {
+  const leaveSession = useCallback(async (sessionId: string) => {
+    if (!effectiveUserId) {
+      toast.error('User not authenticated');
+      return;
+    }
+
     try {
-      // Find the participant record to leave
+      // Use maybeSingle instead of single for safety
       const { data: participant, error: findError } = await supabase
         .from('session_participants')
         .select('id')
         .eq('session_id', sessionId)
-        .eq('user_id', userId)
+        .eq('user_id', effectiveUserId)
         .eq('status', 'joined')
-        .single();
+        .maybeSingle();
 
-      if (findError || !participant) {
+      if (findError) throw findError;
+      
+      if (!participant) {
         toast.error('Could not find your participation in this session');
         return;
       }
 
-      // Leave the session by updating status
       const { error: leaveError } = await supabase
         .from('session_participants')
         .update({ status: 'left', left_at: new Date().toISOString() })
@@ -221,19 +317,19 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
 
       if (leaveError) throw leaveError;
 
-      // Get session details for stakes refund
+      // Get session details for stakes refund - use maybeSingle
       const { data: session, error: sessionError } = await supabase
         .from('sessions')
         .select('stakes_amount')
         .eq('id', sessionId)
-        .single();
+        .maybeSingle();
 
       if (sessionError) throw sessionError;
 
       // Refund stakes if any
-      if (session.stakes_amount > 0) {
+      if (session?.stakes_amount && session.stakes_amount > 0) {
         const { error: refundError } = await supabase.rpc('add_tokens', {
-          user_id: userId,
+          user_id: effectiveUserId,
           amount: session.stakes_amount,
           token_type: 'regular',
           source: 'session_leave_refund',
@@ -248,40 +344,24 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
       } else {
         toast.success('Successfully left session');
       }
+
+      await fetchSessions();
     } catch (error) {
       console.error('Error leaving session:', error);
       toast.error('Failed to leave session');
     }
-  };
+  }, [effectiveUserId, fetchSessions]);
 
-  const kickParticipant = async (sessionId: string, participantId: string) => {
-    try {
-      const { data, error } = await supabase.rpc('kick_participant', {
-        session_id_param: sessionId,
-        participant_id_param: participantId,
-        kicker_id_param: userId
-      });
-
-      if (error) throw error;
-
-      const result = data as { success: boolean; error?: string };
-
-      if (result.success) {
-        toast.success('Participant has been removed from the session');
-      } else {
-        toast.error(result.error || 'Failed to remove participant');
-      }
-    } catch (error) {
-      console.error('Error kicking participant:', error);
-      toast.error('Failed to remove participant');
+  const startSession = useCallback(async (sessionId: string) => {
+    if (!effectiveUserId) {
+      toast.error('User not authenticated');
+      return;
     }
-  };
 
-  const startSession = async (sessionId: string) => {
     try {
       const { data, error } = await supabase.rpc('start_session', {
         session_id_param: sessionId,
-        starter_id_param: userId
+        starter_id_param: effectiveUserId
       });
 
       if (error) throw error;
@@ -290,6 +370,7 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
 
       if (result.success) {
         toast.success('Session has been started!');
+        await fetchSessions();
       } else {
         toast.error(result.error || 'Failed to start session');
       }
@@ -297,27 +378,22 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
       console.error('Error starting session:', error);
       toast.error('Failed to start session');
     }
-  };
+  }, [effectiveUserId, fetchSessions]);
 
-  const completeSession = async (sessionId: string, winnerId?: string, sessionDurationMinutes?: number) => {
+  const completeSession = useCallback(async (sessionId: string, winnerId?: string, sessionDurationMinutes?: number) => {
+    if (!effectiveUserId) {
+      toast.error('User not authenticated');
+      return;
+    }
+
     try {
-      console.log('🎾 Starting session completion:', {
-        sessionId,
-        winnerId,
-        sessionDurationMinutes,
-        userId
-      });
-      
       const { data, error } = await supabase.rpc('complete_session', {
         session_id_param: sessionId,
         winner_id_param: winnerId || null,
         session_duration_minutes: sessionDurationMinutes || null
       });
 
-      if (error) {
-        console.error('❌ Database error completing session:', error);
-        throw error;
-      }
+      if (error) throw error;
 
       const result = data as { 
         success: boolean; 
@@ -337,9 +413,6 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
         debug?: string;
       };
 
-      console.log('✅ Complete session result:', result);
-      console.log('🔍 Debug info from database:', result.debug);
-
       if (result.success) {
         if (result.session_type === 'wellbeing') {
           const hpMessage = `+${result.hp_granted} HP restored`;
@@ -348,13 +421,11 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
           
           toast.success(`Wellbeing session completed! ${hpMessage}${participantMessage}${refundMessage}`);
         } else {
-          // Format duration for display
           const duration = result.session_duration_minutes || 0;
           const hours = Math.floor(duration / 60);
           const minutes = duration % 60;
           const durationText = hours > 0 ? `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}` : `${minutes}m`;
           
-          // Create completion message with XP/HP details
           const sessionTypeText = result.session_type === 'social_play' ? 'Social play' : 
                                   result.session_type === 'match' ? 'Match' : 
                                   result.session_type.charAt(0).toUpperCase() + result.session_type.slice(1);
@@ -372,45 +443,62 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
             message += ` ${hpText}${capText}`;
           }
           
-          // Add stakes info if relevant
           if (result.total_stakes && result.total_stakes > 0) {
             message += ` • Stakes distributed`;
           }
           
           toast.success(message);
         }
-        // Force refresh sessions after successful completion
-        console.log('🔄 Session completed successfully, refreshing sessions...');
+        
         await fetchSessions();
-        console.log('✅ Sessions refreshed after completion');
-        
-        // Verify the session was actually completed
-        const { data: completedCheck } = await supabase
-          .from('sessions')
-          .select('id, status')
-          .eq('id', sessionId)
-          .single();
-        
-        console.log('🔍 Session status after completion:', completedCheck);
-        
       } else {
-        console.error('❌ Session completion failed:', result.error);
-        console.error('🔍 Debug info:', result.debug);
         toast.error(result.error || 'Failed to complete session');
       }
     } catch (error) {
       console.error('Error completing session:', error);
       toast.error('Failed to complete session');
     }
-  };
+  }, [effectiveUserId, fetchSessions]);
+
+  const kickParticipant = useCallback(async (sessionId: string, participantId: string) => {
+    if (!effectiveUserId) {
+      toast.error('User not authenticated');
+      return;
+    }
+
+    try {
+      const { data, error } = await supabase.rpc('kick_participant', {
+        session_id_param: sessionId,
+        participant_id_param: participantId,
+        kicker_id_param: effectiveUserId
+      });
+
+      if (error) throw error;
+
+      const result = data as { success: boolean; error?: string };
+
+      if (result.success) {
+        toast.success('Participant has been removed from the session');
+        await fetchSessions();
+      } else {
+        toast.error(result.error || 'Failed to remove participant');
+      }
+    } catch (error) {
+      console.error('Error kicking participant:', error);
+      toast.error('Failed to remove participant');
+    }
+  }, [effectiveUserId, fetchSessions]);
 
   return {
     sessions,
     loading,
+    error,
+    retryCount,
     joinSession,
     leaveSession,
     kickParticipant,
     startSession,
-    completeSession
+    completeSession,
+    refresh: fetchSessions
   };
 }

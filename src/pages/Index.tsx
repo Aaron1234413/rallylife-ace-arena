@@ -232,7 +232,7 @@ const Index = () => {
 
   // Show loading state while profile is being fetched
   if (profileLoading) {
-    console.log('🏠 [INDEX] Rendering loading state - profileLoading is true');
+    console.log('🏠 [INDEX] Rendering loading state');
     return (
       <div className="min-h-screen bg-tennis-green-bg">
         <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
@@ -319,24 +319,6 @@ const Index = () => {
                 onRestoreHP={handleRestoreHP}
                 onAddTokens={handleAddTokens}
               />
-            </ErrorBoundary>
-
-            {/* Subscription Models Quick Access */}
-            <ErrorBoundary fallbackTitle="Subscription Models Error">
-              <div className="bg-white rounded-lg shadow-lg p-4 border-l-4 border-tennis-green">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-tennis-green-dark">Subscription Models</h3>
-                    <p className="text-sm text-gray-600">View the proposed subscription plans</p>
-                  </div>
-                  <button 
-                    onClick={() => window.location.href = '/subscription-models'}
-                    className="bg-tennis-green-dark text-white px-4 py-2 rounded hover:bg-tennis-green transition-colors"
-                  >
-                    View Models
-                  </button>
-                </div>
-              </div>
             </ErrorBoundary>
 
             {/* My Clubs Section */}

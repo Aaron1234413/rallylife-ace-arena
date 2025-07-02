@@ -236,12 +236,11 @@ export function useUnifiedInvitations() {
 
       // Find the session by title to link the invitation
       const { data: sessions, error: sessionError } = await supabase
-        .from('sessions')
+        .from('social_play_sessions')
         .select('id')
-        .eq('creator_id', user.id)
+        .eq('created_by', user.id)
         .eq('notes', params.eventTitle)
-        .eq('status', 'waiting')
-        .eq('session_type', 'social_play')
+        .eq('status', 'pending')
         .order('created_at', { ascending: false })
         .limit(1);
 
@@ -437,11 +436,13 @@ export function useUnifiedInvitations() {
         // If there's a linked session, add the user as a participant
         if (invitation.match_session_id) {
           const { error: participantError } = await supabase
-            .from('session_participants')
+            .from('social_play_participants')
             .insert({
               session_id: invitation.match_session_id,
               user_id: user.id,
+              session_creator_id: invitation.inviter_id,
               status: 'joined',
+              role: 'invited_player',
               joined_at: new Date().toISOString()
             });
 

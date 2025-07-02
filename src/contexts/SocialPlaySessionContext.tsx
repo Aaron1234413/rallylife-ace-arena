@@ -1,8 +1,7 @@
 
 import React, { createContext, useContext, ReactNode, useState } from 'react';
 import { toast } from 'sonner';
-import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
-import { useAuth } from '@/hooks/useAuth';
+import { useUnifiedSocialPlay } from '@/hooks/useUnifiedSocialPlay';
 import { SafeContextProvider } from '@/components/ui/safe-context-provider';
 
 interface ActiveSession {
@@ -37,12 +36,14 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [loading, setLoading] = useState(false);
   
-  const { user } = useAuth();
-  
-  // Use the unified sessions system
-  const realTimeSessions = useRealTimeSessions('my-sessions', user?.id, {
-    sessionTypes: ['social_play'],
-    includePrivate: true
+  // Use the unified social play hook with safety features
+  const { updateSessionStatus, error } = useUnifiedSocialPlay({
+    useUnified: false, // Start with legacy system for safety
+    fallbackToLegacy: true,
+    onError: (error, source) => {
+      console.error(`SocialPlaySession error from ${source}:`, error);
+      toast.error('Session system error - using fallback');
+    }
   });
 
   const startSession = (sessionData: { 
@@ -62,7 +63,11 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
     setActiveSession(newSession);
     
     // Update session status to active
-    realTimeSessions.startSession(sessionData.id);
+    updateSessionStatus({
+      sessionId: sessionData.id,
+      status: 'active',
+      updates: { start_time: new Date().toISOString() }
+    });
     
     const participantNames = sessionData.participants?.map(p => p.name).join(', ') || 'players';
     
@@ -79,8 +84,15 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
     try {
       const durationMinutes = getDurationMinutes();
       
-      // Complete session using unified system
-      await realTimeSessions.completeSession(activeSession.id, undefined, durationMinutes);
+      // Update session status to completed
+      updateSessionStatus({
+        sessionId: activeSession.id,
+        status: 'completed',
+        updates: { 
+          end_time: new Date().toISOString(),
+          paused_duration: 0
+        }
+      });
       
       setActiveSession(null);
       

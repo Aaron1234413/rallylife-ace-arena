@@ -5,9 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Users, Clock, Play, Square, MapPin, User, RefreshCw } from 'lucide-react';
 import { useSocialPlaySession } from '@/contexts/SocialPlaySessionContext';
-import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
+import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
 import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
-import { useAuth } from '@/hooks/useAuth';
 import { ShareLinkGenerator } from './ShareLinkGenerator';
 import { SimpleEndEventModal } from './SimpleEndEventModal';
 import { toast } from 'sonner';
@@ -21,12 +20,8 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
   onAddXP,
   onRestoreHP
 }) => {
-  const { user } = useAuth();
   const { activeSession, startSession, endSession, getDurationMinutes, loading } = useSocialPlaySession();
-  const unifiedSessions = useRealTimeSessions('my-sessions', user?.id, {
-    sessionTypes: ['social_play'],
-    includePrivate: true
-  });
+  const { activeSession: dbSession, cleanupExpiredSessions, isCleaningUp } = useSocialPlaySessions();
   const { receivedInvitations, sentInvitations } = useUnifiedInvitations();
   const [duration, setDuration] = useState(0);
   const [showEndModal, setShowEndModal] = useState(false);
@@ -47,18 +42,16 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
 
   // Calculate accepted invitations for current session
   useEffect(() => {
-    const waitingSessions = unifiedSessions.sessions.filter(s => s.status === 'waiting' && s.session_type === 'social_play');
-    if (waitingSessions.length === 0) return;
+    if (!dbSession) return;
     
-    const currentSession = waitingSessions[0];
     const socialPlayInvitations = sentInvitations.filter(
       inv => inv.invitation_category === 'social_play' && 
-             inv.session_data?.eventTitle === currentSession.notes
+             inv.session_data?.eventTitle === dbSession.notes
     );
     
     const acceptedCount = socialPlayInvitations.filter(inv => inv.status === 'accepted').length;
     setAcceptedInvitations(acceptedCount);
-  }, [sentInvitations, unifiedSessions.sessions]);
+  }, [sentInvitations, dbSession]);
 
   const handleEndSession = async () => {
     await endSession();
@@ -66,8 +59,7 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
   };
 
   const handleCleanup = async () => {
-    // Refresh sessions
-    await unifiedSessions.fetchSessions();
+    await cleanupExpiredSessions();
   };
 
   // Helper function to get participant role
@@ -87,15 +79,11 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
     }
   };
 
-  // Show waiting sessions
-  const sessionToShow = unifiedSessions.sessions.find(s => s.status === 'waiting' && s.session_type === 'social_play');
-
-  // Show session that could be started
-  if (!activeSession && sessionToShow && sessionToShow.status === 'waiting') {
-    const joinedParticipants = sessionToShow.participants?.filter((p: any) => p.status === 'joined') || [];
-    const sessionType = sessionToShow.format || 'singles';
-    const maxParticipants = sessionToShow.max_players;
-    const minParticipants = sessionType === 'singles' ? 2 : 4;
+  // Show database session that could be started
+  if (!activeSession && dbSession && dbSession.status === 'pending') {
+    const joinedParticipants = dbSession.participants?.filter(p => p.status === 'joined') || [];
+    const maxParticipants = dbSession.session_type === 'singles' ? 2 : 4;
+    const minParticipants = dbSession.session_type === 'singles' ? 2 : 4;
     const totalParticipants = joinedParticipants.length + acceptedInvitations;
     const isReady = totalParticipants >= minParticipants;
     
@@ -111,11 +99,11 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
               onClick={handleCleanup}
               variant="ghost"
               size="sm"
-              disabled={unifiedSessions.loading}
+              disabled={isCleaningUp}
               className="text-xs"
             >
-              <RefreshCw className={`h-3 w-3 ${unifiedSessions.loading ? 'animate-spin' : ''}`} />
-              Refresh
+              <RefreshCw className={`h-3 w-3 ${isCleaningUp ? 'animate-spin' : ''}`} />
+              Cleanup
             </Button>
           </CardTitle>
         </CardHeader>
@@ -125,10 +113,10 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium capitalize">
-                  {sessionType} Session
+                  {dbSession.session_type} Session
                 </h4>
                 <Badge variant="outline" className="capitalize">
-                  {sessionType}
+                  {dbSession.session_type}
                 </Badge>
               </div>
               
@@ -142,10 +130,10 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                     </span>
                   )}
                 </div>
-                {sessionToShow.location && (
+                {dbSession.location && (
                   <div className="flex items-center gap-1">
                     <MapPin className="h-3 w-3" />
-                    {sessionToShow.location}
+                    {dbSession.location}
                   </div>
                 )}
               </div>
@@ -155,16 +143,16 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                 <div className="space-y-2">
                   <div className="text-xs font-medium text-gray-600">Current Players:</div>
                   <div className="flex flex-wrap gap-1">
-                     {joinedParticipants.map((participant, index) => {
-                        const role = getParticipantRole(participant, sessionType, sessionToShow.creator_id);
-                       return (
-                         <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
-                           <User className="h-3 w-3" />
-                           {participant.user?.full_name || 'Player'}
-                           <span className="text-xs opacity-75">({role})</span>
-                         </Badge>
-                       );
-                     })}
+                    {joinedParticipants.map((participant, index) => {
+                      const role = getParticipantRole(participant, dbSession.session_type, dbSession.created_by);
+                      return (
+                        <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
+                          <User className="h-3 w-3" />
+                          {participant.user?.full_name || 'Player'}
+                          <span className="text-xs opacity-75">({role})</span>
+                        </Badge>
+                      );
+                    })}
                   </div>
                 </div>
               )}
@@ -184,19 +172,17 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
               <div className="flex gap-2">
                 {isReady ? (
                   <Button
-                    onClick={() => {
-                      startSession({
-                        id: sessionToShow.id,
-                        sessionType: sessionType as 'singles' | 'doubles',
-                        location: sessionToShow.location || undefined,
-                        participants: joinedParticipants.map(p => ({
-                          id: p.id,
-                          name: p.user?.full_name || 'Player',
-                          role: getParticipantRole(p, sessionType, sessionToShow.creator_id),
-                          user_id: p.user_id
-                        }))
-                      });
-                    }}
+                    onClick={() => startSession({
+                      id: dbSession.id,
+                      sessionType: dbSession.session_type as 'singles' | 'doubles',
+                      location: dbSession.location || undefined,
+                      participants: joinedParticipants.map(p => ({
+                        id: p.id,
+                        name: p.user?.full_name || 'Player',
+                        role: getParticipantRole(p, dbSession.session_type, dbSession.created_by),
+                        user_id: p.user_id
+                      }))
+                    })}
                     className="flex items-center gap-2"
                     disabled={loading}
                   >
@@ -220,7 +206,7 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
             </div>
           </div>
           
-          <ShareLinkGenerator event={sessionToShow} compact />
+          <ShareLinkGenerator event={dbSession} compact />
         </CardContent>
       </Card>
     );
