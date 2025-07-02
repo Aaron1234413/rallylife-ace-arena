@@ -121,15 +121,14 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
       setError(null);
 
       try {
-        // Look for sessions where user is either player or opponent
         const { data, error } = await supabase
           .from('active_match_sessions')
           .select('*')
-          .or(`player_id.eq.${user.id},opponent_id.eq.${user.id},partner_id.eq.${user.id},opponent_1_id.eq.${user.id},opponent_2_id.eq.${user.id}`)
+          .eq('player_id', user.id)
           .eq('status', 'active')
           .single();
 
-        if (error && error.code !== 'PGRST116') {
+        if (error) {
           console.error('Error fetching active match session:', error);
           setError(error.message);
         }
@@ -160,7 +159,6 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
             mid_match_notes: data.mid_match_notes
           };
           setSessionData(session);
-          console.log('🎾 [MATCH_CONTEXT] Session recovery detected:', session.id);
         } else {
           setSessionData(null);
         }

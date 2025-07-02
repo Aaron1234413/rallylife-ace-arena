@@ -1,119 +1,146 @@
 
-import { useEffect, useRef } from 'react';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
-import { toast } from 'sonner';
+import { useState, useEffect, useRef } from 'react';
+
+interface LiveNotification {
+  id: string;
+  type: 'achievement' | 'level_up' | 'match_win' | 'milestone';
+  player_name: string;
+  message: string;
+  timestamp: string;
+  details?: {
+    level?: number;
+    xp_earned?: number;
+    achievement_name?: string;
+  };
+}
 
 export function useLiveNotifications() {
-  const { user } = useAuth();
-  const channelRef = useRef<any>(null);
-  const isInitialized = useRef(false);
+  const [currentNotification, setCurrentNotification] = useState<LiveNotification | null>(null);
+  const [pendingCount, setPendingCount] = useState(0);
+  const intervalRef = useRef<NodeJS.Timeout | null>(null);
+  const notificationQueue = useRef<LiveNotification[]>([]);
+
+  const generateNotification = (): LiveNotification => {
+    const players = [
+      'Alex Johnson', 'Maria Garcia', 'David Chen', 'Sarah Wilson', 'Mike Rodriguez',
+      'Emma Thompson', 'James Lee', 'Lisa Anderson', 'Tom Brown', 'Anna Martinez'
+    ];
+
+    const notificationTypes = [
+      {
+        type: 'achievement' as const,
+        messages: [
+          'unlocked "Ace Master" achievement!',
+          'earned "Marathon Player" badge!',
+          'achieved "Perfect Form" status!',
+          'unlocked "Speed Demon" achievement!'
+        ]
+      },
+      {
+        type: 'level_up' as const,
+        messages: [
+          'reached Level 15!',
+          'advanced to Level 22!',
+          'leveled up to 18!',
+          'hit Level 25!'
+        ]
+      },
+      {
+        type: 'match_win' as const,
+        messages: [
+          'won an epic 3-set match!',
+          'dominated in straight sets!',
+          'came back from 2 sets down!',
+          'won a nail-biting tiebreaker!'
+        ]
+      },
+      {
+        type: 'milestone' as const,
+        messages: [
+          'played their 100th match!',
+          'reached 1000 total XP!',
+          'completed 50 training sessions!',
+          'achieved 10-match win streak!'
+        ]
+      }
+    ];
+
+    const selectedType = notificationTypes[Math.floor(Math.random() * notificationTypes.length)];
+    const player = players[Math.floor(Math.random() * players.length)];
+    const message = selectedType.messages[Math.floor(Math.random() * selectedType.messages.length)];
+
+    let details = {};
+    if (selectedType.type === 'level_up') {
+      details = {
+        level: Math.floor(Math.random() * 30) + 15,
+        xp_earned: Math.floor(Math.random() * 200) + 100
+      };
+    } else if (selectedType.type === 'achievement') {
+      details = {
+        xp_earned: Math.floor(Math.random() * 150) + 50,
+        achievement_name: message.split('"')[1]
+      };
+    }
+
+    return {
+      id: `notification-${Date.now()}-${Math.random()}`,
+      type: selectedType.type,
+      player_name: player,
+      message,
+      timestamp: new Date().toISOString(),
+      details: Object.keys(details).length > 0 ? details : undefined
+    };
+  };
+
+  const showNextNotification = () => {
+    if (notificationQueue.current.length > 0) {
+      const nextNotification = notificationQueue.current.shift()!;
+      setCurrentNotification(nextNotification);
+      setPendingCount(notificationQueue.current.length);
+
+      // Hide notification after 4 seconds
+      setTimeout(() => {
+        setCurrentNotification(null);
+        
+        // Show next notification after a brief delay
+        setTimeout(showNextNotification, 1000);
+      }, 4000);
+    }
+  };
+
+  const addNotification = (notification: LiveNotification) => {
+    notificationQueue.current.push(notification);
+    setPendingCount(notificationQueue.current.length);
+    
+    // If no notification is currently showing, show this one immediately
+    if (!currentNotification) {
+      showNextNotification();
+    }
+  };
 
   useEffect(() => {
-    if (!user || isInitialized.current) return;
+    // Generate notifications every 8-15 seconds
+    const generateNotifications = () => {
+      const notification = generateNotification();
+      addNotification(notification);
+      
+      // Schedule next notification
+      const delay = Math.random() * 7000 + 8000; // 8-15 seconds
+      intervalRef.current = setTimeout(generateNotifications, delay);
+    };
 
-    isInitialized.current = true;
-    const channelName = `live-notifications-${user.id}`;
-    console.log('🔔 [NOTIFICATIONS] Setting up live notification channel:', channelName);
+    // Start generating notifications after initial delay
+    intervalRef.current = setTimeout(generateNotifications, 3000);
 
-    try {
-      const channel = supabase.channel(channelName);
+    return () => {
+      if (intervalRef.current) {
+        clearTimeout(intervalRef.current);
+      }
+    };
+  }, [currentNotification]);
 
-      // Listen for invitation updates with timeout protection
-      const setupChannelListeners = () => {
-        // Listen for invitation status updates
-        channel.on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'match_invitations',
-            filter: `inviter_id=eq.${user.id}`
-          },
-          (payload) => {
-            try {
-              const invitation = payload.new as any;
-              if (invitation?.status === 'accepted') {
-                toast.success(`🎾 Your ${invitation.invitation_category} invitation was accepted!`, {
-                  description: `${invitation.invitee_name} accepted your invitation`,
-                  duration: 5000,
-                });
-              } else if (invitation?.status === 'declined') {
-                toast.info(`❌ Invitation declined`, {
-                  description: `${invitation.invitee_name} declined your ${invitation.invitation_category} invitation`,
-                  duration: 4000,
-                });
-              }
-            } catch (error) {
-              console.warn('Error processing invitation update:', error);
-            }
-          }
-        );
-
-        // Listen for new invitations received
-        channel.on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'match_invitations',
-            filter: `invitee_id=eq.${user.id}`
-          },
-          (payload) => {
-            try {
-              const invitation = payload.new as any;
-              const category = invitation?.invitation_category === 'match' ? 'Match' : 'Social Play';
-              toast.success(`📨 New ${category} Invitation!`, {
-                description: `You received an invitation from someone`,
-                duration: 6000,
-              });
-            } catch (error) {
-              console.warn('Error processing new invitation:', error);
-            }
-          }
-        );
-      };
-
-      setupChannelListeners();
-
-      // Subscribe with timeout handling
-      const subscriptionTimeout = setTimeout(() => {
-        console.warn('🔔 [NOTIFICATIONS] Subscription timeout, cleaning up');
-        if (channelRef.current) {
-          supabase.removeChannel(channelRef.current);
-          channelRef.current = null;
-          isInitialized.current = false;
-        }
-      }, 10000); // 10 second timeout
-
-      channel.subscribe((status) => {
-        console.log('🔔 [NOTIFICATIONS] Channel status:', status);
-        if (status === 'SUBSCRIBED') {
-          clearTimeout(subscriptionTimeout);
-          console.log('✅ [NOTIFICATIONS] Live notifications active');
-        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
-          console.warn('❌ [NOTIFICATIONS] Channel error or timeout');
-          clearTimeout(subscriptionTimeout);
-          isInitialized.current = false;
-        }
-      });
-
-      channelRef.current = channel;
-
-      return () => {
-        clearTimeout(subscriptionTimeout);
-        if (channelRef.current) {
-          console.log('🧹 [NOTIFICATIONS] Cleaning up notification channel');
-          supabase.removeChannel(channelRef.current);
-          channelRef.current = null;
-          isInitialized.current = false;
-        }
-      };
-    } catch (error) {
-      console.error('🔔 [NOTIFICATIONS] Failed to setup live notifications:', error);
-      isInitialized.current = false;
-    }
-  }, [user]);
-
-  return {};
+  return {
+    currentNotification,
+    pendingCount
+  };
 }
