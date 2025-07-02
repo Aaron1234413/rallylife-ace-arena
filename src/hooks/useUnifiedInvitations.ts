@@ -500,8 +500,6 @@ export function useUnifiedInvitations() {
     if (channelRef.current) {
       console.log('🧹 [UNIFIED] Cleaning up invitations channel subscription');
       try {
-        // Unsubscribe before removing
-        channelRef.current.unsubscribe();
         supabase.removeChannel(channelRef.current);
       } catch (error) {
         console.error('❌ [UNIFIED] Error removing channel:', error);
@@ -563,12 +561,9 @@ export function useUnifiedInvitations() {
       // Clean up any existing channel
       cleanupChannel();
 
-      // Set up real-time subscription with unique channel name
+      // Set up real-time subscription
       const channelName = `unified-invitations-${user.id}-${Date.now()}`;
       console.log('📡 [UNIFIED] Setting up real-time channel:', channelName);
-      
-      // Clean up any existing channel first
-      cleanupChannel();
       
       const channel = supabase.channel(channelName);
       
@@ -634,14 +629,10 @@ export function useUnifiedInvitations() {
           console.error('❌ [UNIFIED] Channel subscription error');
           subscriptionInitialized.current = false;
           isSubscribing.current = false;
-          // Clean up failed channel
-          cleanupChannel();
         } else if (status === 'TIMED_OUT') {
           console.warn('⏰ [UNIFIED] Channel subscription timed out');
           subscriptionInitialized.current = false;
           isSubscribing.current = false;
-          // Clean up timed out channel
-          cleanupChannel();
         }
       });
 
