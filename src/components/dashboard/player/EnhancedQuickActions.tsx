@@ -460,9 +460,7 @@ export function EnhancedQuickActions({
               className="animate-fade-in"
               style={{ animationDelay: `${sortedActions.length * 100}ms` }}
             >
-              <RecoveryQuickAction
-                onOpenRecoveryCenter={handleOpenRecoveryCenter}
-              />
+              <RecoveryQuickAction />
             </div>
           </div>
         </CardContent>

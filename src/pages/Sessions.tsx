@@ -31,7 +31,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/u
 interface Session {
   id: string;
   creator_id: string;
-  session_type: 'match' | 'social_play' | 'training' | 'recovery';
+  session_type: 'match' | 'social_play' | 'training' | 'wellbeing';
   format?: 'singles' | 'doubles';
   max_players: number;
   stakes_amount: number;
@@ -94,7 +94,7 @@ const Sessions = () => {
       case 'match': return Trophy;
       case 'social_play': return Users;
       case 'training': return GraduationCap;
-      case 'recovery': return Heart;
+      case 'wellbeing': return Heart;
       default: return Gamepad2;
     }
   };
@@ -104,7 +104,7 @@ const Sessions = () => {
       case 'match': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'social_play': return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'training': return 'bg-green-100 text-green-800 border-green-200';
-      case 'recovery': return 'bg-red-100 text-red-800 border-red-200';
+      case 'wellbeing': return 'bg-pink-100 text-pink-800 border-pink-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -177,7 +177,7 @@ const Sessions = () => {
                     <SelectItem value="match">Tennis Match</SelectItem>
                     <SelectItem value="social_play">Social Play</SelectItem>
                     <SelectItem value="training">Training</SelectItem>
-                    <SelectItem value="recovery">Recovery</SelectItem>
+                    <SelectItem value="wellbeing">Wellbeing</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -351,7 +351,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
       case 'match': return Trophy;
       case 'social_play': return Users;
       case 'training': return GraduationCap;
-      case 'recovery': return Heart;
+      case 'wellbeing': return Heart;
       default: return Gamepad2;
     }
   };
@@ -361,7 +361,7 @@ const SessionCard: React.FC<SessionCardProps> = ({
       case 'match': return 'bg-blue-100 text-blue-800 border-blue-200';
       case 'social_play': return 'bg-purple-100 text-purple-800 border-purple-200';
       case 'training': return 'bg-green-100 text-green-800 border-green-200';
-      case 'recovery': return 'bg-red-100 text-red-800 border-red-200';
+      case 'wellbeing': return 'bg-pink-100 text-pink-800 border-pink-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };

@@ -4081,6 +4081,12 @@ export type Database = {
               winner_id_param?: string
               completion_type?: string
             }
+          | {
+              session_id_param: string
+              winner_id_param?: string
+              completion_type?: string
+              session_duration_minutes?: number
+            }
         Returns: Json
       }
       complete_social_play_session: {

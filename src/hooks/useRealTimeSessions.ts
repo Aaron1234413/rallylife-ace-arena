@@ -5,7 +5,7 @@ import { toast } from 'sonner';
 interface Session {
   id: string;
   creator_id: string;
-  session_type: 'match' | 'social_play' | 'training' | 'recovery';
+  session_type: 'match' | 'social_play' | 'training' | 'wellbeing';
   format?: 'singles' | 'doubles';
   max_players: number;
   stakes_amount: number;
@@ -276,11 +276,12 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
     }
   };
 
-  const completeSession = async (sessionId: string, winnerId?: string) => {
+  const completeSession = async (sessionId: string, winnerId?: string, sessionDurationMinutes?: number) => {
     try {
       const { data, error } = await supabase.rpc('complete_session', {
         session_id_param: sessionId,
-        winner_id_param: winnerId || null
+        winner_id_param: winnerId || null,
+        session_duration_minutes: sessionDurationMinutes || null
       });
 
       if (error) throw error;
@@ -288,14 +289,24 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
       const result = data as { 
         success: boolean; 
         error?: string; 
-        total_stakes: number;
-        distribution_type: string;
+        session_type: string;
+        total_stakes?: number;
+        distribution_type?: string;
         organizer_share?: number;
         participant_share?: number;
+        hp_granted?: number;
+        participant_count?: number;
+        total_stakes_refunded?: number;
       };
 
       if (result.success) {
-        if (result.total_stakes > 0) {
+        if (result.session_type === 'wellbeing') {
+          const hpMessage = `+${result.hp_granted} HP restored`;
+          const participantMessage = result.participant_count > 1 ? ` for ${result.participant_count} participants` : '';
+          const refundMessage = result.total_stakes_refunded > 0 ? ` • ${result.total_stakes_refunded} tokens refunded` : '';
+          
+          toast.success(`Wellbeing session completed! ${hpMessage}${participantMessage}${refundMessage}`);
+        } else if (result.total_stakes && result.total_stakes > 0) {
           toast.success(
             `Session completed! Stakes distributed (${result.distribution_type})`
           );
