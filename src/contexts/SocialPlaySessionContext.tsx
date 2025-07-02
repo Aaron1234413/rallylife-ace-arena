@@ -1,7 +1,8 @@
 
 import React, { createContext, useContext, ReactNode, useState } from 'react';
 import { toast } from 'sonner';
-import { useSocialPlaySessions } from '@/hooks/useSocialPlaySessions';
+import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ActiveSession {
   id: string;
@@ -32,7 +33,8 @@ interface SocialPlaySessionContextType {
 const SocialPlaySessionContext = createContext<SocialPlaySessionContextType | undefined>(undefined);
 
 export function SocialPlaySessionProvider({ children }: { children: ReactNode }) {
-  const { updateSessionStatus } = useSocialPlaySessions();
+  const { user } = useAuth();
+  const { completeSession } = useRealTimeSessions('my-sessions', user?.id);
   const [activeSession, setActiveSession] = useState<ActiveSession | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -52,12 +54,8 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
     
     setActiveSession(newSession);
     
-    // Update session status to active
-    updateSessionStatus({
-      sessionId: sessionData.id,
-      status: 'active',
-      updates: { start_time: new Date().toISOString() }
-    });
+    // Session is started directly when enough participants join, so no need to update status here
+    // The unified system handles session activation automatically
     
     const participantNames = sessionData.participants?.map(p => p.name).join(', ') || 'players';
     
@@ -74,15 +72,8 @@ export function SocialPlaySessionProvider({ children }: { children: ReactNode })
     try {
       const durationMinutes = getDurationMinutes();
       
-      // Update session status to completed
-      updateSessionStatus({
-        sessionId: activeSession.id,
-        status: 'completed',
-        updates: { 
-          end_time: new Date().toISOString(),
-          paused_duration: 0
-        }
-      });
+      // Complete session using unified system
+      await completeSession(activeSession.id, undefined, durationMinutes);
       
       setActiveSession(null);
       
