@@ -361,7 +361,7 @@ export function useUnifiedInvitations() {
           opponent_name: user.email?.split('@')[0] || 'Unknown',
           opponent_id: user.id,
           is_doubles: invitation.invitation_type === 'doubles',
-          match_type: invitation.invitation_type,
+          match_type: invitation.invitation_type || 'singles', // Fallback to 'singles' if null/undefined
           start_time: new Date().toISOString(),
           status: 'active' as const,
           sets: [{ playerScore: '', opponentScore: '', completed: false }],
