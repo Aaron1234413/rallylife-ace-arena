@@ -57,8 +57,8 @@ export function HPStatusAlert({
       return {
         icon: AlertTriangle,
         iconColor: 'text-yellow-500',
-        message: 'Your HP is getting low. Time for some recovery!',
-        subMessage: 'Regular recovery helps maintain peak performance.',
+        message: 'Your HP is getting low. Time for some wellbeing!',
+        subMessage: 'Regular wellbeing sessions help maintain peak performance.',
         bgColor: 'bg-yellow-50 border-yellow-200',
         showAction: true,
         actionText: 'Open Recovery Center',
@@ -158,7 +158,7 @@ export function HPStatusAlert({
           {/* Screen reader descriptions */}
           <div className="sr-only">
             <div id="recovery-action-description">
-              Opens the recovery center where you can choose from meditation, stretching, and other recovery activities
+              Opens the wellbeing center where you can join or create wellbeing sessions
             </div>
             <div id="quick-restore-description">
               Instantly restores 10 health points for emergency situations

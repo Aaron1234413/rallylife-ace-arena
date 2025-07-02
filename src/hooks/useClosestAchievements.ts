@@ -1,8 +1,7 @@
 
 import { useMemo } from 'react';
 import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
-import { useMeditationProgress } from '@/hooks/useMeditation';
-import { useStretchingProgress } from '@/hooks/useStretching';
+// Meditation and stretching hooks removed - migrated to wellbeing sessions
 
 interface ClosestAchievement {
   id: string;
@@ -21,8 +20,7 @@ interface ClosestAchievement {
 
 export function useClosestAchievements() {
   const { achievements, playerAchievements, loading } = usePlayerAchievements();
-  const { data: meditationProgress } = useMeditationProgress();
-  const { data: stretchingProgress } = useStretchingProgress();
+  // Meditation and stretching progress removed - migrated to wellbeing sessions
 
   const closestAchievements = useMemo(() => {
     if (loading || !achievements.length) return [];
@@ -38,43 +36,8 @@ export function useClosestAchievements() {
       let currentProgress = 0;
 
       // Get current progress based on category and requirement type
-      switch (achievement.category) {
-        case 'meditation':
-          if (meditationProgress) {
-            switch (achievement.requirement_type) {
-              case 'meditation_sessions':
-                currentProgress = meditationProgress.total_sessions;
-                break;
-              case 'meditation_minutes':
-                currentProgress = meditationProgress.total_minutes;
-                break;
-              case 'meditation_streak':
-                currentProgress = meditationProgress.current_streak;
-                break;
-            }
-          }
-          break;
-        
-        case 'stretching':
-          if (stretchingProgress) {
-            switch (achievement.requirement_type) {
-              case 'stretching_sessions':
-                currentProgress = stretchingProgress.total_sessions;
-                break;
-              case 'stretching_minutes':
-                currentProgress = stretchingProgress.total_minutes;
-                break;
-              case 'stretching_streak':
-                currentProgress = stretchingProgress.current_streak;
-                break;
-            }
-          }
-          break;
-        
-        // Add more categories as needed (progression, gameplay, etc.)
-        default:
-          currentProgress = 0;
-      }
+      // Note: meditation and stretching migrated to wellbeing sessions
+      currentProgress = 0;
 
       const progressPercentage = Math.min((currentProgress / achievement.requirement_value) * 100, 100);
 
@@ -98,7 +61,7 @@ export function useClosestAchievements() {
     return achievementsWithProgress
       .sort((a, b) => b.progress_percentage - a.progress_percentage)
       .slice(0, 3);
-  }, [achievements, playerAchievements, meditationProgress, stretchingProgress, loading]);
+  }, [achievements, playerAchievements, loading]);
 
   return {
     closestAchievements,

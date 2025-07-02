@@ -6,7 +6,7 @@ import { Progress } from '@/components/ui/progress';
 import { Heart, Star, Coins } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { HPStatusAlert } from './HPStatusAlert';
-import { RecoveryCenter } from '@/components/recovery';
+import { WellbeingCenter } from '@/components/recovery';
 import { toast } from 'sonner';
 
 interface PlayerVitalsHeroProps {
@@ -18,7 +18,7 @@ interface PlayerVitalsHeroProps {
 }
 
 export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestoreHP }: PlayerVitalsHeroProps) {
-  const [recoveryCenterOpen, setRecoveryCenterOpen] = useState(false);
+  const [wellbeingCenterOpen, setWellbeingCenterOpen] = useState(false);
   const [previousHP, setPreviousHP] = useState<number | null>(null);
   const [announceHP, setAnnounceHP] = useState(false);
 
@@ -87,21 +87,21 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
       borderColor: hpPercentage >= 20 ? 'border-orange-200' : 'border-red-200',
       progressColor: hpPercentage >= 20 ? 'bg-gradient-to-r from-orange-400 to-orange-600' : 'bg-gradient-to-r from-red-400 to-red-600',
       pulseIntensity: hpPercentage >= 20 ? 'animate-pulse-slow' : 'animate-pulse',
-      ariaLabel: `Health status: ${hpPercentage >= 20 ? 'Low' : 'Critical'} - Recovery recommended`,
+      ariaLabel: `Health status: ${hpPercentage >= 20 ? 'Low' : 'Critical'} - Wellbeing session recommended`,
       glowColor: hpPercentage >= 20 ? 'shadow-orange-200/50' : 'shadow-red-200/50'
     };
   };
 
   const hpStatus = getHPStatus(hpPercentage);
 
-  const handleOpenRecoveryCenter = () => {
-    console.log('Opening Recovery Center from HP Status Alert');
-    setRecoveryCenterOpen(true);
+  const handleOpenWellbeingCenter = () => {
+    console.log('Opening Wellbeing Center from HP Status Alert');
+    setWellbeingCenterOpen(true);
   };
 
   const handleQuickRestore = async () => {
     if (!onRestoreHP) {
-      toast.error('Recovery function not available');
+      toast.error('Wellbeing function not available');
       return;
     }
 
@@ -114,9 +114,9 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
     }
   };
 
-  if (recoveryCenterOpen) {
+  if (wellbeingCenterOpen) {
     return (
-      <RecoveryCenter onBack={() => setRecoveryCenterOpen(false)} />
+      <WellbeingCenter onBack={() => setWellbeingCenterOpen(false)} />
     );
   }
 
@@ -341,7 +341,7 @@ export function PlayerVitalsHero({ hpData, xpData, tokenData, loading, onRestore
         hpPercentage={hpPercentage}
         currentHP={hpData?.current_hp || 0}
         maxHP={hpData?.max_hp || 100}
-        onOpenRecoveryCenter={handleOpenRecoveryCenter}
+        onOpenRecoveryCenter={handleOpenWellbeingCenter}
         onQuickRestore={handleQuickRestore}
         className="animate-fade-in motion-reduce:animate-none"
       />

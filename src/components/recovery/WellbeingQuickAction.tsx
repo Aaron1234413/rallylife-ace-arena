@@ -10,11 +10,11 @@ import {
   Clock
 } from 'lucide-react';
 
-interface RecoveryQuickActionProps {
+interface WellbeingQuickActionProps {
   className?: string;
 }
 
-export function RecoveryQuickAction({ className }: RecoveryQuickActionProps) {
+export function WellbeingQuickAction({ className }: WellbeingQuickActionProps) {
   const navigate = useNavigate();
 
   const handleClick = () => {

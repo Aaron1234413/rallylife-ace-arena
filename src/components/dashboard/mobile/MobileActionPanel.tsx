@@ -11,7 +11,7 @@ import {
   Activity,
   Brain
 } from 'lucide-react';
-import { RecoveryCenter } from '@/components/recovery';
+import { WellbeingCenter } from '@/components/recovery';
 
 interface MobileActionPanelProps {
   hpData: any;
@@ -31,7 +31,7 @@ export function MobileActionPanel({
   className 
 }: MobileActionPanelProps) {
   const [activePanel, setActivePanel] = useState<'stats' | 'actions' | null>(null);
-  const [recoveryCenterOpen, setRecoveryCenterOpen] = useState(false);
+  const [wellbeingCenterOpen, setWellbeingCenterOpen] = useState(false);
 
   const currentHP = hpData?.current_hp || 0;
   const maxHP = hpData?.max_hp || 100;
@@ -61,19 +61,20 @@ export function MobileActionPanel({
       onClick: () => onAddTokens(5, 'regular', 'daily_bonus', 'Daily mobile bonus')
     },
     {
-      id: 'recovery-center',
-      title: 'Recovery Center',
-      description: 'Meditation & stretching',
-      icon: Brain,
-      onClick: () => setRecoveryCenterOpen(true)
+      id: 'wellbeing-center',
+      title: 'Wellbeing Center',
+      description: 'Mental health & wellness',
+      icon: Heart,
+      color: 'text-pink-600',
+      onClick: () => setWellbeingCenterOpen(true)
     }
   ];
 
-  if (recoveryCenterOpen) {
+  if (wellbeingCenterOpen) {
     return (
       <div className="fixed inset-0 z-50 bg-background sm:hidden overflow-y-auto">
         <div className="p-4">
-          <RecoveryCenter onBack={() => setRecoveryCenterOpen(false)} />
+          <WellbeingCenter onBack={() => setWellbeingCenterOpen(false)} />
         </div>
       </div>
     );

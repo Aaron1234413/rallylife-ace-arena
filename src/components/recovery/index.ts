@@ -1,4 +1,4 @@
 
-export { RecoveryCenter } from './RecoveryCenter';
-export { RecoveryQuickAction } from './RecoveryQuickAction';
-export { RecoveryModeSelector } from './RecoveryModeSelector';
+export { WellbeingCenter } from './WellbeingCenter';
+export { WellbeingQuickAction } from './WellbeingQuickAction';
+export { WellbeingModeSelector } from './WellbeingModeSelector';

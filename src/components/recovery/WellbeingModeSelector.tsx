@@ -27,7 +27,7 @@ import {
 } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 
-interface RecoveryMode {
+interface WellbeingMode {
   id: string;
   title: string;
   description: string;
@@ -39,7 +39,7 @@ interface RecoveryMode {
   difficulty: 'easy' | 'medium' | 'hard';
 }
 
-const recoveryModes: RecoveryMode[] = [
+const wellbeingModes: WellbeingMode[] = [
   {
     id: 'meditation',
     title: 'Meditation',
@@ -64,16 +64,16 @@ const recoveryModes: RecoveryMode[] = [
   }
 ];
 
-interface RecoveryModeSelectorProps {
-  onModeSelect: (mode: RecoveryMode) => void;
+interface WellbeingModeSelectorProps {
+  onModeSelect: (mode: WellbeingMode) => void;
   children: React.ReactNode;
 }
 
-export function RecoveryModeSelector({ onModeSelect, children }: RecoveryModeSelectorProps) {
+export function WellbeingModeSelector({ onModeSelect, children }: WellbeingModeSelectorProps) {
   const [open, setOpen] = useState(false);
   const isMobile = useIsMobile();
 
-  const handleModeSelect = (mode: RecoveryMode) => {
+  const handleModeSelect = (mode: WellbeingMode) => {
     onModeSelect(mode);
     setOpen(false);
   };
@@ -87,12 +87,12 @@ export function RecoveryModeSelector({ onModeSelect, children }: RecoveryModeSel
           </div>
         </div>
         <p className="text-sm text-gray-600">
-          Choose your recovery method to restore HP and improve wellbeing
+          Choose your wellbeing method to restore HP and improve mental health
         </p>
       </div>
 
       <div className="grid gap-3">
-        {recoveryModes.map((mode) => {
+        {wellbeingModes.map((mode) => {
           const Icon = mode.icon;
           return (
             <Card 
@@ -133,7 +133,7 @@ export function RecoveryModeSelector({ onModeSelect, children }: RecoveryModeSel
 
       <div className="text-center">
         <p className="text-xs text-gray-500">
-          💡 Regular recovery sessions help maintain peak performance
+          💡 Regular wellbeing sessions help maintain peak performance and mental health
         </p>
       </div>
     </div>
@@ -147,9 +147,9 @@ export function RecoveryModeSelector({ onModeSelect, children }: RecoveryModeSel
         </DrawerTrigger>
         <DrawerContent className="px-4 pb-6">
           <DrawerHeader className="text-left">
-            <DrawerTitle>Recovery Center</DrawerTitle>
+            <DrawerTitle>Wellbeing Center</DrawerTitle>
             <DrawerDescription>
-              Choose your recovery method
+              Choose your wellbeing method
             </DrawerDescription>
           </DrawerHeader>
           {content}
@@ -165,9 +165,9 @@ export function RecoveryModeSelector({ onModeSelect, children }: RecoveryModeSel
       </SheetTrigger>
       <SheetContent side="bottom" className="max-h-[80vh]">
         <SheetHeader>
-          <SheetTitle>Recovery Center</SheetTitle>
+          <SheetTitle>Wellbeing Center</SheetTitle>
           <SheetDescription>
-            Choose your recovery method
+            Choose your wellbeing method
           </SheetDescription>
         </SheetHeader>
         <div className="mt-6">

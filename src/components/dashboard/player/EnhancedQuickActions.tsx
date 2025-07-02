@@ -19,7 +19,7 @@ import { toast } from 'sonner';
 import { SmartRecommendations } from './SmartRecommendations';
 import { ActionButton } from './ActionButton';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
-import { RecoveryCenter, RecoveryQuickAction } from '@/components/recovery';
+import { WellbeingCenter, WellbeingQuickAction } from '@/components/recovery';
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface EnhancedQuickActionsProps {
@@ -41,7 +41,7 @@ export function EnhancedQuickActions({
   const { activities, refreshData, loading: activitiesLoading, logActivity } = useActivityLogs();
   const [loadingAction, setLoadingAction] = useState<string | null>(null);
   const [socialPlayDialogOpen, setSocialPlayDialogOpen] = useState(false);
-  const [recoveryCenterOpen, setRecoveryCenterOpen] = useState(false);
+  const [wellbeingCenterOpen, setWellbeingCenterOpen] = useState(false);
   const isMobile = useIsMobile();
   
   const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
@@ -67,7 +67,7 @@ export function EnhancedQuickActions({
     ).length || 0;
     
     const isActiveStreak = recentActivityCount >= 3;
-    const needsRecovery = hpPercentage <= 5 || hoursSinceLastActivity > 12; // Updated: Only block at 5% HP or below
+    const needsWellbeing = hpPercentage <= 5 || hoursSinceLastActivity > 12; // Updated: Only block at 5% HP or below
     const nearLevelUp = xpData && xpData.xp_to_next_level < 50;
     
     // Real player state analysis based on actual HP data
@@ -100,7 +100,7 @@ export function EnhancedQuickActions({
         hasRecentSocial
       },
       playerState: { 
-        needsRecovery, 
+        needsWellbeing, 
         nearLevelUp, 
         energyLevel, 
         motivationLevel,
@@ -181,7 +181,7 @@ export function EnhancedQuickActions({
         recommended = true;
         urgency = 'high';
       } else if (action.energyRequirement === 'high' && hpPercentage <= 5) {
-        contextualMessage = `Recovery needed first - your HP (${Math.round(contextualData.playerState.hpPercentage)}%) is critically low for intense activity`;
+        contextualMessage = `Wellbeing session needed first - your HP (${Math.round(contextualData.playerState.hpPercentage)}%) is critically low for intense activity`;
         availability = false;
       } else if (action.energyRequirement === 'low' && playerEnergyLevel === 'low') {
         contextualMessage = `Great low-energy option for your current state (${Math.round(contextualData.playerState.hpPercentage)}% HP)`;
@@ -266,7 +266,7 @@ export function EnhancedQuickActions({
 
   const handleQuickAction = async (action: typeof quickActions[0]) => {
     if (!action.availability) {
-      toast.error(`This activity is not recommended with your current energy level (${Math.round(contextualData.playerState.hpPercentage)}% HP). Consider recovery first.`);
+      toast.error(`This activity is not recommended with your current energy level (${Math.round(contextualData.playerState.hpPercentage)}% HP). Consider wellbeing sessions first.`);
       return;
     }
 
@@ -328,15 +328,15 @@ export function EnhancedQuickActions({
     }
   };
 
-  const handleOpenRecoveryCenter = () => {
-    console.log('Opening Recovery Center with real HP data:', {
+  const handleOpenWellbeingCenter = () => {
+    console.log('Opening Wellbeing Center with real HP data:', {
       currentHP: hpData?.current_hp,
       maxHP: hpData?.max_hp,
       hpPercentage: contextualData.playerState.hpPercentage,
       energyLevel: contextualData.playerState.energyLevel,
-      needsRecovery: contextualData.playerState.needsRecovery
+      needsWellbeing: contextualData.playerState.needsWellbeing
     });
-    setRecoveryCenterOpen(true);
+    setWellbeingCenterOpen(true);
   };
 
   // Show loading state while activities are loading
@@ -355,9 +355,9 @@ export function EnhancedQuickActions({
     );
   }
 
-  if (recoveryCenterOpen) {
+  if (wellbeingCenterOpen) {
     return (
-      <RecoveryCenter onBack={() => setRecoveryCenterOpen(false)} />
+      <WellbeingCenter onBack={() => setWellbeingCenterOpen(false)} />
     );
   }
 
@@ -455,12 +455,12 @@ export function EnhancedQuickActions({
               </div>
             ))}
             
-            {/* Recovery Center Action */}
+            {/* Wellbeing Center Action */}
             <div 
               className="animate-fade-in"
               style={{ animationDelay: `${sortedActions.length * 100}ms` }}
             >
-              <RecoveryQuickAction />
+              <WellbeingQuickAction />
             </div>
           </div>
         </CardContent>
