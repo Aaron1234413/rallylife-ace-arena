@@ -1892,6 +1892,7 @@ export type Database = {
       }
       match_invitations: {
         Row: {
+          challenge_id: string | null
           created_at: string | null
           expires_at: string | null
           id: string
@@ -1901,14 +1902,18 @@ export type Database = {
           invitee_id: string | null
           invitee_name: string
           inviter_id: string
+          is_challenge: boolean | null
           match_session_id: string | null
           message: string | null
           responded_at: string | null
           session_data: Json | null
+          stakes_premium_tokens: number | null
+          stakes_tokens: number | null
           status: string
           updated_at: string | null
         }
         Insert: {
+          challenge_id?: string | null
           created_at?: string | null
           expires_at?: string | null
           id?: string
@@ -1918,14 +1923,18 @@ export type Database = {
           invitee_id?: string | null
           invitee_name: string
           inviter_id: string
+          is_challenge?: boolean | null
           match_session_id?: string | null
           message?: string | null
           responded_at?: string | null
           session_data?: Json | null
+          stakes_premium_tokens?: number | null
+          stakes_tokens?: number | null
           status?: string
           updated_at?: string | null
         }
         Update: {
+          challenge_id?: string | null
           created_at?: string | null
           expires_at?: string | null
           id?: string
@@ -1935,10 +1944,13 @@ export type Database = {
           invitee_id?: string | null
           invitee_name?: string
           inviter_id?: string
+          is_challenge?: boolean | null
           match_session_id?: string | null
           message?: string | null
           responded_at?: string | null
           session_data?: Json | null
+          stakes_premium_tokens?: number | null
+          stakes_tokens?: number | null
           status?: string
           updated_at?: string | null
         }
@@ -1948,6 +1960,13 @@ export type Database = {
             columns: ["match_session_id"]
             isOneToOne: false
             referencedRelation: "active_match_sessions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "match_invitations_challenge_id_fkey"
+            columns: ["challenge_id"]
+            isOneToOne: false
+            referencedRelation: "challenges"
             referencedColumns: ["id"]
           },
           {
@@ -3954,6 +3973,20 @@ export type Database = {
       create_direct_conversation: {
         Args: { other_user_id: string; conversation_name?: string }
         Returns: string
+      }
+      create_match_invitation_with_stakes: {
+        Args: {
+          invitee_user_id: string
+          invitee_user_name: string
+          invitee_user_email?: string
+          invitation_type_param?: string
+          message_param?: string
+          session_data_param?: Json
+          stakes_tokens_param?: number
+          stakes_premium_tokens_param?: number
+          challenge_id_param?: string
+        }
+        Returns: Json
       }
       decline_match_invitation: {
         Args: { invitation_id: string }
