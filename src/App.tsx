@@ -33,6 +33,9 @@ import EndTraining from "@/pages/EndTraining";
 import StartSocialPlay from "@/pages/StartSocialPlay";
 import JoinSocialPlay from "@/pages/JoinSocialPlay";
 import CoachDashboard from "@/pages/CoachDashboard";
+import ActiveMatch from "@/pages/ActiveMatch";
+import ActiveSocialPlay from "@/pages/ActiveSocialPlay";
+import ViewInvitation from "@/pages/ViewInvitation";
 
 const queryClient = new QueryClient();
 
@@ -70,6 +73,9 @@ function App() {
                   <Route path="/end-training" element={<ProtectedRoute><EndTraining /></ProtectedRoute>} />
                   <Route path="/start-social-play" element={<ProtectedRoute><StartSocialPlay /></ProtectedRoute>} />
                   <Route path="/join-social-play" element={<ProtectedRoute><JoinSocialPlay /></ProtectedRoute>} />
+                  <Route path="/active-match" element={<ProtectedRoute><ActiveMatch /></ProtectedRoute>} />
+                  <Route path="/active-social-play" element={<ProtectedRoute><ActiveSocialPlay /></ProtectedRoute>} />
+                  <Route path="/invitation/:invitationId" element={<ProtectedRoute><ViewInvitation /></ProtectedRoute>} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </AppLayout>

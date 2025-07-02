@@ -1,7 +1,9 @@
 export interface UnifiedInvitation {
   id: string;
   inviter_id: string;
+  invitee_id?: string;
   invitee_name: string;
+  invitee_email?: string;
   invitation_type: string;
   invitation_category: 'match' | 'social_play';
   status: 'pending' | 'accepted' | 'declined' | 'expired';

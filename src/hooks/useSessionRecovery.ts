@@ -67,13 +67,28 @@ export function useSessionRecovery(): SessionRecovery {
             socialId: socialSession?.id || participantSession?.session_id
           });
 
-          // Show recovery notification
+          // Show recovery notification with navigation options
           if (hasActiveMatch && hasActiveSocialPlay) {
-            toast.info('Active sessions detected! Check your dashboard for ongoing activities.');
+            toast.info('Active sessions detected! Check your dashboard for ongoing activities.', {
+              action: {
+                label: 'View Sessions',
+                onClick: () => window.location.href = '/dashboard'
+              }
+            });
           } else if (hasActiveMatch) {
-            toast.info('Active match session detected! Resume playing from your dashboard.');
+            toast.info('Active match session detected! Resume playing.', {
+              action: {
+                label: 'Join Match',
+                onClick: () => window.location.href = `/active-match?session=${matchSession?.id}`
+              }
+            });
           } else if (hasActiveSocialPlay) {
-            toast.info('Active social play session detected! Check your dashboard to rejoin.');
+            toast.info('Active social play session detected! Rejoin your session.', {
+              action: {
+                label: 'Join Session',
+                onClick: () => window.location.href = `/active-social-play?session=${socialSession?.id || participantSession?.session_id}`
+              }
+            });
           }
         }
 
