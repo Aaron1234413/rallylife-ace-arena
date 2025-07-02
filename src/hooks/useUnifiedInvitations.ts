@@ -592,6 +592,7 @@ export function useUnifiedInvitations() {
     if (channelRef.current) {
       console.log('🧹 [UNIFIED] Cleaning up invitations channel subscription');
       try {
+        channelRef.current.unsubscribe();
         supabase.removeChannel(channelRef.current);
       } catch (error) {
         console.error('❌ [UNIFIED] Error removing channel:', error);
@@ -643,60 +644,69 @@ export function useUnifiedInvitations() {
       // Clean up any existing channel
       cleanupChannel();
 
-      // Set up real-time subscription
+      // Set up real-time subscription with error handling
       const channelName = `unified-invitations-${user.id}-${Date.now()}`;
       console.log('📡 [UNIFIED] Setting up real-time channel:', channelName);
       
-      const channel = supabase.channel(channelName);
-      
-      // Listen for changes to invitations where user is involved
-      channel.on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'match_invitations',
-          filter: `inviter_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('📨 [UNIFIED] Real-time update for sent invitations:', payload.eventType);
-          fetchSentInvitations();
-        }
-      );
+      try {
+        const channel = supabase.channel(channelName);
+        
+        // Listen for changes to invitations where user is involved
+        channel.on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'match_invitations',
+            filter: `inviter_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('📨 [UNIFIED] Real-time update for sent invitations:', payload.eventType);
+            fetchSentInvitations();
+          }
+        );
 
-      channel.on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'match_invitations',
-          filter: `invitee_id=eq.${user.id}`
-        },
-        (payload) => {
-          console.log('📨 [UNIFIED] Real-time update for received invitations:', payload.eventType);
-          fetchReceivedInvitations();
-        }
-      );
+        channel.on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'match_invitations',
+            filter: `invitee_id=eq.${user.id}`
+          },
+          (payload) => {
+            console.log('📨 [UNIFIED] Real-time update for received invitations:', payload.eventType);
+            fetchReceivedInvitations();
+          }
+        );
 
-      // Subscribe to the channel
-      channel.subscribe((status) => {
-        console.log('📡 [UNIFIED] Channel subscription status:', status);
-        if (status === 'SUBSCRIBED') {
-          subscriptionInitialized.current = true;
-          isSubscribing.current = false;
-          console.log('✅ [UNIFIED] Real-time subscription active');
-        } else if (status === 'CHANNEL_ERROR') {
-          console.error('❌ [UNIFIED] Channel subscription error');
-          subscriptionInitialized.current = false;
-          isSubscribing.current = false;
-        } else if (status === 'TIMED_OUT') {
-          console.warn('⏰ [UNIFIED] Channel subscription timed out');
-          subscriptionInitialized.current = false;
-          isSubscribing.current = false;
-        }
-      });
+        // Subscribe to the channel with improved error handling
+        channel.subscribe((status) => {
+          console.log('📡 [UNIFIED] Channel subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            subscriptionInitialized.current = true;
+            isSubscribing.current = false;
+            console.log('✅ [UNIFIED] Real-time subscription active');
+          } else if (status === 'CHANNEL_ERROR') {
+            console.error('❌ [UNIFIED] Channel subscription error');
+            subscriptionInitialized.current = false;
+            isSubscribing.current = false;
+            // Don't set error state, just log it
+          } else if (status === 'TIMED_OUT') {
+            console.warn('⏰ [UNIFIED] Channel subscription timed out');
+            subscriptionInitialized.current = false;
+            isSubscribing.current = false;
+            // Don't set error state, invitations will still work without real-time
+          }
+        });
 
-      channelRef.current = channel;
+        channelRef.current = channel;
+      } catch (error) {
+        console.error('❌ [UNIFIED] Error setting up real-time subscription:', error);
+        subscriptionInitialized.current = false;
+        isSubscribing.current = false;
+        // Don't throw error, invitations will work without real-time
+      }
 
       return () => {
         cleanupChannel();
