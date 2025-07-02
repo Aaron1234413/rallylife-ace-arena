@@ -129,9 +129,9 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
   useEffect(() => {
     if (!userId) return;
 
-    // Subscribe to sessions table changes with unique channel names
+    // Subscribe to sessions table changes
     const sessionsChannel = supabase
-      .channel(`sessions-changes-${activeTab}-${userId}`)
+      .channel('sessions-changes')
       .on(
         'postgres_changes',
         {
@@ -145,9 +145,9 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
       )
       .subscribe();
 
-    // Subscribe to session_participants table changes with unique channel names
+    // Subscribe to session_participants table changes
     const participantsChannel = supabase
-      .channel(`participants-changes-${activeTab}-${userId}`)
+      .channel('participants-changes')
       .on(
         'postgres_changes',
         {

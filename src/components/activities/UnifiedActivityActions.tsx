@@ -175,10 +175,7 @@ export function UnifiedActivityActions({ onActivityCompleted, className }: Unifi
   const { logActivity, refreshData } = useActivityLogs();
   const { createTrainingSession, startTrainingSession, updateSessionData } = useTrainingSession();
   const { user } = useAuth();
-  
-  // Only call useRealTimeSessions when user is available to prevent crashes
-  const realTimeSessionsHook = user?.id ? useRealTimeSessions('my-sessions', user.id) : null;
-  const completeSession = realTimeSessionsHook?.completeSession;
+  const { completeSession } = useRealTimeSessions('my-sessions', user?.id);
   const navigate = useNavigate();
   const [loadingActivity, setLoadingActivity] = useState<string | null>(null);
 

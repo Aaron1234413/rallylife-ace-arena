@@ -63,12 +63,12 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
   };
 
   // Helper function to get participant role
-  const getParticipantRole = (participant: any, sessionType: string, creatorId: string) => {
+  const getParticipantRole = (participant: any, sessionType: string, createdBy: string) => {
     if (participant.role) {
       return participant.role;
     }
     
-    if (participant.user_id === creatorId) {
+    if (participant.user_id === createdBy) {
       return 'creator';
     }
     
@@ -80,10 +80,10 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
   };
 
   // Show database session that could be started
-  if (!activeSession && dbSession && dbSession.status === 'waiting') {
+  if (!activeSession && dbSession && dbSession.status === 'pending') {
     const joinedParticipants = dbSession.participants?.filter(p => p.status === 'joined') || [];
-    const maxParticipants = dbSession.max_players || 2;
-    const minParticipants = dbSession.max_players || 2;
+    const maxParticipants = dbSession.session_type === 'singles' ? 2 : 4;
+    const minParticipants = dbSession.session_type === 'singles' ? 2 : 4;
     const totalParticipants = joinedParticipants.length + acceptedInvitations;
     const isReady = totalParticipants >= minParticipants;
     
@@ -113,10 +113,10 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <h4 className="font-medium capitalize">
-                  {dbSession.format} Session
+                  {dbSession.session_type} Session
                 </h4>
                 <Badge variant="outline" className="capitalize">
-                  {dbSession.format}
+                  {dbSession.session_type}
                 </Badge>
               </div>
               
@@ -144,7 +144,7 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                   <div className="text-xs font-medium text-gray-600">Current Players:</div>
                   <div className="flex flex-wrap gap-1">
                     {joinedParticipants.map((participant, index) => {
-                      const role = getParticipantRole(participant, dbSession.format, dbSession.creator_id);
+                      const role = getParticipantRole(participant, dbSession.session_type, dbSession.created_by);
                       return (
                         <Badge key={index} variant="secondary" className="text-xs flex items-center gap-1">
                           <User className="h-3 w-3" />
@@ -174,12 +174,12 @@ export const ActiveSocialPlayWidget: React.FC<ActiveSocialPlayWidgetProps> = ({
                   <Button
                     onClick={() => startSession({
                       id: dbSession.id,
-                      sessionType: dbSession.format as 'singles' | 'doubles',
+                      sessionType: dbSession.session_type as 'singles' | 'doubles',
                       location: dbSession.location || undefined,
                       participants: joinedParticipants.map(p => ({
                         id: p.id,
                         name: p.user?.full_name || 'Player',
-                        role: getParticipantRole(p, dbSession.format, dbSession.creator_id),
+                        role: getParticipantRole(p, dbSession.session_type, dbSession.created_by),
                         user_id: p.user_id
                       }))
                     })}
