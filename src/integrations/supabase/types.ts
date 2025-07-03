@@ -3435,6 +3435,7 @@ export type Database = {
           full_name: string | null
           id: string
           onboarding_completed: boolean
+          preferences: Json | null
           ready_player_me_url: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
@@ -3446,6 +3447,7 @@ export type Database = {
           full_name?: string | null
           id: string
           onboarding_completed?: boolean
+          preferences?: Json | null
           ready_player_me_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
@@ -3457,6 +3459,7 @@ export type Database = {
           full_name?: string | null
           id?: string
           onboarding_completed?: boolean
+          preferences?: Json | null
           ready_player_me_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
