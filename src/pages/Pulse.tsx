@@ -68,8 +68,6 @@ const Pulse = () => {
           </div>
           <div>
             <CoachLeaderboard 
-              defaultType="cxp"
-              defaultPeriod="all_time"
               maxEntries={50}
             />
           </div>
@@ -105,8 +103,6 @@ const Pulse = () => {
 
           <TabsContent value="coaches">
             <CoachLeaderboard 
-              defaultType="cxp"
-              defaultPeriod="all_time"
               maxEntries={50}
             />
           </TabsContent>
@@ -127,8 +123,6 @@ const Pulse = () => {
         </div>
         <div>
           <CoachLeaderboard 
-            defaultType="cxp"
-            defaultPeriod="all_time"
             maxEntries={50}
           />
         </div>
