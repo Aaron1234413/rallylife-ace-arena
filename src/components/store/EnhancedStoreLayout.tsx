@@ -50,21 +50,26 @@ export function EnhancedStoreLayout({
         </div>
       </div>
 
-      {/* Token Balance Display - Simplified */}
+      {/* Token Balance Display - Gold Theme */}
       {tokenData && (
-        <Card className="bg-gradient-to-br from-white to-gray-50 border border-gray-200 shadow-sm">
-          <CardContent className="px-6 py-5">
+        <Card className="bg-gradient-to-br from-yellow-50 via-amber-50 to-yellow-100 border-2 border-yellow-200 shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105 animate-fade-in">
+          <CardContent className="px-6 py-6">
             <div className="flex items-center justify-center">
-              <div className="text-center space-y-1">
-                <div className="flex items-center justify-center mb-1">
-                  <div className="p-1.5 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-lg mr-2">
-                    <Coins className="h-4 w-4 text-white" />
+              <div className="text-center space-y-2">
+                <div className="relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-yellow-400 to-amber-500 rounded-full blur-lg opacity-20 animate-pulse"></div>
+                  <p className="relative text-4xl font-bold bg-gradient-to-r from-yellow-600 via-amber-500 to-yellow-700 bg-clip-text text-transparent animate-scale-in">
+                    {tokenData.regular_tokens.toLocaleString()}
+                  </p>
+                </div>
+                <div className="flex items-center justify-center gap-1">
+                  <span className="text-sm font-semibold text-amber-700">Regular Tokens</span>
+                  <div className="flex gap-1">
+                    <div className="w-1 h-1 bg-amber-400 rounded-full animate-pulse"></div>
+                    <div className="w-1 h-1 bg-yellow-400 rounded-full animate-pulse" style={{animationDelay: '0.2s'}}></div>
+                    <div className="w-1 h-1 bg-amber-400 rounded-full animate-pulse" style={{animationDelay: '0.4s'}}></div>
                   </div>
                 </div>
-                <p className="text-3xl font-bold text-gray-900">
-                  {tokenData.regular_tokens.toLocaleString()}
-                </p>
-                <span className="text-sm font-medium text-gray-600">Regular Tokens</span>
               </div>
             </div>
           </CardContent>
