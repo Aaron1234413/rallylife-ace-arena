@@ -10,12 +10,18 @@ interface EnhancedStoreLayoutProps {
   tokenData: any;
   onSpendTokens: (amount: number, tokenType: string, source: string, description?: string) => Promise<boolean>;
   onRestoreHP?: (amount: number, activityType: string, description?: string) => Promise<void>;
+  onAddXP?: (amount: number, source: string, description?: string) => Promise<void>;
+  onAddTokens?: (amount: number, source: string, description?: string) => Promise<void>;
+  onLevelBoost?: (source: string, description?: string) => Promise<void>;
 }
 
 export function EnhancedStoreLayout({ 
   tokenData, 
   onSpendTokens, 
-  onRestoreHP 
+  onRestoreHP,
+  onAddXP,
+  onAddTokens,
+  onLevelBoost
 }: EnhancedStoreLayoutProps) {
   const [searchQuery, setSearchQuery] = useState('');
   const [filters, setFilters] = useState({
@@ -112,6 +118,9 @@ export function EnhancedStoreLayout({
                     regularTokens={tokenData.regular_tokens}
                     premiumTokens={tokenData.premium_tokens}
                     onRestoreHP={onRestoreHP}
+                    onAddXP={onAddXP}
+                    onAddTokens={onAddTokens}
+                    onLevelBoost={onLevelBoost}
                     className="border-0 shadow-none bg-transparent p-0"
                   />
                 )}
