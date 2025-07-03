@@ -28,7 +28,7 @@ export function useMessageNavigation() {
     try {
       // Create or get existing direct conversation
       const { data: conversationId, error } = await supabase.rpc('create_direct_conversation', {
-        other_user_id: targetUserId
+        other_user_id_param: targetUserId
       });
 
       if (error) {

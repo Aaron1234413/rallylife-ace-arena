@@ -19,7 +19,7 @@ export function useMessages(conversationId: string | null) {
         .from('messages')
         .select(`
           *,
-          profiles!messages_sender_id_fkey(full_name, avatar_url)
+          profiles!sender_id(full_name, avatar_url)
         `)
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });
@@ -92,10 +92,10 @@ export function useMessages(conversationId: string | null) {
       if (!conversationId) throw new Error('No conversation selected');
 
       const { data, error } = await supabase.rpc('send_message', {
-        conversation_id: conversationId,
-        content,
-        message_type: messageType,
-        metadata
+        conversation_id_param: conversationId,
+        content_param: content,
+        message_type_param: messageType,
+        metadata_param: metadata
       });
 
       if (error) throw error;
