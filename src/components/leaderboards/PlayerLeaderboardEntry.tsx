@@ -1,10 +1,11 @@
 import React from 'react';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Trophy, Medal, Award, Crown, Star } from 'lucide-react';
+import { Trophy, Medal, Award, Crown, Star, MessageCircle } from 'lucide-react';
 import { PlayerLeaderboardEntry as PlayerEntry } from '@/hooks/usePlayerLeaderboards';
-import { LeaderboardActions } from './LeaderboardActions';
 import { useAuth } from '@/hooks/useAuth';
+import { useToast } from '@/hooks/use-toast';
 
 interface PlayerLeaderboardEntryProps {
   entry: PlayerEntry;
@@ -14,7 +15,16 @@ interface PlayerLeaderboardEntryProps {
 
 export function PlayerLeaderboardEntry({ entry, index, currentUserRole }: PlayerLeaderboardEntryProps) {
   const { user } = useAuth();
+  const { toast } = useToast();
   const isCurrentUser = user?.id === entry.player_id;
+
+  const handleMessage = () => {
+    // TODO: Navigate to messages or open chat modal
+    toast({
+      title: "Message Feature",
+      description: "Opening conversation with " + entry.player_name,
+    });
+  };
 
   const getRankIcon = (position: number) => {
     switch (position) {
@@ -43,7 +53,7 @@ export function PlayerLeaderboardEntry({ entry, index, currentUserRole }: Player
   };
 
   return (
-    <div className={`flex items-center gap-6 p-6 rounded-xl border transition-colors hover:bg-tennis-green-bg/20 ${
+    <div className={`relative flex items-center gap-6 p-6 rounded-xl border transition-colors hover:bg-tennis-green-bg/20 ${
       entry.rank_position <= 3 ? 'border-tennis-green-medium bg-tennis-green-bg/10' : 'border-tennis-green-subtle'
     }`}>
       {/* Rank */}
@@ -90,14 +100,16 @@ export function PlayerLeaderboardEntry({ entry, index, currentUserRole }: Player
         </div>
       </div>
 
-      {/* Actions */}
+      {/* Message Button */}
       {!isCurrentUser && (
-        <LeaderboardActions
-          targetUserId={entry.player_id}
-          targetUserName={entry.player_name}
-          targetUserRole="player"
-          currentUserRole={currentUserRole}
-        />
+        <Button
+          variant="ghost"
+          size="sm"
+          onClick={handleMessage}
+          className="absolute top-4 right-4 h-8 w-8 p-0 hover:bg-tennis-green-bg/30"
+        >
+          <MessageCircle className="h-4 w-4 text-tennis-green-medium hover:text-tennis-green-dark" />
+        </Button>
       )}
     </div>
   );
