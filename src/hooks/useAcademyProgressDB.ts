@@ -17,6 +17,12 @@ export interface AcademyProgress {
   placement_quiz_completed: boolean;
   created_at: string;
   updated_at: string;
+  // New Phase 2 fields
+  last_check_in_date?: string;
+  consecutive_check_ins?: number;
+  knowledge_points?: number;
+  knowledge_level?: number;
+  total_check_ins?: number;
 }
 
 export function useAcademyProgressDB() {

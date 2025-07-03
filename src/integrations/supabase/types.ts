@@ -9,49 +9,127 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
+      academy_check_ins: {
+        Row: {
+          bonus_tokens: number | null
+          check_in_date: string
+          created_at: string | null
+          id: string
+          player_id: string
+          streak_day: number | null
+          tokens_earned: number | null
+        }
+        Insert: {
+          bonus_tokens?: number | null
+          check_in_date?: string
+          created_at?: string | null
+          id?: string
+          player_id: string
+          streak_day?: number | null
+          tokens_earned?: number | null
+        }
+        Update: {
+          bonus_tokens?: number | null
+          check_in_date?: string
+          created_at?: string | null
+          id?: string
+          player_id?: string
+          streak_day?: number | null
+          tokens_earned?: number | null
+        }
+        Relationships: []
+      }
+      academy_milestones: {
+        Row: {
+          achieved_at: string | null
+          id: string
+          knowledge_points_earned: number | null
+          milestone_name: string
+          milestone_type: string
+          player_id: string
+          tokens_earned: number | null
+        }
+        Insert: {
+          achieved_at?: string | null
+          id?: string
+          knowledge_points_earned?: number | null
+          milestone_name: string
+          milestone_type: string
+          player_id: string
+          tokens_earned?: number | null
+        }
+        Update: {
+          achieved_at?: string | null
+          id?: string
+          knowledge_points_earned?: number | null
+          milestone_name?: string
+          milestone_type?: string
+          player_id?: string
+          tokens_earned?: number | null
+        }
+        Relationships: []
+      }
       academy_progress: {
         Row: {
+          consecutive_check_ins: number | null
           created_at: string
           daily_streak: number
           daily_tokens_earned: number
           id: string
           is_onboarding_completed: boolean
+          knowledge_level: number | null
+          knowledge_points: number | null
           last_activity: string
+          last_check_in_date: string | null
           level: number
           level_name: string
           placement_quiz_completed: boolean
           player_id: string
           quizzes_completed: number
+          streak_bonus_claimed_for_day: number | null
+          total_check_ins: number | null
           total_xp: number
           updated_at: string
         }
         Insert: {
+          consecutive_check_ins?: number | null
           created_at?: string
           daily_streak?: number
           daily_tokens_earned?: number
           id?: string
           is_onboarding_completed?: boolean
+          knowledge_level?: number | null
+          knowledge_points?: number | null
           last_activity?: string
+          last_check_in_date?: string | null
           level?: number
           level_name?: string
           placement_quiz_completed?: boolean
           player_id: string
           quizzes_completed?: number
+          streak_bonus_claimed_for_day?: number | null
+          total_check_ins?: number | null
           total_xp?: number
           updated_at?: string
         }
         Update: {
+          consecutive_check_ins?: number | null
           created_at?: string
           daily_streak?: number
           daily_tokens_earned?: number
           id?: string
           is_onboarding_completed?: boolean
+          knowledge_level?: number | null
+          knowledge_points?: number | null
           last_activity?: string
+          last_check_in_date?: string | null
           level?: number
           level_name?: string
           placement_quiz_completed?: boolean
           player_id?: string
           quizzes_completed?: number
+          streak_bonus_claimed_for_day?: number | null
+          total_check_ins?: number | null
           total_xp?: number
           updated_at?: string
         }
@@ -4428,6 +4506,10 @@ export type Database = {
         Args: { geom1: unknown; geom2: unknown }
         Returns: boolean
       }
+      academy_daily_check_in: {
+        Args: { user_id: string }
+        Returns: Json
+      }
       accept_club_invitation: {
         Args: { invitation_code_param: string }
         Returns: Json
@@ -4626,6 +4708,10 @@ export type Database = {
       calculate_xp_for_level: {
         Args: { level: number }
         Returns: number
+      }
+      check_academy_milestones: {
+        Args: { user_id: string }
+        Returns: undefined
       }
       check_achievement_unlock: {
         Args: { user_id: string; achievement_id: string }

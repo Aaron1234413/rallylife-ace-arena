@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -12,6 +12,9 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { AcademyTokenDisplay } from './AcademyTokenDisplay';
+import { DailyCheckIn } from './DailyCheckIn';
+import { AcademyMilestones } from './AcademyMilestones';
+import { KnowledgePointsDisplay } from './KnowledgePointsDisplay';
 import { AcademyProgress } from '@/hooks/useAcademyProgressDB';
 
 interface AcademyDashboardProps {
@@ -23,9 +26,24 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   progress,
   onStartQuiz
 }) => {
+  const [refreshKey, setRefreshKey] = useState(0);
+  
+  // Check if user has checked in today
+  const today = new Date().toDateString();
+  const lastCheckIn = (progress as any).last_check_in_date;
+  const hasCheckedInToday = lastCheckIn && new Date(lastCheckIn).toDateString() === today;
+  
+  const consecutiveCheckIns = (progress as any).consecutive_check_ins || 0;
+  const knowledgePoints = (progress as any).knowledge_points || 0;
+  const knowledgeLevel = (progress as any).knowledge_level || 1;
+  const handleCheckInComplete = () => {
+    // Refresh the component to reflect new data
+    setRefreshKey(prev => prev + 1);
+  };
+
   const streakDays = Math.floor((Date.now() - new Date(progress.last_activity).getTime()) / (1000 * 60 * 60 * 24));
   const isToday = new Date().toDateString() === new Date(progress.last_activity).toDateString();
-  const currentStreak = isToday ? progress.daily_streak : 0;
+  const currentStreak = consecutiveCheckIns;
 
   return (
     <div className="min-h-screen bg-tennis-green-bg p-4 space-y-6 max-w-4xl mx-auto">
@@ -64,8 +82,27 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
         </CardContent>
       </Card>
 
-      {/* Daily Stats Grid */}
+      {/* Daily Check-in and Token Display */}
+      <div className="grid gap-4 md:grid-cols-2">
+        <DailyCheckIn
+          currentStreak={currentStreak}
+          hasCheckedInToday={hasCheckedInToday}
+          onCheckInComplete={handleCheckInComplete}
+        />
+        
+        <AcademyTokenDisplay 
+          dailyTokensEarned={progress.daily_tokens_earned}
+          dailyTokenLimit={10}
+        />
+      </div>
+
+      {/* Knowledge Points and Daily Stats */}
       <div className="grid gap-4 md:grid-cols-3">
+        <KnowledgePointsDisplay
+          knowledgePoints={knowledgePoints}
+          knowledgeLevel={knowledgeLevel}
+        />
+
         {/* Daily Streak */}
         <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20 hover:shadow-lg transition-all duration-300">
           <CardContent className="p-4">
@@ -74,7 +111,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                 <Calendar className="h-5 w-5 text-orange-600" />
               </div>
               <div>
-                <p className="font-medium text-tennis-green-dark">Daily Streak</p>
+                <p className="font-medium text-tennis-green-dark">Check-in Streak</p>
                 <p className="text-sm text-tennis-green-medium">
                   {currentStreak > 0 ? `${currentStreak} days 🔥` : 'Start today!'}
                 </p>
@@ -85,12 +122,6 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
             </div>
           </CardContent>
         </Card>
-
-        {/* Token Display */}
-        <AcademyTokenDisplay 
-          dailyTokensEarned={progress.daily_tokens_earned}
-          dailyTokenLimit={10}
-        />
 
         {/* Level Progress */}
         <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20">
@@ -117,6 +148,9 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
           </CardContent>
         </Card>
       </div>
+
+      {/* Academy Milestones */}
+      <AcademyMilestones progress={progress} />
 
       {/* Main Daily Quiz Card */}
       <Card className="bg-gradient-to-r from-tennis-green-primary to-tennis-green-accent border-tennis-green-light shadow-lg animate-scale-in">
@@ -164,7 +198,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
         </CardContent>
       </Card>
 
-      {/* Today's Progress Summary */}
+      {/* Today's Summary */}
       <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20">
         <CardHeader>
           <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
@@ -173,17 +207,21 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-3 gap-4">
+          <div className="grid grid-cols-4 gap-4">
             <div className="text-center">
               <div className="text-lg font-bold text-tennis-green-dark">{progress.quizzes_completed}</div>
               <div className="text-xs text-tennis-green-medium">Total Quizzes</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-orange-600">{currentStreak}</div>
-              <div className="text-xs text-tennis-green-medium">Day Streak</div>
+              <div className="text-xs text-tennis-green-medium">Check-in Streak</div>
             </div>
             <div className="text-center">
-              <div className="text-lg font-bold text-blue-600">{Math.floor(progress.total_xp / 100)}</div>
+              <div className="text-lg font-bold text-blue-600">{knowledgePoints}</div>
+              <div className="text-xs text-tennis-green-medium">Knowledge Points</div>
+            </div>
+            <div className="text-center">
+              <div className="text-lg font-bold text-purple-600">{Math.floor(progress.total_xp / 100)}</div>
               <div className="text-xs text-tennis-green-medium">Levels Earned</div>
             </div>
           </div>
@@ -194,15 +232,15 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
       <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
         <CardContent className="p-6 text-center">
           <div className="space-y-2">
-            {currentStreak === 0 ? (
+            {!hasCheckedInToday ? (
               <>
-                <p className="text-lg font-medium text-gray-800">🎯 Start Your Learning Journey</p>
-                <p className="text-gray-600">Complete today's quiz to begin your knowledge streak!</p>
+                <p className="text-lg font-medium text-gray-800">🎯 Ready to Learn?</p>
+                <p className="text-gray-600">Check in and complete today's quiz to earn rewards!</p>
               </>
             ) : currentStreak < 3 ? (
               <>
                 <p className="text-lg font-medium text-gray-800">🔥 Great Start!</p>
-                <p className="text-gray-600">Keep going to build your learning streak!</p>
+                <p className="text-gray-600">Keep checking in to build your learning streak!</p>
               </>
             ) : currentStreak < 7 ? (
               <>
