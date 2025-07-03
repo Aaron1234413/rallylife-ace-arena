@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Dialog,
   DialogContent,
@@ -30,6 +31,7 @@ export function NewConversationDialog({ children }: NewConversationDialogProps) 
   
   const { data: profiles, isLoading } = useProfiles();
   const queryClient = useQueryClient();
+  const navigate = useNavigate();
 
   const filteredProfiles = profiles?.filter(profile => 
     profile.full_name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -55,12 +57,18 @@ export function NewConversationDialog({ children }: NewConversationDialogProps) 
 
       console.log('Conversation created successfully:', data);
 
-      // Refresh conversations
-      queryClient.invalidateQueries({ queryKey: ['conversations'] });
-      
-      toast.success(`Started conversation with ${otherUserName}`);
+      // First close the dialog and clear the search
       setOpen(false);
       setSearchTerm('');
+      
+      // Show success message
+      toast.success(`Started conversation with ${otherUserName}`);
+      
+      // Navigate to the messages page with the new conversation selected
+      navigate(`/messages?conversation=${data}`);
+      
+      // Refresh conversations to ensure the new conversation appears in the list
+      queryClient.invalidateQueries({ queryKey: ['conversations'] });
     } catch (error) {
       console.error('Error creating conversation:', error);
       const errorMessage = error instanceof Error ? error.message : 'Failed to start conversation. Please try again.';
