@@ -55,13 +55,22 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
   const loadUserProgress = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
-      if (!user) return;
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
 
-      const { data: profile } = await supabase
+      const { data: profile, error } = await supabase
         .from('profiles')
         .select('preferences, role')
         .eq('id', user.id)
         .single();
+
+      if (error) {
+        console.error('Error loading profile:', error);
+        setIsLoading(false);
+        return;
+      }
 
       if (profile) {
         // Set user role if not provided as prop
@@ -69,14 +78,22 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
           setUserRole(profile.role);
         }
 
-        // Load preferences
+        // Load preferences - if null or empty, user hasn't completed tour
         if (profile.preferences) {
           const prefs = profile.preferences as any;
           setUserProgress({
-            hasCompletedTour: prefs?.app_tour_completed || false,
+            hasCompletedTour: prefs?.app_tour_completed === true,
             completedTutorials: prefs?.completed_tutorials || [],
             dismissedTips: prefs?.dismissed_tips || [],
             lastActiveDate: prefs?.last_active_date || new Date().toISOString()
+          });
+        } else {
+          // No preferences means new user - initialize defaults
+          setUserProgress({
+            hasCompletedTour: false,
+            completedTutorials: [],
+            dismissedTips: [],
+            lastActiveDate: new Date().toISOString()
           });
         }
       }
@@ -93,9 +110,12 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
       if (!user) return;
 
       const newProgress = { ...userProgress, ...updates };
+      
+      // Update local state first for immediate UI feedback
       setUserProgress(newProgress);
 
-      await supabase
+      // Update database
+      const { error } = await supabase
         .from('profiles')
         .update({
           preferences: {
@@ -106,40 +126,64 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
           }
         })
         .eq('id', user.id);
+
+      if (error) {
+        console.error('Database update error:', error);
+        // Revert local state if database update failed
+        setUserProgress(userProgress);
+        toast.error('Failed to save progress. Please try again.');
+        return false;
+      }
+
+      return true;
     } catch (error) {
       console.error('Error updating user progress:', error);
+      // Revert local state if there was an error
+      setUserProgress(userProgress);
       toast.error('Failed to save progress');
+      return false;
     }
   };
 
-  const handleTourComplete = () => {
-    updateUserProgress({ hasCompletedTour: true });
-    setShowTour(false);
-    toast.success('Tour completed! You\'re ready to explore Rako.');
+  const handleTourComplete = async () => {
+    const success = await updateUserProgress({ hasCompletedTour: true });
+    if (success) {
+      setShowTour(false);
+      toast.success('Tour completed! You\'re ready to explore Rako.');
+    }
   };
 
-  const handleTourSkip = () => {
-    updateUserProgress({ hasCompletedTour: true });
-    setShowTour(false);
-    toast.info('Tour skipped. You can access tutorials anytime from the help menu.');
+  const handleTourSkip = async () => {
+    const success = await updateUserProgress({ hasCompletedTour: true });
+    if (success) {
+      setShowTour(false);
+      toast.info('Tour skipped. You can access tutorials anytime from the help menu.');
+    }
   };
 
-  const handleTutorialComplete = (tutorialId: string) => {
+  const handleTutorialComplete = async (tutorialId: string) => {
     const updatedTutorials = [...userProgress.completedTutorials, tutorialId];
-    updateUserProgress({ completedTutorials: updatedTutorials });
-    toast.success('Tutorial completed! Well done.');
+    const success = await updateUserProgress({ completedTutorials: updatedTutorials });
+    if (success) {
+      toast.success('Tutorial completed! Well done.');
+    }
   };
 
-  // Auto-start tour for new users
+  // Auto-start tour for new users - only if they haven't completed it
   useEffect(() => {
-    if (!isLoading && !userProgress.hasCompletedTour) {
-      const timer = setTimeout(() => {
-        setShowTour(true);
-      }, 2000); // Show tour after 2 seconds
+    if (!isLoading && !userProgress.hasCompletedTour && userRole) {
+      // Only auto-start if we're on the dashboard (main page)
+      const isDashboard = currentRoute === '/dashboard' || currentRoute === '/coach-dashboard';
       
-      return () => clearTimeout(timer);
+      if (isDashboard) {
+        const timer = setTimeout(() => {
+          setShowTour(true);
+        }, 2000); // Show tour after 2 seconds
+        
+        return () => clearTimeout(timer);
+      }
     }
-  }, [isLoading, userProgress.hasCompletedTour]);
+  }, [isLoading, userProgress.hasCompletedTour, userRole, currentRoute]);
 
   if (isLoading || !userRole) return null;
 
