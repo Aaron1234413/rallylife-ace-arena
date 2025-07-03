@@ -16,7 +16,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
 interface NewUserGuideProps {
-  userRole: 'player' | 'coach';
+  userRole?: 'player' | 'coach';
   userLevel?: number;
   currentRoute?: string;
   onClose?: () => void;
@@ -30,7 +30,7 @@ interface UserProgress {
 }
 
 export const NewUserGuide: React.FC<NewUserGuideProps> = ({
-  userRole,
+  userRole: propUserRole,
   userLevel = 1,
   currentRoute = '/',
   onClose
@@ -38,6 +38,7 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
   const [showTour, setShowTour] = useState(false);
   const [showTutorials, setShowTutorials] = useState(false);
   const [showQuickHelp, setShowQuickHelp] = useState(false);
+  const [userRole, setUserRole] = useState<'player' | 'coach' | null>(propUserRole || null);
   const [userProgress, setUserProgress] = useState<UserProgress>({
     hasCompletedTour: false,
     completedTutorials: [],
@@ -58,18 +59,26 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
 
       const { data: profile } = await supabase
         .from('profiles')
-        .select('preferences')
+        .select('preferences, role')
         .eq('id', user.id)
         .single();
 
-      if (profile?.preferences) {
-        const prefs = profile.preferences as any;
-        setUserProgress({
-          hasCompletedTour: prefs?.app_tour_completed || false,
-          completedTutorials: prefs?.completed_tutorials || [],
-          dismissedTips: prefs?.dismissed_tips || [],
-          lastActiveDate: prefs?.last_active_date || new Date().toISOString()
-        });
+      if (profile) {
+        // Set user role if not provided as prop
+        if (!propUserRole && profile.role) {
+          setUserRole(profile.role);
+        }
+
+        // Load preferences
+        if (profile.preferences) {
+          const prefs = profile.preferences as any;
+          setUserProgress({
+            hasCompletedTour: prefs?.app_tour_completed || false,
+            completedTutorials: prefs?.completed_tutorials || [],
+            dismissedTips: prefs?.dismissed_tips || [],
+            lastActiveDate: prefs?.last_active_date || new Date().toISOString()
+          });
+        }
       }
     } catch (error) {
       console.error('Error loading user progress:', error);
@@ -132,13 +141,13 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
     }
   }, [isLoading, userProgress.hasCompletedTour]);
 
-  if (isLoading) return null;
+  if (isLoading || !userRole) return null;
 
   return (
-    <>
+    <div className="pointer-events-none">
       {/* Floating Help Button */}
       {userProgress.hasCompletedTour && (
-        <div className="fixed bottom-6 left-6 z-40">
+        <div className="fixed bottom-6 left-6 z-40 pointer-events-auto">
           <Button
             onClick={() => setShowQuickHelp(!showQuickHelp)}
             className="w-12 h-12 rounded-full bg-tennis-green-primary hover:bg-tennis-green-dark shadow-lg"
@@ -204,7 +213,7 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
 
       {/* Welcome Banner for New Users */}
       {!userProgress.hasCompletedTour && !showTour && (
-        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full mx-4">
+        <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full mx-4 pointer-events-auto">
           <div className="bg-white border-2 border-tennis-yellow rounded-xl shadow-xl p-4">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
@@ -245,24 +254,30 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
         </div>
       )}
 
-      {/* App Tour */}
+      {/* App Tour - Full Screen Overlay */}
       {showTour && (
-        <AppTour
-          onComplete={handleTourComplete}
-          onSkip={handleTourSkip}
-          userRole={userRole}
-        />
+        <div className="fixed inset-0 z-50 pointer-events-auto">
+          <AppTour
+            onComplete={handleTourComplete}
+            onSkip={handleTourSkip}
+            userRole={userRole}
+          />
+        </div>
       )}
 
       {/* Tutorial System */}
-      <TutorialSystem
-        isOpen={showTutorials}
-        onClose={() => setShowTutorials(false)}
-        userRole={userRole}
-        userLevel={userLevel}
-        completedTutorials={userProgress.completedTutorials}
-        onTutorialComplete={handleTutorialComplete}
-      />
+      {showTutorials && (
+        <div className="fixed inset-0 z-50 pointer-events-auto">
+          <TutorialSystem
+            isOpen={showTutorials}
+            onClose={() => setShowTutorials(false)}
+            userRole={userRole}
+            userLevel={userLevel}
+            completedTutorials={userProgress.completedTutorials}
+            onTutorialComplete={handleTutorialComplete}
+          />
+        </div>
+      )}
 
       {/* Contextual Help */}
       <ContextualHelp
@@ -271,6 +286,6 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
         userLevel={userLevel}
         hasCompletedTour={userProgress.hasCompletedTour}
       />
-    </>
+    </div>
   );
 };
