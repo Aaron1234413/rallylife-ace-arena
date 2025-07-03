@@ -104,7 +104,7 @@ export const ChallengeOfTheDay: React.FC<ChallengeOfTheDayProps> = ({ className 
             <div className="p-1.5 bg-purple-100 rounded-lg">
               <IconComponent className="h-5 w-5 sm:h-6 sm:w-6 text-purple-600" />
             </div>
-            Challenge of the Day
+            RAKO This
           </CardTitle>
           <Badge className={`${getTypeColor(challenge.type)} px-2 py-1 text-xs self-start sm:self-center`}>
             {challenge.type.charAt(0).toUpperCase() + challenge.type.slice(1)}
