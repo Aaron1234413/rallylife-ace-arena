@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { WelcomeAnimation } from './WelcomeAnimation';
 
 interface AppTourProps {
   onComplete: () => void;
@@ -34,7 +35,6 @@ interface TourStep {
   icon: React.ComponentType<any>;
   features: string[];
   actionText: string;
-  route?: string;
 }
 
 const PLAYER_TOUR_STEPS: TourStep[] = [
@@ -49,7 +49,33 @@ const PLAYER_TOUR_STEPS: TourStep[] = [
       'Achievement progress tracking',
       'Live activity feed'
     ],
-    actionText: 'Explore Dashboard'
+    actionText: 'Next'
+  },
+  {
+    id: 'sessions',
+    title: 'Training & Match Sessions',
+    description: 'Track your tennis activities and monitor your performance progress.',
+    icon: Target,
+    features: [
+      'Start training sessions',
+      'Log match results',
+      'Track session history',
+      'Set goals and targets'
+    ],
+    actionText: 'Next'
+  },
+  {
+    id: 'pulse',
+    title: 'Competitive Rankings',
+    description: 'See how you stack up against other players and coaches in the community.',
+    icon: Zap,
+    features: [
+      'Coach and player leaderboards',
+      'Compare your rankings',
+      'Track competitive progress',
+      'See top performers'
+    ],
+    actionText: 'Next'
   },
   {
     id: 'academy',
@@ -62,36 +88,59 @@ const PLAYER_TOUR_STEPS: TourStep[] = [
       'Unlock achievements',
       'Track learning streaks'
     ],
-    actionText: 'Start Learning',
-    route: '/academy'
+    actionText: 'Next'
   },
   {
-    id: 'clubs',
-    title: 'Join Tennis Clubs',
-    description: 'Connect with local tennis communities and participate in club events.',
+    id: 'messages',
+    title: 'Player Communication',
+    description: 'Stay connected with your tennis community and coaching network.',
+    icon: MessageSquare,
+    features: [
+      'Connect with other players',
+      'Chat with coaches and teammates',
+      'Share achievements and progress',
+      'Note: We are currently building this out'
+    ],
+    actionText: 'Next'
+  },
+  {
+    id: 'feed',
+    title: 'Community Activity',
+    description: 'Stay updated with the latest happenings in your tennis community.',
     icon: Users,
     features: [
-      'Browse local clubs',
-      'Join club events',
-      'Meet other members',
-      'Access club courts'
+      'See community activity',
+      'Share your achievements',
+      'Follow other players',
+      'Stay connected with tennis community'
     ],
-    actionText: 'Browse Clubs',
-    route: '/clubs'
+    actionText: 'Next'
   },
   {
     id: 'store',
     title: 'Rako Store',
-    description: 'Spend your earned tokens on avatar items, boosters, and premium features.',
+    description: 'Browse and purchase tennis gear, equipment, and performance boosters.',
     icon: Store,
     features: [
-      'Avatar customization items',
+      'Browse exclusive Diadem and tennis products',
+      'Second hand gear items',
       'Performance boosters',
-      'Premium subscriptions',
-      'Exclusive content'
+      'Premium subscriptions'
     ],
-    actionText: 'Visit Store',
-    route: '/store'
+    actionText: 'Next'
+  },
+  {
+    id: 'profile',
+    title: 'Account Management',
+    description: 'Manage your account settings and access support resources.',
+    icon: Users,
+    features: [
+      'Manage account settings',
+      'Update personal information',
+      'Access help and support resources',
+      'View your tennis journey'
+    ],
+    actionText: 'Complete Tour'
   }
 ];
 
@@ -107,49 +156,98 @@ const COACH_TOUR_STEPS: TourStep[] = [
       'Revenue tracking',
       'Performance analytics'
     ],
-    actionText: 'Explore Dashboard'
+    actionText: 'Next'
   },
   {
-    id: 'search',
-    title: 'Find Players',
-    description: 'Connect with players looking for coaching and grow your client base.',
-    icon: Search,
+    id: 'sessions',
+    title: 'Session Management',
+    description: 'Track and manage your coaching sessions with detailed analytics.',
+    icon: Target,
     features: [
-      'Browse available players',
-      'Send coaching invitations',
-      'Set your rates',
+      'Monitor coaching sessions',
+      'Track player progress',
+      'Session analytics and insights',
+      'Performance metrics'
+    ],
+    actionText: 'Next'
+  },
+  {
+    id: 'pulse',
+    title: 'Coach Rankings',
+    description: 'See how you rank among other coaches in the community.',
+    icon: Zap,
+    features: [
+      'Coach and player leaderboards',
+      'Compare your CRP and CXP',
+      'Track coaching performance',
       'Build your reputation'
     ],
-    actionText: 'Find Players',
-    route: '/search'
+    actionText: 'Next'
   },
   {
-    id: 'scheduling',
-    title: 'Appointment Management',
-    description: 'Manage your coaching schedule and appointments efficiently.',
-    icon: Calendar,
+    id: 'academy',
+    title: 'Tennis Knowledge Hub',
+    description: 'Access teaching resources and tennis knowledge base.',
+    icon: BookOpen,
     features: [
-      'Set availability',
-      'Book sessions',
-      'Manage cancellations',
-      'Automated reminders'
+      'Teaching methodologies',
+      'Tennis technique guides',
+      'Coaching best practices',
+      'Player development resources'
     ],
-    actionText: 'Set Schedule',
-    route: '/scheduling'
+    actionText: 'Next'
   },
   {
-    id: 'clubs',
-    title: 'Club Services',
-    description: 'Offer your coaching services at local tennis clubs.',
+    id: 'messages',
+    title: 'Client Communication',
+    description: 'Stay connected with your players and manage coaching conversations.',
+    icon: MessageSquare,
+    features: [
+      'Chat with your players',
+      'Send coaching feedback',
+      'Schedule reminders',
+      'Note: We are currently building this out'
+    ],
+    actionText: 'Next'
+  },
+  {
+    id: 'feed',
+    title: 'Community Updates',
+    description: 'Share your coaching expertise and connect with the tennis community.',
     icon: Users,
     features: [
-      'List services at clubs',
-      'Set different rates',
-      'Manage club bookings',
-      'Build club reputation'
+      'Share coaching insights',
+      'Follow player progress',
+      'Connect with other coaches',
+      'Stay updated with community'
     ],
-    actionText: 'Browse Clubs',
-    route: '/clubs'
+    actionText: 'Next'
+  },
+  {
+    id: 'store',
+    title: 'Coach Resources',
+    description: 'Access coaching tools, equipment, and professional development resources.',
+    icon: Store,
+    features: [
+      'Coaching equipment and tools',
+      'Professional development courses',
+      'Exclusive coach products',
+      'Business growth resources'
+    ],
+    actionText: 'Next'
+  },
+  {
+    id: 'profile',
+    title: 'Coach Profile',
+    description: 'Manage your coaching profile and professional settings.',
+    icon: Users,
+    features: [
+      'Manage coaching credentials',
+      'Set rates and availability',
+      'Access coaching analytics',
+      'Professional profile management'
+    ],
+    actionText: 'Complete Tour'
   }
 ];
 
@@ -158,6 +256,7 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [isCompleting, setIsCompleting] = useState(false);
+  const [showWelcomeAnimation, setShowWelcomeAnimation] = useState(false);
 
   const tourSteps = userRole === 'player' ? PLAYER_TOUR_STEPS : COACH_TOUR_STEPS;
   const currentTourStep = tourSteps[currentStep];
@@ -170,15 +269,11 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
         onSkip();
       } else if (event.key === 'ArrowLeft' && currentStep > 0) {
         handlePreviousStep();
-      } else if (event.key === 'ArrowRight' && currentStep < tourSteps.length - 1) {
+      } else if (event.key === 'ArrowRight') {
         handleNextStep();
       } else if (event.key === 'Enter' || event.key === ' ') {
         event.preventDefault();
-        if (currentTourStep.route) {
-          handleExploreFeature();
-        } else {
-          handleNextStep();
-        }
+        handleNextStep();
       }
     };
 
@@ -217,8 +312,8 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
 
       if (error) throw error;
 
-      toast.success('Welcome to Rako! You\'re all set to start your tennis journey.');
-      onComplete();
+      // Show welcome animation instead of completing immediately
+      setShowWelcomeAnimation(true);
     } catch (error) {
       console.error('Error completing tour:', error);
       toast.error('Failed to save tour progress, but you can continue using the app.');
@@ -228,13 +323,16 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
     }
   };
 
-  const handleExploreFeature = () => {
-    if (currentTourStep.route) {
-      // Navigate to the actual route within the app
-      navigate(currentTourStep.route);
-    }
-    handleNextStep();
+  const handleAnimationComplete = () => {
+    setShowWelcomeAnimation(false);
+    onComplete();
   };
+
+
+  // Show welcome animation if tour completed
+  if (showWelcomeAnimation) {
+    return <WelcomeAnimation onComplete={handleAnimationComplete} />;
+  }
 
   return (
     <div className="min-h-screen bg-tennis-green-bg p-4 flex items-center justify-center" role="dialog" aria-labelledby="tour-title" aria-modal="true">
@@ -322,27 +420,17 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
                 </Button>
               )}
               
-              {currentTourStep.route ? (
-                <Button 
-                  onClick={handleExploreFeature}
-                  className="flex-1 bg-tennis-green-primary hover:bg-tennis-green-dark"
-                >
-                  {currentTourStep.actionText}
-                  <ArrowRight className="h-4 w-4 ml-2" />
-                </Button>
-              ) : (
-                <Button 
-                  onClick={handleNextStep}
-                  disabled={isCompleting}
-                  className="flex-1 bg-tennis-green-primary hover:bg-tennis-green-dark"
-                >
-                  {currentStep === tourSteps.length - 1 ? 
-                    (isCompleting ? 'Completing...' : 'Start Playing!') : 
-                    'Next Step'
-                  }
-                  {currentStep < tourSteps.length - 1 && <ArrowRight className="h-4 w-4 ml-2" />}
-                </Button>
-              )}
+              <Button 
+                onClick={handleNextStep}
+                disabled={isCompleting}
+                className="flex-1 bg-tennis-green-primary hover:bg-tennis-green-dark"
+              >
+                {currentStep === tourSteps.length - 1 ? 
+                  (isCompleting ? 'Completing...' : currentTourStep.actionText) : 
+                  currentTourStep.actionText
+                }
+                {currentStep < tourSteps.length - 1 && <ArrowRight className="h-4 w-4 ml-2" />}
+              </Button>
             </div>
 
             {/* Skip Tour Option */}
