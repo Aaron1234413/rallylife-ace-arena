@@ -3,6 +3,7 @@ import { AppNavigation } from "@/components/navigation/AppNavigation";
 import { FloatingCheckInButton } from "@/components/match/FloatingCheckInButton";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useEffect } from "react";
+import { ROUTES, shouldHideNavigation } from "@/utils/routes";
 
 interface AppLayoutProps {
   children: React.ReactNode;
@@ -13,16 +14,14 @@ export function AppLayout({ children }: AppLayoutProps) {
   const location = useLocation();
   const navigate = useNavigate();
   
-  const isLandingPage = location.pathname === '/';
-  const isPaymentGate = location.pathname === '/payment-gate';
-  const shouldHideNavigation = isLandingPage || isPaymentGate;
+  const hideNavigation = shouldHideNavigation(location.pathname);
 
   // Redirect authenticated users from landing page to dashboard
   useEffect(() => {
-    if (!loading && user && isLandingPage) {
-      navigate('/dashboard');
+    if (!loading && user && location.pathname === ROUTES.LANDING) {
+      navigate(ROUTES.DASHBOARD);
     }
-  }, [user, loading, isLandingPage, navigate]);
+  }, [user, loading, location.pathname, navigate]);
 
   if (loading) {
     return (
@@ -34,15 +33,15 @@ export function AppLayout({ children }: AppLayoutProps) {
 
   return (
     <div className="min-h-screen bg-background">
-      {user && !shouldHideNavigation && <AppNavigation />}
+      {user && !hideNavigation && <AppNavigation />}
       
-      <main className={`${user && !shouldHideNavigation ? 'pt-56 md:pt-44' : ''} pb-20 sm:pb-6 min-h-screen`}>
+      <main className={`${user && !hideNavigation ? 'pt-56 md:pt-44' : ''} pb-20 sm:pb-6 min-h-screen`}>
         <div className="safe-area-inset">
           {children}
         </div>
       </main>
       
-      {user && !shouldHideNavigation && <FloatingCheckInButton />}
+      {user && !hideNavigation && <FloatingCheckInButton />}
     </div>
   );
 }

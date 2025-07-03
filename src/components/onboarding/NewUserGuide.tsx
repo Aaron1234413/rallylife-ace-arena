@@ -14,6 +14,7 @@ import { TutorialSystem } from './TutorialSystem';
 import { ContextualHelp } from './ContextualHelp';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { isAppRoute, isDashboardRoute } from '@/utils/routes';
 
 interface NewUserGuideProps {
   userRole?: 'player' | 'coach';
@@ -183,19 +184,11 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
     }
   };
 
-  // Helper function to determine if guide should show on current route
-  const shouldShowGuide = () => {
-    const appRoutes = ['/dashboard', '/coach-dashboard', '/profile', '/store', '/academy', '/clubs', '/search', '/scheduling', '/messages', '/feed', '/maps', '/sessions'];
-    return appRoutes.some(route => currentRoute.startsWith(route));
-  };
-
   // Auto-start tour for new users - only if they haven't completed it
   useEffect(() => {
-    if (!isLoading && !userProgress.hasCompletedTour && userRole && shouldShowGuide()) {
+    if (!isLoading && !userProgress.hasCompletedTour && userRole && isAppRoute(currentRoute)) {
       // Only auto-start if we're on the dashboard (main page)
-      const isDashboard = currentRoute === '/dashboard' || currentRoute === '/coach-dashboard';
-      
-      if (isDashboard) {
+      if (isDashboardRoute(currentRoute)) {
         const timer = setTimeout(() => {
           setShowTour(true);
         }, 2000); // Show tour after 2 seconds
@@ -283,7 +276,7 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
       )}
 
       {/* Welcome Banner for New Users */}
-      {!userProgress.hasCompletedTour && !showTour && shouldShowGuide() && (
+      {!userProgress.hasCompletedTour && !showTour && isAppRoute(currentRoute) && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full mx-4 pointer-events-auto">
           <div className="bg-white border-2 border-tennis-yellow rounded-xl shadow-xl p-4 animate-fade-in">
             <div className="flex items-center justify-between mb-2">
