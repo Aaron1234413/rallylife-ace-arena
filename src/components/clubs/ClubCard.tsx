@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Globe, Lock, Crown, Calendar } from 'lucide-react';
+import { Users, Globe, Lock, Crown } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
@@ -129,15 +129,9 @@ export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCa
           
           {/* Footer Section */}
           <div className="flex items-center justify-between pt-2 border-t border-gray-100">
-            <div className="space-y-1">
-              <div className="flex items-center gap-1 text-gray-600">
-                <Users className="h-4 w-4" />
-                <span className="text-sm font-medium">{club.member_count} members</span>
-              </div>
-              <div className="flex items-center gap-1 text-xs text-gray-500">
-                <Calendar className="h-3 w-3" />
-                <span>Created {formatDistanceToNow(new Date(club.created_at), { addSuffix: true })}</span>
-              </div>
+            <div className="flex items-center gap-1 text-gray-600">
+              <Users className="h-4 w-4" />
+              <span className="text-sm font-medium">{club.member_count} members</span>
             </div>
             
             <div onClick={(e) => e.stopPropagation()}>
