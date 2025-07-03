@@ -128,50 +128,49 @@ export const TennisFactCard: React.FC<TennisFactCardProps> = ({ className = '' }
   };
 
   return (
-    <Card className={`bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-200 hover-scale transition-all duration-300 animate-fade-in ${className}`}>
-      <CardContent className="p-4">
-        <div className="space-y-3">
-          {/* Header */}
-          <div className="flex items-center gap-2">
+    <Card className={`bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-200 hover-scale transition-all duration-300 animate-fade-in ${className}`}>
+      <CardContent className="p-3">
+        {/* Horizontal layout for compact display */}
+        <div className="flex items-center gap-3">
+          {/* Icon and Title */}
+          <div className="flex items-center gap-2 flex-shrink-0">
             <Lightbulb className="h-4 w-4 text-orange-600" />
-            <h3 className="font-medium text-tennis-green-dark text-sm">Tennis Fact</h3>
-            <Badge className={getCategoryColor(currentFact.category)}>
+            <span className="font-medium text-tennis-green-dark text-sm">Tennis Fact</span>
+            <Badge className={`text-xs ${getCategoryColor(currentFact.category)}`}>
               {currentFact.category}
             </Badge>
           </div>
 
-          {/* Main Fact */}
-          <div className="bg-white/80 rounded-lg p-3 border border-orange-100">
+          {/* Main Fact - Takes up available space */}
+          <div className="flex-1 bg-white/80 rounded-lg px-3 py-2 border border-orange-100">
             <p className="text-tennis-green-dark text-sm leading-relaxed">
               {currentFact.fact}
             </p>
           </div>
 
-          {/* Actions */}
-          <div className="flex items-center justify-between">
-            <span className="text-xs text-tennis-green-medium">
-              #{currentFactIndex + 1} of {TENNIS_FACTS.length}
+          {/* Actions - Compact on the right */}
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <span className="text-xs text-tennis-green-medium mr-2">
+              #{currentFactIndex + 1}/{TENNIS_FACTS.length}
             </span>
             
-            <div className="flex items-center gap-1">
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleShare}
-                className="h-6 px-2 text-xs hover-scale"
-              >
-                <Share2 className="h-3 w-3" />
-              </Button>
-              
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={handleNextFact}
-                className="h-6 px-2 text-xs hover-scale"
-              >
-                <RefreshCw className="h-3 w-3" />
-              </Button>
-            </div>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleShare}
+              className="h-6 w-6 p-0 hover-scale"
+            >
+              <Share2 className="h-3 w-3" />
+            </Button>
+            
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleNextFact}
+              className="h-6 w-6 p-0 hover-scale"
+            >
+              <RefreshCw className="h-3 w-3" />
+            </Button>
           </div>
         </div>
       </CardContent>
