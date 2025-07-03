@@ -5499,12 +5499,19 @@ export type Database = {
         Returns: Json
       }
       log_club_activity: {
-        Args: {
-          p_club_id: string
-          p_user_id: string
-          p_activity_type: string
-          p_activity_data?: Json
-        }
+        Args:
+          | {
+              club_id_param: string
+              user_id_param: string
+              activity_type_param: string
+              activity_data_param: Json
+            }
+          | {
+              p_club_id: string
+              p_user_id: string
+              p_activity_type: string
+              p_activity_data?: Json
+            }
         Returns: undefined
       }
       log_comprehensive_activity: {
