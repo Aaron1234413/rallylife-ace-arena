@@ -15,7 +15,8 @@ import {
   Settings,
   UserPlus,
   MapPin,
-  Activity
+  Activity,
+  GraduationCap
 } from 'lucide-react';
 import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
@@ -26,6 +27,9 @@ import { MembersList } from '@/components/club/MembersList';
 import { ClubSettings } from '@/components/club/ClubSettings';
 import { ClubCourtBooking } from '@/components/club/courts/ClubCourtBooking';
 import { MyClubBookings } from '@/components/club/courts/MyClubBookings';
+import { ClubCoaches } from '@/components/club/ClubCoaches';
+import { ClubCoachBooking } from '@/components/club/ClubCoachBooking';
+import { CoachClubServices } from '@/components/coach/CoachClubServices';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -48,6 +52,9 @@ export default function Club() {
   const userMembership = clubMembers.find(m => m.user_id === user?.id);
   const canManageMembers = userMembership?.permissions?.can_manage_members || false;
   const canEditClub = userMembership?.permissions?.can_edit_club || false;
+  
+  // Mock check if user is a coach (would come from profiles table in real implementation)
+  const isCoach = user?.email?.includes('coach') || false;
 
   const handleRefresh = async () => {
     if (!club?.id) return;
@@ -177,8 +184,11 @@ export default function Club() {
           <TabsList className="bg-white border">
             <TabsTrigger value="overview">Overview</TabsTrigger>
             <TabsTrigger value="members">Members</TabsTrigger>
+            <TabsTrigger value="coaches">Coaches</TabsTrigger>
+            <TabsTrigger value="coaching">Book Coaching</TabsTrigger>
             <TabsTrigger value="courts">Courts</TabsTrigger>
             <TabsTrigger value="my-bookings">My Bookings</TabsTrigger>
+            {isCoach && <TabsTrigger value="my-services">My Services</TabsTrigger>}
             {canEditClub && <TabsTrigger value="settings">Settings</TabsTrigger>}
           </TabsList>
 
@@ -193,6 +203,14 @@ export default function Club() {
               canManageMembers={canManageMembers}
               onRefresh={handleRefresh}
             />
+          </TabsContent>
+
+          <TabsContent value="coaches">
+            <ClubCoaches club={club} canManage={canManageMembers} />
+          </TabsContent>
+
+          <TabsContent value="coaching">
+            <ClubCoachBooking club={club} canBook={isMember} />
           </TabsContent>
 
           <TabsContent value="courts">
@@ -211,6 +229,12 @@ export default function Club() {
               </div>
             )}
           </TabsContent>
+
+          {isCoach && (
+            <TabsContent value="my-services">
+              <CoachClubServices club={club} canManage={isCoach} />
+            </TabsContent>
+          )}
 
           {canEditClub && (
             <TabsContent value="settings">
