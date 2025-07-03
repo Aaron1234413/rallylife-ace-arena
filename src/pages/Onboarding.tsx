@@ -56,7 +56,15 @@ export default function Onboarding() {
     try {
       const { error } = await supabase
         .from('profiles')
-        .update({ onboarding_completed: true })
+        .update({ 
+          onboarding_completed: true,
+          preferences: {
+            app_tour_completed: false, // Will trigger app tour
+            completed_tutorials: [],
+            dismissed_tips: [],
+            last_active_date: new Date().toISOString()
+          }
+        })
         .eq('id', user?.id);
 
       if (error) {
@@ -65,7 +73,7 @@ export default function Onboarding() {
         return;
       }
 
-      toast.success('Welcome to Rako!');
+      toast.success('Profile setup complete! Let\'s take a quick tour.');
       navigate('/');
     } catch (error) {
       console.error('Error:', error);
