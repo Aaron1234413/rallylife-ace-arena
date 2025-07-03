@@ -163,6 +163,29 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
   const currentTourStep = tourSteps[currentStep];
   const progress = ((currentStep + 1) / tourSteps.length) * 100;
 
+  // Keyboard navigation support
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        onSkip();
+      } else if (event.key === 'ArrowLeft' && currentStep > 0) {
+        handlePreviousStep();
+      } else if (event.key === 'ArrowRight' && currentStep < tourSteps.length - 1) {
+        handleNextStep();
+      } else if (event.key === 'Enter' || event.key === ' ') {
+        event.preventDefault();
+        if (currentTourStep.route) {
+          handleExploreFeature();
+        } else {
+          handleNextStep();
+        }
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [currentStep, tourSteps.length]);
+
   const handleNextStep = () => {
     if (currentStep < tourSteps.length - 1) {
       setCompletedSteps(prev => [...prev, currentTourStep.id]);
@@ -214,18 +237,21 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
   };
 
   return (
-    <div className="min-h-screen bg-tennis-green-bg p-4 flex items-center justify-center">
+    <div className="min-h-screen bg-tennis-green-bg p-4 flex items-center justify-center" role="dialog" aria-labelledby="tour-title" aria-modal="true">
       <div className="w-full max-w-4xl">
         {/* Header */}
         <div className="text-center mb-6">
           <div className="inline-flex items-center justify-center w-16 h-16 bg-tennis-green-primary rounded-full mb-4">
             <Target className="h-8 w-8 text-white" />
           </div>
-          <h1 className="text-3xl font-orbitron font-bold text-tennis-green-dark mb-2">
+          <h1 id="tour-title" className="text-3xl font-orbitron font-bold text-tennis-green-dark mb-2">
             Welcome to RAKO!
           </h1>
           <p className="text-tennis-green-medium">
             Let's take a quick tour of your new tennis gaming platform
+          </p>
+          <p className="text-xs text-tennis-green-medium/70 mt-1">
+            💡 Use arrow keys to navigate, Enter/Space to proceed, or Esc to skip
           </p>
           
           {/* Progress */}

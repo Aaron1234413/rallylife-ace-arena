@@ -52,6 +52,20 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
     loadUserProgress();
   }, []);
 
+  // Keyboard event handler for accessibility
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        if (showQuickHelp) setShowQuickHelp(false);
+        if (showTour) handleTourSkip();
+        if (showTutorials) setShowTutorials(false);
+      }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [showQuickHelp, showTour, showTutorials]);
+
   const loadUserProgress = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser();
@@ -196,12 +210,18 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
             onClick={() => setShowQuickHelp(!showQuickHelp)}
             className="w-12 h-12 rounded-full bg-tennis-green-primary hover:bg-tennis-green-dark shadow-lg"
             size="sm"
+            aria-label="Open help menu"
+            aria-expanded={showQuickHelp}
           >
             <HelpCircle className="h-5 w-5" />
           </Button>
 
           {showQuickHelp && (
-            <div className="absolute bottom-16 left-0 bg-white rounded-lg shadow-xl border border-tennis-green-light p-4 w-64">
+            <div 
+              className="absolute bottom-16 left-0 bg-white rounded-lg shadow-xl border border-tennis-green-light p-4 w-64 max-w-[calc(100vw-3rem)]"
+              role="menu"
+              aria-label="Help options"
+            >
               <div className="flex items-center justify-between mb-3">
                 <h3 className="font-semibold text-tennis-green-dark flex items-center gap-2">
                   <Gamepad2 className="h-4 w-4" />
@@ -212,6 +232,7 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
                   size="sm"
                   onClick={() => setShowQuickHelp(false)}
                   className="h-6 w-6 p-0"
+                  aria-label="Close help menu"
                 >
                   <X className="h-4 w-4" />
                 </Button>
@@ -258,13 +279,13 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
       {/* Welcome Banner for New Users */}
       {!userProgress.hasCompletedTour && !showTour && (
         <div className="fixed top-4 left-1/2 transform -translate-x-1/2 z-50 max-w-md w-full mx-4 pointer-events-auto">
-          <div className="bg-white border-2 border-tennis-yellow rounded-xl shadow-xl p-4">
+          <div className="bg-white border-2 border-tennis-yellow rounded-xl shadow-xl p-4 animate-fade-in">
             <div className="flex items-center justify-between mb-2">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 bg-tennis-yellow/20 rounded-full flex items-center justify-center">
                   <Target className="h-4 w-4 text-tennis-yellow" />
                 </div>
-                <h3 className="font-orbitron font-bold text-tennis-green-dark">
+                <h3 className="font-orbitron font-bold text-tennis-green-dark text-sm sm:text-base">
                   Welcome to RAKO!
                 </h3>
               </div>
