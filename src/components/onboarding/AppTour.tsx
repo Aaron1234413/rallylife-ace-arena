@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -7,7 +8,6 @@ import {
   Trophy, 
   Zap, 
   Users, 
-  MapPin, 
   Calendar, 
   Search, 
   MessageSquare, 
@@ -64,20 +64,6 @@ const PLAYER_TOUR_STEPS: TourStep[] = [
     ],
     actionText: 'Start Learning',
     route: '/academy'
-  },
-  {
-    id: 'maps',
-    title: 'Find Courts & Players',
-    description: 'Discover tennis courts near you and connect with other players.',
-    icon: MapPin,
-    features: [
-      'Interactive court finder',
-      'Book court sessions',
-      'Find practice partners',
-      'Location-based matching'
-    ],
-    actionText: 'Explore Maps',
-    route: '/maps'
   },
   {
     id: 'clubs',
@@ -168,6 +154,7 @@ const COACH_TOUR_STEPS: TourStep[] = [
 ];
 
 export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }) => {
+  const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
   const [completedSteps, setCompletedSteps] = useState<string[]>([]);
   const [isCompleting, setIsCompleting] = useState(false);
@@ -220,8 +207,8 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
 
   const handleExploreFeature = () => {
     if (currentTourStep.route) {
-      // In a real app, you'd navigate to the route
-      window.open(currentTourStep.route, '_blank');
+      // Navigate to the actual route within the app
+      navigate(currentTourStep.route);
     }
     handleNextStep();
   };
