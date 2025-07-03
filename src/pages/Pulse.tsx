@@ -1,25 +1,36 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { ActivityTimeline } from '@/components/dashboard/activity/ActivityTimeline';
 import { AchievementDisplay } from '@/components/achievements/AchievementDisplay';
-import { LeaderboardWidget } from '@/components/leaderboards/LeaderboardWidget';
+import { PlayerLeaderboard, CoachLeaderboard } from '@/components/leaderboards';
 import { useActivityLogs } from '@/hooks/useActivityLogs';
 import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
+import { useAuth } from '@/hooks/useAuth';
 import { 
   Bolt, 
   Clock, 
   TrendingUp, 
   Sparkles, 
-  AlertTriangle 
+  AlertTriangle,
+  Users,
+  Award,
+  Activity,
+  Trophy,
+  RefreshCw
 } from 'lucide-react';
 
 const Pulse = () => {
+  const { user } = useAuth();
   const [timeFilter, setTimeFilter] = useState('week');
   const [activityFilter, setActivityFilter] = useState('all');
+  const [activeTab, setActiveTab] = useState('activity');
+  const [lastRefresh, setLastRefresh] = useState(Date.now());
   
   // Fetch activity data
   const { activities, stats, loading: activityLoading } = useActivityLogs();
@@ -57,6 +68,11 @@ const Pulse = () => {
 
   const activityIntelligence = getActivityIntelligence();
 
+  const handleRefreshAll = () => {
+    setLastRefresh(Date.now());
+    // This will trigger re-renders of components that depend on real-time data
+  };
+
   return (
     <div className="min-h-screen bg-tennis-green-bg">
       <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
@@ -68,10 +84,21 @@ const Pulse = () => {
                 <Bolt className="h-4 w-4 text-white" />
               </div>
               <span className="orbitron-heading text-heading-lg text-tennis-green-dark">Pulse</span>
+              <Badge variant="outline" className="ml-2 text-xs">Live</Badge>
             </CardTitle>
-            <p className="poppins-body text-body text-tennis-green-medium">
-              Your activity timeline, achievements, and leaderboard standings
-            </p>
+            <div className="flex items-center justify-between">
+              <p className="poppins-body text-body text-tennis-green-medium">
+                Your real-time activity, achievements, and community standings
+              </p>
+              <Button
+                onClick={handleRefreshAll}
+                variant="ghost"
+                size="sm"
+                className="text-tennis-green-medium hover:text-tennis-green-dark"
+              >
+                <RefreshCw className="h-4 w-4" />
+              </Button>
+            </div>
           </CardHeader>
           <CardContent>
             {/* Filters */}
@@ -156,64 +183,110 @@ const Pulse = () => {
           </CardContent>
         </Card>
 
-        {/* Main Content Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
-          {/* Left Column - Activity Timeline (60% on desktop) */}
-          <div className="lg:col-span-3">
-            <ActivityTimeline
-              activities={activities}
-              timeFilter={timeFilter}
-              activityFilter={activityFilter}
-              loading={activityLoading}
-            />
-          </div>
+        {/* Main Content - Enhanced Tabbed Interface */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
+            <CardContent className="p-4">
+              <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex lg:h-auto bg-tennis-green-bg/20">
+                <TabsTrigger value="activity" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
+                  <Activity className="h-4 w-4" />
+                  <span className="hidden sm:inline">Activity</span>
+                </TabsTrigger>
+                <TabsTrigger value="players" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
+                  <Users className="h-4 w-4" />
+                  <span className="hidden sm:inline">Players</span>
+                </TabsTrigger>
+                <TabsTrigger value="coaches" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
+                  <Trophy className="h-4 w-4" />
+                  <span className="hidden sm:inline">Coaches</span>
+                </TabsTrigger>
+                <TabsTrigger value="achievements" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
+                  <Award className="h-4 w-4" />
+                  <span className="hidden sm:inline">Achievements</span>
+                </TabsTrigger>
+              </TabsList>
+            </CardContent>
+          </Card>
 
-          {/* Right Column - Achievements and Leaderboard (40% on desktop) */}
-          <div className="lg:col-span-2 space-y-6">
-            {/* Achievements Section - Enhanced typography */}
+          {/* Activity Tab */}
+          <TabsContent value="activity" className="space-y-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+              <div className="lg:col-span-2">
+                <ActivityTimeline
+                  activities={activities}
+                  timeFilter={timeFilter}
+                  activityFilter={activityFilter}
+                  loading={activityLoading}
+                />
+              </div>
+              <div className="space-y-6">
+                <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
+                  <CardHeader>
+                    <CardTitle className="orbitron-heading text-heading-md text-tennis-green-dark">
+                      Recent Achievements
+                    </CardTitle>
+                  </CardHeader>
+                  <CardContent>
+                    <AchievementDisplay
+                      showRecent={true}
+                      maxItems={3}
+                    />
+                    {playerAchievements.length > 3 && (
+                      <div className="mt-4 text-center">
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => setActiveTab('achievements')}
+                          className="poppins-body text-body-sm text-tennis-green-accent hover:text-tennis-green-primary font-medium"
+                        >
+                          View All Achievements →
+                        </Button>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+              </div>
+            </div>
+          </TabsContent>
+
+          {/* Player Leaderboard Tab */}
+          <TabsContent value="players" className="space-y-6">
+            <PlayerLeaderboard 
+              maxEntries={50}
+              showFilters={true}
+              compact={false}
+            />
+          </TabsContent>
+
+          {/* Coach Leaderboard Tab */}
+          <TabsContent value="coaches" className="space-y-6">
+            <CoachLeaderboard 
+              defaultType="overall"
+              defaultPeriod="all_time"
+              maxEntries={50}
+            />
+          </TabsContent>
+
+          {/* Achievements Tab */}
+          <TabsContent value="achievements" className="space-y-6">
             <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
               <CardHeader>
-                <CardTitle className="orbitron-heading text-heading-md text-tennis-green-dark">
-                  Recent Achievements
+                <CardTitle className="orbitron-heading text-heading-lg text-tennis-green-dark">
+                  Your Achievements
                 </CardTitle>
+                <p className="poppins-body text-body text-tennis-green-medium">
+                  Track your progress and unlock new milestones
+                </p>
               </CardHeader>
               <CardContent>
                 <AchievementDisplay
-                  showRecent={true}
-                  maxItems={3}
-                />
-                {playerAchievements.length > 3 && (
-                  <div className="mt-4 text-center">
-                    <a 
-                      href="/achievements" 
-                      className="poppins-body text-body-sm text-tennis-green-accent hover:text-tennis-green-primary font-medium transition-colors"
-                    >
-                      View All Achievements →
-                    </a>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-
-            {/* Leaderboard Section - Enhanced typography */}
-            <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
-              <CardHeader>
-                <CardTitle className="orbitron-heading text-heading-md text-tennis-green-dark">
-                  Top Players
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <LeaderboardWidget
-                  title="XP Leaders"
-                  leaderboardType="overall"
-                  periodType="all_time"
-                  maxEntries={5}
-                  showViewAll={false}
+                  showRecent={false}
+                  maxItems={20}
                 />
               </CardContent>
             </Card>
-          </div>
-        </div>
+          </TabsContent>
+        </Tabs>
       </div>
     </div>
   );
