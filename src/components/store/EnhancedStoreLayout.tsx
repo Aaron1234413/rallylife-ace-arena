@@ -36,56 +36,42 @@ export function EnhancedStoreLayout({
   };
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-6">
       {/* Store Header */}
-      <div className="text-center space-y-6">
-        <div className="inline-flex items-center justify-center w-20 h-20 bg-white rounded-full shadow-lg">
-          <Store className="h-10 w-10 text-tennis-green-primary" />
+      <div className="text-center space-y-4">
+        <div className="inline-flex items-center justify-center w-16 h-16 bg-white rounded-full shadow-lg border border-gray-200">
+          <Store className="h-8 w-8 text-tennis-green-primary" />
         </div>
-        <div className="space-y-3">
-          <h1 className="text-4xl font-bold text-white mb-3">Rako Store</h1>
-          <p className="text-tennis-green-bg/90 text-lg max-w-2xl mx-auto">
+        <div className="space-y-2">
+          <h1 className="text-2xl font-bold text-gray-900">Rako Store</h1>
+          <p className="text-gray-600 text-base max-w-2xl mx-auto">
             Discover premium items, boosters, and upgrades
           </p>
         </div>
       </div>
 
-      {/* Token Balance Display - Fixed Sizing */}
+      {/* Token Balance Display - Simplified */}
       {tokenData && (
-        <Card className="bg-white/98 backdrop-blur-sm border-tennis-green-light/30 shadow-xl ring-1 ring-tennis-green-light/10">
-          <CardHeader className="pb-4 bg-gradient-to-r from-tennis-green-primary/3 to-tennis-green-light/3">
-            <CardTitle className="flex items-center gap-2 text-tennis-green-dark text-lg font-semibold">
+        <Card className="bg-white border border-gray-200 shadow-sm">
+          <CardHeader className="pb-3">
+            <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
               <div className="p-1.5 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-lg">
-                <Coins className="h-5 w-5 text-white" />
+                <Coins className="h-4 w-4 text-white" />
               </div>
               Your Balance
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-6 pb-6">
-            <div className="flex items-center justify-center gap-8">
+          <CardContent className="px-6 pb-4">
+            <div className="flex items-center justify-center">
               <div className="text-center space-y-1">
                 <div className="flex items-center justify-center gap-2 mb-1">
                   <div className="p-1.5 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg">
                     <Coins className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-sm font-medium text-yellow-700">Regular Tokens</span>
+                  <span className="text-sm font-medium text-gray-700">Regular Tokens</span>
                 </div>
-                <p className="text-2xl font-bold text-yellow-800">
+                <p className="text-xl font-bold text-gray-900">
                   {tokenData.regular_tokens.toLocaleString()}
-                </p>
-              </div>
-              
-              <div className="h-12 w-px bg-gradient-to-b from-transparent via-tennis-green-light to-transparent"></div>
-              
-              <div className="text-center space-y-1">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <div className="p-1.5 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg">
-                    <Gem className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-sm font-medium text-purple-700">Rally Points</span>
-                </div>
-                <p className="text-2xl font-bold text-purple-800">
-                  {tokenData.premium_tokens.toLocaleString()}
                 </p>
               </div>
             </div>
@@ -94,7 +80,7 @@ export function EnhancedStoreLayout({
       )}
 
       {/* Search and Filter - Simplified */}
-      <Card className="bg-white/98 backdrop-blur-sm border-gray-200/50 shadow-sm">
+      <Card className="bg-white border border-gray-200 shadow-sm">
         <CardContent className="p-4">
           <StoreSearchFilter
             onSearch={handleSearch}
@@ -103,70 +89,36 @@ export function EnhancedStoreLayout({
         </CardContent>
       </Card>
 
-      {/* Store Categories - Fixed Sizing */}
-      <Card className="bg-white/98 backdrop-blur-sm border-tennis-green-light/20 shadow-lg">
-        <CardHeader className="pb-3 border-b border-tennis-green-light/10">
-          <CardTitle className="text-lg font-semibold text-tennis-green-dark flex items-center gap-2">
+      {/* Store Categories - Fixed Layout */}
+      <Card className="bg-white border border-gray-200 shadow-sm">
+        <CardHeader className="pb-3 border-b border-gray-200">
+          <CardTitle className="text-base font-semibold text-gray-900 flex items-center gap-2">
             <div className="p-1.5 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-lg">
               <Store className="h-4 w-4 text-white" />
             </div>
             Store Catalog
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-6">
-          <StoreCategoryTabs>
-            {/* Current Token Store Content - Optimized Grid Layout */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-tennis-green-light/20">
-                  <div className="w-2 h-2 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-full"></div>
-                  <h3 className="text-base font-semibold text-tennis-green-dark">
-                    Items & Consumables
-                  </h3>
-                  <Badge variant="secondary" className="text-xs px-2 py-1 bg-tennis-green-bg text-tennis-green-dark">
-                    Active
-                  </Badge>
-                </div>
-                {tokenData && (
-                  <TokenStore
-                    onSpendTokens={onSpendTokens}
-                    regularTokens={tokenData.regular_tokens}
-                    premiumTokens={tokenData.premium_tokens}
-                    className="border-0 shadow-none bg-transparent p-0"
-                  />
-                )}
-              </div>
-              
-              <div className="space-y-4">
-                <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-                  <div className="w-2 h-2 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full"></div>
-                  <h3 className="text-base font-semibold text-gray-600">
-                    Coming Soon
-                  </h3>
-                </div>
-                <div className="space-y-4 text-center py-8 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-lg border border-gray-200/50">
-                  <div className="text-4xl opacity-30">🚀</div>
-                  <div className="space-y-2">
-                    <h4 className="text-base font-semibold text-gray-700">Exciting Features Ahead!</h4>
-                    <p className="text-gray-600 text-sm max-w-md mx-auto">
-                      More amazing items and features are coming in the next phases!
-                    </p>
-                  </div>
-                  <div className="flex flex-wrap justify-center gap-2 mt-4">
-                    <span className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-xs font-medium">
-                      Performance Boosters
-                    </span>
-                    <span className="px-3 py-1 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 rounded-full text-xs font-medium">
-                      Cosmetic Items
-                    </span>
-                    <span className="px-3 py-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 rounded-full text-xs font-medium">
-                      Training Tools
-                    </span>
-                  </div>
-                </div>
-              </div>
+        <CardContent className="p-4">
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+              <div className="w-2 h-2 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-full"></div>
+              <h3 className="text-sm font-semibold text-gray-900">
+                Items & Consumables
+              </h3>
+              <Badge variant="secondary" className="text-xs px-2 py-1 bg-green-100 text-green-800">
+                Available
+              </Badge>
             </div>
-          </StoreCategoryTabs>
+            {tokenData && (
+              <TokenStore
+                onSpendTokens={onSpendTokens}
+                regularTokens={tokenData.regular_tokens}
+                premiumTokens={tokenData.premium_tokens}
+                className="border-0 shadow-none bg-transparent p-0"
+              />
+            )}
+          </div>
         </CardContent>
       </Card>
     </div>
