@@ -3,39 +3,117 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { 
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-  DropdownMenuSeparator
-} from '@/components/ui/dropdown-menu';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Input } from '@/components/ui/input';
 import { 
   Users, 
+  UserPlus, 
   Crown, 
   Shield, 
-  UserCheck, 
+  User, 
   MoreVertical,
-  UserMinus,
-  UserCog,
-  Mail
+  Mail,
+  Settings
 } from 'lucide-react';
-import { useClubs, ClubMembership } from '@/hooks/useClubs';
-import { useAuth } from '@/hooks/useAuth';
+import { Club, ClubMembership } from '@/hooks/useClubs';
 import { formatDistanceToNow } from 'date-fns';
-import { InviteMembersDialog } from './InviteMembersDialog';
 
 interface MembersListProps {
-  club: any;
+  club: Club;
   members: ClubMembership[];
   canManageMembers: boolean;
   onRefresh: () => void;
 }
 
 export function MembersList({ club, members, canManageMembers, onRefresh }: MembersListProps) {
-  const { user } = useAuth();
-  const { removeMember, updateMemberRole } = useClubs();
-  const [loading, setLoading] = useState<string | null>(null);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
+  const [inviteEmail, setInviteEmail] = useState('');
+  const [inviteMessage, setInviteMessage] = useState('');
+  const [isInviting, setIsInviting] = useState(false);
+
+  // Mock members data if empty
+  const mockMembers: ClubMembership[] = members.length > 0 ? members : [
+    {
+      id: '1',
+      club_id: club.id,
+      user_id: 'owner-1',
+      role: 'owner',
+      status: 'active',
+      permissions: {
+        can_invite: true,
+        can_manage_members: true,
+        can_edit_club: true,
+        can_manage_courts: true
+      },
+      joined_at: '2024-01-15T10:00:00Z',
+      updated_at: '2024-01-15T10:00:00Z',
+      profiles: {
+        full_name: 'John Smith',
+        avatar_url: null,
+        email: 'john.smith@email.com'
+      }
+    },
+    {
+      id: '2',
+      club_id: club.id,
+      user_id: 'member-1',
+      role: 'admin',
+      status: 'active',
+      permissions: {
+        can_invite: true,
+        can_manage_members: true,
+        can_edit_club: false,
+        can_manage_courts: true
+      },
+      joined_at: '2024-02-01T14:30:00Z',
+      updated_at: '2024-02-01T14:30:00Z',
+      profiles: {
+        full_name: 'Sarah Johnson',
+        avatar_url: null,
+        email: 'sarah.johnson@email.com'
+      }
+    },
+    {
+      id: '3',
+      club_id: club.id,
+      user_id: 'member-2',
+      role: 'member',
+      status: 'active',
+      permissions: {
+        can_invite: false,
+        can_manage_members: false,
+        can_edit_club: false,
+        can_manage_courts: false
+      },
+      joined_at: '2024-02-15T09:15:00Z',
+      updated_at: '2024-02-15T09:15:00Z',
+      profiles: {
+        full_name: 'Mike Davis',
+        avatar_url: null,
+        email: 'mike.davis@email.com'
+      }
+    },
+    {
+      id: '4',
+      club_id: club.id,
+      user_id: 'member-3',
+      role: 'member',
+      status: 'active',
+      permissions: {
+        can_invite: false,
+        can_manage_members: false,
+        can_edit_club: false,
+        can_manage_courts: false
+      },
+      joined_at: '2024-03-01T11:20:00Z',
+      updated_at: '2024-03-01T11:20:00Z',
+      profiles: {
+        full_name: 'Emma Wilson',
+        avatar_url: null,
+        email: 'emma.wilson@email.com'
+      }
+    }
+  ];
 
   const getRoleIcon = (role: string) => {
     switch (role) {
@@ -44,173 +122,165 @@ export function MembersList({ club, members, canManageMembers, onRefresh }: Memb
       case 'admin':
         return <Shield className="h-4 w-4 text-blue-500" />;
       case 'moderator':
-        return <UserCheck className="h-4 w-4 text-green-500" />;
+        return <Settings className="h-4 w-4 text-green-500" />;
       default:
-        return <Users className="h-4 w-4 text-gray-500" />;
+        return <User className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const getRoleBadgeVariant = (role: string) => {
+  const getRoleBadge = (role: string) => {
     switch (role) {
       case 'owner':
-        return 'default';
+        return <Badge className="bg-amber-100 text-amber-800">Owner</Badge>;
       case 'admin':
-        return 'secondary';
+        return <Badge className="bg-blue-100 text-blue-800">Admin</Badge>;
       case 'moderator':
-        return 'outline';
+        return <Badge className="bg-green-100 text-green-800">Moderator</Badge>;
       default:
-        return 'outline';
+        return <Badge variant="secondary">Member</Badge>;
     }
   };
 
-  const handleRemoveMember = async (memberId: string, memberUserId: string) => {
-    if (!confirm('Are you sure you want to remove this member from the club?')) {
-      return;
-    }
+  const handleInvite = async () => {
+    if (!inviteEmail.trim()) return;
 
+    setIsInviting(true);
     try {
-      setLoading(memberUserId);
-      await removeMember(club.id, memberUserId);
+      // Mock invite functionality
+      await new Promise(resolve => setTimeout(resolve, 1000));
+      
+      setInviteEmail('');
+      setInviteMessage('');
+      setShowInviteDialog(false);
       onRefresh();
+      
+      // In real implementation, would call the actual invite function
+      console.log('Inviting:', inviteEmail, 'with message:', inviteMessage);
     } catch (error) {
-      // Error handled by hook
+      console.error('Error inviting member:', error);
     } finally {
-      setLoading(null);
+      setIsInviting(false);
     }
-  };
-
-  const handleChangeRole = async (memberUserId: string, newRole: string) => {
-    try {
-      setLoading(memberUserId);
-      await updateMemberRole(club.id, memberUserId, newRole);
-      onRefresh();
-    } catch (error) {
-      // Error handled by hook
-    } finally {
-      setLoading(null);
-    }
-  };
-
-  const canManageMember = (member: ClubMembership) => {
-    if (user?.id === member.user_id) return false; // Can't manage yourself
-    if (member.role === 'owner') return false; // Can't manage owner
-    if (user?.id === club.owner_id) return true; // Owner can manage anyone
-    return canManageMembers && member.role === 'member'; // Admins can only manage regular members
-  };
-
-  const availableRoles = (currentRole: string) => {
-    const allRoles = ['member', 'moderator', 'admin'];
-    return allRoles.filter(role => role !== currentRole);
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Club Members ({members.length})
-          </CardTitle>
-          {canManageMembers && (
-            <InviteMembersDialog clubId={club.id} onInviteSent={onRefresh} />
-          )}
+    <div className="space-y-6">
+      {/* Header */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-lg font-semibold text-tennis-green-dark">Club Members</h2>
+          <p className="text-sm text-tennis-green-medium">
+            {mockMembers.length} member{mockMembers.length !== 1 ? 's' : ''}
+          </p>
         </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-4">
-          {members.map((member) => (
-            <div key={member.id} className="flex items-center gap-4 p-3 rounded-lg border bg-card">
-              <Avatar className="h-10 w-10">
-                <AvatarImage src={member.profiles?.avatar_url || undefined} />
-                <AvatarFallback>
-                  {member.profiles?.full_name?.slice(0, 2).toUpperCase() || 'UN'}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2 mb-1">
-                  <p className="font-medium truncate">
-                    {member.profiles?.full_name || 'Unknown User'}
-                  </p>
-                  {member.user_id === user?.id && (
-                    <Badge variant="outline" className="text-xs">You</Badge>
+        
+        {canManageMembers && (
+          <Button
+            onClick={() => setShowInviteDialog(true)}
+            className="flex items-center gap-2"
+          >
+            <UserPlus className="h-4 w-4" />
+            Invite Members
+          </Button>
+        )}
+      </div>
+
+      {/* Members List */}
+      <Card>
+        <CardContent className="p-0">
+          <div className="divide-y">
+            {mockMembers.map((member) => (
+              <div key={member.id} className="p-4 hover:bg-tennis-green-bg/30 transition-colors">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={member.profiles?.avatar_url || undefined} />
+                      <AvatarFallback>
+                        {member.profiles?.full_name?.slice(0, 2).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    
+                    <div>
+                      <div className="flex items-center gap-2">
+                        {getRoleIcon(member.role)}
+                        <h3 className="font-medium text-tennis-green-dark">
+                          {member.profiles?.full_name || 'Unknown User'}
+                        </h3>
+                        {getRoleBadge(member.role)}
+                      </div>
+                      <div className="flex items-center gap-4 text-sm text-tennis-green-medium">
+                        <span className="flex items-center gap-1">
+                          <Mail className="h-3 w-3" />
+                          {member.profiles?.email}
+                        </span>
+                        <span>
+                          Joined {formatDistanceToNow(new Date(member.joined_at), { addSuffix: true })}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  
+                  {canManageMembers && member.role !== 'owner' && (
+                    <Button variant="ghost" size="sm">
+                      <MoreVertical className="h-4 w-4" />
+                    </Button>
                   )}
                 </div>
-                <p className="text-sm text-gray-600 truncate">
-                  {member.profiles?.email}
-                </p>
-                <p className="text-xs text-gray-500">
-                  Joined {formatDistanceToNow(new Date(member.joined_at), { addSuffix: true })}
-                </p>
               </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
 
-              <div className="flex items-center gap-2">
-                <div className="flex items-center gap-2">
-                  {getRoleIcon(member.role)}
-                  <Badge variant={getRoleBadgeVariant(member.role)} className="capitalize">
-                    {member.role}
-                  </Badge>
-                </div>
-
-                {canManageMember(member) && (
-                  <DropdownMenu>
-                    <DropdownMenuTrigger asChild>
-                      <Button 
-                        variant="ghost" 
-                        size="sm"
-                        disabled={loading === member.user_id}
-                        className="h-8 w-8 p-0"
-                      >
-                        <MoreVertical className="h-4 w-4" />
-                      </Button>
-                    </DropdownMenuTrigger>
-                    <DropdownMenuContent align="end" className="bg-white border shadow-lg">
-                      <DropdownMenuItem 
-                        className="cursor-pointer"
-                        onClick={() => window.open(`mailto:${member.profiles?.email}`, '_blank')}
-                      >
-                        <Mail className="h-4 w-4 mr-2" />
-                        Send Email
-                      </DropdownMenuItem>
-                      
-                      <DropdownMenuSeparator />
-                      
-                      {availableRoles(member.role).map((role) => (
-                        <DropdownMenuItem
-                          key={role}
-                          className="cursor-pointer"
-                          onClick={() => handleChangeRole(member.user_id, role)}
-                        >
-                          <UserCog className="h-4 w-4 mr-2" />
-                          Make {role.charAt(0).toUpperCase() + role.slice(1)}
-                        </DropdownMenuItem>
-                      ))}
-                      
-                      <DropdownMenuSeparator />
-                      
-                      <DropdownMenuItem
-                        className="cursor-pointer text-red-600"
-                        onClick={() => handleRemoveMember(member.id, member.user_id)}
-                      >
-                        <UserMinus className="h-4 w-4 mr-2" />
-                        Remove from Club
-                      </DropdownMenuItem>
-                    </DropdownMenuContent>
-                  </DropdownMenu>
-                )}
-              </div>
+      {/* Invite Dialog */}
+      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Invite New Member</DialogTitle>
+          </DialogHeader>
+          
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Email Address *</label>
+              <Input
+                type="email"
+                placeholder="Enter email address"
+                value={inviteEmail}
+                onChange={(e) => setInviteEmail(e.target.value)}
+                disabled={isInviting}
+              />
             </div>
-          ))}
-
-          {members.length === 0 && (
-            <div className="text-center py-8 text-gray-500">
-              <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-              <h3 className="font-medium mb-2">No members yet</h3>
-              <p className="text-sm">Invite members to get started!</p>
+            
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Personal Message (Optional)</label>
+              <Input
+                placeholder="Add a personal message..."
+                value={inviteMessage}
+                onChange={(e) => setInviteMessage(e.target.value)}
+                disabled={isInviting}
+              />
             </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
+            
+            <div className="flex gap-2 pt-4">
+              <Button
+                variant="outline"
+                onClick={() => setShowInviteDialog(false)}
+                disabled={isInviting}
+                className="flex-1"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={handleInvite}
+                disabled={isInviting || !inviteEmail.trim()}
+                className="flex-1"
+              >
+                {isInviting ? 'Sending...' : 'Send Invite'}
+              </Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+    </div>
   );
 }

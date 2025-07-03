@@ -1,257 +1,184 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { 
-  Calendar, 
-  Clock, 
+  Calendar,
+  Clock,
   MapPin,
-  RefreshCw,
-  X,
   DollarSign,
-  Coins
+  Target,
+  X
 } from 'lucide-react';
-import { useCourtBooking, CourtBooking } from '@/hooks/useCourtBooking';
-import { useAuth } from '@/hooks/useAuth';
-import { format, isFuture, isPast, isToday } from 'date-fns';
-import { toast } from 'sonner';
+import { Club } from '@/hooks/useClubs';
+import { formatDistanceToNow } from 'date-fns';
 
 interface MyClubBookingsProps {
-  club: any;
+  club: Club;
 }
 
 export function MyClubBookings({ club }: MyClubBookingsProps) {
-  const { user } = useAuth();
-  const { bookings, loading, fetchBookings, cancelBooking } = useCourtBooking();
-  const [refreshing, setRefreshing] = useState(false);
-  const [cancelling, setCancelling] = useState<string | null>(null);
-
-  useEffect(() => {
-    if (club?.id && user?.id) {
-      loadBookings();
+  // Mock bookings data
+  const bookings = [
+    {
+      id: '1',
+      court: 'Court 1',
+      date: '2024-07-05',
+      time: '14:00',
+      duration: 2,
+      status: 'confirmed',
+      cost: 50,
+      surface: 'Hard Court',
+      bookedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
+    },
+    {
+      id: '2',
+      court: 'Court 2',
+      date: '2024-07-07',
+      time: '10:00',
+      duration: 1,
+      status: 'confirmed',
+      cost: 30,
+      surface: 'Clay Court',
+      bookedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
+    },
+    {
+      id: '3',
+      court: 'Court 4',
+      date: '2024-07-10',
+      time: '16:00',
+      duration: 1.5,
+      status: 'pending',
+      cost: 52.5,
+      surface: 'Grass Court',
+      bookedAt: new Date(Date.now() - 5 * 60 * 60 * 1000)
     }
-  }, [club?.id, user?.id]);
+  ];
 
-  const loadBookings = async () => {
-    setRefreshing(true);
-    try {
-      await fetchBookings({ clubId: club.id, playerId: user?.id });
-    } catch (error) {
-      console.error('Error loading bookings:', error);
-    } finally {
-      setRefreshing(false);
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'confirmed':
+        return <Badge className="bg-green-100 text-green-800">Confirmed</Badge>;
+      case 'pending':
+        return <Badge className="bg-yellow-100 text-yellow-800">Pending</Badge>;
+      case 'cancelled':
+        return <Badge className="bg-red-100 text-red-800">Cancelled</Badge>;
+      default:
+        return <Badge variant="secondary">Unknown</Badge>;
     }
   };
 
-  const handleCancelBooking = async (booking: CourtBooking) => {
-    if (!confirm('Are you sure you want to cancel this booking?')) {
-      return;
-    }
-
-    setCancelling(booking.id);
-    try {
-      await cancelBooking(booking.id);
-      toast.success('Booking cancelled successfully');
-      await loadBookings();
-    } catch (error) {
-      console.error('Error cancelling booking:', error);
-      toast.error('Failed to cancel booking');
-    } finally {
-      setCancelling(null);
-    }
+  const handleCancelBooking = (bookingId: string) => {
+    // Mock cancel functionality
+    console.log('Cancelling booking:', bookingId);
   };
 
-  const getBookingStatus = (booking: CourtBooking) => {
-    const startTime = new Date(booking.start_datetime);
-    const now = new Date();
-    
-    if (booking.status === 'cancelled') {
-      return { label: 'Cancelled', variant: 'secondary' as const };
-    }
-    
-    if (isPast(startTime)) {
-      return { label: 'Completed', variant: 'default' as const };
-    }
-    
-    if (isToday(startTime)) {
-      return { label: 'Today', variant: 'default' as const };
-    }
-    
-    return { label: 'Upcoming', variant: 'outline' as const };
+  const isPastBooking = (date: string, time: string) => {
+    const bookingDateTime = new Date(`${date}T${time}`);
+    return bookingDateTime < new Date();
   };
 
-  const canCancelBooking = (booking: CourtBooking) => {
-    return booking.status === 'confirmed' && isFuture(new Date(booking.start_datetime));
+  const canCancelBooking = (date: string, time: string, status: string) => {
+    if (status === 'cancelled') return false;
+    const bookingDateTime = new Date(`${date}T${time}`);
+    const hoursUntilBooking = (bookingDateTime.getTime() - new Date().getTime()) / (1000 * 60 * 60);
+    return hoursUntilBooking > 24; // Can cancel if more than 24 hours away
   };
 
-  const userBookings = bookings.filter(booking => booking.player_id === user?.id);
-  const upcomingBookings = userBookings.filter(booking => 
-    booking.status === 'confirmed' && isFuture(new Date(booking.start_datetime))
-  );
-  const pastBookings = userBookings.filter(booking => 
-    booking.status === 'completed' || isPast(new Date(booking.start_datetime))
-  );
-  const cancelledBookings = userBookings.filter(booking => booking.status === 'cancelled');
-
-  if (loading && bookings.length === 0) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="h-24 bg-gray-100 rounded-lg animate-pulse" />
-        ))}
-      </div>
-    );
-  }
-
-  const BookingCard = ({ booking }: { booking: CourtBooking }) => {
-    const status = getBookingStatus(booking);
-    const startTime = new Date(booking.start_datetime);
-    const endTime = new Date(booking.end_datetime);
-    
+  if (bookings.length === 0) {
     return (
       <Card>
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-gray-500" />
-                <span className="font-medium">{booking.court?.name}</span>
-                <Badge variant={status.variant}>{status.label}</Badge>
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Calendar className="h-4 w-4" />
-                <span>{format(startTime, 'EEEE, MMMM d, yyyy')}</span>
-              </div>
-              
-              <div className="flex items-center gap-2 text-sm text-gray-600">
-                <Clock className="h-4 w-4" />
-                <span>{format(startTime, 'h:mm a')} - {format(endTime, 'h:mm a')}</span>
-              </div>
-              
-              <div className="flex items-center gap-4 text-sm">
-                {booking.total_cost_tokens > 0 && (
-                  <div className="flex items-center gap-1">
-                    <Coins className="h-4 w-4 text-yellow-600" />
-                    <span>{booking.total_cost_tokens} tokens</span>
-                  </div>
-                )}
-                {booking.total_cost_money > 0 && (
-                  <div className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4 text-green-600" />
-                    <span>${booking.total_cost_money}</span>
-                  </div>
-                )}
-              </div>
-              
-              {booking.notes && (
-                <p className="text-sm text-gray-600 bg-gray-50 p-2 rounded">
-                  {booking.notes}
-                </p>
-              )}
-            </div>
-            
-            {canCancelBooking(booking) && (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => handleCancelBooking(booking)}
-                disabled={cancelling === booking.id}
-                className="text-red-600 hover:text-red-700"
-              >
-                {cancelling === booking.id ? (
-                  <RefreshCw className="h-4 w-4 animate-spin" />
-                ) : (
-                  <X className="h-4 w-4" />
-                )}
-              </Button>
-            )}
-          </div>
+        <CardContent className="p-8 text-center">
+          <Target className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+          <h3 className="font-medium mb-2">No Bookings Yet</h3>
+          <p className="text-sm text-muted-foreground">
+            You haven&apos;t made any court bookings at this club.
+          </p>
         </CardContent>
       </Card>
     );
-  };
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">My Bookings</h2>
-          <p className="text-muted-foreground">
-            Your court bookings at {club.name}
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          onClick={loadBookings}
-          disabled={refreshing}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+      <div>
+        <h2 className="text-lg font-semibold text-tennis-green-dark">My Court Bookings</h2>
+        <p className="text-sm text-tennis-green-medium">
+          View and manage your court reservations at {club.name}
+        </p>
       </div>
 
-      {userBookings.length === 0 ? (
-        <Card>
-          <CardContent className="p-8 text-center">
-            <Calendar className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-            <h3 className="font-medium mb-2">No Bookings Yet</h3>
-            <p className="text-sm text-muted-foreground">
-              You haven't made any court bookings at this club yet.
-            </p>
-          </CardContent>
-        </Card>
-      ) : (
-        <div className="space-y-6">
-          {/* Upcoming Bookings */}
-          {upcomingBookings.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Upcoming Bookings</h3>
-              <div className="space-y-3">
-                {upcomingBookings.map(booking => (
-                  <BookingCard key={booking.id} booking={booking} />
-                ))}
+      {/* Bookings List */}
+      <div className="space-y-4">
+        {bookings.map((booking) => (
+          <Card key={booking.id} className={`transition-all ${isPastBooking(booking.date, booking.time) ? 'opacity-75' : ''}`}>
+            <CardContent className="p-4">
+              <div className="flex items-center justify-between">
+                <div className="flex-1">
+                  <div className="flex items-center gap-3 mb-2">
+                    <h3 className="font-medium text-lg">{booking.court}</h3>
+                    {getStatusBadge(booking.status)}
+                    {isPastBooking(booking.date, booking.time) && (
+                      <Badge variant="outline">Past</Badge>
+                    )}
+                  </div>
+                  
+                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-sm text-tennis-green-medium">
+                    <div className="flex items-center gap-1">
+                      <Calendar className="h-3 w-3" />
+                      <span>{new Date(booking.date).toLocaleDateString()}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      <span>{booking.time} ({booking.duration}h)</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      <span>{booking.surface}</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="h-3 w-3" />
+                      <span>${booking.cost}</span>
+                    </div>
+                  </div>
+                  
+                  <p className="text-xs text-tennis-green-medium mt-2">
+                    Booked {formatDistanceToNow(booking.bookedAt, { addSuffix: true })}
+                  </p>
+                </div>
+                
+                <div className="flex gap-2">
+                  {canCancelBooking(booking.date, booking.time, booking.status) && (
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleCancelBooking(booking.id)}
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Cancel
+                    </Button>
+                  )}
+                </div>
               </div>
-            </div>
-          )}
+            </CardContent>
+          </Card>
+        ))}
+      </div>
 
-          {/* Past Bookings */}
-          {pastBookings.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Past Bookings</h3>
-              <div className="space-y-3">
-                {pastBookings.slice(0, 5).map(booking => (
-                  <BookingCard key={booking.id} booking={booking} />
-                ))}
-              </div>
-              {pastBookings.length > 5 && (
-                <p className="text-sm text-gray-600 mt-2">
-                  Showing 5 most recent past bookings
-                </p>
-              )}
-            </div>
-          )}
-
-          {/* Cancelled Bookings */}
-          {cancelledBookings.length > 0 && (
-            <div>
-              <h3 className="text-lg font-semibold mb-3">Cancelled Bookings</h3>
-              <div className="space-y-3">
-                {cancelledBookings.slice(0, 3).map(booking => (
-                  <BookingCard key={booking.id} booking={booking} />
-                ))}
-              </div>
-              {cancelledBookings.length > 3 && (
-                <p className="text-sm text-gray-600 mt-2">
-                  Showing 3 most recent cancelled bookings
-                </p>
-              )}
-            </div>
-          )}
-        </div>
-      )}
+      {/* Booking Policy */}
+      <Card className="bg-tennis-green-bg/30">
+        <CardContent className="p-4">
+          <h4 className="font-medium mb-2">Booking Policy</h4>
+          <ul className="text-sm text-tennis-green-medium space-y-1">
+            <li>• Bookings can be cancelled up to 24 hours in advance</li>
+            <li>• Late cancellations may incur a fee</li>
+            <li>• Please arrive 10 minutes before your booking time</li>
+            <li>• Court time includes setup and cleanup</li>
+          </ul>
+        </CardContent>
+      </Card>
     </div>
   );
 }

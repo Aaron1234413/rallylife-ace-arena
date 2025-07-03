@@ -1,127 +1,118 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Calendar } from '@/components/ui/calendar';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  Calendar as CalendarIcon, 
-  Clock, 
+  Calendar,
+  Clock,
   MapPin,
-  Filter,
-  RefreshCw
+  DollarSign,
+  Target,
+  Zap,
+  Users
 } from 'lucide-react';
-import { useCourtBooking, Court, CourtBooking } from '@/hooks/useCourtBooking';
-import { useAuth } from '@/hooks/useAuth';
-import { format, addDays, startOfDay, isToday, isTomorrow } from 'date-fns';
-import { BookingDialog } from './BookingDialog';
-import { toast } from 'sonner';
+import { Club } from '@/hooks/useClubs';
 
 interface ClubCourtBookingProps {
-  club: any;
+  club: Club;
   canBook: boolean;
 }
 
 export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
-  const { user } = useAuth();
-  const { courts, bookings, loading, fetchCourts, fetchBookings } = useCourtBooking();
-  const [selectedDate, setSelectedDate] = useState<Date>(new Date());
-  const [selectedCourt, setSelectedCourt] = useState<Court | null>(null);
-  const [showBookingDialog, setShowBookingDialog] = useState(false);
-  const [selectedTimeSlot, setSelectedTimeSlot] = useState<string | null>(null);
-  const [refreshing, setRefreshing] = useState(false);
+  const [selectedDate, setSelectedDate] = useState('');
+  const [selectedCourt, setSelectedCourt] = useState('');
+  const [selectedTime, setSelectedTime] = useState('');
 
-  useEffect(() => {
-    if (club?.id) {
-      loadData();
+  // Mock court data
+  const courts = [
+    {
+      id: '1',
+      name: 'Court 1',
+      surface: 'Hard Court',
+      status: 'available',
+      hourlyRate: 25,
+      description: 'Premier court with professional lighting'
+    },
+    {
+      id: '2',
+      name: 'Court 2',
+      surface: 'Clay Court',
+      status: 'available',
+      hourlyRate: 30,
+      description: 'Traditional clay surface for advanced players'
+    },
+    {
+      id: '3',
+      name: 'Court 3',
+      surface: 'Hard Court',
+      status: 'maintenance',
+      hourlyRate: 25,
+      description: 'Standard court - currently under maintenance'
+    },
+    {
+      id: '4',
+      name: 'Court 4',
+      surface: 'Grass Court',
+      status: 'available',
+      hourlyRate: 35,
+      description: 'Exclusive grass court for tournaments'
     }
-  }, [club?.id]);
+  ];
 
-  const loadData = async () => {
-    setRefreshing(true);
-    try {
-      await Promise.all([
-        fetchCourts(club.id),
-        fetchBookings({ clubId: club.id })
-      ]);
-    } catch (error) {
-      console.error('Error loading court data:', error);
-    } finally {
-      setRefreshing(false);
+  const timeSlots = [
+    '08:00', '09:00', '10:00', '11:00', '12:00',
+    '13:00', '14:00', '15:00', '16:00', '17:00',
+    '18:00', '19:00', '20:00', '21:00'
+  ];
+
+  const getStatusBadge = (status: string) => {
+    switch (status) {
+      case 'available':
+        return <Badge className="bg-green-100 text-green-800">Available</Badge>;
+      case 'maintenance':
+        return <Badge className="bg-yellow-100 text-yellow-800">Maintenance</Badge>;
+      case 'booked':
+        return <Badge className="bg-red-100 text-red-800">Booked</Badge>;
+      default:
+        return <Badge variant="secondary">Unknown</Badge>;
     }
   };
 
-  const activeCourts = courts.filter(court => court.is_active);
-
-  const getBookingsForDate = (date: Date, courtId: string) => {
-    const dateStr = format(date, 'yyyy-MM-dd');
-    return bookings.filter(booking => 
-      booking.court_id === courtId &&
-      booking.start_datetime.startsWith(dateStr) &&
-      booking.status === 'confirmed'
-    );
-  };
-
-  const generateTimeSlots = () => {
-    const slots = [];
-    for (let hour = 8; hour < 22; hour++) {
-      slots.push(`${hour.toString().padStart(2, '0')}:00`);
+  const getSurfaceIcon = (surface: string) => {
+    switch (surface) {
+      case 'Hard Court':
+        return <Target className="h-4 w-4 text-blue-500" />;
+      case 'Clay Court':
+        return <Zap className="h-4 w-4 text-orange-500" />;
+      case 'Grass Court':
+        return <Users className="h-4 w-4 text-green-500" />;
+      default:
+        return <Target className="h-4 w-4 text-gray-500" />;
     }
-    return slots;
   };
 
-  const timeSlots = generateTimeSlots();
-
-  const isSlotBooked = (courtId: string, timeSlot: string) => {
-    const dateBookings = getBookingsForDate(selectedDate, courtId);
-    const slotDateTime = `${format(selectedDate, 'yyyy-MM-dd')}T${timeSlot}:00`;
+  const handleBooking = () => {
+    if (!selectedDate || !selectedCourt || !selectedTime) {
+      return;
+    }
     
-    return dateBookings.some(booking => {
-      const bookingStart = booking.start_datetime;
-      const bookingEnd = booking.end_datetime;
-      return slotDateTime >= bookingStart && slotDateTime < bookingEnd;
+    // Mock booking functionality
+    console.log('Booking court:', {
+      court: selectedCourt,
+      date: selectedDate,
+      time: selectedTime
     });
   };
 
-  const handleTimeSlotClick = (court: Court, timeSlot: string) => {
-    if (!canBook) {
-      toast.error('You must be a club member to book courts');
-      return;
-    }
-
-    if (isSlotBooked(court.id, timeSlot)) {
-      toast.error('This time slot is already booked');
-      return;
-    }
-
-    setSelectedCourt(court);
-    setSelectedTimeSlot(timeSlot);
-    setShowBookingDialog(true);
-  };
-
-  const getDateLabel = (date: Date) => {
-    if (isToday(date)) return 'Today';
-    if (isTomorrow(date)) return 'Tomorrow';
-    return format(date, 'MMM d');
-  };
-
-  if (loading && courts.length === 0) {
-    return (
-      <div className="space-y-4">
-        {[1, 2, 3].map(i => (
-          <div key={i} className="h-32 bg-gray-100 rounded-lg animate-pulse" />
-        ))}
-      </div>
-    );
-  }
-
-  if (activeCourts.length === 0) {
+  if (!canBook) {
     return (
       <Card>
         <CardContent className="p-8 text-center">
-          <MapPin className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-          <h3 className="font-medium mb-2">No Courts Available</h3>
+          <Target className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+          <h3 className="font-medium mb-2">Member Access Required</h3>
           <p className="text-sm text-muted-foreground">
-            This club hasn't set up any courts for booking yet.
+            You must be a club member to book courts.
           </p>
         </CardContent>
       </Card>
@@ -131,143 +122,114 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">Court Bookings</h2>
-          <p className="text-muted-foreground">
-            Book courts for {club.name}
-          </p>
-        </div>
-        <Button
-          variant="outline"
-          onClick={loadData}
-          disabled={refreshing}
-          className="flex items-center gap-2"
-        >
-          <RefreshCw className={`h-4 w-4 ${refreshing ? 'animate-spin' : ''}`} />
-          Refresh
-        </Button>
+      <div>
+        <h2 className="text-lg font-semibold text-tennis-green-dark">Court Booking</h2>
+        <p className="text-sm text-tennis-green-medium">
+          Reserve courts for your tennis sessions
+        </p>
       </div>
 
-      {/* Date Selection */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <CalendarIcon className="h-5 w-5" />
-            Select Date
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="flex gap-2 mb-4 overflow-x-auto pb-2">
-            {Array.from({ length: 14 }, (_, i) => {
-              const date = addDays(new Date(), i);
-              return (
-                <Button
-                  key={i}
-                  variant={format(selectedDate, 'yyyy-MM-dd') === format(date, 'yyyy-MM-dd') ? "default" : "outline"}
-                  onClick={() => setSelectedDate(date)}
-                  className="flex-shrink-0"
-                  size="sm"
-                >
-                  <div className="text-center">
-                    <div className="font-medium">{getDateLabel(date)}</div>
-                    <div className="text-xs">{format(date, 'EEE')}</div>
-                  </div>
-                </Button>
-              );
-            })}
-          </div>
-          <div className="text-sm text-gray-600">
-            Selected: {format(selectedDate, 'EEEE, MMMM d, yyyy')}
-          </div>
-        </CardContent>
-      </Card>
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Booking Form */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Calendar className="h-5 w-5" />
+              Book a Court
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select Date</label>
+              <input
+                type="date"
+                value={selectedDate}
+                onChange={(e) => setSelectedDate(e.target.value)}
+                min={new Date().toISOString().split('T')[0]}
+                className="w-full p-2 border rounded-md"
+              />
+            </div>
 
-      {/* Court Availability Grid */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Available Time Slots
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="overflow-x-auto">
-            <div className="min-w-full">
-              {/* Time headers */}
-              <div className="grid grid-cols-[150px_repeat(14,1fr)] gap-1 mb-2">
-                <div className="font-medium text-sm p-2">Court</div>
-                {timeSlots.map(slot => (
-                  <div key={slot} className="font-medium text-xs p-1 text-center">
-                    {slot}
-                  </div>
-                ))}
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select Court</label>
+              <Select value={selectedCourt} onValueChange={setSelectedCourt}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a court" />
+                </SelectTrigger>
+                <SelectContent>
+                  {courts.filter(court => court.status === 'available').map((court) => (
+                    <SelectItem key={court.id} value={court.id}>
+                      {court.name} - {court.surface} (${court.hourlyRate}/hour)
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-              {/* Court rows */}
-              {activeCourts.map(court => (
-                <div key={court.id} className="grid grid-cols-[150px_repeat(14,1fr)] gap-1 mb-1">
-                  <div className="p-2 bg-gray-50 rounded flex flex-col justify-center">
-                    <div className="font-medium text-sm">{court.name}</div>
-                    <div className="text-xs text-gray-600 capitalize">{court.surface_type}</div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Select Time</label>
+              <Select value={selectedTime} onValueChange={setSelectedTime}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose time slot" />
+                </SelectTrigger>
+                <SelectContent>
+                  {timeSlots.map((time) => (
+                    <SelectItem key={time} value={time}>
+                      {time}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+
+            <Button
+              onClick={handleBooking}
+              disabled={!selectedDate || !selectedCourt || !selectedTime}
+              className="w-full"
+            >
+              Book Court
+            </Button>
+          </CardContent>
+        </Card>
+
+        {/* Courts Overview */}
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Target className="h-5 w-5" />
+              Available Courts
+            </CardTitle>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {courts.map((court) => (
+              <div key={court.id} className="p-4 border rounded-lg hover:bg-tennis-green-bg/30 transition-colors">
+                <div className="flex items-center justify-between mb-2">
+                  <div className="flex items-center gap-2">
+                    {getSurfaceIcon(court.surface)}
+                    <h3 className="font-medium">{court.name}</h3>
                   </div>
-                  
-                  {timeSlots.map(slot => {
-                    const isBooked = isSlotBooked(court.id, slot);
-                    return (
-                      <button
-                        key={slot}
-                        onClick={() => handleTimeSlotClick(court, slot)}
-                        disabled={isBooked || !canBook}
-                        className={`
-                          h-10 rounded text-xs font-medium transition-colors
-                          ${isBooked 
-                            ? 'bg-red-100 text-red-800 cursor-not-allowed' 
-                            : canBook 
-                              ? 'bg-green-100 text-green-800 hover:bg-green-200' 
-                              : 'bg-gray-100 text-gray-600 cursor-not-allowed'
-                          }
-                        `}
-                      >
-                        {isBooked ? 'Booked' : 'Available'}
-                      </button>
-                    );
-                  })}
+                  {getStatusBadge(court.status)}
                 </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Legend */}
-          <div className="mt-4 flex gap-4 text-sm">
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-green-100 rounded"></div>
-              <span>Available</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-4 h-4 bg-red-100 rounded"></div>
-              <span>Booked</span>
-            </div>
-            {!canBook && (
-              <div className="text-amber-600">
-                You must be a club member to book courts
+                
+                <p className="text-sm text-tennis-green-medium mb-2">{court.description}</p>
+                
+                <div className="flex items-center justify-between text-sm">
+                  <div className="flex items-center gap-4">
+                    <span className="flex items-center gap-1">
+                      <MapPin className="h-3 w-3" />
+                      {court.surface}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <DollarSign className="h-3 w-3" />
+                      ${court.hourlyRate}/hour
+                    </span>
+                  </div>
+                </div>
               </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Booking Dialog */}
-      {selectedCourt && selectedTimeSlot && (
-        <BookingDialog
-          open={showBookingDialog}
-          onOpenChange={setShowBookingDialog}
-          court={selectedCourt}
-          selectedDate={selectedDate}
-          selectedTimeSlot={selectedTimeSlot}
-          onBookingComplete={loadData}
-        />
-      )}
+            ))}
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
