@@ -168,14 +168,14 @@ export function TokenStore({
 
   return (
     <Card className={className}>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <ShoppingCart className="h-5 w-5" />
+      <CardHeader className="pb-6">
+        <CardTitle className="flex items-center gap-3 text-lg">
+          <ShoppingCart className="h-6 w-6" />
           Store Items
         </CardTitle>
       </CardHeader>
-      <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+      <CardContent className="pt-0">
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
           {storeItems.map((item) => (
             <StoreItemCard
               key={item.id}

@@ -85,32 +85,34 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
   
   return (
     <Card className={`transition-all duration-200 ${isExpanded ? 'ring-2 ring-blue-500' : ''}`}>
-      <CardContent className="p-4">
+      <CardContent className="p-6">
         {/* Main Item Display */}
-        <div className="flex items-start gap-3 mb-3">
-          <div className={`p-2 rounded-lg ${item.color.split(' ')[0]} flex-shrink-0`}>
-            <Icon className="h-5 w-5 text-white" />
+        <div className="flex items-start gap-4 mb-5">
+          <div className={`p-3 rounded-lg ${item.color.split(' ')[0]} flex-shrink-0`}>
+            <Icon className="h-6 w-6 text-white" />
           </div>
           
-          <div className="flex-1 min-w-0">
-            <h3 className="font-semibold text-sm mb-1">{item.name}</h3>
-            <p className="text-xs text-muted-foreground mb-2">{item.description}</p>
+          <div className="flex-1 min-w-0 space-y-3">
+            <div className="space-y-1">
+              <h3 className="font-semibold text-base">{item.name}</h3>
+              <p className="text-sm text-muted-foreground">{item.description}</p>
+            </div>
             
             {/* Enhanced Price Display */}
-            <div className="space-y-2">
+            <div className="space-y-3">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <Badge variant={canAffordWithTokens ? "default" : "secondary"} className="text-xs">
+                <div className="flex items-center gap-3">
+                  <Badge variant={canAffordWithTokens ? "default" : "secondary"} className="text-sm px-3 py-1">
                     🪙 {item.cost}
                   </Badge>
-                  <span className="text-xs text-muted-foreground">or</span>
-                  <Badge variant="outline" className="text-xs">
+                  <span className="text-sm text-muted-foreground">or</span>
+                  <Badge variant="outline" className="text-sm px-3 py-1">
                     ${item.cashPrice.toFixed(2)}
                   </Badge>
                 </div>
                 
                 {bestSummary.savings && (
-                  <Badge variant="default" className="text-xs bg-green-100 text-green-800">
+                  <Badge variant="default" className="text-sm bg-green-100 text-green-800 px-3 py-1">
                     Save ${bestSummary.savings.replace('Save $', '').replace('!', '')}
                   </Badge>
                 )}
@@ -118,7 +120,7 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
               
               {/* Hybrid Payment Preview */}
               {!canAffordWithTokens && regularTokens > 0 && (
-                <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                <div className="text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
                   💡 Pay {regularTokens} tokens + ${((item.cost - regularTokens) * 0.01).toFixed(2)} cash
                 </div>
               )}
@@ -131,33 +133,33 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
           <Button
             onClick={() => handlePurchase(bestOption)}
             disabled={purchasing}
-            className={`w-full ${item.color} text-white`}
-            size="sm"
+            className={`w-full ${item.color} text-white h-12`}
+            size="default"
           >
-            <Coins className="h-4 w-4 mr-2" />
+            <Coins className="h-5 w-5 mr-2" />
             {purchasing ? 'Processing...' : `Buy with ${item.cost} Tokens`}
           </Button>
         ) : (
-          <div className="space-y-2">
+          <div className="space-y-3">
             {/* Primary Hybrid/Cash Option */}
             {regularTokens > 0 ? (
               <Button
                 onClick={() => handlePurchase(paymentOptions.find(opt => opt.type === 'hybrid') || bestOption)}
                 disabled={purchasing}
-                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
-                size="sm"
+                className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
+                size="default"
               >
-                <Wallet className="h-4 w-4 mr-2" />
+                <Wallet className="h-5 w-5 mr-2" />
                 {purchasing ? 'Processing...' : `Pay ${regularTokens} Tokens + $${((item.cost - regularTokens) * 0.01).toFixed(2)}`}
               </Button>
             ) : (
               <Button
                 onClick={() => handlePurchase(paymentOptions.find(opt => opt.type === 'cash_only') || bestOption)}
                 disabled={purchasing}
-                className="w-full bg-blue-500 text-white hover:bg-blue-600"
-                size="sm"
+                className="w-full h-12 bg-blue-500 text-white hover:bg-blue-600"
+                size="default"
               >
-                <CreditCard className="h-4 w-4 mr-2" />
+                <CreditCard className="h-5 w-5 mr-2" />
                 {purchasing ? 'Processing...' : `Buy for $${item.cashPrice.toFixed(2)}`}
               </Button>
             )}
@@ -165,15 +167,15 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
             <Button
               onClick={() => setIsExpanded(!isExpanded)}
               variant="ghost"
-              className="w-full text-xs"
-              size="sm"
+              className="w-full text-sm h-10"
+              size="default"
             >
               {isExpanded ? 'Hide' : 'Show'} All Payment Options
             </Button>
             
             {isExpanded && (
-              <div className="space-y-3 pt-3 border-t">
-                <h4 className="text-sm font-medium text-gray-700">All Payment Options</h4>
+              <div className="space-y-4 pt-4 border-t">
+                <h4 className="text-base font-medium text-gray-700">All Payment Options</h4>
                 {paymentOptions.map((option, index) => {
                   const summary = getPaymentSummary(option);
                   const isRecommended = option.type === 'hybrid' && option.savings && option.savings > 0;
@@ -184,13 +186,13 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
                         onClick={() => handlePurchase(option)}
                         disabled={purchasing || !option.canAfford}
                         variant={isRecommended ? "default" : "outline"}
-                        className={`w-full justify-between ${isRecommended ? 'ring-2 ring-blue-300 bg-blue-50' : ''}`}
-                        size="sm"
+                        className={`w-full justify-between h-12 ${isRecommended ? 'ring-2 ring-blue-300 bg-blue-50' : ''}`}
+                        size="default"
                       >
                         <div className="flex items-center">
-                          {option.type === 'tokens_only' && <Coins className="h-4 w-4 mr-2 text-yellow-500" />}
-                          {option.type === 'cash_only' && <CreditCard className="h-4 w-4 mr-2 text-blue-500" />}
-                          {option.type === 'hybrid' && <Wallet className="h-4 w-4 mr-2 text-purple-500" />}
+                          {option.type === 'tokens_only' && <Coins className="h-5 w-5 mr-3 text-yellow-500" />}
+                          {option.type === 'cash_only' && <CreditCard className="h-5 w-5 mr-3 text-blue-500" />}
+                          {option.type === 'hybrid' && <Wallet className="h-5 w-5 mr-3 text-purple-500" />}
                           
                           <div className="text-left">
                             <div className="text-sm font-medium">{summary.title}</div>
@@ -237,7 +239,7 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
         
         {/* Enhanced shortage info */}
         {!canAffordWithTokens && !isExpanded && regularTokens === 0 && (
-          <p className="text-xs text-orange-600 mt-2 text-center bg-orange-50 px-2 py-1 rounded">
+          <p className="text-sm text-orange-600 mt-4 text-center bg-orange-50 px-4 py-3 rounded-lg">
             💡 Need {item.cost} tokens or pay ${item.cashPrice.toFixed(2)} with card
           </p>
         )}
