@@ -16,7 +16,6 @@ import {
   BookOpen,
   ArrowRight,
   Check,
-  Skip,
   X
 } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
