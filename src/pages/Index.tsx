@@ -40,13 +40,13 @@ const Index = () => {
   // Player hooks with error handling
   const { hpData, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
   const { xpData, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
-  const { tokenData, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens, initializeTokens } = usePlayerTokens();
+  const { tokenData, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens } = usePlayerTokens();
   const { equippedItems, loading: avatarLoading, initializeAvatar, checkLevelUnlocks } = usePlayerAvatar();
   const { checkAllAchievements } = usePlayerAchievements();
   
   // Coach-specific hooks
   const { cxpData, loading: cxpLoading, addCXP, initializeCXP } = useCoachCXP();
-  const { tokenData: coachTokenData, loading: coachTokensLoading, addTokens: addCoachTokens, initializeTokens: initializeCoachTokens } = useCoachTokens();
+  const { tokenData: coachTokenData, loading: coachTokensLoading, addTokens: addCoachTokens } = useCoachTokens();
   const { crpData, isLoading: crpLoading, initializeCRP } = useCoachCRP();
 
   // Derive user role flags from profile
@@ -106,7 +106,7 @@ const Index = () => {
       const initializeData = async () => {
         try {
           if (profile.role === 'player') {
-            // Initialize player data with error handling
+            // Initialize player data with error handling (tokens handled by DB trigger)
             if (!hpData) {
               console.log('🏠 [INDEX] Initializing HP...');
               await initializeHP();
@@ -115,23 +115,15 @@ const Index = () => {
               console.log('🏠 [INDEX] Initializing XP...');
               await initializeXP();
             }
-            if (!tokenData) {
-              console.log('🏠 [INDEX] Initializing tokens...');
-              await initializeTokens();
-            }
             if (equippedItems.length === 0) {
               console.log('🏠 [INDEX] Initializing avatar...');
               await initializeAvatar();
             }
           } else if (profile.role === 'coach') {
-            // Initialize coach data with error handling
+            // Initialize coach data with error handling (tokens handled by DB trigger)
             if (!cxpData) {
               console.log('🏠 [INDEX] Initializing coach CXP...');
               await initializeCXP();
-            }
-            if (!coachTokenData) {
-              console.log('🏠 [INDEX] Initializing coach tokens...');
-              await initializeCoachTokens();
             }
             if (!crpData) {
               console.log('🏠 [INDEX] Initializing coach CRP...');
@@ -149,7 +141,7 @@ const Index = () => {
 
       initializeData();
     }
-  }, [user, profile, dataInitialized, hpData, xpData, tokenData, equippedItems, cxpData, coachTokenData, crpData]);
+  }, [user, profile, dataInitialized, hpData, xpData, equippedItems, cxpData, crpData]);
 
   // Enhanced XP earning function that checks for avatar unlocks and achievements
   const handleAddXP = async (amount: number, activityType: string, description?: string) => {

@@ -8,9 +8,9 @@ import { Coins, TrendingUp, ShoppingCart, Users, Loader2 } from 'lucide-react';
 import { useCoachTokens } from '@/hooks/useCoachTokens';
 
 export function CTKDisplay() {
-  const { tokenData, loading, error, initializeTokens, initializingTokens } = useCoachTokens();
+  const { tokenData, loading, error } = useCoachTokens();
 
-  if (loading || initializingTokens) {
+  if (loading) {
     return (
       <Card className="border-tennis-green-light">
         <CardHeader>
@@ -22,9 +22,7 @@ export function CTKDisplay() {
         <CardContent>
           <div className="flex items-center gap-2">
             <Loader2 className="h-4 w-4 animate-spin" />
-            <p className="text-tennis-green-medium">
-              {initializingTokens ? 'Setting up your CTK system...' : 'Loading CTK data...'}
-            </p>
+            <p className="text-tennis-green-medium">Loading CTK data...</p>
           </div>
         </CardContent>
       </Card>
@@ -41,19 +39,7 @@ export function CTKDisplay() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <p className="text-red-600">Unable to load CTK data</p>
-            <Button onClick={initializeTokens} disabled={initializingTokens}>
-              {initializingTokens ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Initializing...
-                </>
-              ) : (
-                'Initialize CTK System'
-              )}
-            </Button>
-          </div>
+          <p className="text-red-600">Unable to load CTK data. Tokens will be automatically initialized when you sign up.</p>
         </CardContent>
       </Card>
     );
@@ -69,19 +55,7 @@ export function CTKDisplay() {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <p className="text-tennis-green-medium">CTK system not initialized yet</p>
-            <Button onClick={initializeTokens} disabled={initializingTokens}>
-              {initializingTokens ? (
-                <>
-                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                  Initializing...
-                </>
-              ) : (
-                'Initialize CTK System'
-              )}
-            </Button>
-          </div>
+          <p className="text-tennis-green-medium">CTK tokens will be automatically set up when you complete registration.</p>
         </CardContent>
       </Card>
     );

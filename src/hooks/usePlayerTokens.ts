@@ -237,23 +237,7 @@ export function usePlayerTokens() {
     }
   };
 
-  const initializeTokens = async () => {
-    if (!user) return;
-
-    try {
-      const { error } = await supabase
-        .rpc('initialize_player_tokens', { user_id: user.id });
-
-      if (error) {
-        console.error('Error initializing tokens:', error);
-        return;
-      }
-
-      await fetchTokens();
-    } catch (error) {
-      console.error('Error in initializeTokens:', error);
-    }
-  };
+  // Remove manual initialization - database trigger handles this
 
   const cleanupChannel = () => {
     if (channelRef.current) {
@@ -340,7 +324,6 @@ export function usePlayerTokens() {
     addTokens,
     spendTokens,
     convertPremiumTokens,
-    initializeTokens,
     refreshTokens: fetchTokens
   };
 }

@@ -201,52 +201,7 @@ export function useCoachTokens() {
     },
   });
 
-  const initializeTokensMutation = useMutation({
-    mutationFn: async () => {
-      console.log('Initializing coach tokens...');
-      const user = await supabase.auth.getUser();
-      if (!user.data.user) throw new Error("Not authenticated");
-      
-      const { data, error } = await supabase.rpc('initialize_coach_tokens', {
-        coach_id: user.data.user.id
-      } as any);
-
-      if (error) {
-        console.error('Error initializing coach tokens:', error);
-        throw error;
-      }
-
-      return data;
-    },
-    onSuccess: () => {
-      console.log('Coach tokens initialized successfully');
-      queryClient.invalidateQueries({ queryKey: ['coach-tokens'] });
-      toast({
-        title: "Tokens Initialized",
-        description: "Your coaching token system is now active!",
-      });
-    },
-    onError: (error) => {
-      console.error('Failed to initialize tokens:', error);
-      toast({
-        title: "Initialization Error",
-        description: "Failed to initialize token system. Please try again.",
-        variant: "destructive",
-      });
-    },
-  });
-
-  const initializeTokens = () => {
-    initializeTokensMutation.mutate();
-  };
-
-  // Auto-initialize tokens if no data exists and not currently loading
-  useEffect(() => {
-    if (!tokenLoading && !tokenData && !tokenError && !initializeTokensMutation.isPending) {
-      console.log('Auto-initializing tokens for coach...');
-      initializeTokens();
-    }
-  }, [tokenLoading, tokenData, tokenError, initializeTokensMutation.isPending]);
+  // Remove auto-initialization - database trigger handles this
 
   return {
     tokenData,
@@ -256,8 +211,6 @@ export function useCoachTokens() {
     addTokensLoading: addTokensMutation.isPending,
     spendTokens: spendTokensMutation.mutate,
     spendTokensLoading: spendTokensMutation.isPending,
-    initializeTokens,
-    initializingTokens: initializeTokensMutation.isPending,
     error: tokenError
   };
 }
