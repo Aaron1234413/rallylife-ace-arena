@@ -5,8 +5,8 @@ import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
 import { PlayerLeaderboardEntry } from './PlayerLeaderboardEntry';
 import { LeaderboardEntry } from './LeaderboardEntry';
-import { usePlayerLeaderboards } from '@/hooks/usePlayerLeaderboards';
-import { useCoachLeaderboards } from '@/hooks/useCoachLeaderboards';
+import { usePlayerLeaderboards, type PlayerLeaderboardEntry as PlayerEntry } from '@/hooks/usePlayerLeaderboards';
+import { useCoachLeaderboards, type CoachLeaderboardEntry as CoachEntry, type SimpleCoachLeaderboardEntry } from '@/hooks/useCoachLeaderboards';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   Trophy, 
@@ -33,16 +33,17 @@ export function VirtualizedLeaderboard({
   const playerQuery = usePlayerLeaderboards();
   const coachQuery = useCoachLeaderboards();
 
-  const currentData = userType === 'player' 
-    ? playerQuery.leaderboard 
-    : coachQuery.getLeaderboard(filters.category || 'overall', filters.period || 'all_time').data;
+  // Get appropriate data and loading state
+  const playerData = playerQuery.leaderboard;
+  const coachData = coachQuery.getLeaderboard(filters.category || 'overall', filters.period || 'all_time').data;
   
   const isLoading = userType === 'player' 
     ? playerQuery.isLoading 
     : coachQuery.getLeaderboard(filters.category || 'overall', filters.period || 'all_time').isLoading;
 
-  // Filter data based on filters
+  // Filter data based on filters and user type
   const filteredData = useMemo(() => {
+    const currentData = userType === 'player' ? playerData : coachData;
     if (!currentData) return [];
     
     let filtered = [...currentData];
@@ -51,15 +52,18 @@ export function VirtualizedLeaderboard({
     if (filters.search) {
       const searchLower = filters.search.toLowerCase();
       filtered = filtered.filter(item => {
-        const name = userType === 'player' 
-          ? item.player_name?.toLowerCase() 
-          : item.coach_name?.toLowerCase();
-        return name?.includes(searchLower);
+        if (userType === 'player') {
+          const playerItem = item as PlayerEntry;
+          return playerItem.player_name?.toLowerCase().includes(searchLower);
+        } else {
+          const coachItem = item as CoachEntry;
+          return coachItem.coach_name?.toLowerCase().includes(searchLower);
+        }
       });
     }
 
     return filtered;
-  }, [currentData, filters, userType]);
+  }, [playerData, coachData, filters, userType]);
 
   if (isLoading) {
     return (
@@ -109,24 +113,36 @@ export function VirtualizedLeaderboard({
           </div>
         ) : (
           <div className="max-h-96 overflow-y-auto">
-            {filteredData.map((item, index) => (
-              <div key={item.player_id || item.coach_id} className="p-2">
-                {userType === 'player' ? (
-                  <PlayerLeaderboardEntry
-                    entry={item}
-                    index={index}
-                    currentUserRole={currentUserRole}
-                  />
-                ) : (
-                  <LeaderboardEntry
-                    entry={item}
-                    leaderboardType={filters.category || 'overall'}
-                    index={index}
-                    currentUserRole={currentUserRole}
-                  />
-                )}
-              </div>
-            ))}
+            {userType === 'player' ? (
+              // Render player leaderboard
+              filteredData.map((item, index) => {
+                const playerItem = item as PlayerEntry;
+                return (
+                  <div key={playerItem.player_id} className="p-2">
+                    <PlayerLeaderboardEntry
+                      entry={playerItem}
+                      index={index}
+                      currentUserRole={currentUserRole}
+                    />
+                  </div>
+                );
+              })
+            ) : (
+              // Render coach leaderboard
+              filteredData.map((item, index) => {
+                const coachItem = item as CoachEntry;
+                return (
+                  <div key={coachItem.coach_id} className="p-2">
+                    <LeaderboardEntry
+                      entry={coachItem}
+                      leaderboardType={filters.category || 'overall'}
+                      index={index}
+                      currentUserRole={currentUserRole}
+                    />
+                  </div>
+                );
+              })
+            )}
           </div>
         )}
       </CardContent>
