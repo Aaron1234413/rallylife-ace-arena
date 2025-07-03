@@ -39,11 +39,21 @@ export function NewConversationDialog({ children }: NewConversationDialogProps) 
   const handleCreateConversation = async (otherUserId: string, otherUserName: string) => {
     setCreating(true);
     try {
+      console.log('Creating conversation with user:', otherUserId);
       const { data, error } = await supabase.rpc('create_direct_conversation', {
-        other_user_id: otherUserId
+        other_user_id_param: otherUserId
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('RPC Error:', error);
+        throw error;
+      }
+
+      if (!data) {
+        throw new Error('No conversation ID returned from server');
+      }
+
+      console.log('Conversation created successfully:', data);
 
       // Refresh conversations
       queryClient.invalidateQueries({ queryKey: ['conversations'] });
@@ -53,7 +63,8 @@ export function NewConversationDialog({ children }: NewConversationDialogProps) 
       setSearchTerm('');
     } catch (error) {
       console.error('Error creating conversation:', error);
-      toast.error('Failed to start conversation. Please try again.');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start conversation. Please try again.';
+      toast.error(errorMessage);
     } finally {
       setCreating(false);
     }
