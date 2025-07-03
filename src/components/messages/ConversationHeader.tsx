@@ -5,10 +5,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { 
   ArrowLeft, 
-  Phone, 
-  Video, 
   MoreVertical,
-  Calendar,
   User
 } from 'lucide-react';
 import {
@@ -69,20 +66,8 @@ export function ConversationHeader({
           </div>
         </div>
 
-        {/* Action buttons */}
+        {/* Action buttons - simplified for now */}
         <div className="flex items-center gap-2">
-          <Button variant="ghost" size="sm" className="hidden sm:flex">
-            <Phone className="h-4 w-4" />
-          </Button>
-          
-          <Button variant="ghost" size="sm" className="hidden sm:flex">
-            <Video className="h-4 w-4" />
-          </Button>
-          
-          <Button variant="ghost" size="sm">
-            <Calendar className="h-4 w-4" />
-          </Button>
-
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
               <Button variant="ghost" size="sm">
@@ -90,10 +75,6 @@ export function ConversationHeader({
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem>
-                <Calendar className="h-4 w-4 mr-2" />
-                Schedule Lesson
-              </DropdownMenuItem>
               <DropdownMenuItem>
                 <User className="h-4 w-4 mr-2" />
                 View Profile

@@ -82,7 +82,7 @@ export function MessageList({ messages, loading, conversationId }: MessageListPr
       <div className="space-y-4 pb-4">
         {messages.map((message: any) => {
           const isCurrentUser = message.sender_id === user?.id;
-          const senderName = message.profiles?.full_name || 'Unknown User';
+          const senderName = message.sender?.full_name || 'Unknown User';
 
           return (
             <div
@@ -91,7 +91,7 @@ export function MessageList({ messages, loading, conversationId }: MessageListPr
             >
               {!isCurrentUser && (
                 <Avatar className="h-8 w-8 flex-shrink-0">
-                  <AvatarImage src={message.profiles?.avatar_url || ''} />
+                  <AvatarImage src={message.sender?.avatar_url || ''} />
                   <AvatarFallback>{senderName.charAt(0)}</AvatarFallback>
                 </Avatar>
               )}

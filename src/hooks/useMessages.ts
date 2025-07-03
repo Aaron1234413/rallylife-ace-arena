@@ -19,7 +19,7 @@ export function useMessages(conversationId: string | null) {
         .from('messages')
         .select(`
           *,
-          profiles!sender_id(full_name, avatar_url)
+          sender:profiles!messages_sender_id_fkey(full_name, avatar_url)
         `)
         .eq('conversation_id', conversationId)
         .order('created_at', { ascending: true });

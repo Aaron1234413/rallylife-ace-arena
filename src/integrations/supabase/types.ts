@@ -3054,6 +3054,13 @@ export type Database = {
             referencedRelation: "conversations"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "messages_sender_id_fkey"
+            columns: ["sender_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       performance_boosters: {
@@ -6955,6 +6962,10 @@ export type Database = {
           new_srid_in: number
         }
         Returns: string
+      }
+      user_can_access_conversation: {
+        Args: { conversation_id_param: string; user_id_param: string }
+        Returns: boolean
       }
       user_has_conversation_access: {
         Args: { conversation_id_param: string; user_id_param: string }
