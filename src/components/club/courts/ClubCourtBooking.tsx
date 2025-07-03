@@ -1,18 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Textarea } from '@/components/ui/textarea';
+import { Calendar } from '@/components/ui/calendar';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+import { format } from 'date-fns';
 import { 
-  Calendar,
+  Calendar as CalendarIcon,
   Clock,
-  MapPin,
   DollarSign,
+  Coins,
+  MapPin,
   Target,
+  CheckCircle2,
   Zap,
   Users
 } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
+import { useCourtBookings } from '@/hooks/useCourtBookings';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
+import { cn } from '@/lib/utils';
+import type { Database } from '@/integrations/supabase/types';
+
+type ClubCourt = Database['public']['Tables']['club_courts']['Row'];
 
 interface ClubCourtBookingProps {
   club: Club;
@@ -20,89 +34,134 @@ interface ClubCourtBookingProps {
 }
 
 export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
-  const [selectedDate, setSelectedDate] = useState('');
+  const { user } = useAuth();
+  const { createBooking, getAvailableTimeSlots } = useCourtBookings(club.id);
+  
+  const [courts, setCourts] = useState<ClubCourt[]>([]);
+  const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedCourt, setSelectedCourt] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
+  const [duration, setDuration] = useState('1');
+  const [paymentMethod, setPaymentMethod] = useState('tokens');
+  const [notes, setNotes] = useState('');
+  const [isBooking, setIsBooking] = useState(false);
+  const [availableSlots, setAvailableSlots] = useState<Array<{start: Date, end: Date, time: string}>>([]);
+  const [loadingSlots, setLoadingSlots] = useState(false);
 
-  // Mock court data
-  const courts = [
-    {
-      id: '1',
-      name: 'Court 1',
-      surface: 'Hard Court',
-      status: 'available',
-      hourlyRate: 25,
-      description: 'Premier court with professional lighting'
-    },
-    {
-      id: '2',
-      name: 'Court 2',
-      surface: 'Clay Court',
-      status: 'available',
-      hourlyRate: 30,
-      description: 'Traditional clay surface for advanced players'
-    },
-    {
-      id: '3',
-      name: 'Court 3',
-      surface: 'Hard Court',
-      status: 'maintenance',
-      hourlyRate: 25,
-      description: 'Standard court - currently under maintenance'
-    },
-    {
-      id: '4',
-      name: 'Court 4',
-      surface: 'Grass Court',
-      status: 'available',
-      hourlyRate: 35,
-      description: 'Exclusive grass court for tournaments'
+  // Fetch courts for this club
+  useEffect(() => {
+    const fetchCourts = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('club_courts')
+          .select('*')
+          .eq('club_id', club.id)
+          .eq('is_active', true);
+
+        if (error) throw error;
+        setCourts(data || []);
+      } catch (error) {
+        console.error('Error fetching courts:', error);
+        toast.error('Failed to load courts');
+      }
+    };
+
+    fetchCourts();
+  }, [club.id]);
+
+  // Load available time slots when date and court are selected
+  useEffect(() => {
+    if (selectedDate && selectedCourt) {
+      loadAvailableSlots();
     }
-  ];
+  }, [selectedDate, selectedCourt]);
 
-  const timeSlots = [
-    '08:00', '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00', '17:00',
-    '18:00', '19:00', '20:00', '21:00'
-  ];
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'available':
-        return <Badge className="bg-green-100 text-green-800">Available</Badge>;
-      case 'maintenance':
-        return <Badge className="bg-yellow-100 text-yellow-800">Maintenance</Badge>;
-      case 'booked':
-        return <Badge className="bg-red-100 text-red-800">Booked</Badge>;
-      default:
-        return <Badge variant="secondary">Unknown</Badge>;
+  const loadAvailableSlots = async () => {
+    if (!selectedDate || !selectedCourt) return;
+    
+    setLoadingSlots(true);
+    try {
+      const slots = await getAvailableTimeSlots(selectedCourt, selectedDate);
+      setAvailableSlots(slots);
+    } catch (error) {
+      console.error('Error loading available slots:', error);
+    } finally {
+      setLoadingSlots(false);
     }
   };
 
+  const getStatusBadge = (court: ClubCourt) => {
+    if (!court.is_active) {
+      return <Badge className="bg-red-100 text-red-800">Inactive</Badge>;
+    }
+    return <Badge className="bg-green-100 text-green-800">Available</Badge>;
+  };
+
   const getSurfaceIcon = (surface: string) => {
-    switch (surface) {
-      case 'Hard Court':
+    switch (surface.toLowerCase()) {
+      case 'hard':
         return <Target className="h-4 w-4 text-blue-500" />;
-      case 'Clay Court':
+      case 'clay':
         return <Zap className="h-4 w-4 text-orange-500" />;
-      case 'Grass Court':
+      case 'grass':
         return <Users className="h-4 w-4 text-green-500" />;
       default:
         return <Target className="h-4 w-4 text-gray-500" />;
     }
   };
 
-  const handleBooking = () => {
-    if (!selectedDate || !selectedCourt || !selectedTime) {
+  const calculateCost = () => {
+    const selectedCourtData = courts.find(c => c.id === selectedCourt);
+    if (!selectedCourtData) return { tokens: 0, money: 0 };
+    
+    const durationHours = parseFloat(duration);
+    const tokenCost = selectedCourtData.hourly_rate_tokens * durationHours;
+    const moneyCost = Number(selectedCourtData.hourly_rate_money) * durationHours;
+    
+    return { tokens: tokenCost, money: moneyCost };
+  };
+
+  const handleBooking = async () => {
+    if (!selectedDate || !selectedCourt || !selectedTime || !user) {
+      toast.error('Please fill in all required fields');
       return;
     }
-    
-    // Mock booking functionality
-    console.log('Booking court:', {
-      court: selectedCourt,
-      date: selectedDate,
-      time: selectedTime
-    });
+
+    setIsBooking(true);
+    try {
+      const [hours, minutes] = selectedTime.split(':').map(Number);
+      const startDateTime = new Date(selectedDate);
+      startDateTime.setHours(hours, minutes, 0, 0);
+      
+      const endDateTime = new Date(startDateTime);
+      endDateTime.setHours(startDateTime.getHours() + parseFloat(duration));
+      
+      const cost = calculateCost();
+      
+      await createBooking({
+        court_id: selectedCourt,
+        player_id: user.id,
+        start_datetime: startDateTime.toISOString(),
+        end_datetime: endDateTime.toISOString(),
+        total_cost_tokens: paymentMethod === 'tokens' ? cost.tokens : 0,
+        total_cost_money: paymentMethod === 'money' ? cost.money : 0,
+        payment_method: paymentMethod,
+        notes: notes || null,
+        status: 'confirmed'
+      });
+      
+      // Reset form
+      setSelectedDate(undefined);
+      setSelectedCourt('');
+      setSelectedTime('');
+      setDuration('1');
+      setNotes('');
+      
+    } catch (error) {
+      console.error('Error booking court:', error);
+    } finally {
+      setIsBooking(false);
+    }
   };
 
   if (!canBook) {
@@ -125,7 +184,7 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
       <div>
         <h2 className="text-lg font-semibold text-tennis-green-dark">Court Booking</h2>
         <p className="text-sm text-tennis-green-medium">
-          Reserve courts for your tennis sessions
+          Reserve courts for your tennis sessions at {club.name}
         </p>
       </div>
 
@@ -134,22 +193,41 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
+              <CalendarIcon className="h-5 w-5" />
               Book a Court
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
+            {/* Date Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Select Date</label>
-              <input
-                type="date"
-                value={selectedDate}
-                onChange={(e) => setSelectedDate(e.target.value)}
-                min={new Date().toISOString().split('T')[0]}
-                className="w-full p-2 border rounded-md"
-              />
+              <Popover>
+                <PopoverTrigger asChild>
+                  <Button
+                    variant="outline"
+                    className={cn(
+                      "w-full justify-start text-left font-normal",
+                      !selectedDate && "text-muted-foreground"
+                    )}
+                  >
+                    <CalendarIcon className="mr-2 h-4 w-4" />
+                    {selectedDate ? format(selectedDate, "PPP") : "Pick a date"}
+                  </Button>
+                </PopoverTrigger>
+                <PopoverContent className="w-auto p-0" align="start">
+                  <Calendar
+                    mode="single"
+                    selected={selectedDate}
+                    onSelect={setSelectedDate}
+                    disabled={(date) => date < new Date()}
+                    initialFocus
+                    className="pointer-events-auto"
+                  />
+                </PopoverContent>
+              </Popover>
             </div>
 
+            {/* Court Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Select Court</label>
               <Select value={selectedCourt} onValueChange={setSelectedCourt}>
@@ -157,37 +235,104 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
                   <SelectValue placeholder="Choose a court" />
                 </SelectTrigger>
                 <SelectContent>
-                  {courts.filter(court => court.status === 'available').map((court) => (
+                  {courts.filter(court => court.is_active).map((court) => (
                     <SelectItem key={court.id} value={court.id}>
-                      {court.name} - {court.surface} (${court.hourlyRate}/hour)
+                      {court.name} - {court.surface_type} ({court.hourly_rate_tokens} tokens/hr)
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
             </div>
 
+            {/* Time Selection */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Select Time</label>
-              <Select value={selectedTime} onValueChange={setSelectedTime}>
+              <Select 
+                value={selectedTime} 
+                onValueChange={setSelectedTime}
+                disabled={!selectedDate || !selectedCourt || loadingSlots}
+              >
                 <SelectTrigger>
-                  <SelectValue placeholder="Choose time slot" />
+                  <SelectValue placeholder={loadingSlots ? "Loading..." : "Choose time slot"} />
                 </SelectTrigger>
                 <SelectContent>
-                  {timeSlots.map((time) => (
-                    <SelectItem key={time} value={time}>
-                      {time}
+                  {availableSlots.map((slot) => (
+                    <SelectItem key={slot.time} value={slot.time}>
+                      {slot.time}
                     </SelectItem>
                   ))}
                 </SelectContent>
               </Select>
+            </div>
+
+            {/* Duration Selection */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Duration (hours)</label>
+              <Select value={duration} onValueChange={setDuration}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="1">1 hour</SelectItem>
+                  <SelectItem value="1.5">1.5 hours</SelectItem>
+                  <SelectItem value="2">2 hours</SelectItem>
+                  <SelectItem value="2.5">2.5 hours</SelectItem>
+                  <SelectItem value="3">3 hours</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Payment Method */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Payment Method</label>
+              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+                <SelectTrigger>
+                  <SelectValue />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="tokens">
+                    <div className="flex items-center gap-2">
+                      <Coins className="h-4 w-4" />
+                      Tokens ({calculateCost().tokens})
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="money">
+                    <div className="flex items-center gap-2">
+                      <DollarSign className="h-4 w-4" />
+                      Cash (${calculateCost().money.toFixed(2)})
+                    </div>
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+
+            {/* Notes */}
+            <div className="space-y-2">
+              <label className="text-sm font-medium">Notes (Optional)</label>
+              <Textarea
+                placeholder="Any special requirements or notes..."
+                value={notes}
+                onChange={(e) => setNotes(e.target.value)}
+                rows={3}
+              />
             </div>
 
             <Button
               onClick={handleBooking}
-              disabled={!selectedDate || !selectedCourt || !selectedTime}
+              disabled={isBooking || !selectedDate || !selectedCourt || !selectedTime}
               className="w-full"
             >
-              Book Court
+              {isBooking ? (
+                <>
+                  <Clock className="h-4 w-4 mr-2 animate-spin" />
+                  Booking Court...
+                </>
+              ) : (
+                <>
+                  <CheckCircle2 className="h-4 w-4 mr-2" />
+                  Book Court
+                </>
+              )}
             </Button>
           </CardContent>
         </Card>
@@ -205,28 +350,41 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
               <div key={court.id} className="p-4 border rounded-lg hover:bg-tennis-green-bg/30 transition-colors">
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2">
-                    {getSurfaceIcon(court.surface)}
+                    {getSurfaceIcon(court.surface_type)}
                     <h3 className="font-medium">{court.name}</h3>
                   </div>
-                  {getStatusBadge(court.status)}
+                  {getStatusBadge(court)}
                 </div>
                 
-                <p className="text-sm text-tennis-green-medium mb-2">{court.description}</p>
+                {court.description && (
+                  <p className="text-sm text-tennis-green-medium mb-2">{court.description}</p>
+                )}
                 
                 <div className="flex items-center justify-between text-sm">
                   <div className="flex items-center gap-4">
                     <span className="flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
-                      {court.surface}
+                      {court.surface_type}
+                    </span>
+                    <span className="flex items-center gap-1">
+                      <Coins className="h-3 w-3" />
+                      {court.hourly_rate_tokens} tokens/hr
                     </span>
                     <span className="flex items-center gap-1">
                       <DollarSign className="h-3 w-3" />
-                      ${court.hourlyRate}/hour
+                      ${court.hourly_rate_money}/hr
                     </span>
                   </div>
                 </div>
               </div>
             ))}
+            
+            {courts.length === 0 && (
+              <div className="text-center py-8">
+                <Target className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                <p className="text-sm text-muted-foreground">No courts available</p>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

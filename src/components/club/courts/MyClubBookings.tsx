@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -8,52 +8,46 @@ import {
   MapPin,
   DollarSign,
   Target,
-  X
+  X,
+  Coins
 } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
-import { formatDistanceToNow } from 'date-fns';
+import { useCourtBookings } from '@/hooks/useCourtBookings';
+import { useAuth } from '@/hooks/useAuth';
+import { formatDistanceToNow, format } from 'date-fns';
+import { toast } from 'sonner';
+import type { Database } from '@/integrations/supabase/types';
 
 interface MyClubBookingsProps {
   club: Club;
 }
 
 export function MyClubBookings({ club }: MyClubBookingsProps) {
-  // Mock bookings data
-  const bookings = [
-    {
-      id: '1',
-      court: 'Court 1',
-      date: '2024-07-05',
-      time: '14:00',
-      duration: 2,
-      status: 'confirmed',
-      cost: 50,
-      surface: 'Hard Court',
-      bookedAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000)
-    },
-    {
-      id: '2',
-      court: 'Court 2',
-      date: '2024-07-07',
-      time: '10:00',
-      duration: 1,
-      status: 'confirmed',
-      cost: 30,
-      surface: 'Clay Court',
-      bookedAt: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000)
-    },
-    {
-      id: '3',
-      court: 'Court 4',
-      date: '2024-07-10',
-      time: '16:00',
-      duration: 1.5,
-      status: 'pending',
-      cost: 52.5,
-      surface: 'Grass Court',
-      bookedAt: new Date(Date.now() - 5 * 60 * 60 * 1000)
-    }
-  ];
+  const { user } = useAuth();
+  const { fetchUserBookings, cancelBooking } = useCourtBookings();
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadUserBookings = async () => {
+      if (!user) return;
+      
+      try {
+        setLoading(true);
+        const data = await fetchUserBookings(user.id);
+        // Filter bookings for this specific club
+        const clubBookings = data.filter((booking: any) => booking.club_courts.club_id === club.id);
+        setBookings(clubBookings);
+      } catch (error) {
+        console.error('Error loading user bookings:', error);
+        toast.error('Failed to load your bookings');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadUserBookings();
+  }, [user, club.id]);
 
   const getStatusBadge = (status: string) => {
     switch (status) {
@@ -68,22 +62,48 @@ export function MyClubBookings({ club }: MyClubBookingsProps) {
     }
   };
 
-  const handleCancelBooking = (bookingId: string) => {
-    // Mock cancel functionality
-    console.log('Cancelling booking:', bookingId);
+  const handleCancelBooking = async (bookingId: string) => {
+    try {
+      await cancelBooking(bookingId);
+      // Update local state
+      setBookings(prev => prev.map(booking =>
+        booking.id === bookingId ? { ...booking, status: 'cancelled' } : booking
+      ));
+    } catch (error) {
+      console.error('Error cancelling booking:', error);
+    }
   };
 
-  const isPastBooking = (date: string, time: string) => {
-    const bookingDateTime = new Date(`${date}T${time}`);
-    return bookingDateTime < new Date();
+  const isPastBooking = (startDateTime: string) => {
+    return new Date(startDateTime) < new Date();
   };
 
-  const canCancelBooking = (date: string, time: string, status: string) => {
+  const canCancelBooking = (startDateTime: string, status: string) => {
     if (status === 'cancelled') return false;
-    const bookingDateTime = new Date(`${date}T${time}`);
+    const bookingDateTime = new Date(startDateTime);
     const hoursUntilBooking = (bookingDateTime.getTime() - new Date().getTime()) / (1000 * 60 * 60);
     return hoursUntilBooking > 24; // Can cancel if more than 24 hours away
   };
+
+  const getDurationInHours = (startDateTime: string, endDateTime: string) => {
+    const start = new Date(startDateTime);
+    const end = new Date(endDateTime);
+    return (end.getTime() - start.getTime()) / (1000 * 60 * 60);
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <Clock className="h-12 w-12 mx-auto mb-4 text-gray-400 animate-spin" />
+          <h3 className="font-medium mb-2">Loading Your Bookings</h3>
+          <p className="text-sm text-muted-foreground">
+            Please wait while we fetch your court reservations...
+          </p>
+        </CardContent>
+      </Card>
+    );
+  }
 
   if (bookings.length === 0) {
     return (
@@ -111,60 +131,80 @@ export function MyClubBookings({ club }: MyClubBookingsProps) {
 
       {/* Bookings List */}
       <div className="space-y-4">
-        {bookings.map((booking) => (
-          <Card key={booking.id} className={`transition-all ${isPastBooking(booking.date, booking.time) ? 'opacity-75' : ''}`}>
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex-1">
-                  <div className="flex items-center gap-3 mb-2">
-                    <h3 className="font-medium text-lg">{booking.court}</h3>
-                    {getStatusBadge(booking.status)}
-                    {isPastBooking(booking.date, booking.time) && (
-                      <Badge variant="outline">Past</Badge>
+        {bookings.map((booking) => {
+          const duration = getDurationInHours(booking.start_datetime, booking.end_datetime);
+          const totalCost = booking.payment_method === 'tokens' ? booking.total_cost_tokens : booking.total_cost_money;
+          
+          return (
+            <Card key={booking.id} className={`transition-all ${isPastBooking(booking.start_datetime) ? 'opacity-75' : ''}`}>
+              <CardContent className="p-4">
+                <div className="flex items-center justify-between">
+                  <div className="flex-1">
+                    <div className="flex items-center gap-3 mb-2">
+                      <h3 className="font-medium text-lg">{booking.club_courts?.name || 'Court'}</h3>
+                      {getStatusBadge(booking.status)}
+                      {isPastBooking(booking.start_datetime) && (
+                        <Badge variant="outline">Past</Badge>
+                      )}
+                    </div>
+                    
+                    <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-sm text-tennis-green-medium">
+                      <div className="flex items-center gap-1">
+                        <Calendar className="h-3 w-3" />
+                        <span>{format(new Date(booking.start_datetime), 'MMM d, yyyy')}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <Clock className="h-3 w-3" />
+                        <span>{format(new Date(booking.start_datetime), 'HH:mm')} ({duration}h)</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <MapPin className="h-3 w-3" />
+                        <span>{booking.club_courts?.surface_type || 'Unknown'}</span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        {booking.payment_method === 'tokens' ? (
+                          <>
+                            <Coins className="h-3 w-3" />
+                            <span>{totalCost} tokens</span>
+                          </>
+                        ) : (
+                          <>
+                            <DollarSign className="h-3 w-3" />
+                            <span>${totalCost}</span>
+                          </>
+                        )}
+                      </div>
+                    </div>
+                    
+                    <p className="text-xs text-tennis-green-medium mt-2">
+                      Booked {formatDistanceToNow(new Date(booking.created_at), { addSuffix: true })}
+                    </p>
+                    
+                    {booking.notes && (
+                      <p className="text-xs text-tennis-green-medium mt-1 italic">
+                        Note: {booking.notes}
+                      </p>
                     )}
                   </div>
                   
-                  <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-4 text-sm text-tennis-green-medium">
-                    <div className="flex items-center gap-1">
-                      <Calendar className="h-3 w-3" />
-                      <span>{new Date(booking.date).toLocaleDateString()}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <Clock className="h-3 w-3" />
-                      <span>{booking.time} ({booking.duration}h)</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <MapPin className="h-3 w-3" />
-                      <span>{booking.surface}</span>
-                    </div>
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="h-3 w-3" />
-                      <span>${booking.cost}</span>
-                    </div>
+                  <div className="flex gap-2">
+                    {canCancelBooking(booking.start_datetime, booking.status) && (
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => handleCancelBooking(booking.id)}
+                        className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                      >
+                        <X className="h-4 w-4 mr-1" />
+                        Cancel
+                      </Button>
+                    )}
                   </div>
-                  
-                  <p className="text-xs text-tennis-green-medium mt-2">
-                    Booked {formatDistanceToNow(booking.bookedAt, { addSuffix: true })}
-                  </p>
                 </div>
-                
-                <div className="flex gap-2">
-                  {canCancelBooking(booking.date, booking.time, booking.status) && (
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleCancelBooking(booking.id)}
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Cancel
-                    </Button>
-                  )}
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        ))}
+              </CardContent>
+            </Card>
+          );
+        })}
       </div>
 
       {/* Booking Policy */}
