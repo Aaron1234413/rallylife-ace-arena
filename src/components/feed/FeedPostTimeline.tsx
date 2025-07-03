@@ -80,31 +80,20 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
   const PostIcon = getPostTypeIcon(post.type);
   const postColorClass = getPostTypeColor(post.type);
 
-  // Get post description based on type
+  // Fallback descriptions for posts without titles
   const getPostDescription = () => {
     switch (post.type) {
-      case 'social_play':
-        const sessionType = post.content.stats.session_type || 'session';
-        return `Completed a social ${sessionType} session`;
       case 'level_up':
-        return 'Leveled up!';
-      case 'match_result':
-        return post.content.stats.opponent_name 
-          ? `Match vs ${post.content.stats.opponent_name}`
-          : 'Completed a match';
+        return 'Level Up!';
       case 'achievement':
-        return 'Unlocked an achievement!';
-      case 'training':
-        return 'Training session completed';
-      case 'lesson':
-        return 'Lesson completed';
+        return 'Achievement Unlocked!';
       default:
-        return post.content.title || 'Activity completed';
+        return 'Activity Completed';
     }
   };
 
   return (
-    <div className="border rounded-lg p-4 hover:bg-tennis-green-subtle/50 transition-colors">
+    <div className="border rounded-lg p-4 hover:bg-tennis-green-subtle/50 transition-all duration-200 hover:shadow-sm">
       {/* Header with user info */}
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-3">
@@ -116,7 +105,6 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
           </Avatar>
           <div>
             <h3 className="font-medium text-sm">{post.user.full_name}</h3>
-            <p className="text-xs text-tennis-green-dark/70">{getPostDescription()}</p>
           </div>
         </div>
         
@@ -128,7 +116,7 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
       {/* Activity content */}
       <div className="mb-2">
         <div className="flex items-center gap-2 mb-1">
-          <h4 className="font-medium text-sm">{post.content.title || getPostDescription()}</h4>
+          <h4 className="font-medium">{post.content.title || getPostDescription()}</h4>
           <Badge variant="outline" className="text-xs capitalize">
             {post.type.replace('_', ' ')}
           </Badge>
@@ -248,21 +236,23 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
         <div className="flex items-center gap-6">
           <button 
             onClick={() => onLike(post.id)}
-            className={`flex items-center gap-2 transition-colors ${
+            className={`flex items-center gap-2 transition-all duration-200 hover:scale-105 ${
               post.userHasLiked 
                 ? 'text-red-500' 
                 : 'text-tennis-green-dark/70 hover:text-red-500'
             }`}
+            aria-label={post.userHasLiked ? 'Unlike post' : 'Like post'}
           >
-            <Heart className={`w-4 h-4 ${post.userHasLiked ? 'fill-current' : ''}`} />
+            <Heart className={`w-4 h-4 transition-transform duration-200 ${post.userHasLiked ? 'fill-current scale-110' : ''}`} />
             <span className="text-sm">{post.likes}</span>
           </button>
           
           <button 
             onClick={() => setShowCommentInput(!showCommentInput)}
-            className="flex items-center gap-2 text-tennis-green-dark/70 hover:text-blue-500 transition-colors"
+            className="flex items-center gap-2 text-tennis-green-dark/70 hover:text-blue-500 transition-all duration-200 hover:scale-105"
+            aria-label={showCommentInput ? 'Hide comment input' : 'Show comment input'}
           >
-            <MessageCircle className="w-4 h-4" />
+            <MessageCircle className="w-4 h-4 transition-transform duration-200" />
             <span className="text-sm">{post.comments}</span>
           </button>
         </div>
@@ -270,7 +260,7 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
 
       {/* Comment input */}
       {showCommentInput && (
-        <form onSubmit={handleSubmitComment} className="mt-4 flex gap-2">
+        <form onSubmit={handleSubmitComment} className="mt-4 flex gap-2 animate-fade-in">
           <Input
             value={commentContent}
             onChange={(e) => setCommentContent(e.target.value)}
@@ -282,7 +272,8 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
             type="submit" 
             size="sm"
             disabled={!commentContent.trim() || isSubmittingComment}
-            className="bg-tennis-green-medium hover:bg-tennis-green-dark"
+            className="bg-tennis-green-medium hover:bg-tennis-green-dark transition-all duration-200 hover:scale-105"
+            aria-label="Submit comment"
           >
             <Send className="w-4 h-4" />
           </Button>
