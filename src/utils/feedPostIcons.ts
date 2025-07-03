@@ -23,23 +23,23 @@ export const postTypeIcons: Record<string, LucideIcon> = {
   default: Activity
 };
 
-// Color schemes for different post types
+// Color schemes for different post types using design system tokens
 export const postTypeColors: Record<string, string> = {
-  match: 'bg-blue-100 text-blue-800 border-blue-300',
-  match_result: 'bg-blue-100 text-blue-800 border-blue-300',
-  training: 'bg-green-100 text-green-800 border-green-300',
-  lesson: 'bg-purple-100 text-purple-800 border-purple-300',
-  social_play: 'bg-pink-100 text-pink-800 border-pink-300',
-  level_up: 'bg-yellow-100 text-yellow-800 border-yellow-300',
-  achievement: 'bg-orange-100 text-orange-800 border-orange-300',
-  activity: 'bg-gray-100 text-gray-800 border-gray-300'
+  match: 'bg-blue-100 text-blue-800',
+  match_result: 'bg-blue-100 text-blue-800', 
+  training: 'bg-tennis-green-subtle text-tennis-green-dark',
+  lesson: 'bg-purple-100 text-purple-800',
+  social_play: 'bg-pink-100 text-pink-800',
+  level_up: 'bg-tennis-yellow-light text-tennis-yellow-dark',
+  achievement: 'bg-orange-100 text-orange-800',
+  activity: 'bg-tennis-neutral-100 text-tennis-neutral-700'
 };
 
-// Badge colors for competitive levels
+// Badge colors for competitive levels using design system
 export const competitiveLevelColors: Record<string, string> = {
-  low: 'bg-blue-100 text-blue-800 border-blue-200',
-  medium: 'bg-green-100 text-green-800 border-green-200', 
-  high: 'bg-red-100 text-red-800 border-red-200'
+  low: 'bg-blue-100 text-blue-800',
+  medium: 'bg-tennis-green-subtle text-tennis-green-dark', 
+  high: 'bg-red-100 text-red-800'
 };
 
 // Mood emoji mapping

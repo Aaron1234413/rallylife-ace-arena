@@ -103,23 +103,23 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
   };
 
   return (
-    <div className="bg-white/80 backdrop-blur-sm border border-tennis-green-bg/30 rounded-lg p-4 hover:shadow-md transition-shadow">
+    <div className="border border-tennis-green-bg/30 rounded-lg p-4 hover:bg-tennis-green-subtle/50 transition-colors bg-white/95 backdrop-blur-sm shadow-sm">
       {/* Header with user info */}
-      <div className="flex items-start justify-between mb-3">
-        <div className="flex items-center gap-3">
-          <Avatar className="w-10 h-10">
+      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
+        <div className="flex items-center gap-3 flex-1">
+          <Avatar className="w-10 h-10 flex-shrink-0">
             <AvatarImage src={post.user.avatar_url} />
             <AvatarFallback className="bg-tennis-green-medium text-white text-sm">
               {post.user.full_name?.charAt(0) || 'U'}
             </AvatarFallback>
           </Avatar>
-          <div>
-            <h3 className="font-medium text-tennis-green-dark">{post.user.full_name}</h3>
+          <div className="min-w-0 flex-1">
+            <h3 className="font-medium text-tennis-green-dark truncate">{post.user.full_name}</h3>
             <p className="text-sm text-tennis-green-dark/70">{getPostDescription()}</p>
           </div>
         </div>
         
-        <div className={`p-2 rounded-full ${postColorClass}`}>
+        <div className={`p-2 rounded-full flex-shrink-0 ${postColorClass}`}>
           <PostIcon className="h-4 w-4" />
         </div>
       </div>
@@ -128,7 +128,7 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
       <div className="mb-3">
         <div className="flex items-center gap-2 mb-2">
           <h4 className="font-medium text-tennis-green-dark">{post.content.title}</h4>
-          <Badge variant="outline" className="text-xs capitalize border-tennis-green-bg/50 text-tennis-green-medium">
+          <Badge variant="outline" className="text-xs capitalize text-tennis-green-medium border-tennis-green-bg/50">
             {post.type.replace('_', ' ')}
           </Badge>
           
@@ -149,7 +149,7 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
       </div>
 
       {/* Metadata row */}
-      <div className="flex flex-wrap items-center gap-4 text-xs text-tennis-green-dark/60 mb-3">
+      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-tennis-green-dark/60 mb-3">
         <div className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
           <span>{format(new Date(post.timestamp), 'MMM d, HH:mm')}</span>
@@ -238,8 +238,8 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
       </div>
 
       {/* Action buttons */}
-      <div className="flex items-center justify-between border-t border-tennis-green-bg/20 pt-3">
-        <div className="flex items-center gap-6">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-tennis-green-bg/20 pt-3">
+        <div className="flex items-center gap-4 sm:gap-6">
           <button 
             onClick={() => onLike(post.id)}
             className={`flex items-center gap-2 transition-colors ${
