@@ -1,8 +1,9 @@
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
+import { useSearchParams } from 'react-router-dom';
 import { 
   MessageSquare, 
   Search, 
@@ -28,6 +29,7 @@ export default function Messages() {
   const [selectedConversation, setSelectedConversation] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [showMobileConversation, setShowMobileConversation] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
 
   // Fetch data
   const { data: conversations, isLoading: conversationsLoading } = useConversations();
@@ -38,6 +40,17 @@ export default function Messages() {
   const { xpData, loading: xpLoading } = usePlayerXP();
   const { tokenData, loading: tokensLoading } = usePlayerTokens();
   const { playerAchievements } = usePlayerAchievements();
+
+  // Handle URL parameter for auto-selecting conversation
+  useEffect(() => {
+    const conversationParam = searchParams.get('conversation');
+    if (conversationParam && conversationParam !== selectedConversation) {
+      setSelectedConversation(conversationParam);
+      setShowMobileConversation(true);
+      // Clear the URL parameter to clean up the URL
+      setSearchParams({});
+    }
+  }, [searchParams, selectedConversation, setSearchParams]);
 
   const handleConversationSelect = (conversationId: string) => {
     setSelectedConversation(conversationId);
