@@ -35,11 +35,11 @@ export function VirtualizedLeaderboard({
 
   // Get appropriate data and loading state
   const playerData = playerQuery.leaderboard;
-  const coachData = coachQuery.getLeaderboard(filters.category || 'overall', filters.period || 'all_time').data;
+  const coachData = coachQuery.getCXPLeaderboard().data;
   
   const isLoading = userType === 'player' 
     ? playerQuery.isLoading 
-    : coachQuery.getLeaderboard(filters.category || 'overall', filters.period || 'all_time').isLoading;
+    : coachQuery.getCXPLeaderboard().isLoading;
 
   // Filter data based on filters and user type
   const filteredData = useMemo(() => {
@@ -56,7 +56,7 @@ export function VirtualizedLeaderboard({
           const playerItem = item as PlayerEntry;
           return playerItem.player_name?.toLowerCase().includes(searchLower);
         } else {
-          const coachItem = item as CoachEntry;
+          const coachItem = item as SimpleCoachLeaderboardEntry;
           return coachItem.coach_name?.toLowerCase().includes(searchLower);
         }
       });
@@ -128,13 +128,26 @@ export function VirtualizedLeaderboard({
                 );
               })
             ) : (
-              // Render coach leaderboard
+              // Render coach leaderboard - use simple coach data for now
               filteredData.map((item, index) => {
-                const coachItem = item as CoachEntry;
+                const coachItem = item as SimpleCoachLeaderboardEntry;
+                // Transform SimpleCoachLeaderboardEntry to CoachLeaderboardEntry format
+                const transformedEntry: CoachEntry = {
+                  rank_position: coachItem.rank_position,
+                  coach_id: coachItem.coach_id,
+                  coach_name: coachItem.coach_name,
+                  coach_avatar_url: coachItem.coach_avatar_url,
+                  score_value: coachItem.total_cxp_earned,
+                  metadata: { 
+                    current_level: coachItem.current_level,
+                    coaching_tier: coachItem.coaching_tier 
+                  },
+                  calculated_at: new Date().toISOString()
+                };
                 return (
                   <div key={coachItem.coach_id} className="p-2">
                     <LeaderboardEntry
-                      entry={coachItem}
+                      entry={transformedEntry}
                       leaderboardType={filters.category || 'overall'}
                       index={index}
                       currentUserRole={currentUserRole}

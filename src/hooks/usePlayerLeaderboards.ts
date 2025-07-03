@@ -74,11 +74,12 @@ export function usePlayerLeaderboards(limit: number = 50, offset: number = 0) {
     // Clean up existing channel
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
     }
 
-    // Create new subscription
+    // Create new subscription with unique channel name
     const channel = supabase
-      .channel('player_leaderboard_changes')
+      .channel(`player_leaderboard_changes_${Date.now()}`)
       .on(
         'postgres_changes',
         {
