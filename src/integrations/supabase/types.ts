@@ -719,6 +719,33 @@ export type Database = {
           },
         ]
       }
+      challenge_completions: {
+        Row: {
+          challenge_id: string
+          completed_at: string
+          completion_date: string
+          id: string
+          player_id: string
+          tokens_earned: number
+        }
+        Insert: {
+          challenge_id: string
+          completed_at?: string
+          completion_date?: string
+          id?: string
+          player_id: string
+          tokens_earned?: number
+        }
+        Update: {
+          challenge_id?: string
+          completed_at?: string
+          completion_date?: string
+          id?: string
+          player_id?: string
+          tokens_earned?: number
+        }
+        Relationships: []
+      }
       challenges: {
         Row: {
           accepted_at: string | null
@@ -2381,6 +2408,51 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      daily_challenges: {
+        Row: {
+          action_text: string
+          challenge_id: string
+          challenge_type: string
+          content: string
+          created_at: string
+          day_of_week: number
+          description: string
+          id: string
+          is_active: boolean
+          title: string
+          tokens_reward: number
+          updated_at: string
+        }
+        Insert: {
+          action_text: string
+          challenge_id: string
+          challenge_type: string
+          content: string
+          created_at?: string
+          day_of_week: number
+          description: string
+          id?: string
+          is_active?: boolean
+          title: string
+          tokens_reward?: number
+          updated_at?: string
+        }
+        Update: {
+          action_text?: string
+          challenge_id?: string
+          challenge_type?: string
+          content?: string
+          created_at?: string
+          day_of_week?: number
+          description?: string
+          id?: string
+          is_active?: boolean
+          title?: string
+          tokens_reward?: number
+          updated_at?: string
+        }
+        Relationships: []
       }
       feed_comments: {
         Row: {
@@ -4743,6 +4815,10 @@ export type Database = {
         Args: { user_id: string; starting_level?: number }
         Returns: undefined
       }
+      complete_daily_challenge: {
+        Args: { challenge_id_param: string }
+        Returns: Json
+      }
       complete_meditation_session: {
         Args:
           | {
@@ -5242,6 +5318,10 @@ export type Database = {
       get_proj4_from_srid: {
         Args: { "": number }
         Returns: string
+      }
+      get_todays_challenge: {
+        Args: Record<PropertyKey, never>
+        Returns: Json
       }
       get_upcoming_appointments: {
         Args: { user_id?: string; days_ahead?: number }
