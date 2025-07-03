@@ -12,12 +12,14 @@ interface PlayerLeaderboardProps {
   maxEntries?: number;
   showFilters?: boolean;
   compact?: boolean;
+  mobileOptimized?: boolean;
 }
 
 export function PlayerLeaderboard({ 
   maxEntries = 50,
   showFilters = true,
-  compact = false
+  compact = false,
+  mobileOptimized = false
 }: PlayerLeaderboardProps) {
   const { user } = useAuth();
   const [limit, setLimit] = useState(maxEntries);
@@ -68,15 +70,15 @@ export function PlayerLeaderboard({
               Top players ranked by level and total XP earned
             </CardDescription>
           </CardHeader>
-          {showFilters && (
-            <CardContent className="p-4">
-              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
-                <div className="flex items-center gap-3">
+           {showFilters && (
+            <CardContent className="p-3 sm:p-4">
+              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+                <div className="flex items-center gap-3 w-full sm:w-auto">
                   <Select value={limit.toString()} onValueChange={(value) => setLimit(parseInt(value))}>
-                    <SelectTrigger className="w-32">
+                    <SelectTrigger className="w-full sm:w-32 h-10">
                       <SelectValue />
                     </SelectTrigger>
-                    <SelectContent>
+                    <SelectContent className="bg-white border shadow-md">
                       <SelectItem value="25">Top 25</SelectItem>
                       <SelectItem value="50">Top 50</SelectItem>
                       <SelectItem value="100">Top 100</SelectItem>
@@ -88,6 +90,7 @@ export function PlayerLeaderboard({
                   disabled={isLoading}
                   size="sm"
                   variant="outline"
+                  className="w-full sm:w-auto h-10"
                 >
                   {isLoading ? (
                     <>
@@ -116,7 +119,7 @@ export function PlayerLeaderboard({
             </CardTitle>
           </CardHeader>
         )}
-        <CardContent className={compact ? "p-4" : "p-6"}>
+        <CardContent className={compact ? "p-3 sm:p-4" : "p-4 sm:p-6"}>
           {isLoading ? (
             <div className="space-y-3">
               {[1, 2, 3, 4, 5].map((i) => (
@@ -140,23 +143,24 @@ export function PlayerLeaderboard({
             </div>
           ) : (
             <>
-              <div className="space-y-4">
+              <div className="space-y-2 sm:space-y-4">
                 {leaderboard.map((entry, index) => (
                   <PlayerLeaderboardEntry
                     key={entry.player_id}
                     entry={entry}
                     index={index}
                     currentUserRole={currentUserRole}
+                    mobileOptimized={mobileOptimized}
                   />
                 ))}
               </div>
               
               {!showMore && leaderboard.length >= limit && (
-                <div className="mt-6 text-center">
+                <div className="mt-4 sm:mt-6 text-center">
                   <Button
                     onClick={handleLoadMore}
                     variant="outline"
-                    className="border-tennis-green-light text-tennis-green-dark hover:bg-tennis-green-bg"
+                    className="border-tennis-green-light text-tennis-green-dark hover:bg-tennis-green-bg w-full sm:w-auto h-11"
                   >
                     <ChevronDown className="mr-2 h-4 w-4" />
                     Load More Players

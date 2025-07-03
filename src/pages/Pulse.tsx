@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlayerLeaderboard, CoachLeaderboard } from '@/components/leaderboards';
-import { LeaderboardActivityFeed } from '@/components/leaderboards/LeaderboardActivityFeed';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useAuth } from '@/hooks/useAuth';
 import { 
@@ -56,7 +55,7 @@ const Pulse = () => {
 
   return (
     <div className="min-h-screen bg-tennis-green-bg">
-      <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
+      <div className="p-2 sm:p-4 max-w-6xl mx-auto space-y-4 sm:space-y-6">
         {/* Header Section */}
         <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
           <CardHeader>
@@ -79,27 +78,27 @@ const Pulse = () => {
 
         {/* Condensed Activity Intelligence Widget */}
         <Card className="bg-gradient-to-r from-white to-tennis-green-subtle border-tennis-green-light shadow-md backdrop-blur-sm">
-          <CardContent className="p-4">
-            <div className="flex items-center justify-between">
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
               <div className="flex items-center gap-3">
                 <div className="p-2 rounded-lg bg-gradient-to-br from-tennis-green-primary to-tennis-green-accent text-white shadow-md">
                   <Activity className="h-4 w-4" />
                 </div>
                 <div>
-                  <span className="orbitron-heading font-bold text-tennis-green-dark text-heading-sm">
+                  <span className="orbitron-heading font-bold text-tennis-green-dark text-sm sm:text-base">
                     Tennis Energy
                   </span>
-                  <p className="poppins-body text-tennis-green-medium text-body-sm">
+                  <p className="poppins-body text-tennis-green-medium text-xs sm:text-sm">
                     Current player status
                   </p>
                 </div>
               </div>
               
-              <div className="flex items-center gap-2 bg-white/90 rounded-lg px-4 py-2 shadow-sm border border-tennis-green-light backdrop-blur-sm">
+              <div className="flex items-center gap-2 bg-white/90 rounded-lg px-3 py-2 shadow-sm border border-tennis-green-light backdrop-blur-sm w-full sm:w-auto">
                 <Sparkles className="h-4 w-4 text-tennis-yellow-dark" />
-                <div className="text-right">
-                  <div className="text-caption text-tennis-green-medium">Energy Level</div>
-                  <div className={`font-bold text-body-sm ${activityIntelligence.energyColor}`}>
+                <div className="text-left sm:text-right">
+                  <div className="text-xs text-tennis-green-medium">Energy Level</div>
+                  <div className={`font-bold text-sm ${activityIntelligence.energyColor}`}>
                     {activityIntelligence.energyLevel} ({activityIntelligence.hpPercentage}%)
                   </div>
                 </div>
@@ -108,48 +107,50 @@ const Pulse = () => {
           </CardContent>
         </Card>
 
-        {/* Main Leaderboard Layout */}
-        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
-          {/* Leaderboards - Takes up 3/4 of the space */}
-          <div className="lg:col-span-3">
-            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-              <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
-                <CardContent className="p-4">
-                  <TabsList className="grid w-full grid-cols-2 bg-tennis-green-bg/20">
-                    <TabsTrigger value="players" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
-                      <Users className="h-4 w-4" />
-                      Players
-                    </TabsTrigger>
-                    <TabsTrigger value="coaches" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
-                      <Trophy className="h-4 w-4" />
-                      Coaches
-                    </TabsTrigger>
-                  </TabsList>
-                </CardContent>
-              </Card>
+        {/* Mobile-Optimized Leaderboard Layout */}
+        <div className="w-full">
+          <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-4">
+            {/* Mobile-First Tab Navigation */}
+            <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
+              <CardContent className="p-3 sm:p-4">
+                <TabsList className="grid w-full grid-cols-2 bg-tennis-green-bg/20 h-12">
+                  <TabsTrigger 
+                    value="players" 
+                    className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark text-sm font-medium h-10"
+                  >
+                    <Users className="h-4 w-4" />
+                    <span className="hidden sm:inline">Players</span>
+                    <span className="sm:hidden">Players</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="coaches" 
+                    className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark text-sm font-medium h-10"
+                  >
+                    <Trophy className="h-4 w-4" />
+                    <span className="hidden sm:inline">Coaches</span>
+                    <span className="sm:hidden">Coaches</span>
+                  </TabsTrigger>
+                </TabsList>
+              </CardContent>
+            </Card>
 
-              <TabsContent value="players">
-                <PlayerLeaderboard 
-                  key={`players-${refreshKey}`}
-                  maxEntries={50}
-                  showFilters={true}
-                  compact={false}
-                />
-              </TabsContent>
+            <TabsContent value="players" className="mt-4">
+              <PlayerLeaderboard 
+                key={`players-${refreshKey}`}
+                maxEntries={50}
+                showFilters={true}
+                compact={false}
+                mobileOptimized={true}
+              />
+            </TabsContent>
 
-              <TabsContent value="coaches">
-                <CoachLeaderboard 
-                  key={`coaches-${refreshKey}`}
-                  maxEntries={50}
-                />
-              </TabsContent>
-            </Tabs>
-          </div>
-
-          {/* Social Activity Feed - Takes up 1/4 of the space */}
-          <div className="lg:col-span-1">
-            <LeaderboardActivityFeed key={`feed-${refreshKey}`} maxItems={8} />
-          </div>
+            <TabsContent value="coaches" className="mt-4">
+              <CoachLeaderboard 
+                key={`coaches-${refreshKey}`}
+                maxEntries={50}
+              />
+            </TabsContent>
+          </Tabs>
         </div>
       </div>
     </div>
