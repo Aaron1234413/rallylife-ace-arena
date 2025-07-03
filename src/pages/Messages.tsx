@@ -11,17 +11,10 @@ import {
 } from 'lucide-react';
 import { useConversations } from '@/hooks/useConversations';
 import { useMessages } from '@/hooks/useMessages';
-import { usePlayerHP } from '@/hooks/usePlayerHP';
-import { usePlayerXP } from '@/hooks/usePlayerXP';
-import { usePlayerTokens } from '@/hooks/usePlayerTokens';
-import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
 import { ConversationList } from '@/components/messages/ConversationList';
 import { ConversationHeader } from '@/components/messages/ConversationHeader';
 import { MessageList } from '@/components/messages/MessageList';
 import { MessageComposer } from '@/components/messages/MessageComposer';
-import { PlayerStatusCard } from '@/components/messages/PlayerStatusCard';
-import { ChallengeCard } from '@/components/messages/ChallengeCard';
-import { AchievementShareCard } from '@/components/messages/AchievementShareCard';
 import { NewConversationDialog } from '@/components/messages/NewConversationDialog';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 
@@ -34,12 +27,6 @@ export default function Messages() {
   // Fetch data
   const { data: conversations, isLoading: conversationsLoading } = useConversations();
   const { messages, loading: messagesLoading, sendMessage, sending } = useMessages(selectedConversation);
-  
-  // Player data for sidebar
-  const { hpData, loading: hpLoading } = usePlayerHP();
-  const { xpData, loading: xpLoading } = usePlayerXP();
-  const { tokenData, loading: tokensLoading } = usePlayerTokens();
-  const { playerAchievements } = usePlayerAchievements();
 
   // Handle URL parameter for auto-selecting conversation
   useEffect(() => {
@@ -157,41 +144,6 @@ export default function Messages() {
               )}
             </div>
 
-            {/* Right Sidebar - Enhanced for coach features */}
-            {selectedConversation && (
-              <div className="hidden lg:block w-80 border-l border-tennis-green-bg/20 bg-tennis-green-bg/5">
-                <ScrollArea className="h-full">
-                  <div className="p-4 space-y-4">
-                    {/* Quick Actions Header */}
-                    <Card className="bg-white/80 backdrop-blur-sm border-tennis-green-bg/30">
-                      <CardHeader className="pb-3">
-                        <CardTitle className="text-sm font-medium text-tennis-green-dark">
-                          Quick Actions
-                        </CardTitle>
-                      </CardHeader>
-                    </Card>
-                    
-                    <PlayerStatusCard
-                      hpData={hpData}
-                      xpData={xpData}
-                      tokenData={tokenData}
-                      loading={hpLoading || xpLoading || tokensLoading}
-                    />
-                    
-                    <ChallengeCard
-                      otherUserId={otherParticipant?.id}
-                      conversationId={selectedConversation}
-                      tokenData={tokenData}
-                    />
-                    
-                    <AchievementShareCard
-                      achievements={playerAchievements}
-                      conversationId={selectedConversation}
-                    />
-                  </div>
-                </ScrollArea>
-              </div>
-            )}
           </div>
         </div>
       </div>

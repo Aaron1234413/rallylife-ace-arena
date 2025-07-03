@@ -6963,10 +6963,6 @@ export type Database = {
         }
         Returns: string
       }
-      user_can_access_conversation: {
-        Args: { conversation_id_param: string; user_id_param: string }
-        Returns: boolean
-      }
       user_has_conversation_access: {
         Args: { conversation_id_param: string; user_id_param: string }
         Returns: boolean
