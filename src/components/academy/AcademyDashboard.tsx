@@ -15,6 +15,8 @@ import { AcademyTokenDisplay } from './AcademyTokenDisplay';
 import { DailyCheckIn } from './DailyCheckIn';
 import { AcademyMilestones } from './AcademyMilestones';
 import { KnowledgePointsDisplay } from './KnowledgePointsDisplay';
+import { TennisFactCard } from './TennisFactCard';
+import { getTodaysTopic, getUpcomingTopics } from '@/utils/TopicRotationSystem';
 import { AcademyProgress } from '@/hooks/useAcademyProgressDB';
 
 interface AcademyDashboardProps {
@@ -36,6 +38,8 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   const consecutiveCheckIns = (progress as any).consecutive_check_ins || 0;
   const knowledgePoints = (progress as any).knowledge_points || 0;
   const knowledgeLevel = (progress as any).knowledge_level || 1;
+  const todaysTopic = getTodaysTopic();
+  const upcomingTopics = getUpcomingTopics(3);
   const handleCheckInComplete = () => {
     // Refresh the component to reflect new data
     setRefreshKey(prev => prev + 1);
@@ -158,13 +162,11 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-6">
               <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
-                <Target className="h-8 w-8 text-white" />
+                <span className="text-4xl">{todaysTopic.icon}</span>
               </div>
               <div>
-                <h3 className="text-2xl font-bold text-white mb-2">Daily Tennis Quiz</h3>
-                <p className="text-white/90 mb-2">
-                  5 questions • 3 minutes • Earn tokens & XP
-                </p>
+                <h3 className="text-2xl font-bold text-white mb-1">Daily Tennis Quiz</h3>
+                <p className="text-white/90 mb-2">{todaysTopic.name}</p>
                 <div className="flex items-center gap-3">
                   <Badge className="bg-white/20 text-white border-white/30">
                     <Coins className="h-3 w-3 mr-1" />
@@ -172,6 +174,9 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                   </Badge>
                   <Badge className="bg-white/20 text-white border-white/30">
                     +50 XP
+                  </Badge>
+                  <Badge className="bg-white/20 text-white border-white/30">
+                    Today's Topic
                   </Badge>
                 </div>
               </div>
@@ -197,6 +202,25 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
           </div>
         </CardContent>
       </Card>
+
+      {/* Upcoming Topics Preview */}
+      <Card className="bg-white/70 border-tennis-green-light/30">
+        <CardContent className="p-4">
+          <h4 className="text-sm font-semibold text-tennis-green-dark mb-3">This Week's Topics</h4>
+          <div className="grid grid-cols-3 gap-4">
+            {upcomingTopics.map((item, index) => (
+              <div key={index} className="text-center p-3 bg-white/80 rounded-lg border border-tennis-green-light/20">
+                <div className="text-2xl mb-1">{item.topic.icon}</div>
+                <div className="text-xs font-medium text-tennis-green-dark">{item.day}</div>
+                <div className="text-xs text-tennis-green-medium truncate">{item.topic.name}</div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Tennis Fact of the Day */}
+      <TennisFactCard />
 
       {/* Today's Summary */}
       <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20">

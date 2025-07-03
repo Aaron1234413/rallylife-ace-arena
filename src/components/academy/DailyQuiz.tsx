@@ -15,53 +15,23 @@ import {
 } from 'lucide-react';
 import { QuizInterface, QuizQuestion } from './QuizInterface';
 import { useQuizEngine } from '@/hooks/useQuizEngine';
+import { getTodaysTopic, DAILY_TOPICS } from '@/utils/TopicRotationSystem';
 
 interface DailyDrillProps {
   onBack: () => void;
 }
 
-const DRILL_TOPICS = [
-  {
-    id: 'serve-rules',
-    name: 'Serving Rules',
-    description: 'Master the rules and techniques of serving',
-    questions: 5,
-    difficulty: 'Easy',
-    focus: 'Rules & Technique',
-    icon: Target,
-    color: 'blue'
-  },
-  {
-    id: 'court-positioning',
-    name: 'Court Positioning',
-    description: 'Learn optimal positioning for different shots',
-    questions: 5,
-    difficulty: 'Medium',
-    focus: 'Strategy & Tactics',
-    icon: Brain,
-    color: 'green'
-  },
-  {
-    id: 'scoring-scenarios',
-    name: 'Scoring Scenarios',
-    description: 'Practice complex scoring situations',
-    questions: 5,
-    difficulty: 'Medium',
-    focus: 'Scoring & Rules',
-    icon: Trophy,
-    color: 'yellow'
-  },
-  {
-    id: 'equipment-basics',
-    name: 'Equipment Essentials',
-    description: 'Key knowledge about tennis equipment',
-    questions: 5,
-    difficulty: 'Easy',
-    focus: 'Equipment & Gear',
-    icon: Star,
-    color: 'purple'
-  }
-];
+// Convert daily topics to drill format for compatibility
+const DRILL_TOPICS = DAILY_TOPICS.map(topic => ({
+  id: topic.id,
+  name: topic.name,
+  description: topic.description,
+  questions: 5,
+  difficulty: 'Mixed',
+  focus: 'Daily Topic',
+  icon: Target, // Default icon component
+  color: topic.color
+}));
 
 export const DailyQuiz: React.FC<DailyDrillProps> = ({ onBack }) => {
   const [selectedDrill, setSelectedDrill] = useState<string | null>(null);
@@ -114,7 +84,8 @@ export const DailyQuiz: React.FC<DailyDrillProps> = ({ onBack }) => {
     );
   }
 
-  const todaysDrill = DRILL_TOPICS[new Date().getDate() % DRILL_TOPICS.length];
+  const todaysTopic = getTodaysTopic();
+  const todaysDrill = DRILL_TOPICS.find(d => d.id === todaysTopic.id) || DRILL_TOPICS[0];
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-yellow-50 to-orange-50 p-4">
