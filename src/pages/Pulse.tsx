@@ -1,4 +1,3 @@
-
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
@@ -253,6 +252,8 @@ const Pulse = () => {
                   size="sm"
                   onClick={() => setLeaderboardView('tabbed')}
                   className="text-sm"
+                >
+                  Tabbed
                 </Button>
               </div>
             </CardContent>
