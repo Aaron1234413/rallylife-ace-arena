@@ -128,7 +128,7 @@ export const TennisFactCard: React.FC<TennisFactCardProps> = ({ className = '' }
   };
 
   return (
-    <Card className={`bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-200 ${className}`}>
+    <Card className={`bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-200 hover-scale transition-all duration-300 animate-fade-in ${className}`}>
       <CardHeader className="pb-3">
         <div className="flex items-center justify-between">
           <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
@@ -150,8 +150,8 @@ export const TennisFactCard: React.FC<TennisFactCardProps> = ({ className = '' }
       
       <CardContent className="space-y-4">
         {/* Main Fact */}
-        <div className="bg-white/80 rounded-lg p-4 border border-orange-100">
-          <p className="text-tennis-green-dark leading-relaxed font-medium">
+        <div className="bg-white/80 rounded-lg p-4 border border-orange-100 animate-fade-in">
+          <p className="text-tennis-green-dark leading-relaxed font-medium transition-all duration-300">
             {currentFact.fact}
           </p>
         </div>
@@ -168,7 +168,7 @@ export const TennisFactCard: React.FC<TennisFactCardProps> = ({ className = '' }
               variant="outline"
               size="sm"
               onClick={handleShare}
-              className="text-tennis-green-dark border-orange-200 hover:bg-orange-50"
+              className="text-tennis-green-dark border-orange-200 hover:bg-orange-50 hover-scale transition-all duration-200"
             >
               <Share2 className="h-4 w-4 mr-1" />
               Share
@@ -178,7 +178,7 @@ export const TennisFactCard: React.FC<TennisFactCardProps> = ({ className = '' }
               variant="outline"
               size="sm"
               onClick={handleNextFact}
-              className="text-tennis-green-dark border-orange-200 hover:bg-orange-50"
+              className="text-tennis-green-dark border-orange-200 hover:bg-orange-50 hover-scale transition-all duration-200"
             >
               <RefreshCw className="h-4 w-4 mr-1" />
               Next Fact

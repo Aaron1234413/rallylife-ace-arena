@@ -87,14 +87,14 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
   const totalTokens = baseTokens + bonusTokens;
 
   return (
-    <Card className="relative overflow-hidden bg-gradient-to-r from-green-50 to-blue-50 border-green-200">
+    <Card className="relative overflow-hidden bg-gradient-to-r from-green-50 to-blue-50 border-green-200 hover-scale transition-all duration-300">
       {/* Celebration Animation Overlay */}
       {showAnimation && (
-        <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center z-10 animate-pulse">
-          <div className="text-center text-white">
-            <div className="text-4xl mb-2">🎉</div>
+        <div className="absolute inset-0 bg-gradient-to-r from-green-400 to-blue-500 flex items-center justify-center z-10 animate-scale-in">
+          <div className="text-center text-white animate-fade-in">
+            <div className="text-4xl mb-2 animate-pulse">🎉</div>
             <div className="text-xl font-bold">Check-in Complete!</div>
-            <div className="text-sm">+{totalTokens} tokens earned</div>
+            <div className="text-sm animate-fade-in">+{totalTokens} tokens earned</div>
           </div>
         </div>
       )}
@@ -180,10 +180,10 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
           <Button
             onClick={handleCheckIn}
             disabled={hasCheckedInToday || isCheckingIn}
-            className={`w-full ${
+            className={`w-full transition-all duration-300 ${
               hasCheckedInToday 
-                ? 'bg-green-600 hover:bg-green-600' 
-                : 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600'
+                ? 'bg-green-600 hover:bg-green-600 animate-scale-in' 
+                : 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 hover-scale'
             } text-white font-semibold py-3`}
           >
             {isCheckingIn ? (
@@ -193,7 +193,7 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
               </>
             ) : hasCheckedInToday ? (
               <>
-                <CheckCircle className="h-4 w-4 mr-2" />
+                <CheckCircle className="h-4 w-4 mr-2 animate-scale-in" />
                 Checked in today!
               </>
             ) : (
