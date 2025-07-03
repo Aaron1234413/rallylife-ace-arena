@@ -104,32 +104,32 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
   };
 
   return (
-    <div className="border border-tennis-green-bg/30 rounded-lg p-4 hover:bg-tennis-green-subtle/50 transition-colors bg-white/95 backdrop-blur-sm shadow-sm">
+    <div className="border rounded-lg p-4 hover:bg-tennis-green-subtle/50 transition-colors">
       {/* Header with user info */}
-      <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 mb-3">
-        <div className="flex items-center gap-3 flex-1">
-          <Avatar className="w-10 h-10 flex-shrink-0">
+      <div className="flex items-start justify-between mb-2">
+        <div className="flex items-center gap-3">
+          <Avatar className="w-8 h-8">
             <AvatarImage src={post.user.avatar_url} />
-            <AvatarFallback className="bg-tennis-green-medium text-white text-sm">
+            <AvatarFallback className="bg-tennis-green-medium text-white text-xs">
               {post.user.full_name?.charAt(0) || 'U'}
             </AvatarFallback>
           </Avatar>
-          <div className="min-w-0 flex-1">
-            <h3 className="font-medium text-tennis-green-dark truncate">{post.user.full_name}</h3>
-            <p className="text-sm text-tennis-green-dark/70">{getPostDescription()}</p>
+          <div>
+            <h3 className="font-medium text-sm">{post.user.full_name}</h3>
+            <p className="text-xs text-tennis-green-dark/70">{getPostDescription()}</p>
           </div>
         </div>
         
-        <div className={`p-2 rounded-full flex-shrink-0 ${postColorClass}`}>
-          <PostIcon className="h-4 w-4" />
+        <div className={`p-1.5 rounded-full flex-shrink-0 ${postColorClass}`}>
+          <PostIcon className="h-3 w-3" />
         </div>
       </div>
 
       {/* Activity content */}
-      <div className="mb-3">
-        <div className="flex items-center gap-2 mb-2">
-          <h4 className="font-medium text-tennis-green-dark">{post.content.title || getPostDescription()}</h4>
-          <Badge variant="outline" className="text-xs capitalize text-tennis-green-medium border-tennis-green-bg/50">
+      <div className="mb-2">
+        <div className="flex items-center gap-2 mb-1">
+          <h4 className="font-medium text-sm">{post.content.title || getPostDescription()}</h4>
+          <Badge variant="outline" className="text-xs capitalize">
             {post.type.replace('_', ' ')}
           </Badge>
           
@@ -148,14 +148,14 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
         
         {/* Description or notes */}
         {(post.content.description || post.content.stats.notes) && (
-          <p className="text-sm text-tennis-green-dark/70 mb-2">
+          <p className="text-xs text-muted-foreground mb-2">
             {post.content.description || post.content.stats.notes}
           </p>
         )}
       </div>
 
       {/* Metadata row */}
-      <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-tennis-green-dark/60 mb-3">
+      <div className="flex flex-wrap items-center gap-4 text-xs text-muted-foreground mb-3">
         <div className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
           <span className="whitespace-nowrap">{format(new Date(post.timestamp), 'MMM d, HH:mm')}</span>
@@ -225,7 +225,7 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
       </div>
 
       {/* Rewards display */}
-      <div className="flex items-center gap-3 mb-4">
+      <div className="flex items-center gap-3">
         {post.content.stats.hp !== undefined && post.content.stats.hp !== 0 && (
           <div className={`flex items-center gap-1 text-xs ${
             post.content.stats.hp > 0 ? 'text-green-600' : 'text-red-600'
@@ -244,8 +244,8 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
       </div>
 
       {/* Action buttons */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-t border-tennis-green-bg/20 pt-3">
-        <div className="flex items-center gap-4 sm:gap-6">
+      <div className="flex items-center justify-between border-t pt-3 mt-3">
+        <div className="flex items-center gap-6">
           <button 
             onClick={() => onLike(post.id)}
             className={`flex items-center gap-2 transition-colors ${
