@@ -50,7 +50,7 @@ export function StoreSearchFilter({ onSearch, onFilterChange }: StoreSearchFilte
   const activeFiltersCount = Object.values(filters).filter(value => value !== 'all').length;
 
   return (
-    <div className="space-y-4">
+    <div className="space-y-3">
       {/* Search Bar */}
       <div className="relative">
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -58,7 +58,7 @@ export function StoreSearchFilter({ onSearch, onFilterChange }: StoreSearchFilte
           placeholder="Search store items..."
           value={searchQuery}
           onChange={(e) => handleSearch(e.target.value)}
-          className="pl-10 pr-4 bg-white/90 backdrop-blur-sm border-white/20"
+          className="pl-10 pr-4 border-gray-300 focus:border-tennis-green-primary focus:ring-tennis-green-primary"
         />
       </div>
 
@@ -68,12 +68,12 @@ export function StoreSearchFilter({ onSearch, onFilterChange }: StoreSearchFilte
           variant="outline"
           size="sm"
           onClick={() => setShowFilters(!showFilters)}
-          className="bg-white/90 backdrop-blur-sm border-white/20"
+          className="h-8 text-xs border-gray-300 hover:border-tennis-green-primary hover:text-tennis-green-primary"
         >
-          <SlidersHorizontal className="h-4 w-4 mr-2" />
+          <SlidersHorizontal className="h-3 w-3 mr-1" />
           Filters
           {activeFiltersCount > 0 && (
-            <Badge variant="secondary" className="ml-2 bg-tennis-green-primary text-white">
+            <Badge variant="secondary" className="ml-1 h-4 w-4 p-0 bg-tennis-green-primary text-white text-xs flex items-center justify-center">
               {activeFiltersCount}
             </Badge>
           )}
@@ -84,9 +84,9 @@ export function StoreSearchFilter({ onSearch, onFilterChange }: StoreSearchFilte
             variant="ghost"
             size="sm"
             onClick={clearFilters}
-            className="text-gray-500 hover:text-gray-700"
+            className="h-8 text-xs text-gray-500 hover:text-gray-700"
           >
-            <X className="h-4 w-4 mr-1" />
+            <X className="h-3 w-3 mr-1" />
             Clear
           </Button>
         )}
