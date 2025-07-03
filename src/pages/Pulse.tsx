@@ -1,29 +1,32 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Button } from '@/components/ui/button';
 import { PlayerLeaderboard, CoachLeaderboard } from '@/components/leaderboards';
 import { LeaderboardActivityFeed } from '@/components/leaderboards/LeaderboardActivityFeed';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   Bolt, 
-  Clock, 
-  TrendingUp, 
   Sparkles, 
-  AlertTriangle,
   Users,
   Trophy,
-  RefreshCw,
   Zap,
   Activity
 } from 'lucide-react';
 
 const Pulse = () => {
   const { user } = useAuth();
-  const [leaderboardView, setLeaderboardView] = useState<'split' | 'tabbed' | 'unified'>('split');
   const [activeTab, setActiveTab] = useState('players');
-  const [lastRefresh, setLastRefresh] = useState(Date.now());
+  const [refreshKey, setRefreshKey] = useState(Date.now());
+  
+  // Auto-refresh every minute
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setRefreshKey(Date.now());
+    }, 60000); // 60 seconds
+
+    return () => clearInterval(interval);
+  }, []);
   
   // Fetch HP data for energy level
   const { hpData } = usePlayerHP();
@@ -51,85 +54,6 @@ const Pulse = () => {
 
   const activityIntelligence = getCondensedActivityIntelligence();
 
-  const handleRefreshAll = () => {
-    setLastRefresh(Date.now());
-  };
-
-  const renderLeaderboardLayout = () => {
-    if (leaderboardView === 'split') {
-      return (
-        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-          <div>
-            <PlayerLeaderboard 
-              maxEntries={50}
-              showFilters={true}
-              compact={false}
-            />
-          </div>
-          <div>
-            <CoachLeaderboard 
-              maxEntries={50}
-            />
-          </div>
-        </div>
-      );
-    }
-
-    if (leaderboardView === 'tabbed') {
-      return (
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
-          <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
-            <CardContent className="p-4">
-              <TabsList className="grid w-full grid-cols-2 bg-tennis-green-bg/20">
-                <TabsTrigger value="players" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
-                  <Users className="h-4 w-4" />
-                  Players
-                </TabsTrigger>
-                <TabsTrigger value="coaches" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
-                  <Trophy className="h-4 w-4" />
-                  Coaches
-                </TabsTrigger>
-              </TabsList>
-            </CardContent>
-          </Card>
-
-          <TabsContent value="players">
-            <PlayerLeaderboard 
-              maxEntries={50}
-              showFilters={true}
-              compact={false}
-            />
-          </TabsContent>
-
-          <TabsContent value="coaches">
-            <CoachLeaderboard 
-              maxEntries={50}
-            />
-          </TabsContent>
-        </Tabs>
-      );
-    }
-
-    // Unified view would be implemented here in the future
-    // For now, default to split view
-    return (
-      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
-        <div>
-          <PlayerLeaderboard 
-            maxEntries={50}
-            showFilters={true}
-            compact={false}
-          />
-        </div>
-        <div>
-          <CoachLeaderboard 
-            maxEntries={50}
-          />
-        </div>
-      </div>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-tennis-green-bg">
       <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
@@ -146,39 +70,8 @@ const Pulse = () => {
                   <Zap className="h-5 w-5 text-tennis-yellow-dark" />
                 </CardTitle>
                 <p className="poppins-body text-body text-tennis-green-medium mt-1">
-                  Live leaderboards and community activity
+                  Live leaderboards and community activity • Auto-refreshes every minute
                 </p>
-              </div>
-              
-              <div className="flex items-center gap-4">
-                {/* Layout Toggle Buttons */}
-                <div className="hidden md:flex items-center gap-2 p-1 bg-tennis-green-bg/20 rounded-lg">
-                  <Button
-                    variant={leaderboardView === 'split' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setLeaderboardView('split')}
-                    className="text-xs"
-                  >
-                    Split View
-                  </Button>
-                  <Button
-                    variant={leaderboardView === 'tabbed' ? 'default' : 'ghost'}
-                    size="sm"
-                    onClick={() => setLeaderboardView('tabbed')}
-                    className="text-xs"
-                  >
-                    Tabbed
-                  </Button>
-                </div>
-                
-                <Button
-                  onClick={handleRefreshAll}
-                  variant="ghost"
-                  size="sm"
-                  className="text-tennis-green-medium hover:text-tennis-green-dark"
-                >
-                  <RefreshCw className="h-4 w-4" />
-                </Button>
               </div>
             </div>
           </CardHeader>
@@ -219,39 +112,44 @@ const Pulse = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
           {/* Leaderboards - Takes up 3/4 of the space */}
           <div className="lg:col-span-3">
-            {renderLeaderboardLayout()}
+            <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+              <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
+                <CardContent className="p-4">
+                  <TabsList className="grid w-full grid-cols-2 bg-tennis-green-bg/20">
+                    <TabsTrigger value="players" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
+                      <Users className="h-4 w-4" />
+                      Players
+                    </TabsTrigger>
+                    <TabsTrigger value="coaches" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
+                      <Trophy className="h-4 w-4" />
+                      Coaches
+                    </TabsTrigger>
+                  </TabsList>
+                </CardContent>
+              </Card>
+
+              <TabsContent value="players">
+                <PlayerLeaderboard 
+                  key={`players-${refreshKey}`}
+                  maxEntries={50}
+                  showFilters={true}
+                  compact={false}
+                />
+              </TabsContent>
+
+              <TabsContent value="coaches">
+                <CoachLeaderboard 
+                  key={`coaches-${refreshKey}`}
+                  maxEntries={50}
+                />
+              </TabsContent>
+            </Tabs>
           </div>
 
           {/* Social Activity Feed - Takes up 1/4 of the space */}
           <div className="lg:col-span-1">
-            <LeaderboardActivityFeed maxItems={8} />
+            <LeaderboardActivityFeed key={`feed-${refreshKey}`} maxItems={8} />
           </div>
-        </div>
-
-        {/* Mobile Layout Toggle */}
-        <div className="md:hidden">
-          <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
-            <CardContent className="p-4">
-              <div className="grid grid-cols-2 gap-2">
-                <Button
-                  variant={leaderboardView === 'split' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setLeaderboardView('split')}
-                  className="text-sm"
-                >
-                  Split View
-                </Button>
-                <Button
-                  variant={leaderboardView === 'tabbed' ? 'default' : 'outline'}
-                  size="sm"
-                  onClick={() => setLeaderboardView('tabbed')}
-                  className="text-sm"
-                >
-                  Tabbed
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
         </div>
       </div>
     </div>
