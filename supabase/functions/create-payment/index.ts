@@ -65,8 +65,8 @@ serve(async (req) => {
         },
       ],
       mode: "payment",
-      success_url: `${req.headers.get("origin")}/store?payment=success&item=${itemId}&tokens=${tokensToUse}`,
-      cancel_url: `${req.headers.get("origin")}/store?payment=canceled`,
+      success_url: `${req.headers.get("origin")}/dashboard?payment=success&promo=true`,
+      cancel_url: `${req.headers.get("origin")}/payment-gate?payment=canceled`,
       metadata: {
         itemId,
         userId: user.id,
