@@ -84,10 +84,10 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
   const canAffordWithTokens = tokensOnlyOption?.canAfford || false;
   
   return (
-    <Card className={`group relative transition-all duration-300 hover:shadow-lg border-gray-200 bg-white h-full flex flex-col hover:scale-105 hover:border-tennis-green-primary/30 ${isExpanded ? 'ring-1 ring-tennis-green-primary shadow-sm' : ''}`}>
-      {/* Green glow effect on hover */}
-      <div className="absolute inset-0 bg-gradient-to-br from-tennis-green-primary/10 to-tennis-green-dark/10 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
-      <div className="absolute inset-0 bg-tennis-green-primary/5 rounded-lg blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+    <Card className={`group relative transition-all duration-300 hover:shadow-lg border-gray-200 bg-white h-full flex flex-col hover:scale-105 hover:border-amber-400/40 ${isExpanded ? 'ring-1 ring-tennis-green-primary shadow-sm' : ''}`}>
+      {/* Golden glow effect on hover */}
+      <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/15 to-amber-500/15 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
+      <div className="absolute inset-0 bg-amber-400/10 rounded-lg blur-xl opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"></div>
       <CardContent className="p-3 flex-1 flex flex-col">
         {/* Main Item Display */}
         <div className="flex items-start gap-3 mb-3 flex-1">
