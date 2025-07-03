@@ -4815,6 +4815,15 @@ export type Database = {
         Args: { user_id: string; starting_level?: number }
         Returns: undefined
       }
+      complete_academy_quiz: {
+        Args: {
+          user_id_param: string
+          correct_answers: number
+          total_questions?: number
+          player_level?: number
+        }
+        Returns: Json
+      }
       complete_daily_challenge: {
         Args: { challenge_id_param: string }
         Returns: Json
@@ -5318,6 +5327,10 @@ export type Database = {
       get_proj4_from_srid: {
         Args: { "": number }
         Returns: string
+      }
+      get_quiz_difficulty_for_level: {
+        Args: { player_level: number }
+        Returns: string[]
       }
       get_todays_challenge: {
         Args: Record<PropertyKey, never>
@@ -6858,6 +6871,10 @@ export type Database = {
       st_zmin: {
         Args: { "": unknown }
         Returns: number
+      }
+      start_academy_quiz: {
+        Args: { user_id_param: string; topic_id?: string }
+        Returns: Json
       }
       start_session: {
         Args: { session_id_param: string; starter_id_param: string }
