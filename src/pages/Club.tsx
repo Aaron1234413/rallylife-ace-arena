@@ -164,24 +164,17 @@ export default function Club() {
                   </div>
                 </div>
 
-                {/* Club Info Row */}
-                <div className="flex items-center gap-6 text-gray-600 border-t border-gray-100 pt-4">
-                  <div className="flex items-center gap-2">
+                {/* Club Info and Description */}
+                <div className="space-y-3 border-t border-gray-100 pt-3">
+                  <div className="flex items-center gap-2 text-gray-600">
                     <Users className="h-4 w-4" />
                     <span className="font-medium">{club.member_count} members</span>
                   </div>
-                  <div className="flex items-center gap-2 text-sm">
-                    <Calendar className="h-4 w-4" />
-                    <span>Created {formatDistanceToNow(new Date(club.created_at), { addSuffix: true })}</span>
-                  </div>
-                </div>
-
-                {/* Description */}
-                {club.description && (
-                  <div className="border-t border-gray-100 pt-4">
+                  
+                  {club.description && (
                     <p className="text-gray-700 leading-relaxed">{club.description}</p>
-                  </div>
-                )}
+                  )}
+                </div>
               </div>
             </div>
           </CardContent>
