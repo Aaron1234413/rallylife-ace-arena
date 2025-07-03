@@ -199,13 +199,32 @@ const Sessions = () => {
           </CardContent>
         </Card>
 
-        {/* Sessions Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab}>
-          <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="available">Available Sessions</TabsTrigger>
-            <TabsTrigger value="my-sessions">My Sessions</TabsTrigger>
-            <TabsTrigger value="completed">Completed</TabsTrigger>
-          </TabsList>
+        {/* Mobile-Optimized Sessions Tabs */}
+        <div className="bg-white rounded-xl shadow-sm border border-tennis-green-bg/20 overflow-hidden">
+          <Tabs value={activeTab} onValueChange={setActiveTab}>
+            {/* Mobile-First Tab Navigation */}
+            <div className="overflow-x-auto scrollbar-hide">
+              <TabsList className="inline-flex h-12 sm:h-14 w-max min-w-full bg-transparent p-1 gap-0">
+                <TabsTrigger 
+                  value="available" 
+                  className="flex-1 min-w-[120px] h-10 sm:h-12 px-4 sm:px-6 text-sm sm:text-base font-medium transition-all duration-200 data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-tennis-green-light/20 text-tennis-green-dark rounded-lg mx-1"
+                >
+                  <span className="truncate">Available</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="my-sessions" 
+                  className="flex-1 min-w-[120px] h-10 sm:h-12 px-4 sm:px-6 text-sm sm:text-base font-medium transition-all duration-200 data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-tennis-green-light/20 text-tennis-green-dark rounded-lg mx-1"
+                >
+                  <span className="truncate">My Sessions</span>
+                </TabsTrigger>
+                <TabsTrigger 
+                  value="completed" 
+                  className="flex-1 min-w-[120px] h-10 sm:h-12 px-4 sm:px-6 text-sm sm:text-base font-medium transition-all duration-200 data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-tennis-green-light/20 text-tennis-green-dark rounded-lg mx-1"
+                >
+                  <span className="truncate">Completed</span>
+                </TabsTrigger>
+              </TabsList>
+            </div>
 
           <TabsContent value="available" className="mt-6">
             <SessionsList 
@@ -246,6 +265,7 @@ const Sessions = () => {
             />
           </TabsContent>
         </Tabs>
+        </div>
       </div>
     </div>
   );
