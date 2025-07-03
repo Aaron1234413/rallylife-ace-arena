@@ -29,7 +29,30 @@ export default function Landing() {
         <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
           <div className="max-w-6xl mx-auto space-y-8 md:space-y-12">
             
-            {/* Rako Network Status - Moved above main terminal */}
+            {/* Limited Time Promotional Banner */}
+            <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
+              <div className="relative overflow-hidden bg-gradient-to-r from-tennis-yellow/20 via-tennis-yellow/30 to-tennis-yellow/20 border-2 border-tennis-yellow rounded-lg p-4 md:p-6 backdrop-blur-sm shadow-[0_0_30px_rgba(255,255,155,0.3)]">
+                <div className="absolute inset-0 bg-tennis-yellow/5 animate-pulse"></div>
+                <div className="relative z-10 space-y-2">
+                  <div className="flex items-center justify-center gap-2 text-tennis-green-dark">
+                    <span className="text-xs md:text-sm font-orbitron tracking-widest uppercase font-bold animate-bounce-subtle">🎮</span>
+                    <span className="text-sm md:text-base font-orbitron tracking-wider uppercase font-bold">LIMITED TIME LAUNCH OFFER</span>
+                    <span className="text-xs md:text-sm font-orbitron tracking-widest uppercase font-bold animate-bounce-subtle">🎮</span>
+                  </div>
+                  <div className="text-lg md:text-xl lg:text-2xl font-orbitron font-bold text-tennis-green-dark">
+                    Join Today: <span className="text-tennis-green-primary">$4.99</span> One-Time Payment
+                  </div>
+                  <div className="text-xs md:text-sm text-tennis-green-medium font-poppins">
+                    Full Year Access • Usually $9.99/month • Limited Time Only
+                  </div>
+                  <div className="text-xs text-tennis-green-dark/80 font-orbitron tracking-wide uppercase">
+                    [ OFFER EXPIRES SOON - ACT NOW ]
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Rako Network Status */}
             <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
               <div className="inline-flex items-center gap-2 px-4 md:px-6 py-2 md:py-3 bg-tennis-green-dark/90 border border-tennis-green-primary/60 rounded-lg backdrop-blur-sm hover:border-tennis-green-primary transition-all duration-300 animate-glow-pulse">
                 <div className="relative">
