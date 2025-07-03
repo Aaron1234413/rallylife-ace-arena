@@ -128,49 +128,60 @@ export const TennisFactCard: React.FC<TennisFactCardProps> = ({ className = '' }
   };
 
   return (
-    <Card className={`bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-200 hover-scale transition-all duration-300 animate-fade-in ${className}`}>
-      <CardContent className="p-3">
-        {/* Horizontal layout for compact display */}
-        <div className="flex items-center gap-3">
-          {/* Icon and Title */}
-          <div className="flex items-center gap-2 flex-shrink-0">
-            <Lightbulb className="h-4 w-4 text-orange-600" />
-            <span className="font-medium text-tennis-green-dark text-sm">Tennis Fact</span>
-            <Badge className={`text-xs ${getCategoryColor(currentFact.category)}`}>
+    <Card className={`bg-gradient-to-r from-orange-50 to-yellow-50 border-orange-200 hover-scale transition-all duration-300 shadow-md ${className}`}>
+      <CardContent className="p-3 sm:p-4">
+        {/* Mobile: Stacked layout / Desktop: Horizontal */}
+        <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+          
+          {/* Header with icon, title and category */}
+          <div className="flex items-center justify-between sm:justify-start gap-2 sm:gap-3 flex-shrink-0">
+            <div className="flex items-center gap-2">
+              <div className="p-1.5 bg-orange-100 rounded-lg">
+                <Lightbulb className="h-4 w-4 sm:h-5 sm:w-5 text-orange-600" />
+              </div>
+              <span className="font-medium text-tennis-green-dark text-sm sm:text-base orbitron-heading">
+                Tennis Fact
+              </span>
+            </div>
+            <Badge className={`text-xs ${getCategoryColor(currentFact.category)} px-2 py-1`}>
               {currentFact.category}
             </Badge>
           </div>
 
-          {/* Main Fact - Takes up available space */}
-          <div className="flex-1 bg-white/80 rounded-lg px-3 py-2 border border-orange-100">
-            <p className="text-tennis-green-dark text-sm leading-relaxed">
+          {/* Main Fact - Mobile full width */}
+          <div className="flex-1 bg-white/90 rounded-lg px-3 py-3 sm:px-4 sm:py-2 border border-orange-100 shadow-sm">
+            <p className="text-tennis-green-dark text-sm sm:text-base leading-relaxed poppins-body">
               {currentFact.fact}
             </p>
           </div>
 
-          {/* Actions - Compact on the right */}
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <span className="text-xs text-tennis-green-medium mr-2">
+          {/* Actions - Mobile: Full width row / Desktop: Compact */}
+          <div className="flex items-center justify-between sm:justify-end gap-2 sm:gap-1 flex-shrink-0">
+            <span className="text-xs sm:text-sm text-tennis-green-medium bg-white/60 px-2 py-1 rounded-full">
               #{currentFactIndex + 1}/{TENNIS_FACTS.length}
             </span>
             
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleShare}
-              className="h-6 w-6 p-0 hover-scale"
-            >
-              <Share2 className="h-3 w-3" />
-            </Button>
-            
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleNextFact}
-              className="h-6 w-6 p-0 hover-scale"
-            >
-              <RefreshCw className="h-3 w-3" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleShare}
+                className="h-8 w-8 sm:h-6 sm:w-6 p-0 hover-scale bg-white/60 hover:bg-white/80"
+                title="Share fact"
+              >
+                <Share2 className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNextFact}
+                className="h-8 w-8 sm:h-6 sm:w-6 p-0 hover-scale bg-white/60 hover:bg-white/80"
+                title="Next fact"
+              >
+                <RefreshCw className="h-3 w-3 sm:h-4 sm:w-4" />
+              </Button>
+            </div>
           </div>
         </div>
       </CardContent>

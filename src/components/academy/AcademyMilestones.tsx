@@ -126,57 +126,76 @@ export const AcademyMilestones: React.FC<AcademyMilestonesProps> = ({ progress }
   const isCloseToAchieving = progressPercentage >= 70;
 
   return (
-    <Card className={`hover-scale transition-all duration-300 animate-fade-in ${
+    <Card className={`hover-scale transition-all duration-300 shadow-md ${
       isCloseToAchieving 
         ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200' 
         : 'bg-white/95 border-tennis-green-light/20'
     }`}>
-      <CardHeader className="pb-3">
-        <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-          <Award className="h-5 w-5 text-tennis-green-primary" />
+      <CardHeader className="pb-3 sm:pb-4">
+        <CardTitle className="flex items-center gap-2 sm:gap-3 text-tennis-green-dark text-lg sm:text-xl orbitron-heading">
+          <div className="p-1.5 bg-tennis-green-primary/10 rounded-lg">
+            <Award className="h-5 w-5 sm:h-6 sm:w-6 text-tennis-green-primary" />
+          </div>
           Next Milestone
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="space-y-4">
-          <div className="flex items-center gap-3">
-            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
-              isCloseToAchieving ? 'bg-blue-500 animate-pulse' : 'bg-gray-300'
+        <div className="space-y-4 sm:space-y-5">
+          {/* Milestone Header - Mobile optimized */}
+          <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+            <div className={`w-12 h-12 sm:w-14 sm:h-14 rounded-full flex items-center justify-center transition-all duration-300 shadow-lg ${
+              isCloseToAchieving ? 'bg-blue-500 animate-pulse' : 'bg-gray-400'
             }`}>
-              <Icon className="h-6 w-6 text-white" />
+              <Icon className="h-6 w-6 sm:h-7 sm:w-7 text-white" />
             </div>
-            <div className="flex-1">
-              <h4 className="font-semibold text-tennis-green-dark">{nextMilestone.name}</h4>
-              <p className="text-sm text-tennis-green-medium">{nextMilestone.description}</p>
+            <div className="flex-1 min-w-0">
+              <h4 className="font-semibold text-tennis-green-dark text-base sm:text-lg orbitron-heading">
+                {nextMilestone.name}
+              </h4>
+              <p className="text-sm sm:text-base text-tennis-green-medium poppins-body">
+                {nextMilestone.description}
+              </p>
             </div>
-            <Badge variant="outline" className="shrink-0">
+            <Badge variant="outline" className="self-start sm:self-center px-2 py-1 text-xs">
               Goal: {nextMilestone.requirement}
             </Badge>
           </div>
           
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-tennis-green-medium">Progress</span>
-              <span className="font-medium text-tennis-green-dark">
+          {/* Progress Section - Enhanced for mobile */}
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm sm:text-base">
+              <span className="text-tennis-green-medium poppins-body">Progress</span>
+              <span className="font-medium text-tennis-green-dark orbitron-heading">
                 {nextMilestone.progress} / {nextMilestone.requirement}
               </span>
             </div>
-            <Progress value={progressPercentage} className="h-3" />
-            <div className="text-center text-xs text-tennis-green-medium">
-              {Math.round(progressPercentage)}% complete
+            <Progress value={progressPercentage} className="h-3 sm:h-4" />
+            <div className="text-center text-xs sm:text-sm text-tennis-green-medium bg-white/50 rounded-lg py-2">
+              <span className="font-medium">{Math.round(progressPercentage)}% complete</span>
             </div>
           </div>
           
-          <div className="bg-tennis-green-bg rounded-lg p-3">
-            <div className="flex items-center gap-2 text-sm text-tennis-green-dark">
-              <Trophy className="h-4 w-4 text-tennis-green-primary" />
-              <span className="font-medium">Rewards:</span>
-              <span>+{nextMilestone.tokensReward} tokens, +{nextMilestone.knowledgePointsReward} KP</span>
+          {/* Rewards Section - Mobile friendly */}
+          <div className="bg-tennis-green-bg rounded-lg p-3 sm:p-4 border border-tennis-green-light/20">
+            <div className="flex flex-col sm:flex-row sm:items-center gap-2 text-sm sm:text-base text-tennis-green-dark">
+              <div className="flex items-center gap-2">
+                <Trophy className="h-4 w-4 sm:h-5 sm:w-5 text-tennis-green-primary" />
+                <span className="font-medium orbitron-heading">Rewards:</span>
+              </div>
+              <div className="flex flex-wrap gap-2 text-sm">
+                <span className="bg-yellow-100 text-yellow-800 px-2 py-1 rounded-full font-medium">
+                  +{nextMilestone.tokensReward} tokens
+                </span>
+                <span className="bg-blue-100 text-blue-800 px-2 py-1 rounded-full font-medium">
+                  +{nextMilestone.knowledgePointsReward} KP
+                </span>
+              </div>
             </div>
           </div>
 
+          {/* Motivation Message */}
           {isCloseToAchieving && (
-            <div className="text-center text-sm font-medium text-blue-700 bg-blue-50 rounded-lg p-2 animate-pulse">
+            <div className="text-center text-sm sm:text-base font-medium text-blue-700 bg-blue-50 rounded-lg p-3 border border-blue-200 animate-pulse">
               🎯 So close! Just {nextMilestone.requirement - nextMilestone.progress} more to go!
             </div>
           )}

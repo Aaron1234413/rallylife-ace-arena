@@ -50,38 +50,56 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   const currentStreak = consecutiveCheckIns;
 
   return (
-    <div className="min-h-screen bg-tennis-green-bg p-4 space-y-6 max-w-4xl mx-auto">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <div className="flex items-center justify-center gap-2 mb-4">
-          <div className="w-8 h-8 bg-tennis-green-primary rounded-full flex items-center justify-center">
-            <span className="text-white text-xl">🎾</span>
+    <div className="min-h-screen bg-tennis-green-bg">
+      {/* Mobile-optimized container */}
+      <div className="p-3 sm:p-4 lg:p-6 space-y-4 sm:space-y-6 max-w-4xl mx-auto">
+        {/* Compact Mobile Header */}
+        <div className="text-center space-y-2 sm:space-y-3">
+          <div className="flex items-center justify-center gap-2 sm:gap-3">
+            <div className="w-6 h-6 sm:w-8 sm:h-8 bg-tennis-green-primary rounded-full flex items-center justify-center shadow-lg">
+              <span className="text-white text-lg sm:text-xl">🎾</span>
+            </div>
+            <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-tennis-green-dark orbitron-heading">
+              RAKO Academy
+            </h1>
           </div>
-          <h1 className="text-3xl font-bold text-tennis-green-dark">RAKO Academy</h1>
         </div>
-      </div>
 
-      {/* Tennis Fact - Directly under header */}
-      <TennisFactCard />
-      
-      {/* Academy Vitals */}
-      <AcademyVitals progress={progress} />
-      
-      {/* Single column layout */}
-      <div className="space-y-6">
+        {/* Tennis Fact - Mobile optimized */}
+        <div className="animate-fade-in">
+          <TennisFactCard />
+        </div>
         
-        {/* Daily Check-In */}
-        <DailyCheckIn
-          currentStreak={currentStreak}
-          hasCheckedInToday={hasCheckedInToday}
-          onCheckInComplete={handleCheckInComplete}
-        />
+        {/* Academy Vitals - Enhanced for mobile */}
+        <div className="animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <AcademyVitals progress={progress} />
+        </div>
         
-        {/* Challenge of the Day */}
-        <ChallengeOfTheDay />
-        
-        {/* Next Milestone */}
-        <AcademyMilestones progress={progress} />
+        {/* Main Content - Mobile-first layout */}
+        <div className="space-y-4 sm:space-y-6">
+          
+          {/* Daily Check-In - Priority placement */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <DailyCheckIn
+              currentStreak={currentStreak}
+              hasCheckedInToday={hasCheckedInToday}
+              onCheckInComplete={handleCheckInComplete}
+            />
+          </div>
+          
+          {/* Challenge of the Day - Mobile enhanced */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.3s' }}>
+            <ChallengeOfTheDay />
+          </div>
+          
+          {/* Milestones - Optimized layout */}
+          <div className="animate-fade-in" style={{ animationDelay: '0.4s' }}>
+            <AcademyMilestones progress={progress} />
+          </div>
+        </div>
+
+        {/* Mobile bottom spacing */}
+        <div className="h-4 sm:h-6"></div>
       </div>
     </div>
   );

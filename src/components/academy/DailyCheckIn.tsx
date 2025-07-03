@@ -62,14 +62,30 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
   };
 
   return (
-    <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200 hover-scale transition-all duration-300">
-      <CardContent className="p-4">
-        <div className="text-center space-y-3">
-          <div className="flex items-center justify-center gap-2">
-            <Calendar className="h-5 w-5 text-green-600" />
-            <span className="font-semibold text-tennis-green-dark">Daily Check-in</span>
+    <Card className="bg-gradient-to-r from-green-50 to-blue-50 border-green-200 hover-scale transition-all duration-300 shadow-md">
+      <CardContent className="p-4 sm:p-5">
+        <div className="text-center space-y-4">
+          {/* Header with icon and title */}
+          <div className="flex items-center justify-center gap-2 sm:gap-3">
+            <div className="p-2 bg-green-100 rounded-lg">
+              <Calendar className="h-5 w-5 sm:h-6 sm:w-6 text-green-600" />
+            </div>
+            <span className="font-semibold text-tennis-green-dark text-lg sm:text-xl orbitron-heading">
+              Daily Check-in
+            </span>
           </div>
+
+          {/* Streak display (if applicable) */}
+          {currentStreak > 0 && (
+            <div className="bg-white/70 rounded-lg p-2">
+              <div className="text-sm text-tennis-green-medium">Current Streak</div>
+              <div className="text-lg font-bold text-green-600 orbitron-heading">
+                {currentStreak} {currentStreak === 1 ? 'day' : 'days'} 🔥
+              </div>
+            </div>
+          )}
           
+          {/* Main action button - larger for mobile */}
           <Button
             onClick={handleCheckIn}
             disabled={hasCheckedInToday || isCheckingIn}
@@ -77,20 +93,23 @@ export const DailyCheckIn: React.FC<DailyCheckInProps> = ({
               hasCheckedInToday 
                 ? 'bg-green-600 hover:bg-green-600' 
                 : 'bg-gradient-to-r from-green-500 to-blue-500 hover:from-green-600 hover:to-blue-600 hover-scale'
-            } text-white font-semibold py-3`}
+            } text-white font-semibold py-4 sm:py-5 text-base sm:text-lg rounded-xl shadow-lg`}
+            size="lg"
           >
             {isCheckingIn ? (
               <>
-                <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2" />
+                <div className="animate-spin rounded-full h-5 w-5 border-b-2 border-white mr-3" />
                 Checking in...
               </>
             ) : hasCheckedInToday ? (
               <>
-                <CheckCircle className="h-4 w-4 mr-2" />
-                Checked in today!
+                <CheckCircle className="h-5 w-5 mr-3" />
+                ✅ Checked in today!
               </>
             ) : (
-              "Check in now for your daily quiz"
+              <span className="poppins-body">
+                Check in now for your daily quiz
+              </span>
             )}
           </Button>
         </div>
