@@ -8,17 +8,10 @@ import { usePlayerAchievements } from "@/hooks/usePlayerAchievements";
 import { usePlayerTokens } from "@/hooks/usePlayerTokens";
 import { supabase } from "@/integrations/supabase/client";
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
-import { ProfileCard } from "@/components/dashboard/ProfileCard";
 import { PlayerVitalsHero, EnhancedQuickActions } from "@/components/dashboard/player";
-import { CoachAvatarCustomization } from "@/components/avatar/CoachAvatarCustomization";
-import { CXPActivityLog } from "@/components/cxp/CXPActivityLog";
-import { CXPEarnActions } from "@/components/cxp/CXPEarnActions";
-import { CTKEarnActions } from "@/components/ctk/CTKEarnActions";
-import { CTKStore } from "@/components/ctk/CTKStore";
-import { CTKTransactionHistory } from "@/components/ctk/CTKTransactionHistory";
-import { CoachAchievementsDisplay } from "@/components/achievements/CoachAchievementsDisplay";
 import { CoachOverviewCards } from "@/components/coach/dashboard/CoachOverviewCards";
 import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickActions";
+import { CoachInteractionPanel } from "@/components/coach/dashboard/CoachInteractionPanel";
 import { MobileActionPanel } from "@/components/dashboard/mobile";
 
 import { UpcomingCourtBookings } from "@/components/dashboard/UpcomingCourtBookings";
@@ -322,20 +315,20 @@ const Index = () => {
           </>
         )}
 
-        {/* Coach-specific content */}
+        {/* Coach-specific content - Streamlined Dashboard */}
         {isCoach && (
           <>
-            {/* Profile Card for Coaches */}
-            <ErrorBoundary fallbackTitle="Profile Card Error">
-              <ProfileCard
-                profile={profile}
-                user={user}
-                profileLoading={profileLoading}
-                isPlayer={isPlayer}
-              />
-            </ErrorBoundary>
+            {/* Header Section */}
+            <div className="text-center mb-6">
+              <h1 className="text-2xl sm:text-3xl font-bold text-tennis-green-dark">
+                Coach Dashboard 🎾
+              </h1>
+              <p className="text-tennis-green-medium mt-2">
+                Manage your coaching practice and track your professional growth
+              </p>
+            </div>
 
-            {/* Coach Overview Cards */}
+            {/* Coach Overview Cards - Similar to Player Vitals */}
             <ErrorBoundary fallbackTitle="Coach Overview Error">
               <CoachOverviewCards
                 cxpData={cxpData}
@@ -347,42 +340,14 @@ const Index = () => {
               />
             </ErrorBoundary>
 
-            {/* Coach Quick Actions */}
+            {/* Coach Quick Actions - Essential daily actions */}
             <ErrorBoundary fallbackTitle="Coach Actions Error">
               <CoachQuickActions />
             </ErrorBoundary>
 
-            {/* Coach Avatar Customization */}
-            <ErrorBoundary fallbackTitle="Avatar Customization Error">
-              <CoachAvatarCustomization />
-            </ErrorBoundary>
-
-            {/* Coach Achievements */}
-            <ErrorBoundary fallbackTitle="Achievements Error">
-              <CoachAchievementsDisplay />
-            </ErrorBoundary>
-
-            {/* CXP Earning Actions */}
-            <ErrorBoundary fallbackTitle="CXP Actions Error">
-              <CXPEarnActions />
-            </ErrorBoundary>
-
-            {/* CTK Earning Actions */}
-            <ErrorBoundary fallbackTitle="CTK Actions Error">
-              <CTKEarnActions />
-            </ErrorBoundary>
-
-            {/* CTK Store */}
-            <ErrorBoundary fallbackTitle="CTK Store Error">
-              <CTKStore />
-            </ErrorBoundary>
-
-            {/* Activity Logs */}
-            <ErrorBoundary fallbackTitle="Activity Logs Error">
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                <CXPActivityLog />
-                <CTKTransactionHistory />
-              </div>
+            {/* Coach Interaction Panel - Focused coaching tools */}
+            <ErrorBoundary fallbackTitle="Coach Interaction Error">
+              <CoachInteractionPanel />
             </ErrorBoundary>
           </>
         )}

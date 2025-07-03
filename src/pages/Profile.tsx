@@ -9,7 +9,10 @@ import { AvatarDisplay } from '@/components/avatar/AvatarDisplay';
 import { CoachAvatarDisplay } from '@/components/avatar/CoachAvatarDisplay';
 import { AvatarCustomization } from '@/components/avatar/AvatarCustomization';
 import { CoachAvatarCustomization } from '@/components/avatar/CoachAvatarCustomization';
-import { User, Mail, UserCheck, Edit, Trophy, Target, Calendar } from 'lucide-react';
+import { CRPDisplay } from '@/components/crp/CRPDisplay';
+import { CXPDisplay } from '@/components/cxp/CXPDisplay';
+import { CTKDisplay } from '@/components/ctk/CTKDisplay';
+import { User, Mail, UserCheck, Edit, Trophy, Target, Calendar, Settings, Palette } from 'lucide-react';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -29,7 +32,7 @@ const Profile = () => {
         .from('profiles')
         .select('*')
         .eq('id', user?.id)
-        .single();
+        .maybeSingle();
 
       if (error) {
         console.error('Error fetching profile:', error);
@@ -228,6 +231,47 @@ const Profile = () => {
             </Card>
           </div>
 
+          {/* Coach-specific Stats */}
+          {isCoach && (
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
+              <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-tennis-green-dark text-lg">
+                    <Trophy className="h-5 w-5" />
+                    CRP Status
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CRPDisplay />
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-tennis-green-dark text-lg">
+                    <Target className="h-5 w-5" />
+                    CXP Progress
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CXPDisplay />
+                </CardContent>
+              </Card>
+
+              <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-tennis-green-dark text-lg">
+                    <Settings className="h-5 w-5" />
+                    CTK Balance
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <CTKDisplay />
+                </CardContent>
+              </Card>
+            </div>
+          )}
+
           {/* Quick Actions */}
           <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">
             <CardHeader>
@@ -237,13 +281,21 @@ const Profile = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
                 <Button 
                   variant="outline" 
                   className="border-tennis-green-medium text-tennis-green-dark hover:bg-tennis-green-light/20"
                 >
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Profile
+                </Button>
+                <Button 
+                  variant="outline" 
+                  className="border-tennis-green-medium text-tennis-green-dark hover:bg-tennis-green-light/20"
+                  onClick={() => setEditAvatarOpen(true)}
+                >
+                  <Palette className="h-4 w-4 mr-2" />
+                  Customize Avatar
                 </Button>
                 <Button 
                   variant="outline" 
