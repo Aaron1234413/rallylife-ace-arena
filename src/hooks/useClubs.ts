@@ -63,14 +63,109 @@ export interface ClubActivity {
   };
 }
 
+// Mock data for development
+const MOCK_CLUBS: Club[] = [
+  {
+    id: '1',
+    name: 'Elite Tennis Academy',
+    description: 'Premier tennis club offering professional coaching, advanced court facilities, and competitive tournaments for all skill levels.',
+    logo_url: null,
+    owner_id: 'owner-1',
+    is_public: true,
+    member_count: 45,
+    created_at: '2024-01-15T10:00:00Z',
+    updated_at: '2024-01-15T10:00:00Z'
+  },
+  {
+    id: '2',
+    name: 'Riverside Tennis Club',
+    description: 'Family-friendly tennis club with beautiful riverside courts, group lessons, and social events.',
+    logo_url: null,
+    owner_id: 'owner-2',
+    is_public: true,
+    member_count: 28,
+    created_at: '2024-02-20T14:30:00Z',
+    updated_at: '2024-02-20T14:30:00Z'
+  },
+  {
+    id: '3',
+    name: 'Pro Tennis Center',
+    description: 'Professional tennis training facility with certified coaches, indoor/outdoor courts, and fitness programs.',
+    logo_url: null,
+    owner_id: 'owner-3',
+    is_public: false,
+    member_count: 67,
+    created_at: '2024-03-10T09:15:00Z',
+    updated_at: '2024-03-10T09:15:00Z'
+  },
+  {
+    id: '4',
+    name: 'City Tennis League',
+    description: 'Competitive tennis league hosting weekly matches, tournaments, and ranking competitions.',
+    logo_url: null,
+    owner_id: 'owner-4',
+    is_public: true,
+    member_count: 92,
+    created_at: '2024-01-05T16:45:00Z',
+    updated_at: '2024-01-05T16:45:00Z'
+  },
+  {
+    id: '5',
+    name: 'Tennis Wellness Hub',
+    description: 'Holistic tennis club combining tennis training with wellness programs, yoga, and nutrition coaching.',
+    logo_url: null,
+    owner_id: 'owner-5',
+    is_public: true,
+    member_count: 34,
+    created_at: '2024-04-01T11:20:00Z',
+    updated_at: '2024-04-01T11:20:00Z'
+  },
+  {
+    id: '6',
+    name: 'Junior Tennis Academy',
+    description: 'Specialized tennis academy for young players aged 8-18, focusing on skill development and junior tournaments.',
+    logo_url: null,
+    owner_id: 'owner-6',
+    is_public: true,
+    member_count: 56,
+    created_at: '2024-02-14T13:00:00Z',
+    updated_at: '2024-02-14T13:00:00Z'
+  }
+];
+
+const MOCK_MY_CLUBS: Club[] = [
+  {
+    id: '2',
+    name: 'Riverside Tennis Club',
+    description: 'Family-friendly tennis club with beautiful riverside courts, group lessons, and social events.',
+    logo_url: null,
+    owner_id: 'owner-2',
+    is_public: true,
+    member_count: 28,
+    created_at: '2024-02-20T14:30:00Z',
+    updated_at: '2024-02-20T14:30:00Z'
+  },
+  {
+    id: '4',
+    name: 'City Tennis League',
+    description: 'Competitive tennis league hosting weekly matches, tournaments, and ranking competitions.',
+    logo_url: null,
+    owner_id: 'owner-4',
+    is_public: true,
+    member_count: 92,
+    created_at: '2024-01-05T16:45:00Z',
+    updated_at: '2024-01-05T16:45:00Z'
+  }
+];
+
 export function useClubs() {
   const { user } = useAuth();
-  const [clubs, setClubs] = useState<Club[]>([]);
-  const [myClubs, setMyClubs] = useState<Club[]>([]);
+  const [clubs, setClubs] = useState<Club[]>(MOCK_CLUBS);
+  const [myClubs, setMyClubs] = useState<Club[]>(MOCK_MY_CLUBS);
   const [clubMembers, setClubMembers] = useState<ClubMembership[]>([]);
   const [clubInvitations, setClubInvitations] = useState<ClubInvitation[]>([]);
   const [clubActivities, setClubActivities] = useState<ClubActivity[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
 
   const fetchPublicClubs = async () => {
     try {
