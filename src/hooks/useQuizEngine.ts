@@ -303,17 +303,18 @@ export function useQuizEngine() {
       // Quiz complete
       setIsQuizComplete(true);
       
-      // Calculate rewards based on score and quiz type
-      const baseTokens = quizQuestions.length === 5 ? 3 : 1; // Daily drill vs practice
-      const bonusTokens = Math.floor(newScore / quizQuestions.length * 2); // Bonus for accuracy
-      const totalTokens = baseTokens + bonusTokens;
+      // Calculate rewards based on percentage for 10-question quiz
+      // Math.ceil((correct/10) * 5) with max 5 tokens
+      const percentage = newScore / quizQuestions.length;
+      const calculatedTokens = Math.ceil(percentage * 5);
+      const totalTokens = Math.min(calculatedTokens, 5); // Cap at 5 tokens
       const xpEarned = newScore * 10; // 10 XP per correct answer
 
       setTokensEarned(totalTokens);
 
       // Award tokens through the game's token system and update academy progress
       try {
-        await addTokens(totalTokens, 'regular', 'academy_quiz', `Quiz completed: ${newScore}/${quizQuestions.length} correct`);
+        await addTokens(totalTokens, 'regular', 'academy_quiz', `Quiz completed: ${newScore}/${quizQuestions.length} correct (${Math.round(percentage * 100)}%)`);
         
         // Update academy progress in database
         updateProgress({
@@ -356,13 +357,22 @@ export function useQuizEngine() {
     setTokensEarned(0);
   };
 
-  const startDrill = (drillId: string, questionCount: number, difficulty?: ('easy' | 'medium' | 'hard')[]) => {
-    const allowedDifficulties = difficulty || ['easy', 'medium'];
+  const startDrill = (drillId: string, questionCount: number = 10, playerLevel?: number) => {
+    // Level-based difficulty selection
+    let allowedDifficulties: ('easy' | 'medium' | 'hard')[];
     
-    // Use smart selection for drill topics
+    if (playerLevel && playerLevel >= 7) {
+      allowedDifficulties = ['medium', 'hard']; // Advanced
+    } else if (playerLevel && playerLevel >= 4) {
+      allowedDifficulties = ['easy', 'medium', 'hard']; // Intermediate
+    } else {
+      allowedDifficulties = ['easy', 'medium']; // Beginner (levels 1-3)
+    }
+    
+    // Use smart selection for drill topics - always 10 questions
     const selectedQuestions = selectQuestionsForTopic(
       drillId,
-      questionCount,
+      10, // Always 10 questions
       allowedDifficulties
     );
     

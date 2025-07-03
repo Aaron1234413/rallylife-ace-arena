@@ -19,21 +19,22 @@ import { getTodaysTopic, DAILY_TOPICS } from '@/utils/TopicRotationSystem';
 
 interface DailyDrillProps {
   onBack: () => void;
+  playerLevel?: number;
 }
 
-// Convert daily topics to drill format for compatibility
+// Convert daily topics to drill format for compatibility with 10 questions
 const DRILL_TOPICS = DAILY_TOPICS.map(topic => ({
   id: topic.id,
   name: topic.name,
   description: topic.description,
-  questions: 5,
-  difficulty: 'Mixed',
+  questions: 10, // Always 10 questions
+  difficulty: 'Level-Based',
   focus: 'Daily Topic',
   icon: Target, // Default icon component
   color: topic.color
 }));
 
-export const DailyQuiz: React.FC<DailyDrillProps> = ({ onBack }) => {
+export const DailyQuiz: React.FC<DailyDrillProps> = ({ onBack, playerLevel = 1 }) => {
   const [selectedDrill, setSelectedDrill] = useState<string | null>(null);
   const [drillStarted, setDrillStarted] = useState(false);
 
@@ -54,7 +55,7 @@ export const DailyQuiz: React.FC<DailyDrillProps> = ({ onBack }) => {
   const handleStartDrill = (drillId: string) => {
     const drill = DRILL_TOPICS.find(d => d.id === drillId);
     if (drill) {
-      startDrill(drillId, drill.questions);
+      startDrill(drillId, 10, playerLevel); // Pass player level for difficulty selection
       setDrillStarted(true);
     }
   };
@@ -108,14 +109,14 @@ export const DailyQuiz: React.FC<DailyDrillProps> = ({ onBack }) => {
               </div>
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <h1 className="text-3xl font-bold text-tennis-green-dark">Daily Drill</h1>
-                  <Badge className="bg-yellow-100 text-yellow-700">+5 Tokens</Badge>
+                  <h1 className="text-3xl font-bold text-tennis-green-dark">Daily Tennis Quiz</h1>
+                  <Badge className="bg-yellow-100 text-yellow-700">Up to +5 Tokens</Badge>
                 </div>
                 <p className="text-tennis-green-medium mb-3">
-                  Focused 5-question sessions designed to reinforce key tennis concepts
+                  10-question quiz with level-based difficulty. Token rewards based on your performance!
                 </p>
                 <div className="flex items-center gap-4">
-                  <Badge variant="outline">5 Questions</Badge>
+                  <Badge variant="outline">10 Questions</Badge>
                   <Badge variant="outline">
                     <Clock className="h-3 w-3 mr-1" />
                     ~3 minutes
@@ -130,7 +131,7 @@ export const DailyQuiz: React.FC<DailyDrillProps> = ({ onBack }) => {
       {/* Today's Featured Drill */}
       <div className="max-w-4xl mx-auto mb-8">
         <h2 className="text-2xl font-bold text-tennis-green-dark mb-4 text-center">
-          Today's Featured Drill
+          Today's Quiz
         </h2>
         
         <Card className="bg-gradient-to-r from-yellow-100 to-orange-100 border-yellow-300">
@@ -156,7 +157,7 @@ export const DailyQuiz: React.FC<DailyDrillProps> = ({ onBack }) => {
                 size="lg"
                 className="bg-yellow-600 hover:bg-yellow-700 text-white"
               >
-                Start Today's Drill
+                Start Today's Quiz
                 <Zap className="h-5 w-5 ml-2" />
               </Button>
             </div>
@@ -167,7 +168,7 @@ export const DailyQuiz: React.FC<DailyDrillProps> = ({ onBack }) => {
       {/* All Available Drills */}
       <div className="max-w-4xl mx-auto">
         <h3 className="text-xl font-bold text-tennis-green-dark mb-6 text-center">
-          More Practice Drills
+          More Practice Quizzes
         </h3>
         
         <div className="grid gap-4 md:grid-cols-2">
@@ -186,7 +187,7 @@ export const DailyQuiz: React.FC<DailyDrillProps> = ({ onBack }) => {
                 <CardHeader className="pb-3">
                   <div className="flex items-center justify-between">
                     <DrillIcon className={`h-6 w-6 text-${drill.color}-600`} />
-                    <Badge variant="outline">+3 Tokens</Badge>
+                    <Badge variant="outline">Up to +5 Tokens</Badge>
                   </div>
                   <CardTitle className="text-lg text-tennis-green-dark">{drill.name}</CardTitle>
                 </CardHeader>
@@ -213,7 +214,7 @@ export const DailyQuiz: React.FC<DailyDrillProps> = ({ onBack }) => {
                       onClick={() => handleStartDrill(drill.id)}
                       className="w-full bg-tennis-green-primary hover:bg-tennis-green-dark mt-4"
                     >
-                      Start Drill
+                      Start Quiz
                     </Button>
                   )}
                 </CardContent>

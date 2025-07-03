@@ -53,6 +53,7 @@ const Academy = () => {
     return (
       <DailyQuiz
         onBack={handleBackToDashboard}
+        playerLevel={progress?.level}
       />
     );
   }

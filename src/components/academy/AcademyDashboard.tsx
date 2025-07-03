@@ -11,7 +11,7 @@ import {
   Coins,
   CheckCircle
 } from 'lucide-react';
-import { AcademyTokenDisplay } from './AcademyTokenDisplay';
+
 import { DailyCheckIn } from './DailyCheckIn';
 import { AcademyMilestones } from './AcademyMilestones';
 import { KnowledgePointsDisplay } from './KnowledgePointsDisplay';
@@ -74,11 +74,6 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
       
       {/* Single column layout */}
       <div className="space-y-6">
-        {/* Today's Token Earnings */}
-        <AcademyTokenDisplay 
-          dailyTokensEarned={progress.daily_tokens_earned}
-          dailyTokenLimit={10}
-        />
         
         {/* Daily Check-In */}
         <DailyCheckIn
