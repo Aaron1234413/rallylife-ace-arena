@@ -2,14 +2,9 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { ActivityTimeline } from '@/components/dashboard/activity/ActivityTimeline';
-import { AchievementDisplay } from '@/components/achievements/AchievementDisplay';
 import { PlayerLeaderboard, CoachLeaderboard } from '@/components/leaderboards';
-import { useActivityLogs } from '@/hooks/useActivityLogs';
-import { usePlayerAchievements } from '@/hooks/usePlayerAchievements';
+import { LeaderboardActivityFeed } from '@/components/leaderboards/LeaderboardActivityFeed';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useAuth } from '@/hooks/useAuth';
 import { 
@@ -19,238 +14,89 @@ import {
   Sparkles, 
   AlertTriangle,
   Users,
-  Award,
-  Activity,
   Trophy,
-  RefreshCw
+  RefreshCw,
+  Zap,
+  Activity
 } from 'lucide-react';
 
 const Pulse = () => {
   const { user } = useAuth();
-  const [timeFilter, setTimeFilter] = useState('week');
-  const [activityFilter, setActivityFilter] = useState('all');
-  const [activeTab, setActiveTab] = useState('activity');
+  const [leaderboardView, setLeaderboardView] = useState<'split' | 'tabbed' | 'unified'>('split');
+  const [activeTab, setActiveTab] = useState('players');
   const [lastRefresh, setLastRefresh] = useState(Date.now());
-  
-  // Fetch activity data
-  const { activities, stats, loading: activityLoading } = useActivityLogs();
-  
-  // Fetch achievements data
-  const { playerAchievements, loading: achievementsLoading } = usePlayerAchievements();
   
   // Fetch HP data for energy level
   const { hpData } = usePlayerHP();
 
-  // Calculate activity intelligence data
-  const getActivityIntelligence = () => {
-    const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-    const weeklyActivityCount = activities?.filter(activity => 
-      new Date(activity.created_at) > weekAgo
-    ).length || 0;
-    
+  // Calculate condensed activity intelligence data
+  const getCondensedActivityIntelligence = () => {
+    // Simplified data for condensed widget
     const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
     const energyLevel = hpPercentage > 80 ? 'High' : 
                        hpPercentage > 60 ? 'Good' : 
                        hpPercentage > 40 ? 'Moderate' : 
                        hpPercentage > 20 ? 'Low' : 'Critical';
     
-    const lastActivity = activities?.[0];
-    const hoursSinceLastActivity = lastActivity ? 
-      (Date.now() - new Date(lastActivity.created_at).getTime()) / (1000 * 60 * 60) : 24;
+    const energyColor = hpPercentage > 80 ? 'text-green-600' : 
+                       hpPercentage > 60 ? 'text-blue-600' : 
+                       hpPercentage > 40 ? 'text-yellow-600' : 
+                       hpPercentage > 20 ? 'text-orange-600' : 'text-red-600';
     
     return {
-      weeklyCount: weeklyActivityCount,
       energyLevel,
-      hpPercentage,
-      hoursSinceLastActivity
+      energyColor,
+      hpPercentage: Math.round(hpPercentage)
     };
   };
 
-  const activityIntelligence = getActivityIntelligence();
+  const activityIntelligence = getCondensedActivityIntelligence();
 
   const handleRefreshAll = () => {
     setLastRefresh(Date.now());
-    // This will trigger re-renders of components that depend on real-time data
   };
 
-  return (
-    <div className="min-h-screen bg-tennis-green-bg">
-      <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
-        {/* Header Section - Enhanced typography */}
-        <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-full bg-gradient-to-br from-tennis-green-primary to-tennis-green-accent flex items-center justify-center">
-                <Bolt className="h-4 w-4 text-white" />
-              </div>
-              <span className="orbitron-heading text-heading-lg text-tennis-green-dark">Pulse</span>
-              <Badge variant="outline" className="ml-2 text-xs">Live</Badge>
-            </CardTitle>
-            <div className="flex items-center justify-between">
-              <p className="poppins-body text-body text-tennis-green-medium">
-                Your real-time activity, achievements, and community standings
-              </p>
-              <Button
-                onClick={handleRefreshAll}
-                variant="ghost"
-                size="sm"
-                className="text-tennis-green-medium hover:text-tennis-green-dark"
-              >
-                <RefreshCw className="h-4 w-4" />
-              </Button>
-            </div>
-          </CardHeader>
-          <CardContent>
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex items-center gap-2">
-                <span className="text-body-sm font-medium text-tennis-green-dark">Time:</span>
-                <Select value={timeFilter} onValueChange={setTimeFilter}>
-                  <SelectTrigger className="w-32 border-tennis-green-light">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="today">Today</SelectItem>
-                    <SelectItem value="week">This Week</SelectItem>
-                    <SelectItem value="month">This Month</SelectItem>
-                    <SelectItem value="all">All Time</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              <div className="flex items-center gap-2">
-                <span className="text-body-sm font-medium text-tennis-green-dark">Activity:</span>
-                <Select value={activityFilter} onValueChange={setActivityFilter}>
-                  <SelectTrigger className="w-32 border-tennis-green-light">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="match">Matches</SelectItem>
-                    <SelectItem value="training">Training</SelectItem>
-                    <SelectItem value="lesson">Lessons</SelectItem>
-                    <SelectItem value="social">Social</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+  const renderLeaderboardLayout = () => {
+    if (leaderboardView === 'split') {
+      return (
+        <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+          <div>
+            <PlayerLeaderboard 
+              maxEntries={50}
+              showFilters={true}
+              compact={false}
+            />
+          </div>
+          <div>
+            <CoachLeaderboard 
+              defaultType="cxp"
+              defaultPeriod="all_time"
+              maxEntries={50}
+            />
+          </div>
+        </div>
+      );
+    }
 
-        {/* Activity Intelligence Widget - Enhanced typography */}
-        <Card className="bg-gradient-to-r from-white to-tennis-green-subtle border-tennis-green-light shadow-md backdrop-blur-sm">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-tennis-green-primary to-tennis-green-accent text-white shadow-md">
-                  <Clock className="h-4 w-4" />
-                </div>
-                <div>
-                  <span className="orbitron-heading font-bold text-tennis-green-dark text-heading-sm">
-                    Activity Intelligence
-                  </span>
-                  <p className="poppins-body text-tennis-green-medium mt-0.5 text-body-sm">
-                    Real-time insights from your tennis data
-                  </p>
-                </div>
-              </div>
-              <div className="flex flex-wrap gap-2 sm:gap-4 text-sm">
-                <div className="flex items-center gap-2 bg-white/90 rounded-lg px-3 py-1.5 shadow-sm border border-tennis-green-light backdrop-blur-sm">
-                  <TrendingUp className="h-3 w-3 sm:h-4 sm:w-4 text-tennis-green-accent" />
-                  <div>
-                    <div className="text-caption text-tennis-green-medium">This Week</div>
-                    <div className="font-bold text-tennis-green-dark text-body-sm">{activityIntelligence.weeklyCount}</div>
-                  </div>
-                </div>
-                <div className="flex items-center gap-2 bg-white/90 rounded-lg px-3 py-1.5 shadow-sm border border-tennis-green-light backdrop-blur-sm">
-                  <Sparkles className="h-3 w-3 sm:h-4 sm:w-4 text-tennis-yellow-dark" />
-                  <div>
-                    <div className="text-caption text-tennis-green-medium">Energy</div>
-                    <div className="font-bold text-tennis-green-dark text-body-sm">{activityIntelligence.energyLevel}</div>
-                  </div>
-                </div>
-                {activityIntelligence.hoursSinceLastActivity > 24 && (
-                  <div className="flex items-center gap-2 bg-orange-50/90 rounded-lg px-3 py-1.5 shadow-sm border border-orange-200/50 backdrop-blur-sm">
-                    <AlertTriangle className="h-3 w-3 sm:h-4 sm:w-4 text-orange-600" />
-                    <div>
-                      <div className="text-caption text-orange-600">Last Activity</div>
-                      <div className="font-bold text-orange-800 text-body-sm">{Math.round(activityIntelligence.hoursSinceLastActivity)}h ago</div>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        {/* Main Content - Enhanced Tabbed Interface */}
+    if (leaderboardView === 'tabbed') {
+      return (
         <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
           <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
             <CardContent className="p-4">
-              <TabsList className="grid w-full grid-cols-4 lg:w-auto lg:inline-flex lg:h-auto bg-tennis-green-bg/20">
-                <TabsTrigger value="activity" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
-                  <Activity className="h-4 w-4" />
-                  <span className="hidden sm:inline">Activity</span>
-                </TabsTrigger>
+              <TabsList className="grid w-full grid-cols-2 bg-tennis-green-bg/20">
                 <TabsTrigger value="players" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
                   <Users className="h-4 w-4" />
-                  <span className="hidden sm:inline">Players</span>
+                  Players
                 </TabsTrigger>
                 <TabsTrigger value="coaches" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
                   <Trophy className="h-4 w-4" />
-                  <span className="hidden sm:inline">Coaches</span>
-                </TabsTrigger>
-                <TabsTrigger value="achievements" className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark">
-                  <Award className="h-4 w-4" />
-                  <span className="hidden sm:inline">Achievements</span>
+                  Coaches
                 </TabsTrigger>
               </TabsList>
             </CardContent>
           </Card>
 
-          {/* Activity Tab */}
-          <TabsContent value="activity" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              <div className="lg:col-span-2">
-                <ActivityTimeline
-                  activities={activities}
-                  timeFilter={timeFilter}
-                  activityFilter={activityFilter}
-                  loading={activityLoading}
-                />
-              </div>
-              <div className="space-y-6">
-                <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
-                  <CardHeader>
-                    <CardTitle className="orbitron-heading text-heading-md text-tennis-green-dark">
-                      Recent Achievements
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <AchievementDisplay
-                      showRecent={true}
-                      maxItems={3}
-                    />
-                    {playerAchievements.length > 3 && (
-                      <div className="mt-4 text-center">
-                        <Button
-                          variant="ghost"
-                          size="sm"
-                          onClick={() => setActiveTab('achievements')}
-                          className="poppins-body text-body-sm text-tennis-green-accent hover:text-tennis-green-primary font-medium"
-                        >
-                          View All Achievements →
-                        </Button>
-                      </div>
-                    )}
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </TabsContent>
-
-          {/* Player Leaderboard Tab */}
-          <TabsContent value="players" className="space-y-6">
+          <TabsContent value="players">
             <PlayerLeaderboard 
               maxEntries={50}
               showFilters={true}
@@ -258,35 +104,160 @@ const Pulse = () => {
             />
           </TabsContent>
 
-          {/* Coach Leaderboard Tab */}
-          <TabsContent value="coaches" className="space-y-6">
+          <TabsContent value="coaches">
             <CoachLeaderboard 
-              defaultType="overall"
+              defaultType="cxp"
               defaultPeriod="all_time"
               maxEntries={50}
             />
           </TabsContent>
-
-          {/* Achievements Tab */}
-          <TabsContent value="achievements" className="space-y-6">
-            <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
-              <CardHeader>
-                <CardTitle className="orbitron-heading text-heading-lg text-tennis-green-dark">
-                  Your Achievements
-                </CardTitle>
-                <p className="poppins-body text-body text-tennis-green-medium">
-                  Track your progress and unlock new milestones
-                </p>
-              </CardHeader>
-              <CardContent>
-                <AchievementDisplay
-                  showRecent={false}
-                  maxItems={20}
-                />
-              </CardContent>
-            </Card>
-          </TabsContent>
         </Tabs>
+      );
+    }
+
+    // Unified view would be implemented here in the future
+    // For now, default to split view
+    return (
+      <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+        <div>
+          <PlayerLeaderboard 
+            maxEntries={50}
+            showFilters={true}
+            compact={false}
+          />
+        </div>
+        <div>
+          <CoachLeaderboard 
+            defaultType="cxp"
+            defaultPeriod="all_time"
+            maxEntries={50}
+          />
+        </div>
+      </div>
+    );
+  };
+
+  return (
+    <div className="min-h-screen bg-tennis-green-bg">
+      <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
+        {/* Header Section */}
+        <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-full bg-gradient-to-br from-tennis-green-primary to-tennis-green-accent flex items-center justify-center">
+                    <Bolt className="h-4 w-4 text-white" />
+                  </div>
+                  <span className="orbitron-heading text-heading-lg text-tennis-green-dark">Pulse</span>
+                  <Zap className="h-5 w-5 text-tennis-yellow-dark" />
+                </CardTitle>
+                <p className="poppins-body text-body text-tennis-green-medium mt-1">
+                  Live leaderboards and community activity
+                </p>
+              </div>
+              
+              <div className="flex items-center gap-4">
+                {/* Layout Toggle Buttons */}
+                <div className="hidden md:flex items-center gap-2 p-1 bg-tennis-green-bg/20 rounded-lg">
+                  <Button
+                    variant={leaderboardView === 'split' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setLeaderboardView('split')}
+                    className="text-xs"
+                  >
+                    Split View
+                  </Button>
+                  <Button
+                    variant={leaderboardView === 'tabbed' ? 'default' : 'ghost'}
+                    size="sm"
+                    onClick={() => setLeaderboardView('tabbed')}
+                    className="text-xs"
+                  >
+                    Tabbed
+                  </Button>
+                </div>
+                
+                <Button
+                  onClick={handleRefreshAll}
+                  variant="ghost"
+                  size="sm"
+                  className="text-tennis-green-medium hover:text-tennis-green-dark"
+                >
+                  <RefreshCw className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          </CardHeader>
+        </Card>
+
+        {/* Condensed Activity Intelligence Widget */}
+        <Card className="bg-gradient-to-r from-white to-tennis-green-subtle border-tennis-green-light shadow-md backdrop-blur-sm">
+          <CardContent className="p-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="p-2 rounded-lg bg-gradient-to-br from-tennis-green-primary to-tennis-green-accent text-white shadow-md">
+                  <Activity className="h-4 w-4" />
+                </div>
+                <div>
+                  <span className="orbitron-heading font-bold text-tennis-green-dark text-heading-sm">
+                    Tennis Energy
+                  </span>
+                  <p className="poppins-body text-tennis-green-medium text-body-sm">
+                    Current player status
+                  </p>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-2 bg-white/90 rounded-lg px-4 py-2 shadow-sm border border-tennis-green-light backdrop-blur-sm">
+                <Sparkles className="h-4 w-4 text-tennis-yellow-dark" />
+                <div className="text-right">
+                  <div className="text-caption text-tennis-green-medium">Energy Level</div>
+                  <div className={`font-bold text-body-sm ${activityIntelligence.energyColor}`}>
+                    {activityIntelligence.energyLevel} ({activityIntelligence.hpPercentage}%)
+                  </div>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Main Leaderboard Layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-4 gap-6">
+          {/* Leaderboards - Takes up 3/4 of the space */}
+          <div className="lg:col-span-3">
+            {renderLeaderboardLayout()}
+          </div>
+
+          {/* Social Activity Feed - Takes up 1/4 of the space */}
+          <div className="lg:col-span-1">
+            <LeaderboardActivityFeed maxItems={8} />
+          </div>
+        </div>
+
+        {/* Mobile Layout Toggle */}
+        <div className="md:hidden">
+          <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
+            <CardContent className="p-4">
+              <div className="grid grid-cols-2 gap-2">
+                <Button
+                  variant={leaderboardView === 'split' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setLeaderboardView('split')}
+                  className="text-sm"
+                >
+                  Split View
+                </Button>
+                <Button
+                  variant={leaderboardView === 'tabbed' ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setLeaderboardView('tabbed')}
+                  className="text-sm"
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
