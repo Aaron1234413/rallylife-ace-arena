@@ -1,6 +1,8 @@
 
 import React from 'react';
-import { useItemEffects, ItemEffectType } from '@/hooks/useItemEffects';
+import { useItemEffects } from '@/hooks/useItemEffects';
+import { PaymentOption } from '@/hooks/useHybridPayment';
+import { StoreItemCard } from './StoreItemCard';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -121,17 +123,37 @@ export function TokenStore({
 }: TokenStoreProps) {
   const { applyItemEffect } = useItemEffects();
   
-  const handlePurchase = async (item: StoreItem) => {
-    // For now, only support token payments (Phase 3 will add hybrid payments)
-    if (regularTokens < item.cost) {
-      toast.error(`Insufficient tokens! Need ${item.cost - regularTokens} more tokens or $${((item.cost - regularTokens) * 0.01).toFixed(2)}`);
-      return;
-    }
-
-    const success = await onSpendTokens(item.cost, item.tokenType, item.id, item.description);
-    
-    if (success) {
-      // Apply item effect using the new hook
+  const handlePurchase = async (item: StoreItem, paymentOption: PaymentOption) => {
+    try {
+      // Handle different payment types
+      if (paymentOption.type === 'tokens_only') {
+        // Pure token payment
+        const success = await onSpendTokens(item.cost, item.tokenType, item.id, item.description);
+        if (!success) return;
+        
+      } else if (paymentOption.type === 'cash_only') {
+        // Pure cash payment - Phase 4 will implement Stripe
+        toast.error('Cash payments coming in Phase 4 - Stripe integration needed!');
+        return;
+        
+      } else if (paymentOption.type === 'hybrid') {
+        // Mixed payment - spend available tokens first, then cash for remainder
+        if (paymentOption.tokensToUse > 0) {
+          const tokenSuccess = await onSpendTokens(
+            paymentOption.tokensToUse, 
+            item.tokenType, 
+            item.id, 
+            `Partial payment: ${item.description}`
+          );
+          if (!tokenSuccess) return;
+        }
+        
+        // Phase 4 will handle the cash portion via Stripe
+        toast.error(`Hybrid payments coming in Phase 4! (Would charge $${paymentOption.cashRequired.toFixed(2)})`);
+        return;
+      }
+      
+      // Apply item effect after successful payment
       const result = await applyItemEffect(item.effectType, item.effectValue, item.name);
       
       if (result.success) {
@@ -140,15 +162,11 @@ export function TokenStore({
         console.error('Error applying item effect:', result.error);
         toast.error(result.error || 'Item purchased but effect failed to apply');
       }
+      
+    } catch (error) {
+      console.error('Error during purchase:', error);
+      toast.error('Purchase failed');
     }
-  };
-
-  const canAfford = (item: StoreItem) => {
-    return regularTokens >= item.cost;
-  };
-
-  const getTokenShortage = (item: StoreItem) => {
-    return Math.max(0, item.cost - regularTokens);
   };
 
   return (
@@ -156,39 +174,19 @@ export function TokenStore({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <ShoppingCart className="h-5 w-5" />
-          Token Store
+          Store Items
         </CardTitle>
       </CardHeader>
       <CardContent>
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-          {storeItems.map((item) => {
-            const Icon = item.icon;
-            const isRegular = item.tokenType === 'regular';
-            const affordable = canAfford(item);
-            
-            return (
-              <Button
-                key={item.id}
-                onClick={() => handlePurchase(item)}
-                disabled={!affordable}
-                className={`h-auto p-3 flex flex-col items-start gap-2 text-left ${item.color} ${
-                  !affordable ? 'opacity-50 cursor-not-allowed' : ''
-                }`}
-              >
-                <div className="flex items-center gap-2 w-full">
-                  <Icon className="h-4 w-4" />
-                  <span className="font-semibold">{item.name}</span>
-                  <Badge variant="secondary" className="ml-auto bg-white/20 text-white">
-                    {isRegular ? '🪙' : '💎'} {item.cost}
-                  </Badge>
-                </div>
-                <p className="text-xs opacity-90">{item.description}</p>
-                {!affordable && (
-                  <p className="text-xs text-red-200">Insufficient tokens</p>
-                )}
-              </Button>
-            );
-          })}
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          {storeItems.map((item) => (
+            <StoreItemCard
+              key={item.id}
+              item={item}
+              regularTokens={regularTokens}
+              onPurchase={handlePurchase}
+            />
+          ))}
         </div>
       </CardContent>
     </Card>
