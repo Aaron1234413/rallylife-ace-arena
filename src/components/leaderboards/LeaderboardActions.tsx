@@ -15,6 +15,7 @@ import {
   Trophy
 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
+import { useMessageNavigation } from '@/hooks/useMessageNavigation';
 
 interface LeaderboardActionsProps {
   targetUserId: string;
@@ -32,6 +33,7 @@ export function LeaderboardActions({
   compact = false 
 }: LeaderboardActionsProps) {
   const { toast } = useToast();
+  const { openConversation, isLoading: messageLoading } = useMessageNavigation();
   const [isActioning, setIsActioning] = useState(false);
 
   const handleChallenge = async () => {
@@ -72,11 +74,10 @@ export function LeaderboardActions({
     }
   };
 
-  const handleMessage = async () => {
-    // TODO: Navigate to messages or open chat modal
-    toast({
-      title: "Message Feature",
-      description: "Opening conversation with " + targetUserName,
+  const handleMessage = () => {
+    openConversation({
+      targetUserId,
+      targetUserName
     });
   };
 
@@ -166,7 +167,7 @@ export function LeaderboardActions({
             variant="ghost"
             size="sm"
             className="h-8 w-8 p-0"
-            disabled={isActioning}
+            disabled={isActioning || messageLoading}
           >
             <MoreVertical className="h-4 w-4" />
           </Button>
@@ -195,7 +196,7 @@ export function LeaderboardActions({
           variant="outline"
           size="sm"
           onClick={action.onClick}
-          disabled={isActioning}
+          disabled={isActioning || messageLoading}
           className={`${action.className} border-current`}
         >
           <action.icon className="h-3 w-3 mr-1" />
@@ -209,7 +210,7 @@ export function LeaderboardActions({
             <Button
               variant="outline"
               size="sm"
-              disabled={isActioning}
+              disabled={isActioning || messageLoading}
             >
               <MoreVertical className="h-3 w-3" />
             </Button>

@@ -7,6 +7,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { MessageCircle, Calendar, MapPin, Star, Trophy } from 'lucide-react';
 import { CoachBenefitsPreview } from './CoachBenefitsPreview';
+import { useMessageNavigation } from '@/hooks/useMessageNavigation';
 
 interface UserCardProps {
   user: SearchResult;
@@ -14,6 +15,8 @@ interface UserCardProps {
 }
 
 export function UserCard({ user, type }: UserCardProps) {
+  const { openConversation, isLoading } = useMessageNavigation();
+
   const getInitials = (name: string) => {
     return name.split(' ').map(n => n[0]).join('').toUpperCase();
   };
@@ -32,6 +35,13 @@ export function UserCard({ user, type }: UserCardProps) {
     } else {
       return user.coaching_focus ? user.coaching_focus.replace('_', ' ').charAt(0).toUpperCase() + user.coaching_focus.replace('_', ' ').slice(1) : 'General coaching';
     }
+  };
+
+  const handleMessage = () => {
+    openConversation({
+      targetUserId: user.id,
+      targetUserName: user.full_name
+    });
   };
 
   return (
@@ -94,11 +104,13 @@ export function UserCard({ user, type }: UserCardProps) {
             {/* Action Buttons */}
             <div className="flex flex-col gap-3 ml-6">
               <Button 
+                onClick={handleMessage}
+                disabled={isLoading}
                 className="bg-white border-2 border-tennis-green-primary text-tennis-green-primary hover:bg-tennis-green-primary hover:text-white transition-all duration-200 shadow-md hover:shadow-lg"
                 size="lg"
               >
                 <MessageCircle className="h-4 w-4 mr-2" />
-                Message
+                {isLoading ? 'Opening...' : 'Message'}
               </Button>
               <Button 
                 className="bg-tennis-green-primary hover:bg-tennis-green-medium text-white shadow-md hover:shadow-lg transition-all duration-200"

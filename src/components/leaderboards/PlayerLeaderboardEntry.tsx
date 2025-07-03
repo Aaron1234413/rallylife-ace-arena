@@ -6,6 +6,7 @@ import { Trophy, Medal, Award, Crown, Star, MessageCircle } from 'lucide-react';
 import { PlayerLeaderboardEntry as PlayerEntry } from '@/hooks/usePlayerLeaderboards';
 import { useAuth } from '@/hooks/useAuth';
 import { useToast } from '@/hooks/use-toast';
+import { useMessageNavigation } from '@/hooks/useMessageNavigation';
 
 interface PlayerLeaderboardEntryProps {
   entry: PlayerEntry;
@@ -15,14 +16,13 @@ interface PlayerLeaderboardEntryProps {
 
 export function PlayerLeaderboardEntry({ entry, index, currentUserRole }: PlayerLeaderboardEntryProps) {
   const { user } = useAuth();
-  const { toast } = useToast();
+  const { openConversation, isLoading } = useMessageNavigation();
   const isCurrentUser = user?.id === entry.player_id;
 
   const handleMessage = () => {
-    // TODO: Navigate to messages or open chat modal
-    toast({
-      title: "Message Feature",
-      description: "Opening conversation with " + entry.player_name,
+    openConversation({
+      targetUserId: entry.player_id,
+      targetUserName: entry.player_name || 'Player'
     });
   };
 
@@ -106,6 +106,7 @@ export function PlayerLeaderboardEntry({ entry, index, currentUserRole }: Player
           variant="ghost"
           size="sm"
           onClick={handleMessage}
+          disabled={isLoading}
           className="absolute top-4 right-4 h-8 w-8 p-0 hover:bg-tennis-green-bg/30"
         >
           <MessageCircle className="h-4 w-4 text-tennis-green-medium hover:text-tennis-green-dark" />
