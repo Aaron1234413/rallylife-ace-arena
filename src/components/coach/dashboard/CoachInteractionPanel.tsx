@@ -6,6 +6,7 @@ import { Badge } from '@/components/ui/badge';
 import { UserPlus, BookOpen, Target, MessageSquare, TrendingUp } from 'lucide-react';
 import { TrainingPlanManager } from '@/components/coach/TrainingPlanManager';
 import { AssignTrainingDialog } from '@/components/coach/AssignTrainingDialog';
+import { useMessageNavigation } from '@/hooks/useMessageNavigation';
 import { useTrainingAssignments } from '@/hooks/useTrainingAssignments';
 import { useCoachingChallenges } from '@/hooks/useCoachingChallenges';
 import { useProgressReports } from '@/hooks/useProgressReports';
@@ -88,7 +89,13 @@ export function CoachInteractionPanel() {
               <Target className="h-4 w-4 mr-2" />
               Create Challenge
             </Button>
-            <Button variant="outline">
+            <Button 
+              variant="outline"
+              onClick={() => {
+                // For demo purposes - could open a client selector dialog
+                console.log('Opening client messaging interface');
+              }}
+            >
               <MessageSquare className="h-4 w-4 mr-2" />
               Send Message
             </Button>

@@ -2,6 +2,7 @@
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { useNavigate } from 'react-router-dom';
 import { 
   Calendar, 
   MessageSquare, 
@@ -14,6 +15,7 @@ import {
 } from 'lucide-react';
 
 export function CoachQuickActions() {
+  const navigate = useNavigate();
   const quickActions = [
     {
       title: 'Schedule Session',
@@ -27,7 +29,7 @@ export function CoachQuickActions() {
       description: 'Send a message to a client',
       icon: MessageSquare,
       color: 'bg-green-500 hover:bg-green-600',
-      action: () => console.log('Message client')
+      action: () => navigate('/messages')
     },
     {
       title: 'Add New Client',

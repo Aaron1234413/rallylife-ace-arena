@@ -22,6 +22,7 @@ import {
   Mail
 } from 'lucide-react';
 import { useCoachClients } from '@/hooks/useCoachClients';
+import { useMessageNavigation } from '@/hooks/useMessageNavigation';
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 
@@ -30,6 +31,7 @@ export function ClientManagementPanel() {
   const [activeTab, setActiveTab] = useState('all');
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteForm, setInviteForm] = useState({ email: '', message: '' });
+  const { openConversation, isLoading: messageLoading } = useMessageNavigation();
   
   const { clients, isLoading, sendInvitation, isSendingInvitation } = useCoachClients();
 
@@ -222,7 +224,15 @@ export function ClientManagementPanel() {
                     </div>
                     
                     <div className="flex items-center gap-2">
-                      <Button variant="outline" size="sm">
+                      <Button 
+                        variant="outline" 
+                        size="sm"
+                        onClick={() => openConversation({
+                          targetUserId: client.player_id,
+                          targetUserName: client.player_profile.full_name
+                        })}
+                        disabled={messageLoading}
+                      >
                         <MessageSquare className="h-4 w-4 mr-2" />
                         Message
                       </Button>

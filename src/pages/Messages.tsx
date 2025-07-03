@@ -73,29 +73,24 @@ export default function Messages() {
         </div>
 
         <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 overflow-hidden">
-          <div className="h-[calc(100vh-200px)] flex">
+          <div className="h-[calc(100vh-220px)] flex">
             {/* Conversations Sidebar */}
-            <div className={`w-full md:w-80 border-r border-tennis-green-bg/20 bg-tennis-green-bg/10 flex flex-col ${
+            <div className={`w-full md:w-80 border-r border-tennis-green-bg/20 bg-gradient-to-b from-tennis-green-bg/5 to-tennis-green-bg/10 flex flex-col ${
               showMobileConversation ? 'hidden md:flex' : 'flex'
             }`}>
               {/* Search */}
-              <div className="p-4 border-b border-tennis-green-bg/20">
-                <div className="flex items-center justify-between mb-4">
-                  <h2 className="font-semibold text-tennis-green-dark">Conversations</h2>
-                  <NewConversationDialog>
-                    <Button size="sm" className="bg-tennis-green-dark hover:bg-tennis-green-medium">
-                      <Plus className="h-4 w-4 mr-2" />
-                      New Chat
-                    </Button>
-                  </NewConversationDialog>
-                </div>
+              <div className="p-6 border-b border-tennis-green-bg/20 bg-gradient-to-r from-tennis-green-bg/5 to-transparent">
+                <h2 className="text-lg font-semibold text-tennis-green-dark mb-4 flex items-center gap-2">
+                  <MessageSquare className="h-5 w-5" />
+                  Conversations
+                </h2>
                 <div className="relative">
                   <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-tennis-green-dark/50" />
                   <Input
                     placeholder="Search conversations..."
                     value={searchTerm}
                     onChange={(e) => setSearchTerm(e.target.value)}
-                    className="pl-10 border-tennis-green-bg/30 focus:border-tennis-green-medium"
+                    className="pl-10 border-tennis-green-bg/30 focus:border-tennis-green-medium bg-white/70 backdrop-blur-sm"
                   />
                 </div>
               </div>
