@@ -84,7 +84,8 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
   const getPostDescription = () => {
     switch (post.type) {
       case 'social_play':
-        return `Completed a social ${post.content.stats.session_type} session`;
+        const sessionType = post.content.stats.session_type || 'session';
+        return `Completed a social ${sessionType} session`;
       case 'level_up':
         return 'Leveled up!';
       case 'match_result':
@@ -98,7 +99,7 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
       case 'lesson':
         return 'Lesson completed';
       default:
-        return post.content.title;
+        return post.content.title || 'Activity completed';
     }
   };
 
@@ -127,15 +128,20 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
       {/* Activity content */}
       <div className="mb-3">
         <div className="flex items-center gap-2 mb-2">
-          <h4 className="font-medium text-tennis-green-dark">{post.content.title}</h4>
+          <h4 className="font-medium text-tennis-green-dark">{post.content.title || getPostDescription()}</h4>
           <Badge variant="outline" className="text-xs capitalize text-tennis-green-medium border-tennis-green-bg/50">
             {post.type.replace('_', ' ')}
           </Badge>
           
-          {/* Special handling for level up */}
+          {/* Special handling for level up and achievements */}
           {post.type === 'level_up' && (
-            <Badge className="bg-yellow-100 text-yellow-800 border-yellow-300 text-xs">
+            <Badge className="bg-tennis-yellow-light text-tennis-yellow-dark text-xs">
               🎉 Level Up!
+            </Badge>
+          )}
+          {post.type === 'achievement' && (
+            <Badge className="bg-orange-100 text-orange-800 text-xs">
+              🏆 Achievement!
             </Badge>
           )}
         </div>
@@ -152,7 +158,7 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
       <div className="flex flex-wrap items-center gap-2 sm:gap-4 text-xs text-tennis-green-dark/60 mb-3">
         <div className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
-          <span>{format(new Date(post.timestamp), 'MMM d, HH:mm')}</span>
+          <span className="whitespace-nowrap">{format(new Date(post.timestamp), 'MMM d, HH:mm')}</span>
         </div>
         
         {post.content.stats.duration && (
@@ -180,7 +186,7 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
         {/* Social play specific info */}
         {post.type === 'social_play' && (
           <>
-            {post.content.stats.participant_count && (
+            {post.content.stats.participant_count && post.content.stats.participant_count > 0 && (
               <div className="flex items-center gap-1">
                 <Users className="h-3 w-3" />
                 <span>{post.content.stats.participant_count} players</span>
