@@ -84,32 +84,40 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
   const canAffordWithTokens = tokensOnlyOption?.canAfford || false;
   
   return (
-    <Card className={`transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-gray-200/50 bg-gradient-to-br from-white to-gray-50/30 ${isExpanded ? 'ring-2 ring-tennis-green-primary shadow-lg scale-[1.02]' : ''}`}>
-      <CardContent className="p-6">
+    <Card className={`group relative transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-gray-200/50 bg-gradient-to-br from-white to-gray-50/30 h-full flex flex-col ${isExpanded ? 'ring-2 ring-tennis-green-primary shadow-lg scale-[1.02]' : ''}`}>
+      <CardContent className="p-6 flex-1 flex flex-col">
         {/* Main Item Display */}
-        <div className="flex items-start gap-4 mb-5">
-          <div className={`p-3 rounded-xl ${item.color.split(' ')[0]} flex-shrink-0 shadow-lg`}>
-            <Icon className="h-6 w-6 text-white" />
+        <div className="flex items-start gap-4 mb-6 flex-1">
+          <div className={`p-3 rounded-xl ${item.color.split(' ')[0]} flex-shrink-0 shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
+            <Icon className="h-7 w-7 text-white" />
           </div>
           
-          <div className="flex-1 min-w-0 space-y-3">
+          <div className="flex-1 min-w-0 space-y-4">
             <div className="space-y-2">
-              <h3 className="font-bold text-lg text-gray-900 leading-tight">{item.name}</h3>
-              <p className="text-sm text-gray-600 leading-relaxed">{item.description}</p>
+              <h3 className="font-bold text-lg text-gray-900 leading-tight group-hover:text-tennis-green-dark transition-colors duration-200">
+                {item.name}
+              </h3>
+              <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
+                {item.description}
+              </p>
             </div>
             
             {/* Enhanced Price Display */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
+            <div className="space-y-4">
+              <div className="flex items-start justify-between flex-wrap gap-3">
+                <div className="flex items-center gap-3 flex-wrap">
                   <Badge 
                     variant={canAffordWithTokens ? "default" : "secondary"} 
-                    className={`text-sm px-4 py-2 font-semibold ${canAffordWithTokens ? 'bg-tennis-green-primary text-white' : 'bg-gray-100 text-gray-600'}`}
+                    className={`text-sm px-4 py-2 font-semibold transition-all duration-200 ${
+                      canAffordWithTokens 
+                        ? 'bg-tennis-green-primary text-white shadow-sm' 
+                        : 'bg-gray-100 text-gray-600'
+                    }`}
                   >
                     🪙 {item.cost}
                   </Badge>
-                  <span className="text-sm text-gray-500 font-medium">or</span>
-                  <Badge variant="outline" className="text-sm px-4 py-2 font-semibold border-gray-300 text-gray-700">
+                  <span className="text-sm text-gray-500 font-medium hidden sm:inline">or</span>
+                  <Badge variant="outline" className="text-sm px-4 py-2 font-semibold border-gray-300 text-gray-700 hover:border-gray-400 transition-colors duration-200">
                     ${item.cashPrice.toFixed(2)}
                   </Badge>
                 </div>

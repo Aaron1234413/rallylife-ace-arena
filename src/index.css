@@ -695,3 +695,11 @@
 .animate-button-press {
   animation: button-press 0.15s ease-out;
 }
+
+/* Line clamp utility for text truncation */
+.line-clamp-2 {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 2;
+}

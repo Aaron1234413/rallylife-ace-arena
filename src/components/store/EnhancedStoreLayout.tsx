@@ -1,6 +1,7 @@
 
 import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { StoreCategoryTabs } from './StoreCategoryTabs';
 import { StoreSearchFilter } from './StoreSearchFilter';
 import { TokenStore } from '@/components/tokens/TokenStore';
@@ -120,14 +121,18 @@ export function EnhancedStoreLayout({
         </CardHeader>
         <CardContent className="p-8">
           <StoreCategoryTabs>
-            {/* Current Token Store Content */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Current Token Store Content - Optimized Grid Layout */}
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 xl:gap-12">
               <div className="space-y-6">
                 <div className="flex items-center gap-3 pb-3 border-b border-tennis-green-light/20">
                   <div className="w-3 h-3 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-full"></div>
                   <h3 className="text-2xl font-bold text-tennis-green-dark">
                     Items & Consumables
                   </h3>
+                  <Badge variant="secondary" className="text-xs px-2 py-1 bg-tennis-green-bg text-tennis-green-dark">
+                    {/* We'll add item count here */}
+                    Active
+                  </Badge>
                 </div>
                 {tokenData && (
                   <TokenStore
