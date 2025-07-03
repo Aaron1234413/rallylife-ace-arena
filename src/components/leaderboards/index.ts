@@ -5,6 +5,3 @@ export { PlayerLeaderboardEntry } from './PlayerLeaderboardEntry';
 export { LeaderboardActions } from './LeaderboardActions';
 export { LeaderboardWidget } from './LeaderboardWidget';
 export { LeaderboardActivityFeed } from './LeaderboardActivityFeed';
-export { LeaderboardFilters } from './LeaderboardFilters';
-export { SocialActionsPanel } from './SocialActionsPanel';
-export { VirtualizedLeaderboard } from './VirtualizedLeaderboard';

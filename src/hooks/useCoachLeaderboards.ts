@@ -124,12 +124,11 @@ export function useCoachLeaderboards() {
     // Clean up existing channel
     if (channelRef.current) {
       supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
     }
 
-    // Create new subscription with unique channel name
+    // Create new subscription
     const channel = supabase
-      .channel(`coach_leaderboard_changes_${Date.now()}`)
+      .channel('coach_leaderboard_changes')
       .on(
         'postgres_changes',
         {
