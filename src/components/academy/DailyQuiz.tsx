@@ -63,7 +63,7 @@ const DRILL_TOPICS = [
   }
 ];
 
-export const DailyDrill: React.FC<DailyDrillProps> = ({ onBack }) => {
+export const DailyQuiz: React.FC<DailyDrillProps> = ({ onBack }) => {
   const [selectedDrill, setSelectedDrill] = useState<string | null>(null);
   const [drillStarted, setDrillStarted] = useState(false);
 

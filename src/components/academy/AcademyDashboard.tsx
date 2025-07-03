@@ -4,58 +4,44 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { 
-  BookOpen, 
   Target, 
-  Trophy, 
   Calendar,
   Zap,
-  Brain,
   TrendingUp,
-  Users,
-  Medal
+  Coins,
+  CheckCircle
 } from 'lucide-react';
 import { AcademyTokenDisplay } from './AcademyTokenDisplay';
-import { AcademyProgressTracker } from './AcademyProgressTracker';
-import { LeaderboardWidget } from './LeaderboardWidget';
-import { ChallengeSystem } from './ChallengeSystem';
-import { StreakTracker } from './StreakTracker';
 import { AcademyProgress } from '@/hooks/useAcademyProgressDB';
 
 interface AcademyDashboardProps {
   progress: AcademyProgress;
-  onStartQuiz: (type: 'daily' | 'practice') => void;
-  onViewCampus: () => void;
-  onViewSocial: () => void;
-  onViewMarketplace?: () => void;
-  onViewPremium?: () => void;
-  onViewCustomize?: () => void;
+  onStartQuiz: () => void;
 }
 
 export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
   progress,
-  onStartQuiz,
-  onViewCampus,
-  onViewSocial
+  onStartQuiz
 }) => {
   const streakDays = Math.floor((Date.now() - new Date(progress.last_activity).getTime()) / (1000 * 60 * 60 * 24));
   const isToday = new Date().toDateString() === new Date(progress.last_activity).toDateString();
   const currentStreak = isToday ? progress.daily_streak : 0;
 
   return (
-    <div className="min-h-screen bg-tennis-green-bg p-4 space-y-6">
+    <div className="min-h-screen bg-tennis-green-bg p-4 space-y-6 max-w-4xl mx-auto">
       {/* Header */}
       <div className="text-center space-y-2">
         <div className="flex items-center justify-center gap-2 mb-2">
           <div className="w-8 h-8 bg-tennis-green-primary rounded-full flex items-center justify-center">
             <span className="text-white text-xl">🎾</span>
           </div>
-          <h1 className="text-3xl font-bold text-tennis-green-dark">RAKO Academy</h1>
+          <h1 className="text-3xl font-bold text-tennis-green-dark">Tennis Knowledge Hub</h1>
         </div>
-        <p className="text-tennis-green-medium">Master tennis knowledge. Earn rewards. Climb the ranks.</p>
+        <p className="text-tennis-green-medium">Master tennis knowledge. Earn tokens. Build your streak.</p>
       </div>
 
       {/* Welcome & Level Display */}
-      <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20">
+      <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20 animate-fade-in">
         <CardContent className="p-6">
           <div className="flex items-center justify-between">
             <div>
@@ -63,7 +49,7 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
                 Welcome back, Scholar!
               </h2>
               <p className="text-tennis-green-medium mt-1">
-                You're on a roll! Keep up the great work.
+                Ready for today's tennis knowledge challenge?
               </p>
             </div>
             <div className="text-right">
@@ -78,19 +64,11 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
         </CardContent>
       </Card>
 
-      {/* Token Display & Progress */}
-      <div className="grid gap-4 md:grid-cols-2">
-        <AcademyTokenDisplay 
-          dailyTokensEarned={progress.daily_tokens_earned}
-          dailyTokenLimit={10}
-        />
-        <AcademyProgressTracker progress={progress} />
-      </div>
-
-      {/* Daily Streak */}
-      <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20">
-        <CardContent className="p-4">
-          <div className="flex items-center justify-between">
+      {/* Daily Stats Grid */}
+      <div className="grid gap-4 md:grid-cols-3">
+        {/* Daily Streak */}
+        <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20 hover:shadow-lg transition-all duration-300">
+          <CardContent className="p-4">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 bg-orange-100 rounded-full flex items-center justify-center">
                 <Calendar className="h-5 w-5 text-orange-600" />
@@ -98,175 +76,107 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               <div>
                 <p className="font-medium text-tennis-green-dark">Daily Streak</p>
                 <p className="text-sm text-tennis-green-medium">
-                  {currentStreak > 0 ? `${currentStreak} days strong!` : 'Start your streak today'}
+                  {currentStreak > 0 ? `${currentStreak} days 🔥` : 'Start today!'}
                 </p>
               </div>
             </div>
-            <div className="text-right">
+            <div className="text-right mt-2">
               <div className="text-2xl font-bold text-orange-600">{currentStreak}</div>
-              <div className="text-xs text-tennis-green-medium">🔥</div>
             </div>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Social & Engagement Features */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        <LeaderboardWidget />
-        <StreakTracker currentStreak={currentStreak} longestStreak={currentStreak + 5} />
-      </div>
-
-      <ChallengeSystem />
-
-      {/* Quick Access Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        {/* Daily Drill */}
-        <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20 hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-              <Target className="h-5 w-5 text-tennis-green-primary" />
-              Daily Drill
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-sm text-tennis-green-medium">
-                Complete today's focused 5-question drill
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-tennis-green-dark">Reward:</span>
-                <Badge variant="outline" className="text-xs">+3 tokens</Badge>
-              </div>
-            </div>
-            <Button 
-              onClick={() => onStartQuiz('daily')}
-              className="w-full bg-tennis-green-primary hover:bg-tennis-green-dark"
-              disabled={progress.daily_tokens_earned >= 10}
-            >
-              <Zap className="h-4 w-4 mr-2" />
-              {progress.daily_tokens_earned >= 10 ? 'Daily Limit Reached' : 'Start Daily Drill'}
-            </Button>
           </CardContent>
         </Card>
 
-        {/* Campus Access */}
-        <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20 hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-              <BookOpen className="h-5 w-5 text-purple-600" />
-              Academy Campus
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-sm text-tennis-green-medium">
-                Explore specialized buildings and category quizzes
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-tennis-green-dark">6 Buildings:</span>
-                <Badge variant="outline" className="text-xs">Rules, Strategy, History</Badge>
-              </div>
-            </div>
-            <Button 
-              onClick={onViewCampus}
-              variant="outline"
-              className="w-full border-purple-600 text-purple-600 hover:bg-purple-600 hover:text-white"
-            >
-              <BookOpen className="h-4 w-4 mr-2" />
-              Enter Campus
-            </Button>
-          </CardContent>
-        </Card>
+        {/* Token Display */}
+        <AcademyTokenDisplay 
+          dailyTokensEarned={progress.daily_tokens_earned}
+          dailyTokenLimit={10}
+        />
 
-        {/* Practice Quiz */}
-        <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20 hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-              <Brain className="h-5 w-5 text-blue-600" />
-              Practice Quiz
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-sm text-tennis-green-medium">
-                Test your knowledge with unlimited practice
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-tennis-green-dark">Reward:</span>
-                <Badge variant="outline" className="text-xs">+1 token</Badge>
+        {/* Level Progress */}
+        <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3 mb-3">
+              <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                <TrendingUp className="h-5 w-5 text-blue-600" />
               </div>
-            </div>
-            <Button 
-              onClick={() => onStartQuiz('practice')}
-              variant="outline"
-              className="w-full border-tennis-green-primary text-tennis-green-primary hover:bg-tennis-green-primary hover:text-white"
-            >
-              <BookOpen className="h-4 w-4 mr-2" />
-              Practice Now
-            </Button>
-          </CardContent>
-        </Card>
-
-        {/* Social Hub */}
-        <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20 hover:shadow-lg transition-shadow">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-              <Users className="h-5 w-5 text-blue-600" />
-              Social Hub
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="space-y-2">
-              <p className="text-sm text-tennis-green-medium">
-                Connect with friends and join study groups
-              </p>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-medium text-tennis-green-dark">Features:</span>
-                <Badge variant="outline" className="text-xs">Friends & Groups</Badge>
+              <div>
+                <p className="font-medium text-tennis-green-dark">Level Progress</p>
+                <p className="text-sm text-tennis-green-medium">
+                  {progress.total_xp} total XP
+                </p>
               </div>
-            </div>
-            <Button 
-              onClick={onViewSocial}
-              variant="outline"
-              className="w-full border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white"
-            >
-              <Users className="h-4 w-4 mr-2" />
-              Open Social Hub
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
-
-      {/* Academy Progress Bar */}
-      <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-            <TrendingUp className="h-5 w-5 text-tennis-green-primary" />
-            Academy Progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="space-y-2">
-            <div className="flex justify-between text-sm">
-              <span className="text-tennis-green-medium">Overall Progress</span>
-              <span className="font-medium text-tennis-green-dark">
-                Level {progress.level} • {progress.total_xp} XP
-              </span>
             </div>
             <Progress 
               value={(progress.total_xp % 100)} 
               className="h-2"
             />
-            <div className="flex justify-between text-xs text-tennis-green-medium">
-              <span>Current Level</span>
-              <span>{100 - (progress.total_xp % 100)} XP to next level</span>
+            <div className="flex justify-between text-xs text-tennis-green-medium mt-1">
+              <span>Level {progress.level}</span>
+              <span>{100 - (progress.total_xp % 100)} XP to next</span>
             </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Main Daily Quiz Card */}
+      <Card className="bg-gradient-to-r from-tennis-green-primary to-tennis-green-accent border-tennis-green-light shadow-lg animate-scale-in">
+        <CardContent className="p-8">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-6">
+              <div className="w-16 h-16 bg-white/20 rounded-full flex items-center justify-center">
+                <Target className="h-8 w-8 text-white" />
+              </div>
+              <div>
+                <h3 className="text-2xl font-bold text-white mb-2">Daily Tennis Quiz</h3>
+                <p className="text-white/90 mb-2">
+                  5 questions • 3 minutes • Earn tokens & XP
+                </p>
+                <div className="flex items-center gap-3">
+                  <Badge className="bg-white/20 text-white border-white/30">
+                    <Coins className="h-3 w-3 mr-1" />
+                    +5 Tokens
+                  </Badge>
+                  <Badge className="bg-white/20 text-white border-white/30">
+                    +50 XP
+                  </Badge>
+                </div>
+              </div>
+            </div>
+            <Button
+              onClick={onStartQuiz}
+              size="lg"
+              className="bg-white text-tennis-green-primary hover:bg-white/90 font-semibold"
+              disabled={progress.daily_tokens_earned >= 10}
+            >
+              {progress.daily_tokens_earned >= 10 ? (
+                <>
+                  <CheckCircle className="h-5 w-5 mr-2" />
+                  Completed Today
+                </>
+              ) : (
+                <>
+                  <Zap className="h-5 w-5 mr-2" />
+                  Start Quiz
+                </>
+              )}
+            </Button>
           </div>
-          
-          <div className="grid grid-cols-3 gap-4 pt-2">
+        </CardContent>
+      </Card>
+
+      {/* Today's Progress Summary */}
+      <Card className="bg-white/90 backdrop-blur-sm border-tennis-green-light/20">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
+            <TrendingUp className="h-5 w-5 text-tennis-green-primary" />
+            Today's Summary
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="grid grid-cols-3 gap-4">
             <div className="text-center">
               <div className="text-lg font-bold text-tennis-green-dark">{progress.quizzes_completed}</div>
-              <div className="text-xs text-tennis-green-medium">Quizzes Completed</div>
+              <div className="text-xs text-tennis-green-medium">Total Quizzes</div>
             </div>
             <div className="text-center">
               <div className="text-lg font-bold text-orange-600">{currentStreak}</div>
@@ -276,6 +186,35 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
               <div className="text-lg font-bold text-blue-600">{Math.floor(progress.total_xp / 100)}</div>
               <div className="text-xs text-tennis-green-medium">Levels Earned</div>
             </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Motivational Message */}
+      <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200">
+        <CardContent className="p-6 text-center">
+          <div className="space-y-2">
+            {currentStreak === 0 ? (
+              <>
+                <p className="text-lg font-medium text-gray-800">🎯 Start Your Learning Journey</p>
+                <p className="text-gray-600">Complete today's quiz to begin your knowledge streak!</p>
+              </>
+            ) : currentStreak < 3 ? (
+              <>
+                <p className="text-lg font-medium text-gray-800">🔥 Great Start!</p>
+                <p className="text-gray-600">Keep going to build your learning streak!</p>
+              </>
+            ) : currentStreak < 7 ? (
+              <>
+                <p className="text-lg font-medium text-gray-800">⚡ You're on Fire!</p>
+                <p className="text-gray-600">Amazing consistency! You're building great habits.</p>
+              </>
+            ) : (
+              <>
+                <p className="text-lg font-medium text-gray-800">🏆 Knowledge Master!</p>
+                <p className="text-gray-600">Incredible streak! You're becoming a tennis expert.</p>
+              </>
+            )}
           </div>
         </CardContent>
       </Card>
