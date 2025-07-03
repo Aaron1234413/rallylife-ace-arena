@@ -84,35 +84,38 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
   const canAffordWithTokens = tokensOnlyOption?.canAfford || false;
   
   return (
-    <Card className={`transition-all duration-200 ${isExpanded ? 'ring-2 ring-blue-500' : ''}`}>
+    <Card className={`transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-gray-200/50 bg-gradient-to-br from-white to-gray-50/30 ${isExpanded ? 'ring-2 ring-tennis-green-primary shadow-lg scale-[1.02]' : ''}`}>
       <CardContent className="p-6">
         {/* Main Item Display */}
         <div className="flex items-start gap-4 mb-5">
-          <div className={`p-3 rounded-lg ${item.color.split(' ')[0]} flex-shrink-0`}>
+          <div className={`p-3 rounded-xl ${item.color.split(' ')[0]} flex-shrink-0 shadow-lg`}>
             <Icon className="h-6 w-6 text-white" />
           </div>
           
           <div className="flex-1 min-w-0 space-y-3">
-            <div className="space-y-1">
-              <h3 className="font-semibold text-base">{item.name}</h3>
-              <p className="text-sm text-muted-foreground">{item.description}</p>
+            <div className="space-y-2">
+              <h3 className="font-bold text-lg text-gray-900 leading-tight">{item.name}</h3>
+              <p className="text-sm text-gray-600 leading-relaxed">{item.description}</p>
             </div>
             
             {/* Enhanced Price Display */}
             <div className="space-y-3">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
-                  <Badge variant={canAffordWithTokens ? "default" : "secondary"} className="text-sm px-3 py-1">
+                  <Badge 
+                    variant={canAffordWithTokens ? "default" : "secondary"} 
+                    className={`text-sm px-4 py-2 font-semibold ${canAffordWithTokens ? 'bg-tennis-green-primary text-white' : 'bg-gray-100 text-gray-600'}`}
+                  >
                     🪙 {item.cost}
                   </Badge>
-                  <span className="text-sm text-muted-foreground">or</span>
-                  <Badge variant="outline" className="text-sm px-3 py-1">
+                  <span className="text-sm text-gray-500 font-medium">or</span>
+                  <Badge variant="outline" className="text-sm px-4 py-2 font-semibold border-gray-300 text-gray-700">
                     ${item.cashPrice.toFixed(2)}
                   </Badge>
                 </div>
                 
                 {bestSummary.savings && (
-                  <Badge variant="default" className="text-sm bg-green-100 text-green-800 px-3 py-1">
+                  <Badge variant="default" className="text-sm bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 font-semibold shadow-sm">
                     Save ${bestSummary.savings.replace('Save $', '').replace('!', '')}
                   </Badge>
                 )}
@@ -120,7 +123,7 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
               
               {/* Hybrid Payment Preview */}
               {!canAffordWithTokens && regularTokens > 0 && (
-                <div className="text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
+                <div className="text-sm text-blue-700 bg-gradient-to-r from-blue-50 to-blue-100 px-4 py-3 rounded-lg border border-blue-200/50 font-medium">
                   💡 Pay {regularTokens} tokens + ${((item.cost - regularTokens) * 0.01).toFixed(2)} cash
                 </div>
               )}
@@ -133,7 +136,7 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
           <Button
             onClick={() => handlePurchase(bestOption)}
             disabled={purchasing}
-            className={`w-full ${item.color} text-white h-12`}
+            className={`w-full ${item.color} text-white h-12 font-semibold shadow-lg hover:shadow-xl transition-all duration-200`}
             size="default"
           >
             <Coins className="h-5 w-5 mr-2" />
@@ -146,7 +149,7 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
               <Button
                 onClick={() => handlePurchase(paymentOptions.find(opt => opt.type === 'hybrid') || bestOption)}
                 disabled={purchasing}
-                className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
+                className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                 size="default"
               >
                 <Wallet className="h-5 w-5 mr-2" />
@@ -156,7 +159,7 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
               <Button
                 onClick={() => handlePurchase(paymentOptions.find(opt => opt.type === 'cash_only') || bestOption)}
                 disabled={purchasing}
-                className="w-full h-12 bg-blue-500 text-white hover:bg-blue-600"
+                className="w-full h-12 bg-blue-500 text-white hover:bg-blue-600 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
                 size="default"
               >
                 <CreditCard className="h-5 w-5 mr-2" />
@@ -167,15 +170,15 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
             <Button
               onClick={() => setIsExpanded(!isExpanded)}
               variant="ghost"
-              className="w-full text-sm h-10"
+              className="w-full text-sm h-10 text-gray-600 hover:text-gray-800 hover:bg-gray-100 font-medium transition-all duration-200"
               size="default"
             >
               {isExpanded ? 'Hide' : 'Show'} All Payment Options
             </Button>
             
             {isExpanded && (
-              <div className="space-y-4 pt-4 border-t">
-                <h4 className="text-base font-medium text-gray-700">All Payment Options</h4>
+              <div className="space-y-4 pt-4 border-t border-gray-200">
+                <h4 className="text-base font-semibold text-gray-800">All Payment Options</h4>
                 {paymentOptions.map((option, index) => {
                   const summary = getPaymentSummary(option);
                   const isRecommended = option.type === 'hybrid' && option.savings && option.savings > 0;
@@ -186,7 +189,11 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
                         onClick={() => handlePurchase(option)}
                         disabled={purchasing || !option.canAfford}
                         variant={isRecommended ? "default" : "outline"}
-                        className={`w-full justify-between h-12 ${isRecommended ? 'ring-2 ring-blue-300 bg-blue-50' : ''}`}
+                        className={`w-full justify-between h-12 font-medium transition-all duration-200 ${
+                          isRecommended 
+                            ? 'ring-2 ring-tennis-green-primary/50 bg-tennis-green-primary text-white hover:bg-tennis-green-dark shadow-md' 
+                            : 'border-gray-300 hover:border-gray-400 hover:bg-gray-50'
+                        }`}
                         size="default"
                       >
                         <div className="flex items-center">
@@ -195,7 +202,7 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
                           {option.type === 'hybrid' && <Wallet className="h-5 w-5 mr-3 text-purple-500" />}
                           
                           <div className="text-left">
-                            <div className="text-sm font-medium">{summary.title}</div>
+                            <div className="text-sm font-semibold">{summary.title}</div>
                             <div className="text-xs text-muted-foreground">
                               {option.type === 'hybrid' && (
                                 <span className="text-purple-600 font-medium">
@@ -218,12 +225,12 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
                         
                         <div className="text-right">
                           {isRecommended && (
-                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 mb-1">
+                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 mb-1 font-semibold">
                               Best Value
                             </Badge>
                           )}
                           {summary.savings && (
-                            <div className="text-xs text-green-600 font-medium">
+                            <div className="text-xs text-green-600 font-semibold">
                               {summary.savings}
                             </div>
                           )}
@@ -239,9 +246,11 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
         
         {/* Enhanced shortage info */}
         {!canAffordWithTokens && !isExpanded && regularTokens === 0 && (
-          <p className="text-sm text-orange-600 mt-4 text-center bg-orange-50 px-4 py-3 rounded-lg">
-            💡 Need {item.cost} tokens or pay ${item.cashPrice.toFixed(2)} with card
-          </p>
+          <div className="mt-4 text-center bg-gradient-to-r from-orange-50 to-orange-100 border border-orange-200/50 px-4 py-3 rounded-lg">
+            <p className="text-sm text-orange-700 font-medium">
+              💡 Need {item.cost} tokens or pay ${item.cashPrice.toFixed(2)} with card
+            </p>
+          </div>
         )}
       </CardContent>
     </Card>
