@@ -100,12 +100,12 @@ export default function Club() {
     <div className="min-h-screen bg-tennis-green-bg">
       <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-4 sm:space-y-6">
         {/* Header with Navigation */}
-        <div className="flex items-center gap-4">
+        <div className="flex items-center gap-4 mb-6">
           <Button 
             variant="outline" 
             size="sm"
             onClick={() => navigate('/')}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 hover-scale"
           >
             <ArrowLeft className="h-4 w-4" />
             Dashboard
@@ -113,62 +113,64 @@ export default function Club() {
         </div>
 
         {/* Club Header */}
-        <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50">
-          <CardHeader className="pb-6">
-            <div className="flex flex-col sm:flex-row sm:items-start gap-4">
-              <Avatar className="h-20 w-20 bg-gradient-to-br from-blue-500 to-purple-600">
+        <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50 animate-fade-in">
+          <CardHeader className="pb-8">
+            <div className="flex flex-col sm:flex-row sm:items-start gap-6">
+              <Avatar className="h-24 w-24 bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
                 <AvatarImage src={club.logo_url || undefined} />
-                <AvatarFallback className="text-white font-bold text-xl">
+                <AvatarFallback className="text-white font-bold text-2xl">
                   {club.name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               
-              <div className="flex-1 min-w-0">
-                <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-4 mb-2">
-                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900 truncate">
-                    {club.name}
-                  </h1>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    {isOwner && (
-                      <Badge className="bg-amber-100 text-amber-800 border-amber-200">
-                        <Crown className="h-3 w-3 mr-1" />
-                        Owner
-                      </Badge>
-                    )}
-                    <Badge variant={club.is_public ? "default" : "secondary"}>
-                      {club.is_public ? (
-                        <><Globe className="h-3 w-3 mr-1" />Public</>
-                      ) : (
-                        <><Lock className="h-3 w-3 mr-1" />Private</>
+              <div className="flex-1 min-w-0 space-y-4">
+                <div className="space-y-3">
+                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
+                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
+                      {club.name}
+                    </h1>
+                    <div className="flex items-center gap-2 flex-wrap">
+                      {isOwner && (
+                        <Badge className="bg-amber-100 text-amber-800 border-amber-200 px-3 py-1">
+                          <Crown className="h-3 w-3 mr-1" />
+                          Owner
+                        </Badge>
                       )}
-                    </Badge>
+                      <Badge variant={club.is_public ? "default" : "secondary"} className="px-3 py-1">
+                        {club.is_public ? (
+                          <><Globe className="h-3 w-3 mr-1" />Public</>
+                        ) : (
+                          <><Lock className="h-3 w-3 mr-1" />Private</>
+                        )}
+                      </Badge>
+                    </div>
                   </div>
-                </div>
-                
-                <div className="flex items-center gap-4 text-gray-600 mb-3">
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    <span>{club.member_count} members</span>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Calendar className="h-4 w-4" />
-                    <span>Created {formatDistanceToNow(new Date(club.created_at), { addSuffix: true })}</span>
+                  
+                  <div className="flex items-center gap-6 text-gray-600">
+                    <div className="flex items-center gap-2">
+                      <Users className="h-5 w-5" />
+                      <span className="text-base font-medium">{club.member_count} members</span>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      <Calendar className="h-5 w-5" />
+                      <span className="text-base">Created {formatDistanceToNow(new Date(club.created_at), { addSuffix: true })}</span>
+                    </div>
                   </div>
                 </div>
 
                 {club.description && (
-                  <p className="text-gray-700 mb-4">{club.description}</p>
+                  <p className="text-gray-700 text-lg leading-relaxed">{club.description}</p>
                 )}
 
-                <div className="flex gap-2 flex-wrap">
+                <div className="flex gap-3 flex-wrap pt-2">
                   {isOwner && (
-                    <Button size="sm" className="flex items-center gap-2">
+                    <Button className="flex items-center gap-2 px-6 py-2 hover-scale">
                       <Settings className="h-4 w-4" />
                       Manage Club
                     </Button>
                   )}
                   {!isOwner && !isMember && (
-                    <Button size="sm" className="flex items-center gap-2">
+                    <Button className="flex items-center gap-2 px-6 py-2 hover-scale">
                       <UserPlus className="h-4 w-4" />
                       Join Club
                     </Button>
@@ -180,16 +182,16 @@ export default function Club() {
         </Card>
 
         {/* Club Content */}
-        <Tabs defaultValue="overview" className="space-y-6">
-          <TabsList className="bg-white border">
-            <TabsTrigger value="overview">Overview</TabsTrigger>
-            <TabsTrigger value="members">Members</TabsTrigger>
-            <TabsTrigger value="coaches">Coaches</TabsTrigger>
-            <TabsTrigger value="coaching">Book Coaching</TabsTrigger>
-            <TabsTrigger value="courts">Courts</TabsTrigger>
-            <TabsTrigger value="my-bookings">My Bookings</TabsTrigger>
-            {isCoach && <TabsTrigger value="my-services">My Services</TabsTrigger>}
-            {canEditClub && <TabsTrigger value="settings">Settings</TabsTrigger>}
+        <Tabs defaultValue="overview" className="space-y-8">
+          <TabsList className="bg-white border h-12 p-1 shadow-sm">
+            <TabsTrigger value="overview" className="text-base font-medium">Overview</TabsTrigger>
+            <TabsTrigger value="members" className="text-base font-medium">Members</TabsTrigger>
+            <TabsTrigger value="coaches" className="text-base font-medium">Coaches</TabsTrigger>
+            <TabsTrigger value="coaching" className="text-base font-medium">Book Coaching</TabsTrigger>
+            <TabsTrigger value="courts" className="text-base font-medium">Courts</TabsTrigger>
+            <TabsTrigger value="my-bookings" className="text-base font-medium">My Bookings</TabsTrigger>
+            {isCoach && <TabsTrigger value="my-services" className="text-base font-medium">My Services</TabsTrigger>}
+            {canEditClub && <TabsTrigger value="settings" className="text-base font-medium">Settings</TabsTrigger>}
           </TabsList>
 
           <TabsContent value="overview">

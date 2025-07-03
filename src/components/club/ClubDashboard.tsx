@@ -124,19 +124,19 @@ export function ClubDashboard({ club }: ClubDashboardProps) {
   return (
     <div className="space-y-6">
       {/* Stats Grid */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {stats.map((stat) => {
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
+        {stats.map((stat, index) => {
           const Icon = stat.icon;
           return (
-            <Card key={stat.label}>
-              <CardContent className="p-4">
-                <div className="flex items-center gap-3">
-                  <div className="p-2 bg-tennis-green-bg rounded-lg">
-                    <Icon className={`h-5 w-5 ${stat.color}`} />
+            <Card key={stat.label} className="hover-scale animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+              <CardContent className="p-6">
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-gradient-to-br from-tennis-green-primary/10 to-tennis-green-primary/5 rounded-xl">
+                    <Icon className={`h-6 w-6 ${stat.color}`} />
                   </div>
-                  <div>
-                    <p className="text-sm text-tennis-green-medium">{stat.label}</p>
-                    <p className="text-2xl font-bold text-tennis-green-dark">{stat.value}</p>
+                  <div className="space-y-1">
+                    <p className="text-tennis-green-medium font-medium">{stat.label}</p>
+                    <p className="text-3xl font-bold text-tennis-green-dark">{stat.value}</p>
                   </div>
                 </div>
               </CardContent>
@@ -145,25 +145,27 @@ export function ClubDashboard({ club }: ClubDashboardProps) {
         })}
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-8 lg:grid-cols-2">
         {/* Recent Activity */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Activity className="h-5 w-5" />
+        <Card className="shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <Activity className="h-6 w-6" />
               Recent Activity
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recentActivities.map((activity) => (
-              <div key={activity.id} className="flex items-start gap-3 p-3 rounded-lg bg-tennis-green-bg/30">
-                {getActivityIcon(activity.type)}
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm">
-                    <span className="font-medium">{activity.user}</span>{' '}
+            {recentActivities.map((activity, index) => (
+              <div key={activity.id} className="flex items-start gap-4 p-4 rounded-xl bg-tennis-green-bg/30 hover:bg-tennis-green-bg/40 transition-colors animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="flex-shrink-0 mt-1">
+                  {getActivityIcon(activity.type)}
+                </div>
+                <div className="flex-1 min-w-0 space-y-1">
+                  <p className="text-base leading-relaxed">
+                    <span className="font-semibold">{activity.user}</span>{' '}
                     {activity.details}
                   </p>
-                  <p className="text-xs text-tennis-green-medium">
+                  <p className="text-sm text-tennis-green-medium">
                     {formatDistanceToNow(activity.timestamp, { addSuffix: true })}
                   </p>
                 </div>
@@ -173,24 +175,24 @@ export function ClubDashboard({ club }: ClubDashboardProps) {
         </Card>
 
         {/* Upcoming Events */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Calendar className="h-5 w-5" />
+        <Card className="shadow-sm">
+          <CardHeader className="pb-4">
+            <CardTitle className="flex items-center gap-3 text-xl">
+              <Calendar className="h-6 w-6" />
               Upcoming Events
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {upcomingEvents.map((event) => (
-              <div key={event.id} className="flex items-center justify-between p-3 rounded-lg bg-tennis-green-bg/30">
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2 mb-1">
-                    <h4 className="font-medium truncate">{event.title}</h4>
+            {upcomingEvents.map((event, index) => (
+              <div key={event.id} className="p-4 rounded-xl bg-tennis-green-bg/30 hover:bg-tennis-green-bg/40 transition-colors animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
+                <div className="space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <h4 className="font-semibold text-lg leading-tight">{event.title}</h4>
                     {getEventBadge(event.type)}
                   </div>
-                  <div className="flex items-center gap-4 text-sm text-tennis-green-medium">
-                    <span>{formatDistanceToNow(event.date, { addSuffix: true })}</span>
-                    <span>{event.participants} participants</span>
+                  <div className="flex items-center gap-6 text-tennis-green-medium">
+                    <span className="text-base">{formatDistanceToNow(event.date, { addSuffix: true })}</span>
+                    <span className="text-base">{event.participants} participants</span>
                   </div>
                 </div>
               </div>
@@ -201,12 +203,12 @@ export function ClubDashboard({ club }: ClubDashboardProps) {
 
       {/* Club Description */}
       {club.description && (
-        <Card>
-          <CardHeader>
-            <CardTitle>About This Club</CardTitle>
+        <Card className="shadow-sm animate-fade-in">
+          <CardHeader className="pb-4">
+            <CardTitle className="text-xl">About This Club</CardTitle>
           </CardHeader>
           <CardContent>
-            <p className="text-tennis-green-medium leading-relaxed">{club.description}</p>
+            <p className="text-tennis-green-medium leading-relaxed text-lg">{club.description}</p>
           </CardContent>
         </Card>
       )}

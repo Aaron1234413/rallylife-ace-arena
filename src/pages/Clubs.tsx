@@ -95,22 +95,22 @@ export default function Clubs() {
     <div className="min-h-screen bg-tennis-green-bg">
       <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
         {/* Header */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-8">
+          <div className="flex flex-col gap-6">
             <Button 
               variant="outline" 
               size="sm"
               onClick={() => navigate('/dashboard')}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 self-start"
             >
               <ArrowLeft className="h-4 w-4" />
               Dashboard
             </Button>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-tennis-green-dark">
+            <div className="space-y-3">
+              <h1 className="text-3xl sm:text-4xl font-bold text-tennis-green-dark leading-tight">
                 Tennis Clubs
               </h1>
-              <p className="text-tennis-green-medium">
+              <p className="text-lg text-tennis-green-medium leading-relaxed max-w-2xl">
                 Discover clubs, manage memberships, and connect with fellow tennis players
               </p>
             </div>
@@ -118,52 +118,53 @@ export default function Clubs() {
           
           <Button 
             onClick={() => setShowCreateDialog(true)}
-            className="flex items-center gap-2"
+            className="flex items-center gap-2 px-6 py-3 text-base hover-scale"
+            size="lg"
           >
-            <Plus className="h-4 w-4" />
+            <Plus className="h-5 w-5" />
             Create Club
           </Button>
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 sm:grid-cols-3">
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-tennis-green-bg rounded-lg">
-                  <Users className="h-5 w-5 text-tennis-green-primary" />
+        <div className="grid gap-6 sm:grid-cols-3 mb-8">
+          <Card className="hover-scale animate-fade-in">
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-br from-tennis-green-primary/10 to-tennis-green-primary/5 rounded-xl">
+                  <Users className="h-6 w-6 text-tennis-green-primary" />
                 </div>
-                <div>
-                  <p className="text-sm text-tennis-green-medium">Total Clubs</p>
-                  <p className="text-xl font-bold text-tennis-green-dark">{clubs.length}</p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-tennis-green-bg rounded-lg">
-                  <Crown className="h-5 w-5 text-tennis-green-primary" />
-                </div>
-                <div>
-                  <p className="text-sm text-tennis-green-medium">My Clubs</p>
-                  <p className="text-xl font-bold text-tennis-green-dark">{myClubs.length}</p>
+                <div className="space-y-1">
+                  <p className="text-tennis-green-medium font-medium">Total Clubs</p>
+                  <p className="text-3xl font-bold text-tennis-green-dark">{clubs.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
-          <Card>
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <div className="p-2 bg-tennis-green-bg rounded-lg">
-                  <TrendingUp className="h-5 w-5 text-tennis-green-primary" />
+          <Card className="hover-scale animate-fade-in" style={{ animationDelay: '0.1s' }}>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-br from-amber-500/10 to-amber-500/5 rounded-xl">
+                  <Crown className="h-6 w-6 text-amber-600" />
                 </div>
-                <div>
-                  <p className="text-sm text-tennis-green-medium">Available</p>
-                  <p className="text-xl font-bold text-tennis-green-dark">
+                <div className="space-y-1">
+                  <p className="text-tennis-green-medium font-medium">My Clubs</p>
+                  <p className="text-3xl font-bold text-tennis-green-dark">{myClubs.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="hover-scale animate-fade-in" style={{ animationDelay: '0.2s' }}>
+            <CardContent className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="p-3 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-xl">
+                  <TrendingUp className="h-6 w-6 text-emerald-600" />
+                </div>
+                <div className="space-y-1">
+                  <p className="text-tennis-green-medium font-medium">Available</p>
+                  <p className="text-3xl font-bold text-tennis-green-dark">
                     {clubs.filter(c => c.is_public && !isAlreadyMember(c.id)).length}
                   </p>
                 </div>
@@ -173,30 +174,30 @@ export default function Clubs() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="discover" className="space-y-6">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="discover">Discover Clubs</TabsTrigger>
-            <TabsTrigger value="my-clubs">My Clubs</TabsTrigger>
+        <Tabs defaultValue="discover" className="space-y-8">
+          <TabsList className="grid w-full grid-cols-2 h-12 p-1">
+            <TabsTrigger value="discover" className="text-base font-medium">Discover Clubs</TabsTrigger>
+            <TabsTrigger value="my-clubs" className="text-base font-medium">My Clubs</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="discover" className="space-y-6">
+          <TabsContent value="discover" className="space-y-8">
             {/* Search and Filters */}
-            <Card>
-              <CardContent className="p-4">
+            <Card className="shadow-sm">
+              <CardContent className="p-6">
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1 relative">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
                     <Input
                       placeholder="Search clubs by name or description..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-10"
+                      className="pl-12 h-12 text-base"
                     />
                   </div>
                   <Button
                     variant="outline"
                     onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-2"
+                    className="flex items-center gap-2 h-12 px-6 text-base"
                   >
                     <Filter className="h-4 w-4" />
                     Filters
@@ -252,15 +253,15 @@ export default function Clubs() {
             </Card>
 
             {/* Results Summary */}
-            <div className="flex items-center justify-between">
-              <p className="text-tennis-green-medium">
+            <div className="flex items-center justify-between py-2">
+              <p className="text-tennis-green-medium text-lg font-medium">
                 {filteredClubs.length} club{filteredClubs.length !== 1 ? 's' : ''} found
                 {searchQuery && ` for "${searchQuery}"`}
               </p>
             </div>
 
             {/* Clubs Grid */}
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               {filteredClubs.map((club) => (
                 <ClubCard
                   key={club.id}
