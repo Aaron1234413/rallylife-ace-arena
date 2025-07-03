@@ -19,7 +19,10 @@ import {
   Play,
   UserMinus,
   LogOut,
-  CheckCircle
+  CheckCircle,
+  ChevronDown,
+  ChevronUp,
+  X
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
@@ -60,11 +63,19 @@ const Sessions = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('available');
+  const [showFilters, setShowFilters] = useState(false);
   
   // Filters
   const [locationFilter, setLocationFilter] = useState('');
   const [typeFilter, setTypeFilter] = useState('all');
   const [stakesFilter, setStakesFilter] = useState('all');
+
+  // Calculate active filters count
+  const activeFiltersCount = [
+    locationFilter.trim() !== '',
+    typeFilter !== 'all',
+    stakesFilter !== 'all'
+  ].filter(Boolean).length;
 
   // Use real-time hook
   const { sessions, loading, joinSession, leaveSession, kickParticipant, startSession, completeSession } = useRealTimeSessions(activeTab, user?.id);
@@ -109,6 +120,13 @@ const Sessions = () => {
     }
   };
 
+  // Clear filters helper
+  const clearFilters = () => {
+    setLocationFilter('');
+    setTypeFilter('all');
+    setStakesFilter('all');
+  };
+
   const filteredSessions = sessions.filter(session => {
     if (locationFilter && !session.location?.toLowerCase().includes(locationFilter.toLowerCase())) {
       return false;
@@ -147,57 +165,118 @@ const Sessions = () => {
           </Button>
         </div>
 
-        {/* Filters */}
-        <Card>
-          <CardHeader className="pb-4">
-            <CardTitle className="flex items-center gap-2">
-              <Filter className="h-5 w-5" />
-              Filters
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Location</label>
-                <Input
-                  placeholder="Search by location..."
-                  value={locationFilter}
-                  onChange={(e) => setLocationFilter(e.target.value)}
-                />
+        {/* Mobile-Optimized Collapsible Filters */}
+        <div className="bg-white rounded-xl shadow-sm border border-tennis-green-bg/20 overflow-hidden">
+          {/* Filter Toggle Button - Mobile First */}
+          <div className="lg:hidden">
+            <Button
+              onClick={() => setShowFilters(!showFilters)}
+              variant="ghost"
+              className="w-full h-14 px-4 flex items-center justify-between hover:bg-tennis-green-light/10 rounded-none border-b border-tennis-green-bg/10"
+            >
+              <div className="flex items-center gap-3">
+                <Filter className="h-5 w-5 text-tennis-green-medium" />
+                <span className="font-medium text-tennis-green-dark">Filters</span>
+                {activeFiltersCount > 0 && (
+                  <Badge variant="secondary" className="bg-tennis-green-primary text-white text-xs px-2 py-1">
+                    {activeFiltersCount}
+                  </Badge>
+                )}
               </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Session Type</label>
-                <Select value={typeFilter} onValueChange={setTypeFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Types</SelectItem>
-                    <SelectItem value="match">Tennis Match</SelectItem>
-                    <SelectItem value="social_play">Social Play</SelectItem>
-                    <SelectItem value="training">Training</SelectItem>
-                    <SelectItem value="wellbeing">Wellbeing</SelectItem>
-                  </SelectContent>
-                </Select>
+              {showFilters ? (
+                <ChevronUp className="h-5 w-5 text-tennis-green-medium" />
+              ) : (
+                <ChevronDown className="h-5 w-5 text-tennis-green-medium" />
+              )}
+            </Button>
+          </div>
+
+          {/* Always visible on desktop, collapsible on mobile */}
+          <div className={`${showFilters ? 'block' : 'hidden'} lg:block`}>
+            <div className="p-4 lg:p-6">
+              <div className="hidden lg:flex items-center justify-between mb-4">
+                <div className="flex items-center gap-2">
+                  <Filter className="h-5 w-5 text-tennis-green-medium" />
+                  <h3 className="font-medium text-tennis-green-dark">Filters</h3>
+                  {activeFiltersCount > 0 && (
+                    <Badge variant="secondary" className="bg-tennis-green-primary text-white text-xs px-2 py-1">
+                      {activeFiltersCount}
+                    </Badge>
+                  )}
+                </div>
+                {activeFiltersCount > 0 && (
+                  <Button
+                    onClick={clearFilters}
+                    variant="ghost"
+                    size="sm"
+                    className="text-tennis-green-medium hover:text-tennis-green-dark h-8 px-3"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Clear All
+                  </Button>
+                )}
               </div>
-              
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Stakes</label>
-                <Select value={stakesFilter} onValueChange={setStakesFilter}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">All Sessions</SelectItem>
-                    <SelectItem value="stakes">With Stakes</SelectItem>
-                    <SelectItem value="no-stakes">No Stakes</SelectItem>
-                  </SelectContent>
-                </Select>
+
+              {/* Mobile Clear Button */}
+              {activeFiltersCount > 0 && (
+                <div className="lg:hidden flex justify-end mb-4">
+                  <Button
+                    onClick={clearFilters}
+                    variant="ghost"
+                    size="sm"
+                    className="text-tennis-green-medium hover:text-tennis-green-dark h-8 px-3"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    Clear All
+                  </Button>
+                </div>
+              )}
+
+              {/* Enhanced Mobile-Friendly Filter Grid */}
+              <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 lg:gap-6">
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-tennis-green-dark">Location</label>
+                  <Input
+                    placeholder="Search by location..."
+                    value={locationFilter}
+                    onChange={(e) => setLocationFilter(e.target.value)}
+                    className="h-11 border-tennis-green-bg/30 focus:border-tennis-green-medium"
+                  />
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-tennis-green-dark">Session Type</label>
+                  <Select value={typeFilter} onValueChange={setTypeFilter}>
+                    <SelectTrigger className="h-11 border-tennis-green-bg/30 focus:border-tennis-green-medium">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-tennis-green-bg/30 shadow-lg">
+                      <SelectItem value="all">All Types</SelectItem>
+                      <SelectItem value="match">Tennis Match</SelectItem>
+                      <SelectItem value="social_play">Social Play</SelectItem>
+                      <SelectItem value="training">Training</SelectItem>
+                      <SelectItem value="wellbeing">Wellbeing</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                
+                <div className="space-y-2">
+                  <label className="text-sm font-medium text-tennis-green-dark">Stakes</label>
+                  <Select value={stakesFilter} onValueChange={setStakesFilter}>
+                    <SelectTrigger className="h-11 border-tennis-green-bg/30 focus:border-tennis-green-medium">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent className="bg-white border-tennis-green-bg/30 shadow-lg">
+                      <SelectItem value="all">All Sessions</SelectItem>
+                      <SelectItem value="stakes">With Stakes</SelectItem>
+                      <SelectItem value="no-stakes">No Stakes</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
 
         {/* Mobile-Optimized Sessions Tabs */}
         <div className="bg-white rounded-xl shadow-sm border border-tennis-green-bg/20 overflow-hidden">
