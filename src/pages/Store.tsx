@@ -2,30 +2,11 @@
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
-import { usePlayerHP } from '@/hooks/usePlayerHP';
-import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { EnhancedStoreLayout } from '@/components/store/EnhancedStoreLayout';
 
 const Store = () => {
   const { user } = useAuth();
-  const { tokenData, transactions, loading, spendTokens, addTokens } = usePlayerTokens();
-  const { restoreHP } = usePlayerHP();
-  const { addXP } = usePlayerXP();
-
-  // Handler functions for different item effects
-  const handleAddXP = async (amount: number, source: string, description?: string) => {
-    await addXP(amount, source, description);
-  };
-
-  const handleAddTokens = async (amount: number, source: string, description?: string) => {
-    await addTokens(amount, 'regular', source, description);
-  };
-
-  const handleLevelBoost = async (source: string, description?: string) => {
-    // Level boost gives enough XP to reach next level
-    // For now, we'll give a large XP amount - this can be refined later
-    await addXP(1000, source, description);
-  };
+  const { tokenData, transactions, loading, spendTokens } = usePlayerTokens();
 
   if (loading) {
     return (
@@ -44,10 +25,6 @@ const Store = () => {
         <EnhancedStoreLayout
           tokenData={tokenData}
           onSpendTokens={spendTokens}
-          onRestoreHP={restoreHP}
-          onAddXP={handleAddXP}
-          onAddTokens={handleAddTokens}
-          onLevelBoost={handleLevelBoost}
         />
       </div>
     </div>

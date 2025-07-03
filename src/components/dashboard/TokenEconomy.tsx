@@ -11,7 +11,6 @@ interface TokenEconomyProps {
   transactionsLoading: boolean;
   onSpendTokens: (amount: number, tokenType: string, source: string, description?: string) => Promise<boolean>;
   onConvertTokens: (amount: number) => Promise<boolean>;
-  onRestoreHP?: (amount: number, activityType: string, description?: string) => Promise<void>;
 }
 
 export function TokenEconomy({ 
@@ -19,8 +18,7 @@ export function TokenEconomy({
   transactions,
   transactionsLoading,
   onSpendTokens, 
-  onConvertTokens,
-  onRestoreHP 
+  onConvertTokens
 }: TokenEconomyProps) {
   return (
     <div className="space-y-6">
@@ -77,7 +75,6 @@ export function TokenEconomy({
         onSpendTokens={onSpendTokens}
         regularTokens={tokenData.regular_tokens}
         premiumTokens={tokenData.premium_tokens}
-        onRestoreHP={onRestoreHP}
       />
 
       {/* Transaction History */}

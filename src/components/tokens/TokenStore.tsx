@@ -1,5 +1,6 @@
 
 import React from 'react';
+import { useItemEffects, ItemEffectType } from '@/hooks/useItemEffects';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -32,10 +33,6 @@ interface TokenStoreProps {
   onSpendTokens: (amount: number, tokenType: string, source: string, description?: string) => Promise<boolean>;
   regularTokens: number;
   premiumTokens: number;
-  onRestoreHP?: (amount: number, activityType: string, description?: string) => Promise<void>;
-  onAddXP?: (amount: number, source: string, description?: string) => Promise<void>;
-  onAddTokens?: (amount: number, source: string, description?: string) => Promise<void>;
-  onLevelBoost?: (source: string, description?: string) => Promise<void>;
   className?: string;
 }
 
@@ -120,12 +117,9 @@ export function TokenStore({
   onSpendTokens, 
   regularTokens, 
   premiumTokens, 
-  onRestoreHP, 
-  onAddXP,
-  onAddTokens,
-  onLevelBoost,
   className 
 }: TokenStoreProps) {
+  const { applyItemEffect } = useItemEffects();
   
   const handlePurchase = async (item: StoreItem) => {
     // For now, only support token payments (Phase 3 will add hybrid payments)
@@ -137,39 +131,14 @@ export function TokenStore({
     const success = await onSpendTokens(item.cost, item.tokenType, item.id, item.description);
     
     if (success) {
-      // Handle different item effects
-      try {
-        switch (item.effectType) {
-          case 'hp_restore':
-            if (onRestoreHP) {
-              await onRestoreHP(item.effectValue, 'energy_pack', `Used ${item.name}`);
-              toast.success(`${item.name} used! +${item.effectValue} HP restored!`);
-            }
-            break;
-          case 'xp_gain':
-            if (onAddXP) {
-              await onAddXP(item.effectValue, 'xp_injection', `Used ${item.name}`);
-              toast.success(`${item.name} used! +${item.effectValue} XP gained!`);
-            }
-            break;
-          case 'token_bonus':
-            if (onAddTokens) {
-              await onAddTokens(item.effectValue, 'token_bonus', `Used ${item.name}`);
-              toast.success(`${item.name} used! +${item.effectValue} tokens gained!`);
-            }
-            break;
-          case 'level_boost':
-            if (onLevelBoost) {
-              await onLevelBoost('level_boost', `Used ${item.name}`);
-              toast.success(`${item.name} used! Level increased!`);
-            }
-            break;
-          default:
-            toast.success(`${item.name} purchased successfully!`);
-        }
-      } catch (error) {
-        console.error('Error applying item effect:', error);
-        toast.error('Item purchased but effect failed to apply');
+      // Apply item effect using the new hook
+      const result = await applyItemEffect(item.effectType, item.effectValue, item.name);
+      
+      if (result.success) {
+        toast.success(result.message);
+      } else {
+        console.error('Error applying item effect:', result.error);
+        toast.error(result.error || 'Item purchased but effect failed to apply');
       }
     }
   };
