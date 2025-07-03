@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -46,58 +46,75 @@ export function ClubCoaches({ club, canManage }: ClubCoachesProps) {
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [isInviting, setIsInviting] = useState(false);
+  const [coaches, setCoaches] = useState<Coach[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock coaches data
-  const coaches: Coach[] = [
-    {
-      id: '1',
-      user_id: 'coach-1',
-      full_name: 'David Rodriguez',
-      avatar_url: null,
-      email: 'david.rodriguez@tennis.com',
-      specializations: ['Singles', 'Technique', 'Mental Game'],
-      rating: 4.9,
-      total_sessions: 156,
-      years_experience: 8,
-      bio: 'Former professional player with extensive coaching experience. Specializes in developing technique and mental toughness.',
-      hourly_rate_tokens: 75,
-      hourly_rate_money: 45,
-      status: 'active',
-      joined_club_at: '2024-01-15T10:00:00Z'
-    },
-    {
-      id: '2',
-      user_id: 'coach-2',
-      full_name: 'Sarah Martinez',
-      avatar_url: null,
-      email: 'sarah.martinez@tennis.com',
-      specializations: ['Doubles', 'Strategy', 'Beginner Coaching'],
-      rating: 4.8,
-      total_sessions: 203,
-      years_experience: 12,
-      bio: 'Certified tennis professional focusing on doubles strategy and helping beginners fall in love with the game.',
-      hourly_rate_tokens: 65,
-      hourly_rate_money: 40,
-      status: 'active',
-      joined_club_at: '2024-02-01T14:30:00Z'
-    },
-    {
-      id: '3',
-      user_id: 'coach-3',
-      full_name: 'Michael Chen',
-      avatar_url: null,
-      email: 'michael.chen@tennis.com',
-      specializations: ['Fitness', 'Conditioning', 'Injury Prevention'],
-      rating: 4.7,
-      total_sessions: 89,
-      years_experience: 6,
-      bio: 'Sports science background with focus on tennis-specific fitness and injury prevention programs.',
-      hourly_rate_tokens: 55,
-      hourly_rate_money: 35,
-      status: 'active',
-      joined_club_at: '2024-03-10T09:15:00Z'
-    }
-  ];
+  // Fetch coaches for this club from profiles where role = 'coach' and they're members
+  useEffect(() => {
+    const fetchCoaches = async () => {
+      try {
+        // For now, use mock data - in real implementation, fetch from database
+        const mockCoaches: Coach[] = [
+          {
+            id: '1',
+            user_id: 'coach-1',
+            full_name: 'David Rodriguez',
+            avatar_url: null,
+            email: 'david.rodriguez@tennis.com',
+            specializations: ['Singles', 'Technique', 'Mental Game'],
+            rating: 4.9,
+            total_sessions: 156,
+            years_experience: 8,
+            bio: 'Former professional player with extensive coaching experience. Specializes in developing technique and mental toughness.',
+            hourly_rate_tokens: 75,
+            hourly_rate_money: 45,
+            status: 'active',
+            joined_club_at: '2024-01-15T10:00:00Z'
+          },
+          {
+            id: '2',
+            user_id: 'coach-2',
+            full_name: 'Sarah Martinez',
+            avatar_url: null,
+            email: 'sarah.martinez@tennis.com',
+            specializations: ['Doubles', 'Strategy', 'Beginner Coaching'],
+            rating: 4.8,
+            total_sessions: 203,
+            years_experience: 12,
+            bio: 'Certified tennis professional focusing on doubles strategy and helping beginners fall in love with the game.',
+            hourly_rate_tokens: 65,
+            hourly_rate_money: 40,
+            status: 'active',
+            joined_club_at: '2024-02-01T14:30:00Z'
+          },
+          {
+            id: '3',
+            user_id: 'coach-3',
+            full_name: 'Michael Chen',
+            avatar_url: null,
+            email: 'michael.chen@tennis.com',
+            specializations: ['Fitness', 'Conditioning', 'Injury Prevention'],
+            rating: 4.7,
+            total_sessions: 89,
+            years_experience: 6,
+            bio: 'Sports science background with focus on tennis-specific fitness and injury prevention programs.',
+            hourly_rate_tokens: 55,
+            hourly_rate_money: 35,
+            status: 'active',
+            joined_club_at: '2024-03-10T09:15:00Z'
+          }
+        ];
+        
+        setCoaches(mockCoaches);
+        setLoading(false);
+      } catch (error) {
+        console.error('Error fetching coaches:', error);
+        setLoading(false);
+      }
+    };
+
+    fetchCoaches();
+  }, [club.id]);
 
   const handleInviteCoach = async () => {
     if (!inviteEmail.trim()) return;
