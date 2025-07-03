@@ -168,17 +168,17 @@ export function TokenStore({
 
   return (
     <Card className={className}>
-      <CardHeader className="pb-6 border-b border-tennis-green-light/10">
-        <CardTitle className="flex items-center gap-3 text-xl font-bold text-tennis-green-dark">
-          <div className="p-2 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-lg">
-            <ShoppingCart className="h-5 w-5 text-white" />
+      <CardHeader className="pb-4 border-b border-tennis-green-light/10">
+        <CardTitle className="flex items-center gap-2 text-base font-semibold text-tennis-green-dark">
+          <div className="p-1.5 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-lg">
+            <ShoppingCart className="h-4 w-4 text-white" />
           </div>
           Available Items
         </CardTitle>
       </CardHeader>
-      <CardContent className="pt-8">
+      <CardContent className="pt-4">
         {/* Optimized Responsive Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6 lg:gap-8">
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           {storeItems.map((item) => (
             <StoreItemCard
               key={item.id}
@@ -190,10 +190,10 @@ export function TokenStore({
         </div>
         
         {/* Grid Summary Info */}
-        <div className="mt-8 pt-6 border-t border-gray-200/50">
-          <div className="flex items-center justify-between text-sm text-gray-600">
+        <div className="mt-4 pt-3 border-t border-gray-200/50">
+          <div className="flex items-center justify-between text-xs text-gray-600">
             <span className="font-medium">{storeItems.length} items available</span>
-            <span className="text-xs bg-gray-100 px-3 py-1 rounded-full">
+            <span className="bg-gray-100 px-2 py-1 rounded-full">
               More items coming soon
             </span>
           </div>

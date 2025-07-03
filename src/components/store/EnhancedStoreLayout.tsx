@@ -50,41 +50,41 @@ export function EnhancedStoreLayout({
         </div>
       </div>
 
-      {/* Token Balance Display - Enhanced Prominence */}
+      {/* Token Balance Display - Fixed Sizing */}
       {tokenData && (
-        <Card className="bg-gradient-to-br from-white via-white to-tennis-green-bg/5 backdrop-blur-sm border-tennis-green-light/30 shadow-2xl ring-1 ring-tennis-green-light/20">
-          <CardHeader className="pb-4 bg-gradient-to-r from-tennis-green-primary/5 to-tennis-green-light/5">
-            <CardTitle className="flex items-center gap-3 text-tennis-green-dark text-2xl font-bold">
-              <div className="p-2 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-full">
-                <Coins className="h-7 w-7 text-white" />
+        <Card className="bg-white/98 backdrop-blur-sm border-tennis-green-light/30 shadow-xl ring-1 ring-tennis-green-light/10">
+          <CardHeader className="pb-4 bg-gradient-to-r from-tennis-green-primary/3 to-tennis-green-light/3">
+            <CardTitle className="flex items-center gap-2 text-tennis-green-dark text-lg font-semibold">
+              <div className="p-1.5 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-lg">
+                <Coins className="h-5 w-5 text-white" />
               </div>
               Your Balance
             </CardTitle>
           </CardHeader>
-          <CardContent className="px-8 pb-8">
-            <div className="flex items-center justify-center gap-16">
-              <div className="text-center space-y-3">
-                <div className="flex items-center justify-center gap-3 mb-3">
-                  <div className="p-2 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-full">
-                    <Coins className="h-6 w-6 text-white" />
+          <CardContent className="px-6 pb-6">
+            <div className="flex items-center justify-center gap-8">
+              <div className="text-center space-y-1">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <div className="p-1.5 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg">
+                    <Coins className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-lg font-semibold text-yellow-700">Regular Tokens</span>
+                  <span className="text-sm font-medium text-yellow-700">Regular Tokens</span>
                 </div>
-                <p className="text-4xl font-bold text-yellow-800 bg-gradient-to-b from-yellow-700 to-yellow-900 bg-clip-text text-transparent">
+                <p className="text-2xl font-bold text-yellow-800">
                   {tokenData.regular_tokens.toLocaleString()}
                 </p>
               </div>
               
-              <div className="h-16 w-px bg-gradient-to-b from-transparent via-tennis-green-light to-transparent"></div>
+              <div className="h-12 w-px bg-gradient-to-b from-transparent via-tennis-green-light to-transparent"></div>
               
-              <div className="text-center space-y-3">
-                <div className="flex items-center justify-center gap-3 mb-3">
-                  <div className="p-2 bg-gradient-to-br from-purple-400 to-purple-600 rounded-full">
-                    <Gem className="h-6 w-6 text-white" />
+              <div className="text-center space-y-1">
+                <div className="flex items-center justify-center gap-2 mb-1">
+                  <div className="p-1.5 bg-gradient-to-br from-purple-400 to-purple-600 rounded-lg">
+                    <Gem className="h-4 w-4 text-white" />
                   </div>
-                  <span className="text-lg font-semibold text-purple-700">Rally Points</span>
+                  <span className="text-sm font-medium text-purple-700">Rally Points</span>
                 </div>
-                <p className="text-4xl font-bold text-purple-800 bg-gradient-to-b from-purple-700 to-purple-900 bg-clip-text text-transparent">
+                <p className="text-2xl font-bold text-purple-800">
                   {tokenData.premium_tokens.toLocaleString()}
                 </p>
               </div>
@@ -93,15 +93,9 @@ export function EnhancedStoreLayout({
         </Card>
       )}
 
-      {/* Search and Filter - Enhanced Section */}
-      <Card className="bg-white/98 backdrop-blur-sm border-tennis-green-light/20 shadow-lg hover:shadow-xl transition-all duration-300">
-        <CardHeader className="pb-3 border-b border-tennis-green-light/10">
-          <CardTitle className="text-lg font-semibold text-tennis-green-dark flex items-center gap-2">
-            <div className="w-2 h-2 bg-tennis-green-primary rounded-full"></div>
-            Search & Filter
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="p-6 pt-6">
+      {/* Search and Filter - Simplified */}
+      <Card className="bg-white/98 backdrop-blur-sm border-gray-200/50 shadow-sm">
+        <CardContent className="p-4">
           <StoreSearchFilter
             onSearch={handleSearch}
             onFilterChange={handleFilterChange}
@@ -109,28 +103,27 @@ export function EnhancedStoreLayout({
         </CardContent>
       </Card>
 
-      {/* Store Categories - Enhanced Visual Hierarchy */}
+      {/* Store Categories - Fixed Sizing */}
       <Card className="bg-white/98 backdrop-blur-sm border-tennis-green-light/20 shadow-lg">
-        <CardHeader className="pb-4 border-b border-tennis-green-light/10">
-          <CardTitle className="text-2xl font-bold text-tennis-green-dark flex items-center gap-3">
-            <div className="p-2 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-lg">
-              <Store className="h-6 w-6 text-white" />
+        <CardHeader className="pb-3 border-b border-tennis-green-light/10">
+          <CardTitle className="text-lg font-semibold text-tennis-green-dark flex items-center gap-2">
+            <div className="p-1.5 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-lg">
+              <Store className="h-4 w-4 text-white" />
             </div>
             Store Catalog
           </CardTitle>
         </CardHeader>
-        <CardContent className="p-8">
+        <CardContent className="p-6">
           <StoreCategoryTabs>
             {/* Current Token Store Content - Optimized Grid Layout */}
-            <div className="grid grid-cols-1 xl:grid-cols-2 gap-8 xl:gap-12">
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 pb-3 border-b border-tennis-green-light/20">
-                  <div className="w-3 h-3 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-full"></div>
-                  <h3 className="text-2xl font-bold text-tennis-green-dark">
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-6">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-tennis-green-light/20">
+                  <div className="w-2 h-2 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-full"></div>
+                  <h3 className="text-base font-semibold text-tennis-green-dark">
                     Items & Consumables
                   </h3>
                   <Badge variant="secondary" className="text-xs px-2 py-1 bg-tennis-green-bg text-tennis-green-dark">
-                    {/* We'll add item count here */}
                     Active
                   </Badge>
                 </div>
@@ -144,29 +137,29 @@ export function EnhancedStoreLayout({
                 )}
               </div>
               
-              <div className="space-y-6">
-                <div className="flex items-center gap-3 pb-3 border-b border-gray-200">
-                  <div className="w-3 h-3 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full"></div>
-                  <h3 className="text-2xl font-bold text-gray-600">
+              <div className="space-y-4">
+                <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
+                  <div className="w-2 h-2 bg-gradient-to-br from-gray-400 to-gray-600 rounded-full"></div>
+                  <h3 className="text-base font-semibold text-gray-600">
                     Coming Soon
                   </h3>
                 </div>
-                <div className="space-y-6 text-center py-12 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-xl border border-gray-200/50">
-                  <div className="text-7xl opacity-30">🚀</div>
-                  <div className="space-y-3">
-                    <h4 className="text-xl font-semibold text-gray-700">Exciting Features Ahead!</h4>
-                    <p className="text-gray-600 text-base max-w-md mx-auto leading-relaxed">
+                <div className="space-y-4 text-center py-8 bg-gradient-to-br from-gray-50 to-gray-100/50 rounded-lg border border-gray-200/50">
+                  <div className="text-4xl opacity-30">🚀</div>
+                  <div className="space-y-2">
+                    <h4 className="text-base font-semibold text-gray-700">Exciting Features Ahead!</h4>
+                    <p className="text-gray-600 text-sm max-w-md mx-auto">
                       More amazing items and features are coming in the next phases!
                     </p>
                   </div>
-                  <div className="flex flex-wrap justify-center gap-3 mt-8">
-                    <span className="px-5 py-2 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-sm font-semibold shadow-sm">
+                  <div className="flex flex-wrap justify-center gap-2 mt-4">
+                    <span className="px-3 py-1 bg-gradient-to-r from-blue-100 to-blue-200 text-blue-800 rounded-full text-xs font-medium">
                       Performance Boosters
                     </span>
-                    <span className="px-5 py-2 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 rounded-full text-sm font-semibold shadow-sm">
+                    <span className="px-3 py-1 bg-gradient-to-r from-purple-100 to-purple-200 text-purple-800 rounded-full text-xs font-medium">
                       Cosmetic Items
                     </span>
-                    <span className="px-5 py-2 bg-gradient-to-r from-green-100 to-green-200 text-green-800 rounded-full text-sm font-semibold shadow-sm">
+                    <span className="px-3 py-1 bg-gradient-to-r from-green-100 to-green-200 text-green-800 rounded-full text-xs font-medium">
                       Training Tools
                     </span>
                   </div>

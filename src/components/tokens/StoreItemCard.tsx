@@ -84,17 +84,17 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
   const canAffordWithTokens = tokensOnlyOption?.canAfford || false;
   
   return (
-    <Card className={`group relative transition-all duration-300 hover:shadow-lg hover:scale-[1.02] border-gray-200/50 bg-gradient-to-br from-white to-gray-50/30 h-full flex flex-col ${isExpanded ? 'ring-2 ring-tennis-green-primary shadow-lg scale-[1.02]' : ''}`}>
-      <CardContent className="p-6 flex-1 flex flex-col">
+    <Card className={`group relative transition-all duration-300 hover:shadow-md hover:scale-[1.01] border-gray-200/50 bg-white h-full flex flex-col ${isExpanded ? 'ring-2 ring-tennis-green-primary shadow-md scale-[1.01]' : ''}`}>
+      <CardContent className="p-4 flex-1 flex flex-col">
         {/* Main Item Display */}
-        <div className="flex items-start gap-4 mb-6 flex-1">
-          <div className={`p-3 rounded-xl ${item.color.split(' ')[0]} flex-shrink-0 shadow-lg group-hover:shadow-xl transition-shadow duration-300`}>
-            <Icon className="h-7 w-7 text-white" />
+        <div className="flex items-start gap-3 mb-4 flex-1">
+          <div className={`p-2 rounded-lg ${item.color.split(' ')[0]} flex-shrink-0 shadow-sm group-hover:shadow-md transition-shadow duration-300`}>
+            <Icon className="h-5 w-5 text-white" />
           </div>
           
-          <div className="flex-1 min-w-0 space-y-4">
-            <div className="space-y-2">
-              <h3 className="font-bold text-lg text-gray-900 leading-tight group-hover:text-tennis-green-dark transition-colors duration-200">
+          <div className="flex-1 min-w-0 space-y-3">
+            <div className="space-y-1">
+              <h3 className="font-semibold text-base text-gray-900 leading-tight group-hover:text-tennis-green-dark transition-colors duration-200">
                 {item.name}
               </h3>
               <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
@@ -103,12 +103,12 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
             </div>
             
             {/* Enhanced Price Display */}
-            <div className="space-y-4">
-              <div className="flex items-start justify-between flex-wrap gap-3">
-                <div className="flex items-center gap-3 flex-wrap">
+            <div className="space-y-3">
+              <div className="flex items-start justify-between flex-wrap gap-2">
+                <div className="flex items-center gap-2 flex-wrap">
                   <Badge 
                     variant={canAffordWithTokens ? "default" : "secondary"} 
-                    className={`text-sm px-4 py-2 font-semibold transition-all duration-200 ${
+                    className={`text-xs px-3 py-1 font-medium transition-all duration-200 ${
                       canAffordWithTokens 
                         ? 'bg-tennis-green-primary text-white shadow-sm' 
                         : 'bg-gray-100 text-gray-600'
@@ -116,14 +116,14 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
                   >
                     🪙 {item.cost}
                   </Badge>
-                  <span className="text-sm text-gray-500 font-medium hidden sm:inline">or</span>
-                  <Badge variant="outline" className="text-sm px-4 py-2 font-semibold border-gray-300 text-gray-700 hover:border-gray-400 transition-colors duration-200">
+                  <span className="text-xs text-gray-500 font-medium hidden sm:inline">or</span>
+                  <Badge variant="outline" className="text-xs px-3 py-1 font-medium border-gray-300 text-gray-700 hover:border-gray-400 transition-colors duration-200">
                     ${item.cashPrice.toFixed(2)}
                   </Badge>
                 </div>
                 
                 {bestSummary.savings && (
-                  <Badge variant="default" className="text-sm bg-gradient-to-r from-green-500 to-green-600 text-white px-4 py-2 font-semibold shadow-sm">
+                  <Badge variant="default" className="text-xs bg-gradient-to-r from-green-500 to-green-600 text-white px-3 py-1 font-medium shadow-sm">
                     Save ${bestSummary.savings.replace('Save $', '').replace('!', '')}
                   </Badge>
                 )}
@@ -131,7 +131,7 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
               
               {/* Hybrid Payment Preview */}
               {!canAffordWithTokens && regularTokens > 0 && (
-                <div className="text-sm text-blue-700 bg-gradient-to-r from-blue-50 to-blue-100 px-4 py-3 rounded-lg border border-blue-200/50 font-medium">
+                <div className="text-xs text-blue-700 bg-gradient-to-r from-blue-50 to-blue-100 px-3 py-2 rounded-lg border border-blue-200/50 font-medium">
                   💡 Pay {regularTokens} tokens + ${((item.cost - regularTokens) * 0.01).toFixed(2)} cash
                 </div>
               )}
@@ -139,38 +139,38 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
           </div>
         </div>
         
-        {/* Enhanced Payment Options */}
+        {/* Enhanced Payment Options - Fixed Sizing */}
         {canAffordWithTokens ? (
           <Button
             onClick={() => handlePurchase(bestOption)}
             disabled={purchasing}
-            className={`w-full ${item.color} text-white h-12 font-semibold shadow-lg hover:shadow-xl transition-all duration-200`}
-            size="default"
+            className={`w-full ${item.color} text-white h-10 font-medium shadow-sm hover:shadow-md transition-all duration-200`}
+            size="sm"
           >
-            <Coins className="h-5 w-5 mr-2" />
+            <Coins className="h-4 w-4 mr-2" />
             {purchasing ? 'Processing...' : `Buy with ${item.cost} Tokens`}
           </Button>
         ) : (
-          <div className="space-y-3">
+          <div className="space-y-2">
             {/* Primary Hybrid/Cash Option */}
             {regularTokens > 0 ? (
               <Button
                 onClick={() => handlePurchase(paymentOptions.find(opt => opt.type === 'hybrid') || bestOption)}
                 disabled={purchasing}
-                className="w-full h-12 bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-                size="default"
+                className="w-full h-10 bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600 font-medium shadow-sm hover:shadow-md transition-all duration-200"
+                size="sm"
               >
-                <Wallet className="h-5 w-5 mr-2" />
+                <Wallet className="h-4 w-4 mr-2" />
                 {purchasing ? 'Processing...' : `Pay ${regularTokens} Tokens + $${((item.cost - regularTokens) * 0.01).toFixed(2)}`}
               </Button>
             ) : (
               <Button
                 onClick={() => handlePurchase(paymentOptions.find(opt => opt.type === 'cash_only') || bestOption)}
                 disabled={purchasing}
-                className="w-full h-12 bg-blue-500 text-white hover:bg-blue-600 font-semibold shadow-lg hover:shadow-xl transition-all duration-200"
-                size="default"
+                className="w-full h-10 bg-blue-500 text-white hover:bg-blue-600 font-medium shadow-sm hover:shadow-md transition-all duration-200"
+                size="sm"
               >
-                <CreditCard className="h-5 w-5 mr-2" />
+                <CreditCard className="h-4 w-4 mr-2" />
                 {purchasing ? 'Processing...' : `Buy for $${item.cashPrice.toFixed(2)}`}
               </Button>
             )}
@@ -178,8 +178,8 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
             <Button
               onClick={() => setIsExpanded(!isExpanded)}
               variant="ghost"
-              className="w-full text-sm h-10 text-gray-600 hover:text-gray-800 hover:bg-gray-100 font-medium transition-all duration-200"
-              size="default"
+              className="w-full text-xs h-8 text-gray-600 hover:text-gray-800 hover:bg-gray-100 font-medium transition-all duration-200"
+              size="sm"
             >
               {isExpanded ? 'Hide' : 'Show'} All Payment Options
             </Button>
