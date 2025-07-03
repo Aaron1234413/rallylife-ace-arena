@@ -384,7 +384,7 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
 
   return (
     <div 
-      className={`min-h-screen relative overflow-hidden ${isMobile ? 'px-3 py-4' : 'p-4'} flex items-center justify-center`} 
+      className={`min-h-screen relative overflow-hidden bg-background ${isMobile ? 'px-3 py-4' : 'p-4'} flex items-center justify-center`} 
       role="dialog" 
       aria-labelledby="tour-title" 
       aria-modal="true"
@@ -392,142 +392,115 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
       onTouchMove={isMobile ? handleTouchMove : undefined}
       onTouchEnd={isMobile ? handleTouchEnd : undefined}
     >
-      {/* Tennis Court Background */}
-      <div className="absolute inset-0 bg-gradient-to-br from-tennis-green-bg via-tennis-green-light/20 to-tennis-green-bg">
-        {/* Court Grid Pattern */}
-        <div className="absolute inset-0 opacity-10">
-          <div className="w-full h-full" style={{
-            backgroundImage: `
-              linear-gradient(90deg, hsl(var(--tennis-green-primary)) 1px, transparent 1px),
-              linear-gradient(180deg, hsl(var(--tennis-green-primary)) 1px, transparent 1px)
-            `,
-            backgroundSize: isMobile ? '30px 30px' : '40px 40px'
-          }} />
-        </div>
-        
-        {/* Tennis Court Lines */}
-        <div className="absolute inset-0 opacity-20">
-          {/* Center line */}
-          <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white transform -translate-x-1/2" />
-          {/* Service boxes */}
-          <div className="absolute top-1/3 left-1/4 right-1/4 h-0.5 bg-white" />
-          <div className="absolute bottom-1/3 left-1/4 right-1/4 h-0.5 bg-white" />
-        </div>
-
-        {/* Floating Tennis Balls */}
-        <div className="absolute inset-0 pointer-events-none">
-          {Array.from({ length: isMobile ? 3 : 6 }).map((_, i) => (
-            <div
-              key={i}
-              className="absolute w-8 h-8 rounded-full bg-gradient-to-br from-tennis-yellow via-tennis-yellow to-yellow-600 shadow-lg animate-pulse opacity-20"
-              style={{
-                left: `${10 + (i * 15)}%`,
-                top: `${20 + (i * 12)}%`,
-                animationDelay: `${i * 0.5}s`,
-                animationDuration: `${3 + (i * 0.5)}s`,
-                background: 'linear-gradient(135deg, #FFEB3B 0%, #FDD835 50%, #F9A825 100%)',
-                boxShadow: '0 4px 12px rgba(0, 0, 0, 0.3), inset 0 2px 4px rgba(255, 255, 255, 0.3)'
-              }}
-            >
-              {/* Tennis ball curve lines */}
-              <div className="absolute inset-0 rounded-full">
-                <div className="absolute top-1/2 left-1 right-1 h-0.5 bg-white/60 rounded-full transform -translate-y-1/2" />
-                <div className="absolute top-1/2 left-1 right-1 h-0.5 bg-white/60 rounded-full transform -translate-y-1/2 rotate-180" />
-              </div>
+      {/* Floating Tennis Balls - Subtle */}
+      <div className="absolute inset-0 pointer-events-none">
+        {Array.from({ length: isMobile ? 2 : 4 }).map((_, i) => (
+          <div
+            key={i}
+            className="absolute w-6 h-6 rounded-full bg-gradient-to-br from-tennis-yellow/20 via-tennis-yellow/15 to-yellow-600/10 shadow-sm animate-pulse opacity-30"
+            style={{
+              left: `${15 + (i * 20)}%`,
+              top: `${25 + (i * 15)}%`,
+              animationDelay: `${i * 1}s`,
+              animationDuration: `${4 + (i * 0.5)}s`,
+            }}
+          >
+            {/* Tennis ball curve lines */}
+            <div className="absolute inset-0 rounded-full">
+              <div className="absolute top-1/2 left-0.5 right-0.5 h-0.5 bg-white/40 rounded-full transform -translate-y-1/2" />
+              <div className="absolute top-1/2 left-0.5 right-0.5 h-0.5 bg-white/40 rounded-full transform -translate-y-1/2 rotate-180" />
             </div>
-          ))}
-        </div>
+          </div>
+        ))}
       </div>
 
       <div className={`w-full relative z-10 ${isMobile ? 'max-w-sm' : 'max-w-4xl'}`}>
         {/* Mobile Header */}
         {isMobile ? (
           <div className="text-center mb-4">
-            <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-full mb-3 shadow-lg animate-pulse">
-              <Target className="h-6 w-6 text-white drop-shadow-sm" />
+            <div className="inline-flex items-center justify-center w-12 h-12 bg-gradient-to-br from-primary to-primary/80 rounded-full mb-3 shadow-lg animate-pulse">
+              <Target className="h-6 w-6 text-primary-foreground drop-shadow-sm" />
             </div>
-            <h1 id="tour-title" className="text-xl font-orbitron font-bold text-tennis-green-dark mb-1 drop-shadow-sm">
+            <h1 id="tour-title" className="text-xl font-orbitron font-bold text-foreground mb-1 drop-shadow-sm">
               Welcome to RAKO!
             </h1>
-            <p className="text-sm text-tennis-green-medium mb-3 drop-shadow-sm">
+            <p className="text-sm text-muted-foreground mb-3 drop-shadow-sm">
               Let's explore your tennis gaming platform
             </p>
-            <p className="text-xs text-tennis-green-medium/70 drop-shadow-sm">
+            <p className="text-xs text-muted-foreground/70 drop-shadow-sm">
               👈 Swipe to navigate or use buttons below
             </p>
             
             {/* Mobile Progress */}
             <div className="mt-3">
-              <div className="flex justify-between text-xs text-tennis-green-medium mb-1">
+              <div className="flex justify-between text-xs text-muted-foreground mb-1">
                 <span>Step {currentStep + 1}</span>
                 <span>{Math.round(progress)}%</span>
               </div>
               <div className="relative">
                 <Progress value={progress} className="h-1.5" />
-                <div className="absolute inset-0 bg-gradient-to-r from-tennis-green-primary/20 to-tennis-yellow/20 rounded-full pointer-events-none" />
               </div>
             </div>
           </div>
         ) : (
           /* Desktop Header */
           <div className="text-center mb-6">
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-full mb-4 shadow-xl animate-pulse">
-              <Target className="h-8 w-8 text-white drop-shadow-sm" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full mb-4 shadow-xl animate-pulse">
+              <Target className="h-8 w-8 text-primary-foreground drop-shadow-sm" />
             </div>
-            <h1 id="tour-title" className="text-3xl font-orbitron font-bold text-tennis-green-dark mb-2 drop-shadow-sm">
+            <h1 id="tour-title" className="text-3xl font-orbitron font-bold text-foreground mb-2 drop-shadow-sm">
               Welcome to RAKO!
             </h1>
-            <p className="text-tennis-green-medium drop-shadow-sm">
+            <p className="text-muted-foreground drop-shadow-sm">
               Let's take a quick tour of your new tennis gaming platform
             </p>
-            <p className="text-xs text-tennis-green-medium/70 mt-1 drop-shadow-sm">
+            <p className="text-xs text-muted-foreground/70 mt-1 drop-shadow-sm">
               💡 Use arrow keys to navigate, Enter/Space to proceed, or Esc to skip
             </p>
             
             {/* Desktop Progress */}
             <div className="mt-4 max-w-md mx-auto">
-              <div className="flex justify-between text-sm text-tennis-green-medium mb-2">
+              <div className="flex justify-between text-sm text-muted-foreground mb-2">
                 <span>Step {currentStep + 1} of {tourSteps.length}</span>
                 <span>{Math.round(progress)}% Complete</span>
               </div>
               <div className="relative">
                 <Progress value={progress} className="h-2" />
-                <div className="absolute inset-0 bg-gradient-to-r from-tennis-green-primary/30 to-tennis-yellow/30 rounded-full pointer-events-none" />
               </div>
             </div>
           </div>
         )}
 
         {/* Main Tour Card */}
-        <Card className={`bg-gradient-to-br from-white via-white to-white/95 backdrop-blur-sm border-2 border-tennis-green-light shadow-2xl transition-all duration-300 ${
+        <Card className={`bg-card border-2 border-border shadow-2xl transition-all duration-300 ${
           isTransitioning ? 'scale-95 opacity-75' : 'scale-100 opacity-100'
         } ${isMobile ? 'mx-auto' : ''} relative overflow-hidden`}>
-          {/* Card Background Pattern */}
+          {/* Card Background Pattern - Subtle */}
           <div className="absolute inset-0 opacity-5">
             <div className="w-full h-full" style={{
-              backgroundImage: `radial-gradient(circle at 20px 20px, hsl(var(--tennis-green-primary)) 1px, transparent 1px)`,
+              backgroundImage: `radial-gradient(circle at 20px 20px, hsl(var(--primary)) 1px, transparent 1px)`,
               backgroundSize: '40px 40px'
             }} />
           </div>
           
           <CardHeader className={`text-center relative z-10 ${isMobile ? 'pb-4' : ''}`}>
-            <div className={`mx-auto mb-3 bg-gradient-to-br from-tennis-green-bg to-tennis-green-light/50 rounded-full flex items-center justify-center shadow-lg animate-bounce ${
+            <div className={`mx-auto mb-3 bg-gradient-to-br from-primary/10 to-primary/5 rounded-full flex items-center justify-center shadow-lg animate-bounce ${
               isMobile ? 'w-12 h-12' : 'w-16 h-16 mb-4'
             }`} style={{ animationDuration: '2s' }}>
-              <currentTourStep.icon className={`text-tennis-green-primary drop-shadow-sm ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} />
+              <currentTourStep.icon className={`text-primary drop-shadow-sm ${isMobile ? 'h-6 w-6' : 'h-8 w-8'}`} />
             </div>
-            <CardTitle className={`text-tennis-green-dark drop-shadow-sm ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+            <CardTitle className={`text-foreground drop-shadow-sm ${isMobile ? 'text-lg' : 'text-2xl'}`}>
               {currentTourStep.title}
             </CardTitle>
-            <p className={`text-tennis-green-medium mt-2 drop-shadow-sm ${isMobile ? 'text-sm' : ''}`}>
+            <p className={`text-muted-foreground mt-2 drop-shadow-sm ${isMobile ? 'text-sm' : ''}`}>
               {currentTourStep.description}
             </p>
           </CardHeader>
           
           <CardContent className={`relative z-10 ${isMobile ? 'space-y-4 px-4 pb-4' : 'space-y-6'}`}>
             {/* Features List */}
-            <div className={`bg-gradient-to-br from-tennis-green-bg/40 to-tennis-green-light/20 rounded-lg border border-tennis-green-light/30 ${isMobile ? 'p-3' : 'p-4'} shadow-sm`}>
-              <h3 className={`font-semibold text-tennis-green-dark mb-2 flex items-center gap-2 ${isMobile ? 'text-sm' : 'mb-3'}`}>
+            <div className={`bg-muted/50 rounded-lg border border-border/30 ${isMobile ? 'p-3' : 'p-4'} shadow-sm`}>
+              <h3 className={`font-semibold text-foreground mb-2 flex items-center gap-2 ${isMobile ? 'text-sm' : 'mb-3'}`}>
                 <span className="animate-bounce">🎾</span> Key Features:
               </h3>
               <div className={`grid ${isMobile ? 'gap-1.5' : 'gap-2'}`}>
@@ -537,12 +510,12 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
                     className="flex items-start gap-2 animate-fade-in"
                     style={{ animationDelay: `${index * 0.1}s` }}
                   >
-                    <div className={`rounded-full bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm animate-pulse ${
+                    <div className={`rounded-full bg-gradient-to-br from-primary to-primary/80 flex items-center justify-center flex-shrink-0 mt-0.5 shadow-sm animate-pulse ${
                       isMobile ? 'w-4 h-4' : 'w-5 h-5'
                     }`} style={{ animationDelay: `${index * 0.2}s` }}>
-                      <Check className={`text-white ${isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'}`} />
+                      <Check className={`text-primary-foreground ${isMobile ? 'h-2.5 w-2.5' : 'h-3 w-3'}`} />
                     </div>
-                    <span className={`text-tennis-green-dark leading-tight ${isMobile ? 'text-sm' : ''}`}>
+                    <span className={`text-foreground leading-tight ${isMobile ? 'text-sm' : ''}`}>
                       {feature}
                     </span>
                   </div>
@@ -551,22 +524,22 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
             </div>
 
             {/* Gaming Tip */}
-            <div className={`bg-gradient-to-br from-tennis-yellow/15 to-orange-100/20 border border-tennis-yellow/40 rounded-lg ${isMobile ? 'p-3' : 'p-4'} shadow-sm relative overflow-hidden`}>
+            <div className={`bg-gradient-to-br from-accent/15 to-accent/5 border border-accent/40 rounded-lg ${isMobile ? 'p-3' : 'p-4'} shadow-sm relative overflow-hidden`}>
               {/* Tip Background Pattern */}
               <div className="absolute inset-0 opacity-10">
                 <div className="w-full h-full" style={{
-                  backgroundImage: `linear-gradient(45deg, hsl(var(--tennis-yellow)) 25%, transparent 25%, transparent 75%, hsl(var(--tennis-yellow)) 75%)`,
+                  backgroundImage: `linear-gradient(45deg, hsl(var(--accent)) 25%, transparent 25%, transparent 75%, hsl(var(--accent)) 75%)`,
                   backgroundSize: '8px 8px'
                 }} />
               </div>
               
               <div className={`relative z-10 flex items-center gap-2 ${isMobile ? 'mb-1' : 'mb-2'}`}>
-                <Zap className={`text-tennis-yellow animate-pulse ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
-                <span className={`font-semibold text-tennis-green-dark ${isMobile ? 'text-sm' : ''}`}>
+                <Zap className={`text-accent animate-pulse ${isMobile ? 'h-4 w-4' : 'h-5 w-5'}`} />
+                <span className={`font-semibold text-foreground ${isMobile ? 'text-sm' : ''}`}>
                   Pro Tip:
                 </span>
               </div>
-              <p className={`text-tennis-green-medium relative z-10 ${isMobile ? 'text-xs leading-relaxed' : 'text-sm'}`}>
+              <p className={`text-muted-foreground relative z-10 ${isMobile ? 'text-xs leading-relaxed' : 'text-sm'}`}>
                 {userRole === 'player' ? 
                   'Complete daily activities to earn tokens and XP. The more you engage, the more rewards you unlock!' :
                   'Focus on building your CRP (Coach Reputation Points) by providing excellent service to your players.'
@@ -582,7 +555,7 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
                     variant="outline" 
                     onClick={handlePreviousStep}
                     disabled={currentStep === 0 || isTransitioning}
-                    className="flex-1 h-12 text-sm border-tennis-green-light hover:bg-tennis-green-bg/50 transition-all duration-200"
+                    className="flex-1 h-12 text-sm transition-all duration-200"
                   >
                     <ChevronLeft className="h-4 w-4 mr-1" />
                     Previous
@@ -591,7 +564,7 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
                   <Button 
                     onClick={handleNextStep}
                     disabled={isCompleting || isTransitioning}
-                    className="flex-1 h-12 bg-gradient-to-r from-tennis-green-primary to-tennis-green-dark hover:from-tennis-green-dark hover:to-tennis-green-primary text-sm shadow-lg transform hover:scale-105 transition-all duration-200"
+                    className="flex-1 h-12 text-sm shadow-lg transform hover:scale-105 transition-all duration-200"
                   >
                     {currentStep === tourSteps.length - 1 ? 
                       (isCompleting ? 'Completing...' : 'Complete') : 
@@ -661,14 +634,14 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
                 isMobile ? 'w-2 h-2' : 'w-3 h-3'
               } ${
                 index === currentStep 
-                  ? 'bg-gradient-to-r from-tennis-green-primary to-tennis-green-dark scale-125 shadow-lg' 
+                  ? 'bg-primary scale-125 shadow-lg' 
                   : index < currentStep 
-                    ? 'bg-gradient-to-r from-tennis-green-primary/70 to-tennis-green-dark/70 scale-110' 
-                    : 'bg-tennis-green-bg border-2 border-tennis-green-light hover:border-tennis-green-primary transition-colors cursor-pointer'
+                    ? 'bg-primary/70 scale-110' 
+                    : 'bg-muted border-2 border-border hover:border-primary transition-colors cursor-pointer'
               }`}
             >
               {index === currentStep && (
-                <div className="absolute inset-0 rounded-full bg-gradient-to-r from-tennis-green-primary to-tennis-green-dark animate-ping opacity-30" />
+                <div className="absolute inset-0 rounded-full bg-primary animate-ping opacity-30" />
               )}
             </div>
           ))}

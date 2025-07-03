@@ -92,31 +92,13 @@ export const WelcomeAnimation: React.FC<WelcomeAnimationProps> = ({ onComplete }
   }, [navigate, onComplete]);
 
   return (
-    <div className="fixed inset-0 bg-gradient-to-br from-tennis-green-bg via-tennis-green-light/30 to-tennis-green-bg z-50 overflow-hidden">
-      {/* Tennis Court Background Pattern */}
-      <div className="absolute inset-0 opacity-10">
-        <div className="w-full h-full" style={{
-          backgroundImage: `
-            linear-gradient(90deg, hsl(var(--tennis-green-primary)) 1px, transparent 1px),
-            linear-gradient(180deg, hsl(var(--tennis-green-primary)) 1px, transparent 1px)
-          `,
-          backgroundSize: '50px 50px'
-        }} />
-      </div>
-
-      {/* Tennis Court Lines */}
-      <div className="absolute inset-0 opacity-20">
-        <div className="absolute left-1/2 top-0 bottom-0 w-1 bg-white transform -translate-x-1/2" />
-        <div className="absolute top-1/3 left-1/4 right-1/4 h-1 bg-white" />
-        <div className="absolute bottom-1/3 left-1/4 right-1/4 h-1 bg-white" />
-      </div>
-
+    <div className="fixed inset-0 bg-background z-50 overflow-hidden">
       {/* Enhanced Tennis Balls with Trail Effect */}
       {balls.map(ball => (
         <div key={ball.id} className="absolute">
           {/* Ball Trail */}
           <div
-            className="absolute w-16 h-3 rounded-full bg-gradient-to-r from-transparent via-tennis-yellow/30 to-transparent blur-sm"
+            className="absolute w-16 h-3 rounded-full bg-gradient-to-r from-transparent via-accent/30 to-transparent blur-sm"
             style={{
               left: `${ball.x - 40}px`,
               top: `${ball.y - 6}px`,
@@ -143,7 +125,7 @@ export const WelcomeAnimation: React.FC<WelcomeAnimationProps> = ({ onComplete }
             </div>
             
             {/* Ball Glow Effect */}
-            <div className="absolute inset-0 rounded-full bg-tennis-yellow/20 animate-pulse" />
+            <div className="absolute inset-0 rounded-full bg-accent/20 animate-pulse" />
           </div>
         </div>
       ))}
@@ -155,31 +137,31 @@ export const WelcomeAnimation: React.FC<WelcomeAnimationProps> = ({ onComplete }
         }`}>
           {/* Main Welcome Title */}
           <div className="relative mb-6">
-            <h1 className="text-6xl md:text-8xl font-orbitron font-bold text-tennis-green-dark mb-4 animate-fade-in drop-shadow-2xl">
+            <h1 className="text-6xl md:text-8xl font-orbitron font-bold text-foreground mb-4 animate-fade-in drop-shadow-2xl">
               Welcome!
             </h1>
             {/* Title underline effect */}
-            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-tennis-green-primary to-tennis-yellow rounded-full animate-pulse" />
+            <div className="absolute bottom-0 left-1/2 transform -translate-x-1/2 w-32 h-1 bg-gradient-to-r from-primary to-accent rounded-full animate-pulse" />
           </div>
           
           {/* Tennis Court Icon */}
           <div className="mb-4 animate-bounce" style={{ animationDuration: '2s' }}>
-            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-full shadow-xl">
-              <div className="w-8 h-6 border-2 border-white rounded-sm relative">
-                <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-white transform -translate-x-1/2" />
+            <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary to-primary/80 rounded-full shadow-xl">
+              <div className="w-8 h-6 border-2 border-primary-foreground rounded-sm relative">
+                <div className="absolute left-1/2 top-0 bottom-0 w-0.5 bg-primary-foreground transform -translate-x-1/2" />
               </div>
             </div>
           </div>
           
-          <p className="text-2xl md:text-3xl text-tennis-green-medium font-medium animate-fade-in drop-shadow-lg">
+          <p className="text-2xl md:text-3xl text-muted-foreground font-medium animate-fade-in drop-shadow-lg">
             🎾 Ready to ace your tennis journey?
           </p>
           
           {/* Status Message */}
           <div className="mt-8 flex justify-center">
-            <div className="bg-white/20 backdrop-blur-sm rounded-full px-8 py-4 border border-tennis-green-light shadow-xl">
-              <p className="text-tennis-green-dark font-medium flex items-center gap-2">
-                <div className="w-2 h-2 bg-tennis-green-primary rounded-full animate-pulse" />
+            <div className="bg-card/80 backdrop-blur-sm rounded-full px-8 py-4 border border-border shadow-xl">
+              <p className="text-foreground font-medium flex items-center gap-2">
+                <div className="w-2 h-2 bg-primary rounded-full animate-pulse" />
                 Taking you to your dashboard...
               </p>
             </div>
@@ -202,11 +184,11 @@ export const WelcomeAnimation: React.FC<WelcomeAnimationProps> = ({ onComplete }
           >
             {/* Different sparkle types */}
             {i % 3 === 0 ? (
-              <div className="w-1 h-1 bg-tennis-yellow rounded-full shadow-lg" />
+              <div className="w-1 h-1 bg-accent rounded-full shadow-lg" />
             ) : i % 3 === 1 ? (
-              <div className="w-2 h-2 bg-tennis-green-primary rounded-full opacity-60" />
+              <div className="w-2 h-2 bg-primary rounded-full opacity-60" />
             ) : (
-              <div className="text-tennis-yellow text-xs">✨</div>
+              <div className="text-accent text-xs">✨</div>
             )}
           </div>
         ))}
@@ -223,7 +205,7 @@ export const WelcomeAnimation: React.FC<WelcomeAnimationProps> = ({ onComplete }
               top: `${10 + (i * 2)}%`,
               animationDelay: `${i * 0.1}s`,
               animationDuration: `${1.5 + (i * 0.1)}s`,
-              background: i % 2 === 0 ? 'hsl(var(--tennis-green-primary))' : 'hsl(var(--tennis-yellow))',
+              background: i % 2 === 0 ? 'hsl(var(--primary))' : 'hsl(var(--accent))',
               transform: `rotate(${i * 24}deg)`
             }}
           />
