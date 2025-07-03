@@ -3,14 +3,14 @@ import React, { useState } from 'react';
 import { ScrollArea } from '@/components/ui/scroll-area';
 import { Card, CardContent } from '@/components/ui/card';
 import { Activity, Info } from 'lucide-react';
-import { FeedPost } from '@/components/feed/FeedPost';
+import { FeedPostTimeline } from '@/components/feed/FeedPostTimeline';
 import { FeedHeader } from '@/components/feed/FeedHeader';
 import { useFeedData } from '@/hooks/useFeedData';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 
 export default function Feed() {
   const [filter, setFilter] = useState<string>('all');
-  const { feedPosts, loading, handleLike, handleComment, handleChallenge } = useFeedData();
+  const { feedPosts, loading, handleLike, handleComment } = useFeedData();
 
   const filteredPosts = feedPosts.filter(post => {
     if (filter === 'all') return true;
@@ -114,14 +114,12 @@ export default function Feed() {
             <ScrollArea className="h-[calc(100vh-300px)]">
               <div className="space-y-4 pr-4">
                 {filteredPosts.map(post => (
-                  <div key={post.id} className="bg-white/80 backdrop-blur-sm rounded-lg shadow-sm border border-white/40 hover:shadow-md transition-shadow">
-                    <FeedPost
-                      post={post}
-                      onLike={handleLike}
-                      onComment={handleComment}
-                      onChallenge={handleChallenge}
-                    />
-                  </div>
+                  <FeedPostTimeline
+                    key={post.id}
+                    post={post}
+                    onLike={handleLike}
+                    onComment={handleComment}
+                  />
                 ))}
               </div>
             </ScrollArea>

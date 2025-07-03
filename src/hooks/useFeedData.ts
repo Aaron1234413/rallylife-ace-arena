@@ -4,7 +4,7 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useFeedEngagement } from '@/hooks/useFeedEngagement';
-import { useMessageNavigation } from '@/hooks/useMessageNavigation';
+
 
 interface FeedPost {
   id: string;
@@ -42,7 +42,7 @@ interface FeedPost {
 export function useFeedData() {
   const { user } = useAuth();
   const { toast } = useToast();
-  const { openConversation } = useMessageNavigation();
+  
   const { toggleLike, addComment } = useFeedEngagement();
   const [feedPosts, setFeedPosts] = useState<FeedPost[]>([]);
   const [loading, setLoading] = useState(true);
@@ -163,16 +163,6 @@ export function useFeedData() {
     return commentId;
   };
 
-  const handleChallenge = (userId: string) => {
-    // Find the user's name from the feed posts
-    const userPost = feedPosts.find(post => post.user.id === userId);
-    const userName = userPost?.user.full_name || 'User';
-    
-    openConversation({
-      targetUserId: userId,
-      targetUserName: userName
-    });
-  };
 
   const refreshFeed = useCallback(() => {
     if (!loadingRef.current) {
@@ -185,7 +175,6 @@ export function useFeedData() {
     loading,
     handleLike,
     handleComment,
-    handleChallenge,
     refreshFeed
   };
 }
