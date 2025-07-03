@@ -20,7 +20,7 @@ import { CoachAchievementsDisplay } from "@/components/achievements/CoachAchieve
 import { CoachOverviewCards } from "@/components/coach/dashboard/CoachOverviewCards";
 import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickActions";
 import { MobileActionPanel } from "@/components/dashboard/mobile";
-import { MyClubsSection, ClubDiscovery } from "@/components/clubs";
+
 import { UpcomingCourtBookings } from "@/components/dashboard/UpcomingCourtBookings";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
@@ -315,19 +315,9 @@ const Index = () => {
               />
             </ErrorBoundary>
 
-            {/* My Clubs Section */}
-            <ErrorBoundary fallbackTitle="My Clubs Error">
-              <MyClubsSection />
-            </ErrorBoundary>
-
             {/* Court Bookings Widget */}
             <ErrorBoundary fallbackTitle="Court Bookings Error">
               <UpcomingCourtBookings />
-            </ErrorBoundary>
-
-            {/* Club Discovery Section */}
-            <ErrorBoundary fallbackTitle="Club Discovery Error">
-              <ClubDiscovery />
             </ErrorBoundary>
           </>
         )}

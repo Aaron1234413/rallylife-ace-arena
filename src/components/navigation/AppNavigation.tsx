@@ -23,12 +23,12 @@ export function AppNavigation() {
   const navItems = [
     { path: '/dashboard', label: 'Dashboard', icon: Home },
     { path: '/sessions', label: 'Sessions', icon: Users },
+    { path: '/clubs', label: 'Clubs', icon: Users },
     { path: '/pulse', label: 'Pulse', icon: Bolt },
     { path: '/academy', label: 'Academy', icon: GraduationCap },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
     { path: '/feed', label: 'Feed', icon: Rss },
     { path: '/store', label: 'Store', icon: Store },
-    { path: '/profile', label: 'Profile', icon: User },
   ];
 
   const isActive = (path: string) => location.pathname === path;
