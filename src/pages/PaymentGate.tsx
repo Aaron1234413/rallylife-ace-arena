@@ -102,7 +102,7 @@ export default function PaymentGate() {
               <Button 
                 variant="outline" 
                 className="w-full mt-6" 
-                onClick={() => navigate('/')}
+                onClick={() => navigate('/dashboard')}
               >
                 Continue with Limited Access
               </Button>
