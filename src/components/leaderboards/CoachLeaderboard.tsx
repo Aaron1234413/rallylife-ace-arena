@@ -8,6 +8,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Trophy, Medal, Award, RefreshCw, Crown, Star, TrendingUp } from 'lucide-react';
 import { useCoachLeaderboards } from '@/hooks/useCoachLeaderboards';
 import { LeaderboardEntry } from './LeaderboardEntry';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfiles } from '@/hooks/useProfiles';
 
 interface CoachLeaderboardProps {
   defaultType?: string;
@@ -20,9 +22,15 @@ export function CoachLeaderboard({
   defaultPeriod = 'all_time',
   maxEntries = 50 
 }: CoachLeaderboardProps) {
+  const { user } = useAuth();
   const [leaderboardType, setLeaderboardType] = useState(defaultType);
   const [periodType, setPeriodType] = useState(defaultPeriod);
   const { getLeaderboard, calculateLeaderboards, isCalculating } = useCoachLeaderboards();
+
+  // Get current user profile to determine role
+  const { data: profiles } = useProfiles();
+  const currentUserProfile = profiles?.find(p => p.id === user?.id);
+  const currentUserRole = currentUserProfile?.role as 'player' | 'coach' | undefined;
 
   const { data: leaderboardData = [], isLoading, error } = getLeaderboard(
     leaderboardType,
@@ -177,6 +185,7 @@ export function CoachLeaderboard({
                         entry={entry}
                         leaderboardType={type}
                         index={index}
+                        currentUserRole={currentUserRole}
                       />
                     ))}
                   </div>

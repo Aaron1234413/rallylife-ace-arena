@@ -1,0 +1,172 @@
+import React, { useState } from 'react';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Trophy, RefreshCw, ChevronDown, Users } from 'lucide-react';
+import { usePlayerLeaderboards } from '@/hooks/usePlayerLeaderboards';
+import { PlayerLeaderboardEntry } from './PlayerLeaderboardEntry';
+import { useAuth } from '@/hooks/useAuth';
+import { useProfiles } from '@/hooks/useProfiles';
+
+interface PlayerLeaderboardProps {
+  maxEntries?: number;
+  showFilters?: boolean;
+  compact?: boolean;
+}
+
+export function PlayerLeaderboard({ 
+  maxEntries = 50,
+  showFilters = true,
+  compact = false
+}: PlayerLeaderboardProps) {
+  const { user } = useAuth();
+  const [limit, setLimit] = useState(maxEntries);
+  const [showMore, setShowMore] = useState(false);
+  
+  const { leaderboard, isLoading, error, refresh } = usePlayerLeaderboards(
+    showMore ? limit * 2 : limit, 
+    0
+  );
+
+  // Get current user profile to determine role
+  const { data: profiles } = useProfiles();
+  const currentUserProfile = profiles?.find(p => p.id === user?.id);
+  const currentUserRole = currentUserProfile?.role as 'player' | 'coach' | undefined;
+
+  const handleLoadMore = () => {
+    setShowMore(true);
+  };
+
+  const handleRefresh = () => {
+    setShowMore(false);
+    refresh();
+  };
+
+  if (error) {
+    return (
+      <Card className="border-tennis-green-light">
+        <CardContent className="p-6">
+          <p className="text-red-600">Failed to load player leaderboard</p>
+          <Button onClick={handleRefresh} className="mt-2">
+            Try Again
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-6">
+      {!compact && (
+        <Card className="border-tennis-green-light">
+          <CardHeader className="bg-tennis-green-light text-white">
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-6 w-6" />
+              Player Leaderboard
+            </CardTitle>
+            <CardDescription className="text-tennis-green-bg">
+              Top players ranked by level and total XP earned
+            </CardDescription>
+          </CardHeader>
+          {showFilters && (
+            <CardContent className="p-4">
+              <div className="flex flex-col sm:flex-row gap-4 items-start sm:items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Select value={limit.toString()} onValueChange={(value) => setLimit(parseInt(value))}>
+                    <SelectTrigger className="w-32">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="25">Top 25</SelectItem>
+                      <SelectItem value="50">Top 50</SelectItem>
+                      <SelectItem value="100">Top 100</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+                <Button 
+                  onClick={handleRefresh} 
+                  disabled={isLoading}
+                  size="sm"
+                  variant="outline"
+                >
+                  {isLoading ? (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                      Loading...
+                    </>
+                  ) : (
+                    <>
+                      <RefreshCw className="mr-2 h-4 w-4" />
+                      Refresh
+                    </>
+                  )}
+                </Button>
+              </div>
+            </CardContent>
+          )}
+        </Card>
+      )}
+
+      <Card className="border-tennis-green-light">
+        {compact && (
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Trophy className="h-5 w-5" />
+              Top Players
+            </CardTitle>
+          </CardHeader>
+        )}
+        <CardContent className={compact ? "p-4" : "p-6"}>
+          {isLoading ? (
+            <div className="space-y-3">
+              {[1, 2, 3, 4, 5].map((i) => (
+                <div key={i} className="animate-pulse flex items-center gap-4">
+                  <div className="w-8 h-8 bg-gray-200 rounded-full"></div>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-gray-200 rounded w-3/4"></div>
+                    <div className="h-3 bg-gray-200 rounded w-1/2"></div>
+                  </div>
+                  <div className="w-16 h-6 bg-gray-200 rounded"></div>
+                </div>
+              ))}
+            </div>
+          ) : leaderboard.length === 0 ? (
+            <div className="text-center py-8">
+              <Trophy className="mx-auto h-12 w-12 text-gray-400 mb-4" />
+              <p className="text-tennis-green-medium">No players found</p>
+              <p className="text-sm text-gray-500 mt-1">
+                Be the first to start earning XP!
+              </p>
+            </div>
+          ) : (
+            <>
+              <div className="space-y-2">
+                {leaderboard.map((entry, index) => (
+                  <PlayerLeaderboardEntry
+                    key={entry.player_id}
+                    entry={entry}
+                    index={index}
+                    currentUserRole={currentUserRole}
+                  />
+                ))}
+              </div>
+              
+              {!showMore && leaderboard.length >= limit && (
+                <div className="mt-6 text-center">
+                  <Button
+                    onClick={handleLoadMore}
+                    variant="outline"
+                    className="border-tennis-green-light text-tennis-green-dark hover:bg-tennis-green-bg"
+                  >
+                    <ChevronDown className="mr-2 h-4 w-4" />
+                    Load More Players
+                  </Button>
+                </div>
+              )}
+            </>
+          )}
+        </CardContent>
+      </Card>
+    </div>
+  );
+}

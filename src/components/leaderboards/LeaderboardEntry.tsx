@@ -4,14 +4,19 @@ import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Trophy, Medal, Award, Crown, Star } from 'lucide-react';
 import { CoachLeaderboardEntry } from '@/hooks/useCoachLeaderboards';
+import { LeaderboardActions } from './LeaderboardActions';
+import { useAuth } from '@/hooks/useAuth';
 
 interface LeaderboardEntryProps {
   entry: CoachLeaderboardEntry;
   leaderboardType: string;
   index: number;
+  currentUserRole?: 'player' | 'coach';
 }
 
-export function LeaderboardEntry({ entry, leaderboardType, index }: LeaderboardEntryProps) {
+export function LeaderboardEntry({ entry, leaderboardType, index, currentUserRole }: LeaderboardEntryProps) {
+  const { user } = useAuth();
+  const isCurrentUser = user?.id === entry.coach_id;
   const getRankIcon = (position: number) => {
     switch (position) {
       case 1:
@@ -112,13 +117,16 @@ export function LeaderboardEntry({ entry, leaderboardType, index }: LeaderboardE
         <div className="flex-1 min-w-0">
           <p className="font-medium text-tennis-green-dark truncate">
             {entry.coach_name || 'Anonymous Coach'}
+            {isCurrentUser && (
+              <Badge variant="outline" className="ml-2 text-xs">You</Badge>
+            )}
           </p>
           {getMetadataDisplay(entry.metadata, leaderboardType)}
         </div>
       </div>
 
       {/* Score */}
-      <div className="text-right">
+      <div className="text-right mr-4">
         <p className="font-bold text-tennis-green-dark">
           {formatScore(entry.score_value, leaderboardType)}
         </p>
@@ -131,6 +139,17 @@ export function LeaderboardEntry({ entry, leaderboardType, index }: LeaderboardE
           </div>
         )}
       </div>
+
+      {/* Actions */}
+      {!isCurrentUser && (
+        <LeaderboardActions
+          targetUserId={entry.coach_id}
+          targetUserName={entry.coach_name}
+          targetUserRole="coach"
+          currentUserRole={currentUserRole}
+          compact
+        />
+      )}
     </div>
   );
 }
