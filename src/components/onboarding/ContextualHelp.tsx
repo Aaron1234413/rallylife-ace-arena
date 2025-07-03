@@ -80,16 +80,6 @@ const CONTEXTUAL_TIPS: ContextualTip[] = [
     priority: 'high',
     category: 'achievements',
     trigger: 'level_up'
-  },
-  {
-    id: 'clubs_exploration',
-    title: 'Join a Tennis Club',
-    message: 'Connect with local tennis communities! Join clubs to access exclusive courts, events, and meet other players.',
-    icon: Target,
-    priority: 'medium',
-    category: 'social',
-    trigger: 'clubs_first_visit',
-    showOnce: true
   }
 ];
 
@@ -145,8 +135,7 @@ export const ContextualHelp: React.FC<ContextualHelpProps> = ({
       // Route-based tips
       const routeTriggers: Record<string, string> = {
         '/': userRole === 'coach' ? 'coach_dashboard_first_visit' : 'dashboard_first_visit',
-        '/academy': 'academy_first_visit',
-        '/clubs': 'clubs_first_visit'
+        '/academy': 'academy_first_visit'
       };
 
       const trigger = routeTriggers[currentRoute];
