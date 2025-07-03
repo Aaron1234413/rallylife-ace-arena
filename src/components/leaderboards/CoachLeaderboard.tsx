@@ -94,9 +94,9 @@ export function CoachLeaderboard({
               </p>
             </div>
           ) : (
-            <div className="space-y-2">
+            <div className="space-y-4">
               {leaderboardData.map((entry, index) => (
-                <div key={entry.coach_id} className="flex items-center justify-between p-3 rounded-lg border border-tennis-green-subtle">
+                <div key={entry.coach_id} className="flex items-center justify-between p-6 rounded-xl border border-tennis-green-subtle">
                   <div className="flex items-center gap-3">
                     <div className="flex-shrink-0 w-8 h-8 rounded-full bg-tennis-green-primary text-white flex items-center justify-center font-bold text-sm">
                       {entry.rank_position}

@@ -43,8 +43,8 @@ export function PlayerLeaderboardEntry({ entry, index, currentUserRole }: Player
   };
 
   return (
-    <div className={`flex items-center gap-4 p-4 rounded-lg border transition-colors hover:bg-tennis-green-bg/20 ${
-      entry.rank_position <= 3 ? 'border-tennis-green-medium bg-tennis-green-bg/10' : 'border-gray-200'
+    <div className={`flex items-center gap-6 p-6 rounded-xl border transition-colors hover:bg-tennis-green-bg/20 ${
+      entry.rank_position <= 3 ? 'border-tennis-green-medium bg-tennis-green-bg/10' : 'border-tennis-green-subtle'
     }`}>
       {/* Rank */}
       <div className="flex items-center justify-center min-w-[3rem]">

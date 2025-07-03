@@ -140,7 +140,7 @@ export function PlayerLeaderboard({
             </div>
           ) : (
             <>
-              <div className="space-y-2">
+              <div className="space-y-4">
                 {leaderboard.map((entry, index) => (
                   <PlayerLeaderboardEntry
                     key={entry.player_id}
