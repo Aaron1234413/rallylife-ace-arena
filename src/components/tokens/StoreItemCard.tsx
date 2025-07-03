@@ -94,7 +94,7 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
           
           <div className="flex-1 min-w-0 space-y-2">
             <div className="space-y-1">
-              <h3 className="font-semibold text-sm text-gray-900 leading-tight">
+              <h3 className="font-semibold text-xs text-gray-900 leading-tight">
                 {item.name}
               </h3>
               <p className="text-xs text-gray-600 leading-relaxed line-clamp-2">

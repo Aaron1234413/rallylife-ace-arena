@@ -53,26 +53,13 @@ export function EnhancedStoreLayout({
       {/* Token Balance Display - Simplified */}
       {tokenData && (
         <Card className="bg-white border border-gray-200 shadow-sm">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-gray-900 text-base font-semibold">
-              <div className="p-1.5 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-lg">
-                <Coins className="h-4 w-4 text-white" />
-              </div>
-              Your Balance
-            </CardTitle>
-          </CardHeader>
-          <CardContent className="px-6 pb-4">
+          <CardContent className="px-6 py-4">
             <div className="flex items-center justify-center">
               <div className="text-center space-y-1">
-                <div className="flex items-center justify-center gap-2 mb-1">
-                  <div className="p-1.5 bg-gradient-to-br from-yellow-400 to-yellow-600 rounded-lg">
-                    <Coins className="h-4 w-4 text-white" />
-                  </div>
-                  <span className="text-sm font-medium text-gray-700">Regular Tokens</span>
-                </div>
-                <p className="text-xl font-bold text-gray-900">
+                <p className="text-2xl font-bold text-gray-900">
                   {tokenData.regular_tokens.toLocaleString()}
                 </p>
+                <span className="text-sm font-medium text-gray-700">Regular Tokens</span>
               </div>
             </div>
           </CardContent>
@@ -101,15 +88,6 @@ export function EnhancedStoreLayout({
         </CardHeader>
         <CardContent className="p-4">
           <div className="space-y-4">
-            <div className="flex items-center gap-2 pb-2 border-b border-gray-200">
-              <div className="w-2 h-2 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-full"></div>
-              <h3 className="text-sm font-semibold text-gray-900">
-                Items & Consumables
-              </h3>
-              <Badge variant="secondary" className="text-xs px-2 py-1 bg-green-100 text-green-800">
-                Available
-              </Badge>
-            </div>
             {tokenData && (
               <TokenStore
                 onSpendTokens={onSpendTokens}
