@@ -103,132 +103,83 @@ export const AcademyMilestones: React.FC<AcademyMilestonesProps> = ({ progress }
     }
   ];
 
-  const getMilestoneStatusColor = (milestone: Milestone) => {
-    if (milestone.isAchieved) return 'text-green-600';
-    if (milestone.progress > 0) return 'text-blue-600';
-    return 'text-gray-400';
-  };
+  // Find the next milestone to achieve
+  const nextMilestone = milestones.find(milestone => !milestone.isAchieved);
+  
+  if (!nextMilestone) {
+    // All milestones achieved
+    return (
+      <Card className="bg-gradient-to-r from-yellow-50 to-orange-50 border-yellow-200 hover-scale transition-all duration-300 animate-fade-in">
+        <CardContent className="p-6 text-center">
+          <div className="w-16 h-16 bg-yellow-500 rounded-full flex items-center justify-center mx-auto mb-4 animate-scale-in">
+            <Trophy className="h-8 w-8 text-white" />
+          </div>
+          <h3 className="text-xl font-bold text-tennis-green-dark mb-2">All Milestones Complete!</h3>
+          <p className="text-tennis-green-medium">You've mastered the Tennis Academy. New challenges coming soon!</p>
+        </CardContent>
+      </Card>
+    );
+  }
 
-  const getMilestoneBackgroundColor = (milestone: Milestone) => {
-    if (milestone.isAchieved) return 'bg-green-50 border-green-200';
-    if (milestone.progress > 0) return 'bg-blue-50 border-blue-200';
-    return 'bg-gray-50 border-gray-200';
-  };
+  const Icon = nextMilestone.icon;
+  const progressPercentage = (nextMilestone.progress / nextMilestone.requirement) * 100;
+  const isCloseToAchieving = progressPercentage >= 70;
 
   return (
-    <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light/20">
-      <CardHeader>
+    <Card className={`hover-scale transition-all duration-300 animate-fade-in ${
+      isCloseToAchieving 
+        ? 'bg-gradient-to-r from-blue-50 to-purple-50 border-blue-200' 
+        : 'bg-white/95 border-tennis-green-light/20'
+    }`}>
+      <CardHeader className="pb-3">
         <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
           <Award className="h-5 w-5 text-tennis-green-primary" />
-          Academy Milestones
+          Next Milestone
         </CardTitle>
       </CardHeader>
-      <CardContent className="space-y-4">
-        {milestones.map((milestone) => {
-          const Icon = milestone.icon;
-          const progressPercentage = (milestone.progress / milestone.requirement) * 100;
-
-          return (
-            <Card 
-              key={milestone.type} 
-              className={`transition-all duration-300 ${getMilestoneBackgroundColor(milestone)} hover:shadow-md`}
-            >
-              <CardContent className="p-4">
-                <div className="flex items-center gap-4">
-                  {/* Milestone Icon */}
-                  <div className={`w-12 h-12 rounded-full flex items-center justify-center relative ${
-                    milestone.isAchieved 
-                      ? 'bg-green-100' 
-                      : milestone.progress > 0 
-                        ? 'bg-blue-100' 
-                        : 'bg-gray-100'
-                  }`}>
-                    {milestone.isAchieved ? (
-                      <CheckCircle className="h-6 w-6 text-green-600" />
-                    ) : milestone.progress === 0 ? (
-                      <Lock className="h-6 w-6 text-gray-400" />
-                    ) : (
-                      <Icon className={`h-6 w-6 ${getMilestoneStatusColor(milestone)}`} />
-                    )}
-                  </div>
-
-                  {/* Milestone Info */}
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className={`font-semibold ${getMilestoneStatusColor(milestone)}`}>
-                        {milestone.name}
-                      </h4>
-                      {milestone.isAchieved && (
-                        <Badge className="bg-green-100 text-green-800 text-xs">
-                          Completed ✓
-                        </Badge>
-                      )}
-                    </div>
-                    
-                    <p className="text-sm text-tennis-green-medium mb-2">
-                      {milestone.description}
-                    </p>
-
-                    {/* Progress Bar */}
-                    <div className="space-y-1">
-                      <div className="flex justify-between text-xs">
-                        <span className="text-tennis-green-medium">
-                          Progress: {milestone.progress}/{milestone.requirement}
-                        </span>
-                        <span className="text-tennis-green-medium">
-                          {Math.round(progressPercentage)}%
-                        </span>
-                      </div>
-                      <Progress 
-                        value={progressPercentage} 
-                        className="h-2"
-                      />
-                    </div>
-
-                    {/* Rewards */}
-                    <div className="flex items-center gap-2 mt-2">
-                      <Badge variant="outline" className="text-xs">
-                        +{milestone.tokensReward} tokens
-                      </Badge>
-                      <Badge variant="outline" className="text-xs">
-                        +{milestone.knowledgePointsReward} KP
-                      </Badge>
-                    </div>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          );
-        })}
-
-        {/* Summary Stats */}
-        <div className="mt-6 p-4 bg-gradient-to-r from-tennis-green-bg to-tennis-green-light/20 rounded-lg">
-          <div className="grid grid-cols-3 gap-4 text-center">
-            <div>
-              <div className="text-lg font-bold text-tennis-green-dark">
-                {achievedMilestones.length}
-              </div>
-              <div className="text-xs text-tennis-green-medium">
-                Milestones Achieved
-              </div>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex items-center gap-3">
+            <div className={`w-12 h-12 rounded-full flex items-center justify-center transition-all duration-300 ${
+              isCloseToAchieving ? 'bg-blue-500 animate-pulse' : 'bg-gray-300'
+            }`}>
+              <Icon className="h-6 w-6 text-white" />
             </div>
-            <div>
-              <div className="text-lg font-bold text-yellow-600">
-                {milestones.reduce((total, m) => total + (m.isAchieved ? m.tokensReward : 0), 0)}
-              </div>
-              <div className="text-xs text-tennis-green-medium">
-                Tokens Earned
-              </div>
+            <div className="flex-1">
+              <h4 className="font-semibold text-tennis-green-dark">{nextMilestone.name}</h4>
+              <p className="text-sm text-tennis-green-medium">{nextMilestone.description}</p>
             </div>
-            <div>
-              <div className="text-lg font-bold text-blue-600">
-                {milestones.reduce((total, m) => total + (m.isAchieved ? m.knowledgePointsReward : 0), 0)}
-              </div>
-              <div className="text-xs text-tennis-green-medium">
-                Knowledge Points
-              </div>
+            <Badge variant="outline" className="shrink-0">
+              Goal: {nextMilestone.requirement}
+            </Badge>
+          </div>
+          
+          <div className="space-y-2">
+            <div className="flex justify-between text-sm">
+              <span className="text-tennis-green-medium">Progress</span>
+              <span className="font-medium text-tennis-green-dark">
+                {nextMilestone.progress} / {nextMilestone.requirement}
+              </span>
+            </div>
+            <Progress value={progressPercentage} className="h-3" />
+            <div className="text-center text-xs text-tennis-green-medium">
+              {Math.round(progressPercentage)}% complete
             </div>
           </div>
+          
+          <div className="bg-tennis-green-bg rounded-lg p-3">
+            <div className="flex items-center gap-2 text-sm text-tennis-green-dark">
+              <Trophy className="h-4 w-4 text-tennis-green-primary" />
+              <span className="font-medium">Rewards:</span>
+              <span>+{nextMilestone.tokensReward} tokens, +{nextMilestone.knowledgePointsReward} KP</span>
+            </div>
+          </div>
+
+          {isCloseToAchieving && (
+            <div className="text-center text-sm font-medium text-blue-700 bg-blue-50 rounded-lg p-2 animate-pulse">
+              🎯 So close! Just {nextMilestone.requirement - nextMilestone.progress} more to go!
+            </div>
+          )}
         </div>
       </CardContent>
     </Card>

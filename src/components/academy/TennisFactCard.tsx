@@ -129,66 +129,50 @@ export const TennisFactCard: React.FC<TennisFactCardProps> = ({ className = '' }
 
   return (
     <Card className={`bg-gradient-to-br from-orange-50 to-yellow-50 border-orange-200 hover-scale transition-all duration-300 animate-fade-in ${className}`}>
-      <CardHeader className="pb-3">
-        <div className="flex items-center justify-between">
-          <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-            <Lightbulb className="h-5 w-5 text-orange-600" />
-            Tennis Fact of the Day
-          </CardTitle>
+      <CardContent className="p-4">
+        <div className="space-y-3">
+          {/* Header */}
           <div className="flex items-center gap-2">
+            <Lightbulb className="h-4 w-4 text-orange-600" />
+            <h3 className="font-medium text-tennis-green-dark text-sm">Tennis Fact</h3>
             <Badge className={getCategoryColor(currentFact.category)}>
               {currentFact.category}
             </Badge>
-            {currentFact.isInteresting && (
-              <Badge className="bg-orange-100 text-orange-800 border-orange-300">
-                ⭐ Amazing
-              </Badge>
-            )}
           </div>
-        </div>
-      </CardHeader>
-      
-      <CardContent className="space-y-4">
-        {/* Main Fact */}
-        <div className="bg-white/80 rounded-lg p-4 border border-orange-100 animate-fade-in">
-          <p className="text-tennis-green-dark leading-relaxed font-medium transition-all duration-300">
-            {currentFact.fact}
-          </p>
-        </div>
 
-        {/* Action Buttons */}
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2 text-sm text-tennis-green-medium">
-            <Calendar className="h-4 w-4" />
-            Fact #{currentFactIndex + 1} of {TENNIS_FACTS.length}
+          {/* Main Fact */}
+          <div className="bg-white/80 rounded-lg p-3 border border-orange-100">
+            <p className="text-tennis-green-dark text-sm leading-relaxed">
+              {currentFact.fact}
+            </p>
           </div>
-          
-          <div className="flex items-center gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleShare}
-              className="text-tennis-green-dark border-orange-200 hover:bg-orange-50 hover-scale transition-all duration-200"
-            >
-              <Share2 className="h-4 w-4 mr-1" />
-              Share
-            </Button>
+
+          {/* Actions */}
+          <div className="flex items-center justify-between">
+            <span className="text-xs text-tennis-green-medium">
+              #{currentFactIndex + 1} of {TENNIS_FACTS.length}
+            </span>
             
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleNextFact}
-              className="text-tennis-green-dark border-orange-200 hover:bg-orange-50 hover-scale transition-all duration-200"
-            >
-              <RefreshCw className="h-4 w-4 mr-1" />
-              Next Fact
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleShare}
+                className="h-6 px-2 text-xs hover-scale"
+              >
+                <Share2 className="h-3 w-3" />
+              </Button>
+              
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={handleNextFact}
+                className="h-6 px-2 text-xs hover-scale"
+              >
+                <RefreshCw className="h-3 w-3" />
+              </Button>
+            </div>
           </div>
-        </div>
-
-        {/* Fun tip */}
-        <div className="text-center text-xs text-tennis-green-medium bg-orange-50 rounded-lg p-2">
-          💡 New facts unlock as you progress through your Academy journey!
         </div>
       </CardContent>
     </Card>
