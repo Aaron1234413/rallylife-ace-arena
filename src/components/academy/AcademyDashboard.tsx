@@ -16,6 +16,7 @@ import { DailyCheckIn } from './DailyCheckIn';
 import { AcademyMilestones } from './AcademyMilestones';
 import { KnowledgePointsDisplay } from './KnowledgePointsDisplay';
 import { TennisFactCard } from './TennisFactCard';
+import { AcademyVitals } from './AcademyVitals';
 import { ChallengeOfTheDay } from './ChallengeOfTheDay';
 import { getTodaysTopic } from '@/utils/TopicRotationSystem';
 import { AcademyProgress } from '@/hooks/useAcademyProgressDB';
@@ -67,6 +68,9 @@ export const AcademyDashboard: React.FC<AcademyDashboardProps> = ({
 
       {/* Tennis Fact - Directly under header */}
       <TennisFactCard />
+      
+      {/* Academy Vitals */}
+      <AcademyVitals progress={progress} />
       
       {/* Single column layout */}
       <div className="space-y-6">
