@@ -96,27 +96,37 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
             <h3 className="font-semibold text-sm mb-1">{item.name}</h3>
             <p className="text-xs text-muted-foreground mb-2">{item.description}</p>
             
-            {/* Primary Price Display */}
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <Badge variant="outline" className="text-xs">
-                  🪙 {item.cost}
-                </Badge>
-                <Badge variant="secondary" className="text-xs">
-                  ${item.cashPrice.toFixed(2)}
-                </Badge>
+            {/* Enhanced Price Display */}
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <Badge variant={canAffordWithTokens ? "default" : "secondary"} className="text-xs">
+                    🪙 {item.cost}
+                  </Badge>
+                  <span className="text-xs text-muted-foreground">or</span>
+                  <Badge variant="outline" className="text-xs">
+                    ${item.cashPrice.toFixed(2)}
+                  </Badge>
+                </div>
+                
+                {bestSummary.savings && (
+                  <Badge variant="default" className="text-xs bg-green-100 text-green-800">
+                    Save ${bestSummary.savings.replace('Save $', '').replace('!', '')}
+                  </Badge>
+                )}
               </div>
               
-              {bestSummary.savings && (
-                <Badge variant="default" className="text-xs bg-green-100 text-green-800">
-                  {bestSummary.savings}
-                </Badge>
+              {/* Hybrid Payment Preview */}
+              {!canAffordWithTokens && regularTokens > 0 && (
+                <div className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                  💡 Pay {regularTokens} tokens + ${((item.cost - regularTokens) * 0.01).toFixed(2)} cash
+                </div>
               )}
             </div>
           </div>
         </div>
         
-        {/* Best Payment Option */}
+        {/* Enhanced Payment Options */}
         {canAffordWithTokens ? (
           <Button
             onClick={() => handlePurchase(bestOption)}
@@ -125,56 +135,98 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
             size="sm"
           >
             <Coins className="h-4 w-4 mr-2" />
-            {purchasing ? 'Processing...' : bestSummary.description}
+            {purchasing ? 'Processing...' : `Buy with ${item.cost} Tokens`}
           </Button>
         ) : (
           <div className="space-y-2">
+            {/* Primary Hybrid/Cash Option */}
+            {regularTokens > 0 ? (
+              <Button
+                onClick={() => handlePurchase(paymentOptions.find(opt => opt.type === 'hybrid') || bestOption)}
+                disabled={purchasing}
+                className="w-full bg-gradient-to-r from-blue-500 to-purple-500 text-white hover:from-blue-600 hover:to-purple-600"
+                size="sm"
+              >
+                <Wallet className="h-4 w-4 mr-2" />
+                {purchasing ? 'Processing...' : `Pay ${regularTokens} Tokens + $${((item.cost - regularTokens) * 0.01).toFixed(2)}`}
+              </Button>
+            ) : (
+              <Button
+                onClick={() => handlePurchase(paymentOptions.find(opt => opt.type === 'cash_only') || bestOption)}
+                disabled={purchasing}
+                className="w-full bg-blue-500 text-white hover:bg-blue-600"
+                size="sm"
+              >
+                <CreditCard className="h-4 w-4 mr-2" />
+                {purchasing ? 'Processing...' : `Buy for $${item.cashPrice.toFixed(2)}`}
+              </Button>
+            )}
+            
             <Button
               onClick={() => setIsExpanded(!isExpanded)}
-              variant="outline"
-              className="w-full"
+              variant="ghost"
+              className="w-full text-xs"
               size="sm"
             >
-              <Wallet className="h-4 w-4 mr-2" />
-              View Payment Options
+              {isExpanded ? 'Hide' : 'Show'} All Payment Options
             </Button>
             
             {isExpanded && (
-              <div className="space-y-2 pt-2 border-t">
+              <div className="space-y-3 pt-3 border-t">
+                <h4 className="text-sm font-medium text-gray-700">All Payment Options</h4>
                 {paymentOptions.map((option, index) => {
                   const summary = getPaymentSummary(option);
                   const isRecommended = option.type === 'hybrid' && option.savings && option.savings > 0;
                   
                   return (
-                    <div key={option.type} className="space-y-1">
+                    <div key={option.type} className="space-y-2">
                       <Button
                         onClick={() => handlePurchase(option)}
                         disabled={purchasing || !option.canAfford}
                         variant={isRecommended ? "default" : "outline"}
-                        className={`w-full justify-start ${isRecommended ? 'ring-2 ring-blue-300' : ''}`}
+                        className={`w-full justify-between ${isRecommended ? 'ring-2 ring-blue-300 bg-blue-50' : ''}`}
                         size="sm"
                       >
-                        {option.type === 'tokens_only' && <Coins className="h-4 w-4 mr-2" />}
-                        {option.type === 'cash_only' && <CreditCard className="h-4 w-4 mr-2" />}
-                        {option.type === 'hybrid' && <Wallet className="h-4 w-4 mr-2" />}
-                        
-                        <div className="flex-1 text-left">
-                          <div className="text-xs font-medium">{summary.title}</div>
-                          <div className="text-xs opacity-75">{summary.description}</div>
+                        <div className="flex items-center">
+                          {option.type === 'tokens_only' && <Coins className="h-4 w-4 mr-2 text-yellow-500" />}
+                          {option.type === 'cash_only' && <CreditCard className="h-4 w-4 mr-2 text-blue-500" />}
+                          {option.type === 'hybrid' && <Wallet className="h-4 w-4 mr-2 text-purple-500" />}
+                          
+                          <div className="text-left">
+                            <div className="text-sm font-medium">{summary.title}</div>
+                            <div className="text-xs text-muted-foreground">
+                              {option.type === 'hybrid' && (
+                                <span className="text-purple-600 font-medium">
+                                  {option.tokensToUse} tokens + ${option.cashRequired.toFixed(2)}
+                                </span>
+                              )}
+                              {option.type === 'tokens_only' && (
+                                <span className="text-yellow-600 font-medium">
+                                  {option.tokensToUse} tokens only
+                                </span>
+                              )}
+                              {option.type === 'cash_only' && (
+                                <span className="text-blue-600 font-medium">
+                                  ${option.cashRequired.toFixed(2)} cash only
+                                </span>
+                              )}
+                            </div>
+                          </div>
                         </div>
                         
-                        {isRecommended && (
-                          <Badge variant="secondary" className="text-xs bg-blue-100 text-blue-800">
-                            Best Value
-                          </Badge>
-                        )}
+                        <div className="text-right">
+                          {isRecommended && (
+                            <Badge variant="secondary" className="text-xs bg-green-100 text-green-800 mb-1">
+                              Best Value
+                            </Badge>
+                          )}
+                          {summary.savings && (
+                            <div className="text-xs text-green-600 font-medium">
+                              {summary.savings}
+                            </div>
+                          )}
+                        </div>
                       </Button>
-                      
-                      {summary.savings && option.type !== 'tokens_only' && (
-                        <p className="text-xs text-green-600 font-medium ml-2">
-                          {summary.savings}
-                        </p>
-                      )}
                     </div>
                   );
                 })}
@@ -183,10 +235,10 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
           </div>
         )}
         
-        {/* Token shortage warning */}
-        {!canAffordWithTokens && !isExpanded && (
-          <p className="text-xs text-orange-600 mt-2 text-center">
-            Need {item.cost - regularTokens} more tokens or ${((item.cost - regularTokens) * 0.01).toFixed(2)}
+        {/* Enhanced shortage info */}
+        {!canAffordWithTokens && !isExpanded && regularTokens === 0 && (
+          <p className="text-xs text-orange-600 mt-2 text-center bg-orange-50 px-2 py-1 rounded">
+            💡 Need {item.cost} tokens or pay ${item.cashPrice.toFixed(2)} with card
           </p>
         )}
       </CardContent>
