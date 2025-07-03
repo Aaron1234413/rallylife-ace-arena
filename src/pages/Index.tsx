@@ -26,7 +26,6 @@ import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { NewUserGuide } from "@/components/onboarding/NewUserGuide";
 import { useLocation } from "react-router-dom";
 import { toast } from "sonner";
 
@@ -414,14 +413,6 @@ const Index = () => {
           </div>
         )}
 
-        {/* New User Guide System */}
-        {profile && (
-          <NewUserGuide
-            userRole={profile.role}
-            userLevel={xpData?.current_level || 1}
-            currentRoute={location.pathname}
-          />
-        )}
       </div>
     </div>
   );

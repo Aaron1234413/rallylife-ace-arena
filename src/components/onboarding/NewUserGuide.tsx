@@ -63,11 +63,12 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
         .single();
 
       if (profile?.preferences) {
+        const prefs = profile.preferences as any;
         setUserProgress({
-          hasCompletedTour: profile.preferences.app_tour_completed || false,
-          completedTutorials: profile.preferences.completed_tutorials || [],
-          dismissedTips: profile.preferences.dismissed_tips || [],
-          lastActiveDate: profile.preferences.last_active_date || new Date().toISOString()
+          hasCompletedTour: prefs?.app_tour_completed || false,
+          completedTutorials: prefs?.completed_tutorials || [],
+          dismissedTips: prefs?.dismissed_tips || [],
+          lastActiveDate: prefs?.last_active_date || new Date().toISOString()
         });
       }
     } catch (error) {
