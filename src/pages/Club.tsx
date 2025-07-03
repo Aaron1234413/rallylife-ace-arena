@@ -114,19 +114,20 @@ export default function Club() {
 
         {/* Club Header */}
         <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50 animate-fade-in">
-          <CardHeader className="pb-8">
-            <div className="flex flex-col sm:flex-row sm:items-start gap-6">
-              <Avatar className="h-24 w-24 bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-start gap-4">
+              <Avatar className="h-20 w-20 bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg flex-shrink-0">
                 <AvatarImage src={club.logo_url || undefined} />
-                <AvatarFallback className="text-white font-bold text-2xl">
+                <AvatarFallback className="text-white font-bold text-xl">
                   {club.name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               
               <div className="flex-1 min-w-0 space-y-4">
-                <div className="space-y-3">
-                  <div className="flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-4">
-                    <h1 className="text-3xl sm:text-4xl font-bold text-gray-900 leading-tight">
+                {/* Title and Badges Row */}
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                  <div className="space-y-2">
+                    <h1 className="text-3xl font-bold text-gray-900 leading-tight">
                       {club.name}
                     </h1>
                     <div className="flex items-center gap-2 flex-wrap">
@@ -146,39 +147,44 @@ export default function Club() {
                     </div>
                   </div>
                   
-                  <div className="flex items-center gap-6 text-gray-600">
-                    <div className="flex items-center gap-2">
-                      <Users className="h-5 w-5" />
-                      <span className="text-base font-medium">{club.member_count} members</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <Calendar className="h-5 w-5" />
-                      <span className="text-base">Created {formatDistanceToNow(new Date(club.created_at), { addSuffix: true })}</span>
-                    </div>
+                  {/* Action Buttons */}
+                  <div className="flex gap-2 flex-shrink-0">
+                    {isOwner && (
+                      <Button className="flex items-center gap-2 px-4 py-2 hover-scale">
+                        <Settings className="h-4 w-4" />
+                        Manage Club
+                      </Button>
+                    )}
+                    {!isOwner && !isMember && (
+                      <Button className="flex items-center gap-2 px-4 py-2 hover-scale">
+                        <UserPlus className="h-4 w-4" />
+                        Join Club
+                      </Button>
+                    )}
                   </div>
                 </div>
 
-                {club.description && (
-                  <p className="text-gray-700 text-lg leading-relaxed">{club.description}</p>
-                )}
-
-                <div className="flex gap-3 flex-wrap pt-2">
-                  {isOwner && (
-                    <Button className="flex items-center gap-2 px-6 py-2 hover-scale">
-                      <Settings className="h-4 w-4" />
-                      Manage Club
-                    </Button>
-                  )}
-                  {!isOwner && !isMember && (
-                    <Button className="flex items-center gap-2 px-6 py-2 hover-scale">
-                      <UserPlus className="h-4 w-4" />
-                      Join Club
-                    </Button>
-                  )}
+                {/* Club Info Row */}
+                <div className="flex items-center gap-6 text-gray-600 border-t border-gray-100 pt-4">
+                  <div className="flex items-center gap-2">
+                    <Users className="h-4 w-4" />
+                    <span className="font-medium">{club.member_count} members</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm">
+                    <Calendar className="h-4 w-4" />
+                    <span>Created {formatDistanceToNow(new Date(club.created_at), { addSuffix: true })}</span>
+                  </div>
                 </div>
+
+                {/* Description */}
+                {club.description && (
+                  <div className="border-t border-gray-100 pt-4">
+                    <p className="text-gray-700 leading-relaxed">{club.description}</p>
+                  </div>
+                )}
               </div>
             </div>
-          </CardHeader>
+          </CardContent>
         </Card>
 
         {/* Club Content */}
