@@ -93,7 +93,7 @@ export function FeedPostTimeline({ post, onLike, onComment }: FeedPostTimelinePr
   };
 
   return (
-    <div className="border rounded-lg p-4 hover:bg-tennis-green-subtle/50 transition-all duration-200 hover:shadow-sm">
+    <div className="bg-white/90 backdrop-blur-sm border border-tennis-green-bg/30 rounded-xl p-4 sm:p-6 hover:bg-white transition-all duration-200 hover:shadow-lg hover:scale-[1.02] shadow-md">
       {/* Header with user info */}
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-3">

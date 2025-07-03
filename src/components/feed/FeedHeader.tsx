@@ -20,16 +20,16 @@ export function FeedHeader({ filter, onFilterChange }: FeedHeaderProps) {
   ];
 
   return (
-    <div className="space-y-4 mb-6">
+    <div className="space-y-3 sm:space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">Activity Feed</h1>
         <Button
-          variant="ghost"
+          variant="outline"
           size="sm"
           onClick={() => window.location.reload()}
-          className="text-muted-foreground hover:text-foreground"
+          className="text-tennis-green-medium hover:text-tennis-green-dark border-tennis-green-bg/30"
         >
-          <RefreshCw className="h-4 w-4" />
+          <RefreshCw className="h-4 w-4 mr-2" />
+          Refresh
         </Button>
       </div>
       
@@ -42,14 +42,14 @@ export function FeedHeader({ filter, onFilterChange }: FeedHeaderProps) {
             <Badge
               key={option.value}
               variant={isActive ? 'default' : 'outline'}
-              className={`cursor-pointer transition-colors ${
+              className={`cursor-pointer transition-all duration-200 hover:scale-105 px-3 py-2 text-sm ${
                 isActive 
-                  ? 'bg-primary text-primary-foreground hover:bg-primary/90' 
-                  : 'hover:bg-muted'
+                  ? 'bg-tennis-green-primary text-white hover:bg-tennis-green-dark shadow-md' 
+                  : 'border-tennis-green-bg/50 text-tennis-green-medium hover:bg-tennis-green-light/20 hover:border-tennis-green-medium'
               }`}
               onClick={() => onFilterChange(option.value)}
             >
-              <Icon className="w-3 h-3 mr-1" />
+              <Icon className="w-4 h-4 mr-1.5" />
               {option.label}
             </Badge>
           );

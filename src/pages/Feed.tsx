@@ -81,19 +81,11 @@ export default function Feed() {
           </p>
         </div>
 
-        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-6 space-y-6">
+        <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 p-4 sm:p-6 space-y-4 sm:space-y-6">
           <FeedHeader 
             filter={filter} 
             onFilterChange={setFilter}
           />
-
-          {/* Info alert about automatic posting - Enhanced typography */}
-          <Alert className="border-blue-200 bg-blue-50">
-            <Info className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="poppins-body text-body text-blue-800">
-              Your activities automatically appear in your feed when you complete sessions, matches, or training.
-            </AlertDescription>
-          </Alert>
 
           {filteredPosts.length === 0 ? (
             <Card className="bg-tennis-green-subtle border-tennis-green-light">
@@ -111,8 +103,8 @@ export default function Feed() {
               </CardContent>
             </Card>
           ) : (
-            <ScrollArea className="h-[calc(100vh-300px)]">
-              <div className="space-y-4 pr-4">
+            <ScrollArea className="h-[calc(100vh-200px)]">
+              <div className="space-y-4 sm:space-y-6 pr-2 sm:pr-4">
                 {filteredPosts.map(post => (
                   <FeedPostTimeline
                     key={post.id}
