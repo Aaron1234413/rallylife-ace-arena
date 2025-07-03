@@ -132,24 +132,21 @@ export function TokenStore({
         if (!success) return;
         
       } else if (paymentOption.type === 'cash_only') {
-        // Pure cash payment - Phase 4 will implement Stripe
-        toast.error('Cash payments coming in Phase 4 - Stripe integration needed!');
+        // Pure cash payment handled by StoreItemCard via Stripe
         return;
         
       } else if (paymentOption.type === 'hybrid') {
-        // Mixed payment - spend available tokens first, then cash for remainder
+        // Mixed payment - spend available tokens first
         if (paymentOption.tokensToUse > 0) {
           const tokenSuccess = await onSpendTokens(
             paymentOption.tokensToUse, 
             item.tokenType, 
             item.id, 
-            `Partial payment: ${item.description}`
+            `Hybrid payment: ${item.description}`
           );
           if (!tokenSuccess) return;
         }
-        
-        // Phase 4 will handle the cash portion via Stripe
-        toast.error(`Hybrid payments coming in Phase 4! (Would charge $${paymentOption.cashRequired.toFixed(2)})`);
+        // Cash portion handled by StoreItemCard via Stripe
         return;
       }
       

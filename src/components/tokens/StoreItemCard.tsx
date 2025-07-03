@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Separator } from '@/components/ui/separator';
 import { toast } from 'sonner';
 import { useHybridPayment, PaymentOption } from '@/hooks/useHybridPayment';
+import { supabase } from '@/integrations/supabase/client';
 import { Coins, CreditCard, Wallet } from 'lucide-react';
 
 interface StoreItem {
@@ -42,7 +43,36 @@ export function StoreItemCard({ item, regularTokens, onPurchase }: StoreItemCard
   const handlePurchase = async (option: PaymentOption) => {
     setPurchasing(true);
     try {
-      await onPurchase(item, option);
+      if (option.type === 'cash_only' || option.type === 'hybrid') {
+        // Handle Stripe payment
+        const { data, error } = await supabase.functions.invoke('create-payment', {
+          body: {
+            itemId: item.id,
+            itemName: item.name,
+            cashAmount: option.cashRequired,
+            tokensToUse: option.tokensToUse
+          }
+        });
+
+        if (error) {
+          toast.error('Failed to create payment session');
+          return;
+        }
+
+        // Open Stripe checkout in new tab
+        window.open(data.url, '_blank');
+        
+        // For hybrid payments, spend tokens immediately
+        if (option.type === 'hybrid' && option.tokensToUse > 0) {
+          await onPurchase(item, option);
+        }
+      } else {
+        // Handle pure token payment
+        await onPurchase(item, option);
+      }
+    } catch (error) {
+      console.error('Payment error:', error);
+      toast.error('Payment failed');
     } finally {
       setPurchasing(false);
       setIsExpanded(false);
