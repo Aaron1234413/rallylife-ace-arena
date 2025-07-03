@@ -4921,7 +4921,9 @@ export type Database = {
         Returns: Json
       }
       create_direct_conversation: {
-        Args: { other_user_id: string; conversation_name?: string }
+        Args:
+          | { other_user_id: string; conversation_name?: string }
+          | { other_user_id_param: string }
         Returns: string
       }
       create_match_invitation_with_stakes: {
@@ -5777,10 +5779,10 @@ export type Database = {
       }
       send_message: {
         Args: {
-          conversation_id: string
-          content: string
-          message_type?: string
-          metadata?: Json
+          conversation_id_param: string
+          content_param: string
+          message_type_param?: string
+          metadata_param?: Json
         }
         Returns: string
       }
