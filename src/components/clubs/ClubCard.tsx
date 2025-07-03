@@ -78,36 +78,32 @@ export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCa
 
   return (
     <Card 
-      className="hover:shadow-lg transition-shadow cursor-pointer group"
+      className="hover:shadow-lg transition-all duration-200 cursor-pointer group hover-scale"
       onClick={handleCardClick}
     >
-      <CardHeader className="pb-3">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-3 flex-1 min-w-0">
-            <Avatar className="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600">
+      <CardContent className="p-4">
+        <div className="space-y-4">
+          {/* Header Section */}
+          <div className="flex items-start gap-3">
+            <Avatar className="h-14 w-14 bg-gradient-to-br from-blue-500 to-purple-600 flex-shrink-0">
               <AvatarImage src={club.logo_url || undefined} />
-              <AvatarFallback className="text-white font-semibold">
+              <AvatarFallback className="text-white font-semibold text-lg">
                 {club.name.slice(0, 2).toUpperCase()}
               </AvatarFallback>
             </Avatar>
             
-            <div className="flex-1 min-w-0">
-              <div className="flex items-center gap-2">
-                <h3 className="font-semibold text-lg truncate group-hover:text-blue-600 transition-colors">
+            <div className="flex-1 min-w-0 space-y-2">
+              <div className="flex items-start justify-between gap-2">
+                <h3 className="font-bold text-lg leading-tight group-hover:text-blue-600 transition-colors">
                   {club.name}
                 </h3>
                 {isOwner && (
-                  <Crown className="h-4 w-4 text-amber-500 flex-shrink-0" />
+                  <Crown className="h-4 w-4 text-amber-500 flex-shrink-0 mt-1" />
                 )}
               </div>
               
-              <div className="flex items-center gap-2 mt-1">
-                <div className="flex items-center gap-1 text-gray-600">
-                  <Users className="h-3 w-3" />
-                  <span className="text-sm">{club.member_count} members</span>
-                </div>
-                
-                <Badge variant={club.is_public ? "default" : "secondary"} className="text-xs">
+              <div className="flex items-center gap-2 flex-wrap">
+                <Badge variant={club.is_public ? "default" : "secondary"} className="text-xs px-2 py-1">
                   {club.is_public ? (
                     <><Globe className="h-3 w-3 mr-1" />Public</>
                   ) : (
@@ -116,31 +112,37 @@ export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCa
                 </Badge>
                 
                 {memberRole && (
-                  <Badge variant="outline" className="text-xs capitalize">
+                  <Badge variant="outline" className="text-xs capitalize px-2 py-1">
                     {memberRole}
                   </Badge>
                 )}
               </div>
             </div>
           </div>
-        </div>
-        
-        {club.description && (
-          <p className="text-sm text-gray-600 mt-2 line-clamp-2">
-            {club.description}
-          </p>
-        )}
-      </CardHeader>
-
-      <CardContent className="pt-0">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-1 text-xs text-gray-500">
-            <Calendar className="h-3 w-3" />
-            <span>Created {formatDistanceToNow(new Date(club.created_at), { addSuffix: true })}</span>
-          </div>
           
-          <div onClick={(e) => e.stopPropagation()}>
-            {getActionButton()}
+          {/* Description */}
+          {club.description && (
+            <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
+              {club.description}
+            </p>
+          )}
+          
+          {/* Footer Section */}
+          <div className="flex items-center justify-between pt-2 border-t border-gray-100">
+            <div className="space-y-1">
+              <div className="flex items-center gap-1 text-gray-600">
+                <Users className="h-4 w-4" />
+                <span className="text-sm font-medium">{club.member_count} members</span>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-gray-500">
+                <Calendar className="h-3 w-3" />
+                <span>Created {formatDistanceToNow(new Date(club.created_at), { addSuffix: true })}</span>
+              </div>
+            </div>
+            
+            <div onClick={(e) => e.stopPropagation()}>
+              {getActionButton()}
+            </div>
           </div>
         </div>
       </CardContent>

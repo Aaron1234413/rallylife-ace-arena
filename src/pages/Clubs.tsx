@@ -127,44 +127,44 @@ export default function Clubs() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-6 sm:grid-cols-3 mb-8">
+        <div className="grid gap-4 sm:grid-cols-3 mb-6">
           <Card className="hover-scale animate-fade-in">
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-br from-tennis-green-primary/10 to-tennis-green-primary/5 rounded-xl">
-                  <Users className="h-6 w-6 text-tennis-green-primary" />
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-tennis-green-primary/10 to-tennis-green-primary/5 rounded-lg">
+                  <Users className="h-5 w-5 text-tennis-green-primary" />
                 </div>
-                <div className="space-y-1">
-                  <p className="text-tennis-green-medium font-medium">Total Clubs</p>
-                  <p className="text-3xl font-bold text-tennis-green-dark">{clubs.length}</p>
+                <div>
+                  <p className="text-sm text-tennis-green-medium font-medium">Total Clubs</p>
+                  <p className="text-2xl font-bold text-tennis-green-dark">{clubs.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card className="hover-scale animate-fade-in" style={{ animationDelay: '0.1s' }}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-br from-amber-500/10 to-amber-500/5 rounded-xl">
-                  <Crown className="h-6 w-6 text-amber-600" />
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-amber-500/10 to-amber-500/5 rounded-lg">
+                  <Crown className="h-5 w-5 text-amber-600" />
                 </div>
-                <div className="space-y-1">
-                  <p className="text-tennis-green-medium font-medium">My Clubs</p>
-                  <p className="text-3xl font-bold text-tennis-green-dark">{myClubs.length}</p>
+                <div>
+                  <p className="text-sm text-tennis-green-medium font-medium">My Clubs</p>
+                  <p className="text-2xl font-bold text-tennis-green-dark">{myClubs.length}</p>
                 </div>
               </div>
             </CardContent>
           </Card>
           
           <Card className="hover-scale animate-fade-in" style={{ animationDelay: '0.2s' }}>
-            <CardContent className="p-6">
-              <div className="flex items-center gap-4">
-                <div className="p-3 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-xl">
-                  <TrendingUp className="h-6 w-6 text-emerald-600" />
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-emerald-600" />
                 </div>
-                <div className="space-y-1">
-                  <p className="text-tennis-green-medium font-medium">Available</p>
-                  <p className="text-3xl font-bold text-tennis-green-dark">
+                <div>
+                  <p className="text-sm text-tennis-green-medium font-medium">Available</p>
+                  <p className="text-2xl font-bold text-tennis-green-dark">
                     {clubs.filter(c => c.is_public && !isAlreadyMember(c.id)).length}
                   </p>
                 </div>
@@ -174,30 +174,30 @@ export default function Clubs() {
         </div>
 
         {/* Tabs */}
-        <Tabs defaultValue="discover" className="space-y-8">
-          <TabsList className="grid w-full grid-cols-2 h-12 p-1">
-            <TabsTrigger value="discover" className="text-base font-medium">Discover Clubs</TabsTrigger>
-            <TabsTrigger value="my-clubs" className="text-base font-medium">My Clubs</TabsTrigger>
+        <Tabs defaultValue="discover" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 h-11 p-1">
+            <TabsTrigger value="discover" className="text-sm font-medium">Discover Clubs</TabsTrigger>
+            <TabsTrigger value="my-clubs" className="text-sm font-medium">My Clubs</TabsTrigger>
           </TabsList>
 
-          <TabsContent value="discover" className="space-y-8">
+          <TabsContent value="discover" className="space-y-6">
             {/* Search and Filters */}
             <Card className="shadow-sm">
-              <CardContent className="p-6">
+              <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1 relative">
-                    <Search className="absolute left-4 top-1/2 transform -translate-y-1/2 h-5 w-5 text-gray-400" />
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
                       placeholder="Search clubs by name or description..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
-                      className="pl-12 h-12 text-base"
+                      className="pl-10 h-10"
                     />
                   </div>
                   <Button
                     variant="outline"
                     onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-2 h-12 px-6 text-base"
+                    className="flex items-center gap-2 h-10 px-4"
                   >
                     <Filter className="h-4 w-4" />
                     Filters
@@ -253,15 +253,15 @@ export default function Clubs() {
             </Card>
 
             {/* Results Summary */}
-            <div className="flex items-center justify-between py-2">
-              <p className="text-tennis-green-medium text-lg font-medium">
+            <div className="flex items-center justify-between py-1">
+              <p className="text-tennis-green-medium font-medium">
                 {filteredClubs.length} club{filteredClubs.length !== 1 ? 's' : ''} found
                 {searchQuery && ` for "${searchQuery}"`}
               </p>
             </div>
 
             {/* Clubs Grid */}
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
               {filteredClubs.map((club) => (
                 <ClubCard
                   key={club.id}
