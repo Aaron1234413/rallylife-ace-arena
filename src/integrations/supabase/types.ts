@@ -6954,6 +6954,10 @@ export type Database = {
         }
         Returns: string
       }
+      user_has_conversation_access: {
+        Args: { conversation_id_param: string; user_id_param: string }
+        Returns: boolean
+      }
     }
     Enums: {
       user_role: "player" | "coach"
