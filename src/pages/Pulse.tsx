@@ -2,19 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlayerLeaderboard, CoachLeaderboard } from '@/components/leaderboards';
-import { usePlayerHP } from '@/hooks/usePlayerHP';
-import { useAuth } from '@/hooks/useAuth';
 import { 
   Bolt, 
-  Sparkles, 
   Users,
   Trophy,
-  Zap,
-  Activity
+  Zap
 } from 'lucide-react';
 
 const Pulse = () => {
-  const { user } = useAuth();
   const [activeTab, setActiveTab] = useState('players');
   const [refreshKey, setRefreshKey] = useState(Date.now());
   
@@ -26,32 +21,6 @@ const Pulse = () => {
 
     return () => clearInterval(interval);
   }, []);
-  
-  // Fetch HP data for energy level
-  const { hpData } = usePlayerHP();
-
-  // Calculate condensed activity intelligence data
-  const getCondensedActivityIntelligence = () => {
-    // Simplified data for condensed widget
-    const hpPercentage = hpData ? (hpData.current_hp / hpData.max_hp) * 100 : 0;
-    const energyLevel = hpPercentage > 80 ? 'High' : 
-                       hpPercentage > 60 ? 'Good' : 
-                       hpPercentage > 40 ? 'Moderate' : 
-                       hpPercentage > 20 ? 'Low' : 'Critical';
-    
-    const energyColor = hpPercentage > 80 ? 'text-green-600' : 
-                       hpPercentage > 60 ? 'text-blue-600' : 
-                       hpPercentage > 40 ? 'text-yellow-600' : 
-                       hpPercentage > 20 ? 'text-orange-600' : 'text-red-600';
-    
-    return {
-      energyLevel,
-      energyColor,
-      hpPercentage: Math.round(hpPercentage)
-    };
-  };
-
-  const activityIntelligence = getCondensedActivityIntelligence();
 
   return (
     <div className="min-h-screen bg-tennis-green-bg">
@@ -76,36 +45,6 @@ const Pulse = () => {
           </CardHeader>
         </Card>
 
-        {/* Condensed Activity Intelligence Widget */}
-        <Card className="bg-gradient-to-r from-white to-tennis-green-subtle border-tennis-green-light shadow-md backdrop-blur-sm">
-          <CardContent className="p-3 sm:p-4">
-            <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 sm:gap-0">
-              <div className="flex items-center gap-3">
-                <div className="p-2 rounded-lg bg-gradient-to-br from-tennis-green-primary to-tennis-green-accent text-white shadow-md">
-                  <Activity className="h-4 w-4" />
-                </div>
-                <div>
-                  <span className="orbitron-heading font-bold text-tennis-green-dark text-sm sm:text-base">
-                    Tennis Energy
-                  </span>
-                  <p className="poppins-body text-tennis-green-medium text-xs sm:text-sm">
-                    Current player status
-                  </p>
-                </div>
-              </div>
-              
-              <div className="flex items-center gap-2 bg-white/90 rounded-lg px-3 py-2 shadow-sm border border-tennis-green-light backdrop-blur-sm w-full sm:w-auto">
-                <Sparkles className="h-4 w-4 text-tennis-yellow-dark" />
-                <div className="text-left sm:text-right">
-                  <div className="text-xs text-tennis-green-medium">Energy Level</div>
-                  <div className={`font-bold text-sm ${activityIntelligence.energyColor}`}>
-                    {activityIntelligence.energyLevel} ({activityIntelligence.hpPercentage}%)
-                  </div>
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
 
         {/* Mobile-Optimized Leaderboard Layout */}
         <div className="w-full">

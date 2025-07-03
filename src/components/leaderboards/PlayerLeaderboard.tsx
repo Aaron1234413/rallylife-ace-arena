@@ -59,54 +59,43 @@ export function PlayerLeaderboard({
 
   return (
     <div className="space-y-6">
-      {!compact && (
+      {!compact && showFilters && (
         <Card className="border-tennis-green-light">
-          <CardHeader className="bg-tennis-green-light text-white">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="h-6 w-6" />
-              Player Leaderboard
-            </CardTitle>
-            <CardDescription className="text-tennis-green-bg">
-              Top players ranked by level and total XP earned
-            </CardDescription>
-          </CardHeader>
-           {showFilters && (
-            <CardContent className="p-3 sm:p-4">
-              <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
-                <div className="flex items-center gap-3 w-full sm:w-auto">
-                  <Select value={limit.toString()} onValueChange={(value) => setLimit(parseInt(value))}>
-                    <SelectTrigger className="w-full sm:w-32 h-10">
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent className="bg-white border shadow-md">
-                      <SelectItem value="25">Top 25</SelectItem>
-                      <SelectItem value="50">Top 50</SelectItem>
-                      <SelectItem value="100">Top 100</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button 
-                  onClick={handleRefresh} 
-                  disabled={isLoading}
-                  size="sm"
-                  variant="outline"
-                  className="w-full sm:w-auto h-10"
-                >
-                  {isLoading ? (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
-                      Loading...
-                    </>
-                  ) : (
-                    <>
-                      <RefreshCw className="mr-2 h-4 w-4" />
-                      Refresh
-                    </>
-                  )}
-                </Button>
+          <CardContent className="p-3 sm:p-4">
+            <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
+              <div className="flex items-center gap-3 w-full sm:w-auto">
+                <Select value={limit.toString()} onValueChange={(value) => setLimit(parseInt(value))}>
+                  <SelectTrigger className="w-full sm:w-32 h-10">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className="bg-white border shadow-md">
+                    <SelectItem value="25">Top 25</SelectItem>
+                    <SelectItem value="50">Top 50</SelectItem>
+                    <SelectItem value="100">Top 100</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </CardContent>
-          )}
+              <Button 
+                onClick={handleRefresh} 
+                disabled={isLoading}
+                size="sm"
+                variant="outline"
+                className="w-full sm:w-auto h-10"
+              >
+                {isLoading ? (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4 animate-spin" />
+                    Loading...
+                  </>
+                ) : (
+                  <>
+                    <RefreshCw className="mr-2 h-4 w-4" />
+                    Refresh
+                  </>
+                )}
+              </Button>
+            </div>
+          </CardContent>
         </Card>
       )}
 
