@@ -98,7 +98,7 @@ export const AcademyOnboarding: React.FC<OnboardingProps> = ({ onComplete }) => 
           <CardContent className="space-y-6 text-center">
             <div className="space-y-4">
               <p className="text-tennis-green-medium">
-                Master tennis knowledge, earn tokens, and climb the ranks in our interactive learning platform.
+                Master tennis knowledge and climb the ranks in our interactive learning platform.
               </p>
               
               <div className="grid gap-3">
@@ -106,7 +106,7 @@ export const AcademyOnboarding: React.FC<OnboardingProps> = ({ onComplete }) => 
                   <Target className="h-5 w-5 text-tennis-green-primary" />
                   <div className="text-left">
                     <p className="font-medium text-tennis-green-dark">Daily Challenges</p>
-                    <p className="text-sm text-tennis-green-medium">Earn up to 10 tokens daily</p>
+                    <p className="text-sm text-tennis-green-medium">Test your knowledge daily</p>
                   </div>
                 </div>
                 
@@ -244,7 +244,7 @@ export const AcademyOnboarding: React.FC<OnboardingProps> = ({ onComplete }) => 
               <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
                 <p className="text-blue-800 font-medium">🎉 Welcome aboard!</p>
                 <p className="text-blue-600 text-sm">
-                  Your learning journey begins now. Complete daily quizzes to earn tokens and level up!
+                  Your learning journey begins now. Complete daily quizzes and level up!
                 </p>
               </div>
             </div>
