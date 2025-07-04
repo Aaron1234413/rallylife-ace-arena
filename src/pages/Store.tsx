@@ -82,8 +82,21 @@ const Store = () => {
         </div>
 
         {isPlayer && (
-          <div className="flex justify-center">
-            <UpgradeCard variant="store" />
+          <div className="space-y-6">
+            {/* Subscription Section */}
+            <div>
+              <h2 className="text-xl font-bold text-tennis-green-dark mb-4">🎯 Subscription</h2>
+              <UpgradeCard variant="store" />
+            </div>
+            
+            {/* Store Items */}
+            <div>
+              <h2 className="text-xl font-bold text-tennis-green-dark mb-4">🛒 Store Items</h2>
+              <EnhancedStoreLayout
+                tokenData={playerTokenData}
+                onSpendTokens={spendTokens}
+              />
+            </div>
           </div>
         )}
 

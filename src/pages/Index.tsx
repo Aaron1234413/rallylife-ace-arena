@@ -298,25 +298,21 @@ const Index = () => {
               />
             </ErrorBoundary>
 
-            {/* Enhanced Quick Actions with Upgrade Button */}
-            <div className="flex flex-col lg:flex-row gap-4 lg:items-start">
-              <div className="flex-1">
-                <ErrorBoundary fallbackTitle="Quick Actions Error">
-                  <EnhancedQuickActions
-                    hpData={hpData}
-                    xpData={xpData}
-                    onAddXP={handleAddXP}
-                    onRestoreHP={handleRestoreHP}
-                    onAddTokens={handleAddTokens}
-                  />
-                </ErrorBoundary>
-              </div>
-              <div className="lg:w-auto">
-                <ErrorBoundary fallbackTitle="Upgrade Card Error">
-                  <UpgradeCard variant="dashboard" />
-                </ErrorBoundary>
-              </div>
-            </div>
+            {/* Enhanced Quick Actions - Now Available on All Devices */}
+            <ErrorBoundary fallbackTitle="Quick Actions Error">
+              <EnhancedQuickActions
+                hpData={hpData}
+                xpData={xpData}
+                onAddXP={handleAddXP}
+                onRestoreHP={handleRestoreHP}
+                onAddTokens={handleAddTokens}
+              />
+            </ErrorBoundary>
+
+            {/* Upgrade Card - After Quick Actions */}
+            <ErrorBoundary fallbackTitle="Upgrade Card Error">
+              <UpgradeCard variant="dashboard" />
+            </ErrorBoundary>
 
             {/* Court Bookings Widget */}
             <ErrorBoundary fallbackTitle="Court Bookings Error">
