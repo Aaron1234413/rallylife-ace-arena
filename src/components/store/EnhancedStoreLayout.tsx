@@ -37,18 +37,6 @@ export function EnhancedStoreLayout({
 
   return (
     <div className="space-y-4">
-      {/* Store Header */}
-      <div className="text-center space-y-3">
-        <div className="inline-flex items-center justify-center w-14 h-14 bg-gradient-to-br from-tennis-green-primary to-tennis-green-dark rounded-full shadow-md">
-          <Store className="h-7 w-7 text-white" />
-        </div>
-        <div className="space-y-1">
-          <h1 className="text-xl font-bold text-gray-900">Rako Store</h1>
-          <p className="text-gray-600 text-sm max-w-lg mx-auto">
-            Discover premium items, boosters, and upgrades
-          </p>
-        </div>
-      </div>
 
       {/* Token Balance Display - Gold Theme */}
       {tokenData && (
