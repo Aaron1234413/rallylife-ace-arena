@@ -306,12 +306,8 @@ const Index = () => {
                 onAddXP={handleAddXP}
                 onRestoreHP={handleRestoreHP}
                 onAddTokens={handleAddTokens}
+                showUpgrade={true}
               />
-            </ErrorBoundary>
-
-            {/* Upgrade Card - After Quick Actions */}
-            <ErrorBoundary fallbackTitle="Upgrade Card Error">
-              <UpgradeCard variant="dashboard" />
             </ErrorBoundary>
 
             {/* Court Bookings Widget */}

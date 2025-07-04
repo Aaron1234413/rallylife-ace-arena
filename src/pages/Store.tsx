@@ -74,31 +74,19 @@ const Store = () => {
             <span className="text-xl">🛒</span>
           </div>
           <h1 className="text-3xl sm:text-4xl font-bold text-tennis-green-dark tracking-tight">
-            {isCoach ? 'Coach Store' : 'Player Store'}
+            Rako Store
           </h1>
           <p className="text-tennis-green-medium">
-            {isCoach ? 'Invest in your coaching career and earn experience' : 'Spend your tokens on items and upgrades'}
+            Discover premium items, boosters, and upgrades
           </p>
-        </div>
-
-        {isPlayer && (
-          <div className="space-y-6">
-            {/* Subscription Section */}
-            <div>
-              <h2 className="text-xl font-bold text-tennis-green-dark mb-4">🎯 Subscription</h2>
+          
+          {/* Upgrade Button for Players */}
+          {isPlayer && (
+            <div className="pt-4">
               <UpgradeCard variant="store" />
             </div>
-            
-            {/* Store Items */}
-            <div>
-              <h2 className="text-xl font-bold text-tennis-green-dark mb-4">🛒 Store Items</h2>
-              <EnhancedStoreLayout
-                tokenData={playerTokenData}
-                onSpendTokens={spendTokens}
-              />
-            </div>
-          </div>
-        )}
+          )}
+        </div>
 
         {isCoach && (
           <Tabs defaultValue="subscription" className="space-y-6">

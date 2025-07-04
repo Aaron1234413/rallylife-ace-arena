@@ -22,6 +22,7 @@ import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPla
 import { WellbeingCenter, WellbeingQuickAction } from '@/components/recovery';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { formatSessionPreview, calculateSessionCosts, isSessionTooRisky } from '@/utils/sessionCalculations';
+import { UpgradeCard } from '@/components/subscription/UpgradeCard';
 
 interface EnhancedQuickActionsProps {
   hpData: any;
@@ -29,6 +30,7 @@ interface EnhancedQuickActionsProps {
   onAddXP: (amount: number, activityType: string, description?: string) => Promise<any>;
   onRestoreHP: (amount: number, activityType: string, description?: string) => Promise<void>;
   onAddTokens: (amount: number, tokenType?: string, source?: string, description?: string) => Promise<void>;
+  showUpgrade?: boolean;
 }
 
 export function EnhancedQuickActions({ 
@@ -36,7 +38,8 @@ export function EnhancedQuickActions({
   xpData, 
   onAddXP, 
   onRestoreHP, 
-  onAddTokens 
+  onAddTokens,
+  showUpgrade = false
 }: EnhancedQuickActionsProps) {
   const navigate = useNavigate();
   const { activities, refreshData, loading: activitiesLoading, logActivity } = useActivityLogs();
@@ -439,7 +442,7 @@ export function EnhancedQuickActions({
                 </p>
               </div>
             </div>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex flex-wrap items-center gap-2">
               <Badge 
                 className="bg-gradient-to-r from-indigo-500 to-purple-600 text-white border-0 shadow-md text-xs"
               >
@@ -453,6 +456,9 @@ export function EnhancedQuickActions({
                 <Target className="h-3 w-3 mr-1" />
                 {sortedActions.filter(a => a.recommended).length} recommended
               </Badge>
+              {showUpgrade && (
+                <UpgradeCard variant="dashboard" />
+              )}
             </div>
           </CardTitle>
         </CardHeader>
