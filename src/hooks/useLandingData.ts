@@ -43,7 +43,7 @@ export function useLandingData() {
 
   const generateLiveStats = (): LiveStats => ({
     matches_today: Math.floor(Math.random() * 30) + 15, // 15-45
-    active_players: Math.floor(Math.random() * 350) + 150, // 150-500
+    active_players: Math.floor(Math.random() * 200) + 100, // 100-300
     total_xp_distributed: Math.floor(Math.random() * 12000) + 8000, // 8,000-20,000
     achievements_unlocked_today: Math.floor(Math.random() * 23) + 12 // 12-35
   });
