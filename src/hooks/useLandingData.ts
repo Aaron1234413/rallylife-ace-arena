@@ -42,10 +42,10 @@ export function useLandingData() {
   const intervalRef = useRef<NodeJS.Timeout | null>(null);
 
   const generateLiveStats = (): LiveStats => ({
-    matches_today: Math.floor(Math.random() * 1000) + 500,
-    active_players: Math.floor(Math.random() * 5000) + 2000,
-    total_xp_distributed: Math.floor(Math.random() * 50000) + 25000,
-    achievements_unlocked_today: Math.floor(Math.random() * 200) + 100
+    matches_today: Math.floor(Math.random() * 30) + 15, // 15-45
+    active_players: Math.floor(Math.random() * 350) + 150, // 150-500
+    total_xp_distributed: Math.floor(Math.random() * 12000) + 8000, // 8,000-20,000
+    achievements_unlocked_today: Math.floor(Math.random() * 23) + 12 // 12-35
   });
 
   const generateRecentActivity = (): RecentActivity[] => {
@@ -105,10 +105,10 @@ export function useLandingData() {
   // Simulate real-time counter updates
   const simulateCounterUpdates = () => {
     setStats(prev => ({
-      matches_today: prev.matches_today + Math.floor(Math.random() * 3),
-      active_players: prev.active_players + Math.floor(Math.random() * 10) - 5,
-      total_xp_distributed: prev.total_xp_distributed + Math.floor(Math.random() * 100),
-      achievements_unlocked_today: prev.achievements_unlocked_today + (Math.random() > 0.7 ? 1 : 0)
+      matches_today: prev.matches_today + (Math.random() > 0.8 ? 1 : 0), // Occasional match completion
+      active_players: prev.active_players + Math.floor(Math.random() * 6) - 3, // Small fluctuations
+      total_xp_distributed: prev.total_xp_distributed + Math.floor(Math.random() * 25), // Steady growth
+      achievements_unlocked_today: prev.achievements_unlocked_today + (Math.random() > 0.9 ? 1 : 0) // Rare achievement unlocks
     }));
   };
 
