@@ -88,6 +88,19 @@ const Store = () => {
           )}
         </div>
 
+        {isPlayer && (
+          <div className="space-y-6">
+            {/* Store Items */}
+            <div>
+              <h2 className="text-xl font-bold text-tennis-green-dark mb-4">🛒 Store Items</h2>
+              <EnhancedStoreLayout
+                tokenData={playerTokenData}
+                onSpendTokens={spendTokens}
+              />
+            </div>
+          </div>
+        )}
+
         {isCoach && (
           <Tabs defaultValue="subscription" className="space-y-6">
             <TabsList className="grid w-full grid-cols-4 h-11 p-1">
