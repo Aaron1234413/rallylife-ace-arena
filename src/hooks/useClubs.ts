@@ -63,112 +63,20 @@ export interface ClubActivity {
   };
 }
 
-// Mock data for development
-const MOCK_CLUBS: Club[] = [
-  {
-    id: '1',
-    name: 'Elite Tennis Academy',
-    description: 'Premier tennis club offering professional coaching, advanced court facilities, and competitive tournaments for all skill levels.',
-    logo_url: null,
-    owner_id: 'owner-1',
-    is_public: true,
-    member_count: 45,
-    created_at: '2024-01-15T10:00:00Z',
-    updated_at: '2024-01-15T10:00:00Z'
-  },
-  {
-    id: '2',
-    name: 'Riverside Tennis Club',
-    description: 'Family-friendly tennis club with beautiful riverside courts, group lessons, and social events.',
-    logo_url: null,
-    owner_id: 'owner-2',
-    is_public: true,
-    member_count: 28,
-    created_at: '2024-02-20T14:30:00Z',
-    updated_at: '2024-02-20T14:30:00Z'
-  },
-  {
-    id: '3',
-    name: 'Pro Tennis Center',
-    description: 'Professional tennis training facility with certified coaches, indoor/outdoor courts, and fitness programs.',
-    logo_url: null,
-    owner_id: 'owner-3',
-    is_public: false,
-    member_count: 67,
-    created_at: '2024-03-10T09:15:00Z',
-    updated_at: '2024-03-10T09:15:00Z'
-  },
-  {
-    id: '4',
-    name: 'City Tennis League',
-    description: 'Competitive tennis league hosting weekly matches, tournaments, and ranking competitions.',
-    logo_url: null,
-    owner_id: 'owner-4',
-    is_public: true,
-    member_count: 92,
-    created_at: '2024-01-05T16:45:00Z',
-    updated_at: '2024-01-05T16:45:00Z'
-  },
-  {
-    id: '5',
-    name: 'Tennis Wellness Hub',
-    description: 'Holistic tennis club combining tennis training with wellness programs, yoga, and nutrition coaching.',
-    logo_url: null,
-    owner_id: 'owner-5',
-    is_public: true,
-    member_count: 34,
-    created_at: '2024-04-01T11:20:00Z',
-    updated_at: '2024-04-01T11:20:00Z'
-  },
-  {
-    id: '6',
-    name: 'Junior Tennis Academy',
-    description: 'Specialized tennis academy for young players aged 8-18, focusing on skill development and junior tournaments.',
-    logo_url: null,
-    owner_id: 'owner-6',
-    is_public: true,
-    member_count: 56,
-    created_at: '2024-02-14T13:00:00Z',
-    updated_at: '2024-02-14T13:00:00Z'
-  }
-];
-
-const MOCK_MY_CLUBS: Club[] = [
-  {
-    id: '2',
-    name: 'Riverside Tennis Club',
-    description: 'Family-friendly tennis club with beautiful riverside courts, group lessons, and social events.',
-    logo_url: null,
-    owner_id: 'owner-2',
-    is_public: true,
-    member_count: 28,
-    created_at: '2024-02-20T14:30:00Z',
-    updated_at: '2024-02-20T14:30:00Z'
-  },
-  {
-    id: '4',
-    name: 'City Tennis League',
-    description: 'Competitive tennis league hosting weekly matches, tournaments, and ranking competitions.',
-    logo_url: null,
-    owner_id: 'owner-4',
-    is_public: true,
-    member_count: 92,
-    created_at: '2024-01-05T16:45:00Z',
-    updated_at: '2024-01-05T16:45:00Z'
-  }
-];
+// Real data will be loaded from database
 
 export function useClubs() {
   const { user } = useAuth();
-  const [clubs, setClubs] = useState<Club[]>(MOCK_CLUBS);
-  const [myClubs, setMyClubs] = useState<Club[]>(MOCK_MY_CLUBS);
+  const [clubs, setClubs] = useState<Club[]>([]);
+  const [myClubs, setMyClubs] = useState<Club[]>([]);
   const [clubMembers, setClubMembers] = useState<ClubMembership[]>([]);
   const [clubInvitations, setClubInvitations] = useState<ClubInvitation[]>([]);
   const [clubActivities, setClubActivities] = useState<ClubActivity[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
 
   const fetchPublicClubs = async () => {
     try {
+      console.log('🏆 [CLUBS] Fetching public clubs...');
       const { data, error } = await supabase
         .from('clubs')
         .select('*')
@@ -176,9 +84,10 @@ export function useClubs() {
         .order('created_at', { ascending: false });
 
       if (error) throw error;
+      console.log('🏆 [CLUBS] Public clubs fetched:', data?.length || 0, 'clubs');
       setClubs(data || []);
     } catch (error) {
-      console.error('Error fetching public clubs:', error);
+      console.error('🏆 [CLUBS] Error fetching public clubs:', error);
       toast.error('Failed to load clubs');
     }
   };
@@ -187,6 +96,7 @@ export function useClubs() {
     if (!user) return;
 
     try {
+      console.log('🏆 [CLUBS] Fetching my clubs for user:', user.id);
       // First get user's memberships
       const { data: memberships, error: membershipError } = await supabase
         .from('club_memberships')
@@ -195,6 +105,8 @@ export function useClubs() {
         .eq('status', 'active');
 
       if (membershipError) throw membershipError;
+
+      console.log('🏆 [CLUBS] Found memberships:', memberships?.length || 0);
 
       if (!memberships || memberships.length === 0) {
         setMyClubs([]);
@@ -210,9 +122,10 @@ export function useClubs() {
         .order('created_at', { ascending: false });
 
       if (clubsError) throw clubsError;
+      console.log('🏆 [CLUBS] My clubs fetched:', clubs?.length || 0, 'clubs');
       setMyClubs(clubs || []);
     } catch (error) {
-      console.error('Error fetching my clubs:', error);
+      console.error('🏆 [CLUBS] Error fetching my clubs:', error);
       toast.error('Failed to load your clubs');
     }
   };
@@ -564,7 +477,15 @@ export function useClubs() {
   };
 
   useEffect(() => {
-    refreshData();
+    if (user) {
+      console.log('🏆 [CLUBS] Loading clubs data for user:', user.id);
+      refreshData();
+    } else {
+      console.log('🏆 [CLUBS] No user, clearing club data');
+      setClubs([]);
+      setMyClubs([]);
+      setLoading(false);
+    }
   }, [user]);
 
   return {
