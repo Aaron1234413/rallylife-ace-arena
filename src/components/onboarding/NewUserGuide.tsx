@@ -7,8 +7,10 @@ import {
   Target, 
   HelpCircle,
   X,
-  Gamepad2
+  Gamepad2,
+  User
 } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { AppTour } from './AppTour';
 import { TutorialSystem } from './TutorialSystem';
 import { ContextualHelp } from './ContextualHelp';
@@ -263,6 +265,18 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
                   <BookOpen className="h-4 w-4 mr-2" />
                   Interactive Tutorials
                 </Button>
+
+                <Link to="/profile">
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={() => setShowQuickHelp(false)}
+                    className="w-full justify-start"
+                  >
+                    <User className="h-4 w-4 mr-2" />
+                    My Profile
+                  </Button>
+                </Link>
 
                 <div className="pt-2 border-t border-gray-200">
                   <p className="text-xs text-gray-600">
