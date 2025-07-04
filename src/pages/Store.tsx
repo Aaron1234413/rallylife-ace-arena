@@ -90,14 +90,10 @@ const Store = () => {
 
         {isPlayer && (
           <div className="space-y-6">
-            {/* Store Items */}
-            <div>
-              <h2 className="text-xl font-bold text-tennis-green-dark mb-4">🛒 Store Items</h2>
-              <EnhancedStoreLayout
-                tokenData={playerTokenData}
-                onSpendTokens={spendTokens}
-              />
-            </div>
+            <EnhancedStoreLayout
+              tokenData={playerTokenData}
+              onSpendTokens={spendTokens}
+            />
           </div>
         )}
 
