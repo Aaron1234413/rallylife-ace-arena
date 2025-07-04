@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Trophy, RefreshCw, ChevronDown, Users } from 'lucide-react';
+import { Input } from '@/components/ui/input';
+import { Trophy, RefreshCw, ChevronDown, Users, Search } from 'lucide-react';
 import { usePlayerLeaderboards } from '@/hooks/usePlayerLeaderboards';
 import { PlayerLeaderboardEntry } from './PlayerLeaderboardEntry';
 import { useAuth } from '@/hooks/useAuth';
@@ -24,6 +24,7 @@ export function PlayerLeaderboard({
   const { user } = useAuth();
   const [limit, setLimit] = useState(maxEntries);
   const [showMore, setShowMore] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
   
   const { leaderboard, isLoading, error, refresh } = usePlayerLeaderboards(
     showMore ? limit * 2 : limit, 
@@ -35,12 +36,18 @@ export function PlayerLeaderboard({
   const currentUserProfile = profiles?.find(p => p.id === user?.id);
   const currentUserRole = currentUserProfile?.role as 'player' | 'coach' | undefined;
 
+  // Filter leaderboard based on search query
+  const filteredLeaderboard = leaderboard?.filter(entry => 
+    entry.player_name?.toLowerCase().includes(searchQuery.toLowerCase())
+  ) || [];
+
   const handleLoadMore = () => {
     setShowMore(true);
   };
 
   const handleRefresh = () => {
     setShowMore(false);
+    setSearchQuery('');
     refresh();
   };
 
@@ -64,16 +71,15 @@ export function PlayerLeaderboard({
           <CardContent className="p-3 sm:p-4">
             <div className="flex flex-col sm:flex-row gap-3 items-start sm:items-center justify-between">
               <div className="flex items-center gap-3 w-full sm:w-auto">
-                <Select value={limit.toString()} onValueChange={(value) => setLimit(parseInt(value))}>
-                  <SelectTrigger className="w-full sm:w-32 h-10">
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent className="bg-white border shadow-md">
-                    <SelectItem value="25">Top 25</SelectItem>
-                    <SelectItem value="50">Top 50</SelectItem>
-                    <SelectItem value="100">Top 100</SelectItem>
-                  </SelectContent>
-                </Select>
+                <div className="relative w-full sm:w-64">
+                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
+                  <Input
+                    placeholder="Search players..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="pl-10 h-10"
+                  />
+                </div>
               </div>
               <Button 
                 onClick={handleRefresh} 
@@ -122,18 +128,20 @@ export function PlayerLeaderboard({
                 </div>
               ))}
             </div>
-          ) : leaderboard.length === 0 ? (
+          ) : filteredLeaderboard.length === 0 ? (
             <div className="text-center py-8">
               <Trophy className="mx-auto h-12 w-12 text-gray-400 mb-4" />
-              <p className="text-tennis-green-medium">No players found</p>
+              <p className="text-tennis-green-medium">
+                {searchQuery ? `No players found matching "${searchQuery}"` : 'No players found'}
+              </p>
               <p className="text-sm text-gray-500 mt-1">
-                Be the first to start earning XP!
+                {searchQuery ? 'Try a different search term' : 'Be the first to start earning XP!'}
               </p>
             </div>
           ) : (
             <>
               <div className="space-y-2 sm:space-y-4">
-                {leaderboard.map((entry, index) => (
+                {filteredLeaderboard.map((entry, index) => (
                   <PlayerLeaderboardEntry
                     key={entry.player_id}
                     entry={entry}
@@ -144,7 +152,7 @@ export function PlayerLeaderboard({
                 ))}
               </div>
               
-              {!showMore && leaderboard.length >= limit && (
+              {!showMore && filteredLeaderboard.length >= limit && !searchQuery && (
                 <div className="mt-4 sm:mt-6 text-center">
                   <Button
                     onClick={handleLoadMore}
