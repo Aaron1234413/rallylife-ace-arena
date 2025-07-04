@@ -15,6 +15,7 @@ import { CoachInteractionPanel } from "@/components/coach/dashboard/CoachInterac
 import { MobileActionPanel } from "@/components/dashboard/mobile";
 
 import { UpcomingCourtBookings } from "@/components/dashboard/UpcomingCourtBookings";
+import { UpgradeCard } from "@/components/subscription/UpgradeCard";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
@@ -306,6 +307,11 @@ const Index = () => {
                 onRestoreHP={handleRestoreHP}
                 onAddTokens={handleAddTokens}
               />
+            </ErrorBoundary>
+
+            {/* Upgrade Card - After Quick Actions */}
+            <ErrorBoundary fallbackTitle="Upgrade Card Error">
+              <UpgradeCard variant="dashboard" />
             </ErrorBoundary>
 
             {/* Court Bookings Widget */}

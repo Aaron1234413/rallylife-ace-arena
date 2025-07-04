@@ -10,6 +10,7 @@ import { CTKStore } from '@/components/ctk/CTKStore';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { UpgradeCard } from '@/components/subscription/UpgradeCard';
 
 const Store = () => {
   const { user } = useAuth();
@@ -81,19 +82,36 @@ const Store = () => {
         </div>
 
         {isPlayer && (
-          <EnhancedStoreLayout
-            tokenData={playerTokenData}
-            onSpendTokens={spendTokens}
-          />
+          <div className="space-y-6">
+            {/* Subscription Section */}
+            <div>
+              <h2 className="text-xl font-bold text-tennis-green-dark mb-4">🎯 Subscription</h2>
+              <UpgradeCard variant="store" />
+            </div>
+            
+            {/* Store Items */}
+            <div>
+              <h2 className="text-xl font-bold text-tennis-green-dark mb-4">🛒 Store Items</h2>
+              <EnhancedStoreLayout
+                tokenData={playerTokenData}
+                onSpendTokens={spendTokens}
+              />
+            </div>
+          </div>
         )}
 
         {isCoach && (
-          <Tabs defaultValue="store" className="space-y-6">
-            <TabsList className="grid w-full grid-cols-3 h-11 p-1">
+          <Tabs defaultValue="subscription" className="space-y-6">
+            <TabsList className="grid w-full grid-cols-4 h-11 p-1">
+              <TabsTrigger value="subscription" className="text-sm font-medium">Subscription</TabsTrigger>
               <TabsTrigger value="store" className="text-sm font-medium">CTK Store</TabsTrigger>
               <TabsTrigger value="earn-ctk" className="text-sm font-medium">Earn CTK</TabsTrigger>
               <TabsTrigger value="earn-cxp" className="text-sm font-medium">Earn CXP</TabsTrigger>
             </TabsList>
+
+            <TabsContent value="subscription">
+              <UpgradeCard variant="store" />
+            </TabsContent>
 
             <TabsContent value="store">
               <CTKStore />
