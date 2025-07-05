@@ -15,7 +15,7 @@ import {
   MessageCircle
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
+
 
 export function AppNavigation() {
   const { signOut, user } = useAuth();
@@ -91,7 +91,6 @@ export function AppNavigation() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-2 flex-shrink-0">
-            <FeedbackWidget />
             <Button
               variant="ghost"
               size="sm"
@@ -105,17 +104,6 @@ export function AppNavigation() {
 
           {/* Mobile Actions */}
           <div className="md:hidden flex items-center gap-1 flex-shrink-0">
-            <FeedbackWidget 
-              trigger={
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="text-tennis-green-dark hover:text-tennis-green-primary hover:bg-tennis-green-bg/20 p-2 hover:shadow-md transition-all duration-300"
-                >
-                  <MessageCircle className="h-4 w-4" />
-                </Button>
-              }
-            />
             <Button
               variant="ghost"
               size="sm"

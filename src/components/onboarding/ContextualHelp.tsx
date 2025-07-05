@@ -54,16 +54,6 @@ const CONTEXTUAL_TIPS: ContextualTip[] = [
     trigger: 'low_hp'
   },
   {
-    id: 'academy_introduction',
-    title: 'Earn Tokens in Academy',
-    message: 'Complete daily quizzes in the Academy to earn tokens and improve your tennis knowledge. Streak bonuses multiply your rewards!',
-    icon: Lightbulb,
-    priority: 'medium',
-    category: 'gameplay',
-    trigger: 'academy_first_visit',
-    showOnce: true
-  },
-  {
     id: 'achievement_available',
     title: 'Achievement Ready!',
     message: 'You have achievements ready to claim. Visit your profile to collect your rewards and see your progress.',

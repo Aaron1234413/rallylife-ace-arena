@@ -8,12 +8,14 @@ import {
   HelpCircle,
   X,
   Gamepad2,
-  User
+  User,
+  MessageCircle
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { AppTour } from './AppTour';
 import { TutorialSystem } from './TutorialSystem';
 import { ContextualHelp } from './ContextualHelp';
+import { FeedbackWidget } from '@/components/feedback/FeedbackWidget';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { isAppRoute, isDashboardRoute } from '@/utils/routes';
@@ -277,6 +279,20 @@ export const NewUserGuide: React.FC<NewUserGuideProps> = ({
                     My Profile
                   </Button>
                 </Link>
+
+                <FeedbackWidget 
+                  trigger={
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setShowQuickHelp(false)}
+                      className="w-full justify-start"
+                    >
+                      <MessageCircle className="h-4 w-4 mr-2" />
+                      Player Voice
+                    </Button>
+                  }
+                />
 
                 <div className="pt-2 border-t border-gray-200">
                   <p className="text-xs text-gray-600">
