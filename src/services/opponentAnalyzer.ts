@@ -47,7 +47,7 @@ export const analyzeOpponent = async (opponent: SelectedOpponent): Promise<Oppon
       .from('profiles')
       .select('id, full_name')
       .eq('id', opponent.id)
-      .single();
+      .maybeSingle();
 
     if (error || !profile) {
       console.warn('Could not fetch opponent profile:', error);
@@ -68,12 +68,12 @@ export const analyzeOpponent = async (opponent: SelectedOpponent): Promise<Oppon
         .from('player_xp')
         .select('current_level')
         .eq('id', opponent.id)
-        .single(),
+        .maybeSingle(),
       supabase
         .from('player_profiles')
         .select('skill_level')
         .eq('id', opponent.id)
-        .single()
+        .maybeSingle()
     ]);
 
     const level = xpData.data?.current_level || DEFAULT_LEVEL;

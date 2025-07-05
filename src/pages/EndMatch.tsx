@@ -167,7 +167,7 @@ const EndMatch = () => {
           metadata: metadata
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (activityError) {
         console.error('Error logging match activity:', activityError);
@@ -205,7 +205,7 @@ const EndMatch = () => {
           .from('player_hp')
           .select('current_hp')
           .eq('player_id', user.id)
-          .single();
+          .maybeSingle();
 
         const currentHp = currentHpData?.current_hp || 100;
         const newHp = Math.max(20, currentHp + hpChange);

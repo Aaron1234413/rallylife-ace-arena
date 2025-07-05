@@ -79,12 +79,12 @@ export function PlayerLeaderboardEntry({ entry, index, currentUserRole, mobileOp
         {/* Mobile: Player info stacked */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between">
-            <p className="font-medium text-tennis-green-dark truncate text-sm">
-              {entry.player_name || 'Anonymous Player'}
+            <div className="font-medium text-tennis-green-dark truncate text-sm flex items-center gap-1">
+              <span>{entry.player_name || 'Anonymous Player'}</span>
               {isCurrentUser && (
-                <Badge variant="outline" className="ml-1 text-xs">You</Badge>
+                <Badge variant="outline" className="text-xs">You</Badge>
               )}
-            </p>
+            </div>
             {!isCurrentUser && (
               <Button
                 variant="ghost"
@@ -137,12 +137,12 @@ export function PlayerLeaderboardEntry({ entry, index, currentUserRole, mobileOp
         </Avatar>
         
         <div className="flex-1 min-w-0">
-          <p className="font-medium text-tennis-green-dark truncate">
-            {entry.player_name || 'Anonymous Player'}
+          <div className="font-medium text-tennis-green-dark truncate flex items-center gap-2">
+            <span>{entry.player_name || 'Anonymous Player'}</span>
             {isCurrentUser && (
-              <Badge variant="outline" className="ml-2 text-xs">You</Badge>
+              <Badge variant="outline" className="text-xs">You</Badge>
             )}
-          </p>
+          </div>
           <div className="text-xs text-tennis-green-medium">
             Level {entry.current_level} • {entry.total_xp_earned.toLocaleString()} XP earned
           </div>
