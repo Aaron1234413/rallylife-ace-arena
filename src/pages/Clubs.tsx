@@ -22,7 +22,7 @@ import { ClubCard } from '@/components/clubs/ClubCard';
 export default function Clubs() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { clubs, myClubs, loading, joinClub, leaveClub } = useClubs();
+  const { clubs, myClubs, loading, joinClub, leaveClub, createClub } = useClubs();
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
@@ -31,6 +31,15 @@ export default function Clubs() {
     publicOnly: false
   });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
+  const [createForm, setCreateForm] = useState({
+    name: '',
+    description: '',
+    isPublic: true
+  });
+  const [formErrors, setFormErrors] = useState({
+    name: ''
+  });
 
   // Filter clubs based on search and filters
   const filteredClubs = clubs.filter(club => {
@@ -72,6 +81,52 @@ export default function Clubs() {
       maxMembers: '',
       publicOnly: false
     });
+  };
+
+  const validateForm = () => {
+    const errors = { name: '' };
+    
+    if (!createForm.name.trim()) {
+      errors.name = 'Club name is required';
+    } else if (createForm.name.length > 50) {
+      errors.name = 'Club name must be 50 characters or less';
+    }
+    
+    setFormErrors(errors);
+    return !errors.name;
+  };
+
+  const handleCreateClub = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!validateForm() || isCreating) return;
+    
+    setIsCreating(true);
+    
+    try {
+      await createClub({
+        name: createForm.name.trim(),
+        description: createForm.description.trim() || undefined,
+        is_public: createForm.isPublic
+      });
+      
+      // Reset form and close dialog on success
+      setCreateForm({ name: '', description: '', isPublic: true });
+      setFormErrors({ name: '' });
+      setShowCreateDialog(false);
+    } catch (error) {
+      console.error('Failed to create club:', error);
+      // Error handling is done in the createClub function via toast
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const resetCreateDialog = () => {
+    setCreateForm({ name: '', description: '', isPublic: true });
+    setFormErrors({ name: '' });
+    setIsCreating(false);
+    setShowCreateDialog(false);
   };
 
   if (loading) {
@@ -340,37 +395,84 @@ export default function Clubs() {
           </TabsContent>
         </Tabs>
 
-        {/* Create Club Dialog - Simple inline dialog for now */}
+        {/* Create Club Dialog */}
         {showCreateDialog && (
           <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
             <Card className="w-full max-w-md mx-4">
               <CardHeader>
                 <CardTitle>Create New Club</CardTitle>
               </CardHeader>
-              <CardContent className="space-y-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Club Name *</label>
-                  <Input placeholder="Enter club name" />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Description</label>
-                  <Input placeholder="Describe your club..." />
-                </div>
-                <div className="flex gap-2 pt-4">
-                  <Button
-                    variant="outline"
-                    onClick={() => setShowCreateDialog(false)}
-                    className="flex-1"
-                  >
-                    Cancel
-                  </Button>
-                  <Button
-                    onClick={() => setShowCreateDialog(false)}
-                    className="flex-1"
-                  >
-                    Create Club
-                  </Button>
-                </div>
+              <CardContent>
+                <form onSubmit={handleCreateClub} className="space-y-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-tennis-green-dark">
+                      Club Name *
+                    </label>
+                    <Input
+                      placeholder="Enter club name"
+                      value={createForm.name}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
+                      className={formErrors.name ? 'border-red-500' : ''}
+                      disabled={isCreating}
+                      maxLength={50}
+                    />
+                    {formErrors.name && (
+                      <p className="text-sm text-red-500">{formErrors.name}</p>
+                    )}
+                    <p className="text-xs text-tennis-green-medium">
+                      {createForm.name.length}/50 characters
+                    </p>
+                  </div>
+                  
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-tennis-green-dark">
+                      Description (optional)
+                    </label>
+                    <Input
+                      placeholder="Describe your club..."
+                      value={createForm.description}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
+                      disabled={isCreating}
+                      maxLength={200}
+                    />
+                    <p className="text-xs text-tennis-green-medium">
+                      {createForm.description.length}/200 characters
+                    </p>
+                  </div>
+
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="checkbox"
+                      id="isPublic"
+                      checked={createForm.isPublic}
+                      onChange={(e) => setCreateForm(prev => ({ ...prev, isPublic: e.target.checked }))}
+                      disabled={isCreating}
+                      className="rounded"
+                    />
+                    <label htmlFor="isPublic" className="text-sm font-medium text-tennis-green-dark">
+                      Make this club public (visible to all users)
+                    </label>
+                  </div>
+                  
+                  <div className="flex gap-2 pt-4">
+                    <Button
+                      type="button"
+                      variant="outline"
+                      onClick={resetCreateDialog}
+                      className="flex-1"
+                      disabled={isCreating}
+                    >
+                      Cancel
+                    </Button>
+                    <Button
+                      type="submit"
+                      className="flex-1"
+                      disabled={isCreating || !createForm.name.trim()}
+                    >
+                      {isCreating ? 'Creating...' : 'Create Club'}
+                    </Button>
+                  </div>
+                </form>
               </CardContent>
             </Card>
           </div>
