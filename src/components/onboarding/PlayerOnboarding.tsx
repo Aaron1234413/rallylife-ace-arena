@@ -44,7 +44,8 @@ export function PlayerOnboarding({ user, profile, onComplete }: PlayerOnboarding
         .from('profiles')
         .update({ 
           full_name: formData.full_name,
-          avatar_url: formData.avatar_url
+          avatar_url: formData.avatar_url,
+          location: formData.location
         })
         .eq('id', user.id);
 
@@ -72,7 +73,6 @@ export function PlayerOnboarding({ user, profile, onComplete }: PlayerOnboarding
           id: user.id,
           skill_level: formData.skill_level,
           preferred_play_style: formData.preferred_play_style,
-          location: formData.location,
           bio: formData.bio
         });
 
@@ -117,6 +117,16 @@ export function PlayerOnboarding({ user, profile, onComplete }: PlayerOnboarding
               <AvatarSelector
                 selectedAvatar={formData.avatar_url}
                 onAvatarSelect={(url) => updateFormData('avatar_url', url)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                value={formData.location}
+                onChange={(e) => updateFormData('location', e.target.value)}
+                placeholder="e.g., New York, NY"
               />
             </div>
 
@@ -169,16 +179,6 @@ export function PlayerOnboarding({ user, profile, onComplete }: PlayerOnboarding
                   <SelectItem value="baseline">Baseline</SelectItem>
                 </SelectContent>
               </Select>
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => updateFormData('location', e.target.value)}
-                placeholder="e.g., New York, NY"
-              />
             </div>
 
             <div className="space-y-2">

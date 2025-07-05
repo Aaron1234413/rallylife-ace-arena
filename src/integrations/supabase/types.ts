@@ -3428,6 +3428,7 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          location: string | null
           onboarding_completed: boolean
           preferences: Json | null
           ready_player_me_url: string | null
@@ -3440,6 +3441,7 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          location?: string | null
           onboarding_completed?: boolean
           preferences?: Json | null
           ready_player_me_url?: string | null
@@ -3452,6 +3454,7 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          location?: string | null
           onboarding_completed?: boolean
           preferences?: Json | null
           ready_player_me_url?: string | null

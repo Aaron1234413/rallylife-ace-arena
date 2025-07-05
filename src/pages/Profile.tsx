@@ -12,7 +12,7 @@ import { CoachAvatarCustomization } from '@/components/avatar/CoachAvatarCustomi
 import { CRPDisplay } from '@/components/crp/CRPDisplay';
 import { CXPDisplay } from '@/components/cxp/CXPDisplay';
 import { CTKDisplay } from '@/components/ctk/CTKDisplay';
-import { User, Mail, UserCheck, Edit, Trophy, Target, Calendar, Settings, Palette } from 'lucide-react';
+import { User, Mail, UserCheck, Edit, Trophy, Target, Calendar, Settings, Palette, MapPin } from 'lucide-react';
 
 const Profile = () => {
   const { user } = useAuth();
@@ -165,6 +165,18 @@ const Profile = () => {
                       </p>
                     </div>
                   </div>
+
+                  {profile?.location && (
+                    <div className="flex items-center gap-3 p-3 bg-tennis-green-bg/50 rounded-lg">
+                      <MapPin className="h-5 w-5 text-tennis-green-medium" />
+                      <div className="flex-1">
+                        <p className="text-sm text-tennis-green-dark/70 font-medium">Location</p>
+                        <p className="text-tennis-green-dark font-semibold">
+                          {profile.location}
+                        </p>
+                      </div>
+                    </div>
+                  )}
                 </div>
               </CardContent>
             </Card>

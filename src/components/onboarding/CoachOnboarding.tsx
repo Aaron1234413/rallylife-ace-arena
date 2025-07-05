@@ -45,7 +45,8 @@ export function CoachOnboarding({ user, profile, onComplete }: CoachOnboardingPr
         .from('profiles')
         .update({ 
           full_name: formData.full_name,
-          avatar_url: formData.avatar_url
+          avatar_url: formData.avatar_url,
+          location: formData.location
         })
         .eq('id', user.id);
 
@@ -73,7 +74,6 @@ export function CoachOnboarding({ user, profile, onComplete }: CoachOnboardingPr
           id: user.id,
           coaching_focus: formData.coaching_focus,
           experience_years: formData.experience_years ? parseInt(formData.experience_years) : null,
-          location: formData.location,
           bio: formData.bio,
           hourly_rate: formData.hourly_rate ? parseFloat(formData.hourly_rate) : null
         });
@@ -119,6 +119,16 @@ export function CoachOnboarding({ user, profile, onComplete }: CoachOnboardingPr
               <AvatarSelector
                 selectedAvatar={formData.avatar_url}
                 onAvatarSelect={(url) => updateFormData('avatar_url', url)}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="location">Location</Label>
+              <Input
+                id="location"
+                value={formData.location}
+                onChange={(e) => updateFormData('location', e.target.value)}
+                placeholder="e.g., New York, NY"
               />
             </div>
 
@@ -168,16 +178,6 @@ export function CoachOnboarding({ user, profile, onComplete }: CoachOnboardingPr
                 onChange={(e) => updateFormData('experience_years', e.target.value)}
                 placeholder="e.g., 5"
                 min="0"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <Label htmlFor="location">Location</Label>
-              <Input
-                id="location"
-                value={formData.location}
-                onChange={(e) => updateFormData('location', e.target.value)}
-                placeholder="e.g., New York, NY"
               />
             </div>
 
