@@ -318,7 +318,7 @@ export function useUnifiedInvitations() {
         
         const { data: tokenBalance, error: balanceError } = await supabase
           .from('token_balances')
-          .select('regular_tokens, premium_tokens')
+          .select('regular_tokens')
           .eq('player_id', user.id)
           .single();
 

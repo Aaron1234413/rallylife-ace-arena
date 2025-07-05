@@ -1,4 +1,3 @@
-
 import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
@@ -17,7 +16,6 @@ export interface PlayerTokens {
   id: string;
   player_id: string;
   regular_tokens: number;
-  premium_tokens: number;
   lifetime_earned: number;
   created_at: string;
   updated_at: string;
@@ -136,12 +134,7 @@ export function usePlayerTokens() {
       }
 
       const result = data as unknown as TokenResult;
-      
-      if (tokenType === 'premium') {
-        toast.success(`💎 +${amount} Rally Points earned!`);
-      } else {
-        toast.success(`🪙 +${amount} Tokens earned!`);
-      }
+      toast.success(`🪙 +${amount} Tokens earned!`);
 
       await fetchTokens();
       await fetchTransactions();
@@ -182,11 +175,7 @@ export function usePlayerTokens() {
         return false;
       }
 
-      if (tokenType === 'premium') {
-        toast.success(`💎 ${amount} Rally Points spent!`);
-      } else {
-        toast.success(`🪙 ${amount} Tokens spent!`);
-      }
+      toast.success(`🪙 ${amount} Tokens spent!`);
 
       await fetchTokens();
       await fetchTransactions();
@@ -197,47 +186,6 @@ export function usePlayerTokens() {
       return false;
     }
   };
-
-  const convertPremiumTokens = async (
-    premiumAmount: number,
-    conversionRate: number = 10
-  ): Promise<boolean> => {
-    if (!user) return false;
-
-    try {
-      const { data, error } = await supabase
-        .rpc('convert_premium_tokens', {
-          user_id: user.id,
-          premium_amount: premiumAmount,
-          conversion_rate: conversionRate
-        });
-
-      if (error) {
-        console.error('Error converting tokens:', error);
-        toast.error('Failed to convert tokens');
-        return false;
-      }
-
-      const result = data as unknown as TokenResult;
-      
-      if (!result.success) {
-        toast.error(result.error || 'Conversion failed');
-        return false;
-      }
-
-      toast.success(`💎 Converted ${premiumAmount} Rally Points to 🪙 ${result.tokens_earned} Tokens!`);
-
-      await fetchTokens();
-      await fetchTransactions();
-      return true;
-    } catch (error) {
-      console.error('Error in convertPremiumTokens:', error);
-      toast.error('An error occurred while converting tokens');
-      return false;
-    }
-  };
-
-  // Remove manual initialization - database trigger handles this
 
   const cleanupChannel = () => {
     if (channelRef.current) {
@@ -319,11 +267,9 @@ export function usePlayerTokens() {
     transactions,
     loading,
     regularTokens: tokenData?.regular_tokens || 0,
-    premiumTokens: tokenData?.premium_tokens || 0,
     lifetimeEarned: tokenData?.lifetime_earned || 0,
     addTokens,
     spendTokens,
-    convertPremiumTokens,
     refreshTokens: fetchTokens
   };
 }

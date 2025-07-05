@@ -13,7 +13,6 @@ interface AvatarItem {
   unlock_type: string;
   unlock_requirement: any;
   token_cost: number;
-  premium_cost: number;
   description: string;
   is_default: boolean;
   created_at: string;

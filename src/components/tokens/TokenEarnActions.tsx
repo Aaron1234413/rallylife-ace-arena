@@ -56,15 +56,6 @@ const tokenActions = [
     color: 'bg-purple-500 hover:bg-purple-600'
   },
   {
-    id: 'premium_bonus',
-    name: 'Premium Bonus',
-    description: 'Special event reward',
-    icon: Gem,
-    tokenAmount: 5,
-    tokenType: 'premium',
-    color: 'bg-pink-500 hover:bg-pink-600'
-  },
-  {
     id: 'bonus_gift',
     name: 'Daily Gift',
     description: 'Random bonus tokens',

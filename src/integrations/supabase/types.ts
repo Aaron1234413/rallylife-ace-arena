@@ -181,7 +181,6 @@ export type Database = {
           requirement_type: string
           requirement_value: number | null
           reward_avatar_item_id: string | null
-          reward_premium_tokens: number | null
           reward_tokens: number | null
           reward_xp: number | null
           tier: string
@@ -200,7 +199,6 @@ export type Database = {
           requirement_type: string
           requirement_value?: number | null
           reward_avatar_item_id?: string | null
-          reward_premium_tokens?: number | null
           reward_tokens?: number | null
           reward_xp?: number | null
           tier?: string
@@ -219,7 +217,6 @@ export type Database = {
           requirement_type?: string
           requirement_value?: number | null
           reward_avatar_item_id?: string | null
-          reward_premium_tokens?: number | null
           reward_tokens?: number | null
           reward_xp?: number | null
           tier?: string
@@ -639,7 +636,6 @@ export type Database = {
           is_default: boolean | null
           item_type: string
           name: string
-          premium_cost: number | null
           rarity: string
           token_cost: number | null
           unlock_requirement: Json | null
@@ -654,7 +650,6 @@ export type Database = {
           is_default?: boolean | null
           item_type: string
           name: string
-          premium_cost?: number | null
           rarity?: string
           token_cost?: number | null
           unlock_requirement?: Json | null
@@ -669,7 +664,6 @@ export type Database = {
           is_default?: boolean | null
           item_type?: string
           name?: string
-          premium_cost?: number | null
           rarity?: string
           token_cost?: number | null
           unlock_requirement?: Json | null
@@ -4144,7 +4138,6 @@ export type Database = {
           id: string
           lifetime_earned: number
           player_id: string
-          premium_tokens: number
           regular_tokens: number
           updated_at: string
         }
@@ -4153,7 +4146,6 @@ export type Database = {
           id?: string
           lifetime_earned?: number
           player_id: string
-          premium_tokens?: number
           regular_tokens?: number
           updated_at?: string
         }
@@ -4162,7 +4154,6 @@ export type Database = {
           id?: string
           lifetime_earned?: number
           player_id?: string
-          premium_tokens?: number
           regular_tokens?: number
           updated_at?: string
         }
@@ -4886,14 +4877,6 @@ export type Database = {
       }
       complete_training_assignment: {
         Args: { assignment_id: string; player_feedback?: string }
-        Returns: Json
-      }
-      convert_premium_tokens: {
-        Args: {
-          user_id: string
-          premium_amount: number
-          conversion_rate?: number
-        }
         Returns: Json
       }
       create_appointment_request: {

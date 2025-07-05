@@ -72,7 +72,6 @@ export function PlayerStatsCards({
       {tokenData ? (
         <TokenCard
           regularTokens={tokenData.regular_tokens}
-          premiumTokens={tokenData.premium_tokens}
           lifetimeEarned={tokenData.lifetime_earned}
         />
       ) : tokensLoading ? (

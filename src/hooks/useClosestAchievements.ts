@@ -13,7 +13,6 @@ interface ClosestAchievement {
   requirement_value: number;
   reward_xp: number;
   reward_tokens: number;
-  reward_premium_tokens: number;
   current_progress: number;
   progress_percentage: number;
 }
@@ -51,7 +50,6 @@ export function useClosestAchievements() {
         requirement_value: achievement.requirement_value,
         reward_xp: achievement.reward_xp,
         reward_tokens: achievement.reward_tokens,
-        reward_premium_tokens: achievement.reward_premium_tokens,
         current_progress: currentProgress,
         progress_percentage: progressPercentage,
       };

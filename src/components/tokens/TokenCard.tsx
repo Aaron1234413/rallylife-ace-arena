@@ -1,19 +1,17 @@
 
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Coins, Gem, TrendingUp } from 'lucide-react';
+import { Coins, TrendingUp } from 'lucide-react';
 import { TokenDisplay } from './TokenDisplay';
 
 interface TokenCardProps {
   regularTokens: number;
-  premiumTokens: number;
   lifetimeEarned: number;
   className?: string;
 }
 
 export function TokenCard({ 
   regularTokens,
-  premiumTokens,
   lifetimeEarned,
   className 
 }: TokenCardProps) {
@@ -28,9 +26,7 @@ export function TokenCard({
       <CardContent>
         <TokenDisplay
           regularTokens={regularTokens}
-          premiumTokens={premiumTokens}
           size="large"
-          showPremium={true}
         />
         
         <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">

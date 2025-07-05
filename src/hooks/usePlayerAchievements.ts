@@ -16,7 +16,6 @@ interface Achievement {
   requirement_data: any;
   reward_xp: number;
   reward_tokens: number;
-  reward_premium_tokens: number;
   reward_avatar_item_id: string | null;
   is_hidden: boolean;
   is_active: boolean;

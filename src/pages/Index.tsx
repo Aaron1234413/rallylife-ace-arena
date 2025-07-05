@@ -36,7 +36,7 @@ const Index = () => {
   // Player hooks with error handling
   const { hpData, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
   const { xpData, loading: xpLoading, addXP, initializeXP } = usePlayerXP();
-  const { tokenData, loading: tokensLoading, addTokens, spendTokens, convertPremiumTokens } = usePlayerTokens();
+  const { tokenData, loading: tokensLoading, addTokens, spendTokens } = usePlayerTokens();
   const { equippedItems, loading: avatarLoading, initializeAvatar, checkLevelUnlocks } = usePlayerAvatar();
   const { checkAllAchievements } = usePlayerAchievements();
   

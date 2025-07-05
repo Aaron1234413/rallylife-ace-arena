@@ -154,8 +154,7 @@ export function AvatarCustomization({ className }: AvatarCustomizationProps) {
                       className="w-full"
                       onClick={() => handlePurchase(item.id)}
                       disabled={
-                        (item.token_cost > 0 && (tokenData?.regular_tokens || 0) < item.token_cost) ||
-                        (item.premium_cost > 0 && (tokenData?.premium_tokens || 0) < item.premium_cost)
+                        (item.token_cost > 0 && (tokenData?.regular_tokens || 0) < item.token_cost)
                       }
                     >
                       <ShoppingCart className="h-3 w-3 mr-1" />
