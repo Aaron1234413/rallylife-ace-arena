@@ -2,11 +2,14 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { PlayerLeaderboard, CoachLeaderboard } from '@/components/leaderboards';
+import { LocationPulseWidget } from '@/components/pulse/LocationPulseWidget';
+import { LocalActivityWidget } from '@/components/pulse/LocalActivityWidget';
 import { 
   Bolt, 
   Users,
   Trophy,
-  Zap
+  Zap,
+  MapPin
 } from 'lucide-react';
 
 const Pulse = () => {
@@ -38,12 +41,18 @@ const Pulse = () => {
                   <Zap className="h-5 w-5 text-tennis-yellow-dark" />
                 </CardTitle>
                 <p className="poppins-body text-body text-tennis-green-medium mt-1">
-                  Live leaderboards and community activity • Auto-refreshes every minute
+                  Live leaderboards, local activity, and community pulse • Auto-refreshes every minute
                 </p>
               </div>
             </div>
           </CardHeader>
         </Card>
+
+        {/* Location-Based Widgets */}
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+          <LocationPulseWidget />
+          <LocalActivityWidget />
+        </div>
 
 
         {/* Mobile-Optimized Leaderboard Layout */}
@@ -52,7 +61,7 @@ const Pulse = () => {
             {/* Mobile-First Tab Navigation */}
             <Card className="bg-white/95 backdrop-blur-sm border-tennis-green-light shadow-lg">
               <CardContent className="p-3 sm:p-4">
-                <TabsList className="grid w-full grid-cols-2 bg-tennis-green-bg/20 h-12">
+                <TabsList className="grid w-full grid-cols-3 bg-tennis-green-bg/20 h-12">
                   <TabsTrigger 
                     value="players" 
                     className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark text-sm font-medium h-10"
@@ -68,6 +77,14 @@ const Pulse = () => {
                     <Trophy className="h-4 w-4" />
                     <span className="hidden sm:inline">Coaches</span>
                     <span className="sm:hidden">Coaches</span>
+                  </TabsTrigger>
+                  <TabsTrigger 
+                    value="local" 
+                    className="flex items-center gap-2 data-[state=active]:bg-white data-[state=active]:text-tennis-green-dark text-sm font-medium h-10"
+                  >
+                    <MapPin className="h-4 w-4" />
+                    <span className="hidden sm:inline">Local</span>
+                    <span className="sm:hidden">Local</span>
                   </TabsTrigger>
                 </TabsList>
               </CardContent>
@@ -88,6 +105,13 @@ const Pulse = () => {
                 key={`coaches-${refreshKey}`}
                 maxEntries={50}
               />
+            </TabsContent>
+
+            <TabsContent value="local" className="mt-4">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 sm:gap-6">
+                <LocationPulseWidget key={`location-${refreshKey}`} />
+                <LocalActivityWidget key={`activity-${refreshKey}`} />
+              </div>
             </TabsContent>
           </Tabs>
         </div>
