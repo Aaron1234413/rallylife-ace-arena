@@ -13,11 +13,14 @@ import {
   Crown,
   ArrowLeft,
   Calendar,
-  TrendingUp
+  TrendingUp,
+  CheckCircle,
+  Info
 } from 'lucide-react';
 import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
 import { ClubCard } from '@/components/clubs/ClubCard';
+import { Textarea } from '@/components/ui/textarea';
 
 export default function Clubs() {
   const navigate = useNavigate();
@@ -104,7 +107,7 @@ export default function Clubs() {
     setIsCreating(true);
     
     try {
-      await createClub({
+      const newClub = await createClub({
         name: createForm.name.trim(),
         description: createForm.description.trim() || undefined,
         is_public: createForm.isPublic
@@ -114,6 +117,12 @@ export default function Clubs() {
       setCreateForm({ name: '', description: '', isPublic: true });
       setFormErrors({ name: '' });
       setShowCreateDialog(false);
+      
+      // Enhanced success notification with club details
+      setTimeout(() => {
+        navigate(`/club/${newClub.id}`);
+      }, 1500);
+      
     } catch (error) {
       console.error('Failed to create club:', error);
       // Error handling is done in the createClub function via toast
@@ -397,64 +406,86 @@ export default function Clubs() {
 
         {/* Create Club Dialog */}
         {showCreateDialog && (
-          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50">
-            <Card className="w-full max-w-md mx-4">
-              <CardHeader>
-                <CardTitle>Create New Club</CardTitle>
+          <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+            <Card className="w-full max-w-lg mx-auto">
+              <CardHeader className="pb-4">
+                <CardTitle className="text-xl font-semibold text-tennis-green-dark flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Create New Club
+                </CardTitle>
+                <p className="text-sm text-tennis-green-medium">
+                  Start your own tennis community and connect with players
+                </p>
               </CardHeader>
               <CardContent>
-                <form onSubmit={handleCreateClub} className="space-y-4">
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-tennis-green-dark">
+                <form onSubmit={handleCreateClub} className="space-y-6">
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-tennis-green-dark flex items-center gap-1">
                       Club Name *
+                      <Info className="h-3 w-3 text-tennis-green-medium" />
                     </label>
                     <Input
-                      placeholder="Enter club name"
+                      placeholder="e.g., Downtown Tennis Club"
                       value={createForm.name}
                       onChange={(e) => setCreateForm(prev => ({ ...prev, name: e.target.value }))}
-                      className={formErrors.name ? 'border-red-500' : ''}
+                      className={formErrors.name ? 'border-red-500 focus:border-red-500' : 'focus:border-tennis-green-primary'}
                       disabled={isCreating}
                       maxLength={50}
                     />
                     {formErrors.name && (
-                      <p className="text-sm text-red-500">{formErrors.name}</p>
+                      <p className="text-sm text-red-500 flex items-center gap-1">
+                        <span className="w-1 h-1 bg-red-500 rounded-full"></span>
+                        {formErrors.name}
+                      </p>
                     )}
                     <p className="text-xs text-tennis-green-medium">
                       {createForm.name.length}/50 characters
                     </p>
                   </div>
                   
-                  <div className="space-y-2">
-                    <label className="text-sm font-medium text-tennis-green-dark">
-                      Description (optional)
+                  <div className="space-y-3">
+                    <label className="text-sm font-medium text-tennis-green-dark flex items-center gap-1">
+                      Description
+                      <span className="text-xs text-tennis-green-medium font-normal">(optional)</span>
                     </label>
-                    <Input
-                      placeholder="Describe your club..."
+                    <Textarea
+                      placeholder="Tell others about your club's focus, skill level, location, or any special features..."
                       value={createForm.description}
                       onChange={(e) => setCreateForm(prev => ({ ...prev, description: e.target.value }))}
                       disabled={isCreating}
                       maxLength={200}
+                      className="min-h-[80px] resize-none focus:border-tennis-green-primary"
+                      rows={3}
                     />
                     <p className="text-xs text-tennis-green-medium">
                       {createForm.description.length}/200 characters
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="isPublic"
-                      checked={createForm.isPublic}
-                      onChange={(e) => setCreateForm(prev => ({ ...prev, isPublic: e.target.checked }))}
-                      disabled={isCreating}
-                      className="rounded"
-                    />
-                    <label htmlFor="isPublic" className="text-sm font-medium text-tennis-green-dark">
-                      Make this club public (visible to all users)
-                    </label>
+                  <div className="space-y-3">
+                    <div className="bg-tennis-green-bg/30 p-4 rounded-lg">
+                      <div className="flex items-start gap-3">
+                        <input
+                          type="checkbox"
+                          id="isPublic"
+                          checked={createForm.isPublic}
+                          onChange={(e) => setCreateForm(prev => ({ ...prev, isPublic: e.target.checked }))}
+                          disabled={isCreating}
+                          className="rounded mt-0.5 text-tennis-green-primary focus:ring-tennis-green-primary"
+                        />
+                        <div className="flex-1">
+                          <label htmlFor="isPublic" className="text-sm font-medium text-tennis-green-dark cursor-pointer">
+                            Make this club public
+                          </label>
+                          <p className="text-xs text-tennis-green-medium mt-1">
+                            Public clubs are visible to all users and can be joined by anyone. Private clubs require invitations.
+                          </p>
+                        </div>
+                      </div>
+                    </div>
                   </div>
                   
-                  <div className="flex gap-2 pt-4">
+                  <div className="flex gap-3 pt-2">
                     <Button
                       type="button"
                       variant="outline"
@@ -466,10 +497,20 @@ export default function Clubs() {
                     </Button>
                     <Button
                       type="submit"
-                      className="flex-1"
+                      className="flex-1 bg-tennis-green-primary hover:bg-tennis-green-dark"
                       disabled={isCreating || !createForm.name.trim()}
                     >
-                      {isCreating ? 'Creating...' : 'Create Club'}
+                      {isCreating ? (
+                        <div className="flex items-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                          Creating...
+                        </div>
+                      ) : (
+                        <div className="flex items-center gap-2">
+                          <CheckCircle className="h-4 w-4" />
+                          Create Club
+                        </div>
+                      )}
                     </Button>
                   </div>
                 </form>
