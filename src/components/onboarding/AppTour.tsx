@@ -288,6 +288,9 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
       if (distance > 0 && currentStep < tourSteps.length - 1) {
         // Swipe left - next step
         handleNextStep();
+      } else if (distance > 0 && currentStep === tourSteps.length - 1) {
+        // Swipe left on last step - complete tour and go to dashboard
+        handleCompleteTour();
       } else if (distance < 0 && currentStep > 0) {
         // Swipe right - previous step
         handlePreviousStep();
@@ -362,6 +365,13 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
 
       // Show welcome animation instead of completing immediately
       setShowWelcomeAnimation(true);
+      
+      // Auto-navigate to dashboard after completing tour on mobile
+      if (isMobile) {
+        setTimeout(() => {
+          navigate('/dashboard');
+        }, 3000); // Navigate after welcome animation
+      }
     } catch (error) {
       console.error('Error completing tour:', error);
       toast.error('Failed to save tour progress, but you can continue using the app.');
@@ -428,7 +438,7 @@ export const AppTour: React.FC<AppTourProps> = ({ onComplete, onSkip, userRole }
               Let's explore your tennis gaming platform
             </p>
             <p className="text-xs text-muted-foreground/70 drop-shadow-sm">
-              👈 Swipe to navigate or use buttons below
+              👈 Swipe to navigate • Swipe left on last step to complete
             </p>
             
             {/* Mobile Progress */}
