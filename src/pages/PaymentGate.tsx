@@ -41,8 +41,8 @@ export default function PaymentGate() {
       if (error) throw error;
 
       if (data?.url) {
-        // Open Stripe checkout in a new tab
-        window.open(data.url, '_blank');
+        // Redirect to Stripe checkout in the same window
+        window.location.href = data.url;
       }
     } catch (error) {
       console.error('Payment error:', error);
