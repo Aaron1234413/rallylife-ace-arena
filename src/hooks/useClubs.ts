@@ -161,26 +161,44 @@ export function useClubs() {
 
       console.log('Club created successfully:', club);
 
-      // Create the owner membership
+      // Create the owner membership (with duplicate check)
       console.log('Creating owner membership...');
-      const { error: membershipError } = await supabase
+      
+      // First check if membership already exists
+      const { data: existingMembership } = await supabase
         .from('club_memberships')
-        .insert({
-          club_id: club.id,
-          user_id: user.id,
-          role: 'owner',
-          status: 'active',
-          permissions: {
-            can_invite: true,
-            can_manage_members: true,
-            can_edit_club: true,
-            can_manage_courts: true
-          }
-        });
+        .select('id')
+        .eq('club_id', club.id)
+        .eq('user_id', user.id)
+        .single();
 
-      if (membershipError) {
-        console.error('Membership creation error:', membershipError);
-        throw membershipError;
+      if (!existingMembership) {
+        const { error: membershipError } = await supabase
+          .from('club_memberships')
+          .insert({
+            club_id: club.id,
+            user_id: user.id,
+            role: 'owner',
+            status: 'active',
+            permissions: {
+              can_invite: true,
+              can_manage_members: true,
+              can_edit_club: true,
+              can_manage_courts: true
+            }
+          });
+
+        if (membershipError) {
+          console.error('Membership creation error:', membershipError);
+          // If it's a duplicate key error, the membership might have been created by another process
+          if (membershipError.code === '23505') {
+            console.log('Membership already exists, continuing...');
+          } else {
+            throw membershipError;
+          }
+        }
+      } else {
+        console.log('Membership already exists, skipping creation');
       }
 
       console.log('Membership created successfully');
