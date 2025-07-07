@@ -282,12 +282,27 @@ export function useSafeRealTimeSessions(
         await fetchSessions();
       } else {
         console.error('Join session failed:', result?.error);
-        toast.error(result?.error || 'Failed to join session');
+        
+        // Handle specific token insufficient error
+        if (result?.error?.includes('Insufficient tokens')) {
+          toast.error('Not enough tokens! You need more tokens to join this session.');
+        } else {
+          toast.error(result?.error || 'Failed to join session');
+        }
+        
         throw new Error(result?.error || 'Failed to join session');
       }
     } catch (error) {
       console.error('Error joining session:', error);
-      toast.error('Failed to join session');
+      
+      // Handle specific token insufficient error in catch block too
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      if (errorMessage.includes('Insufficient tokens')) {
+        toast.error('Not enough tokens! Please visit the store to purchase more tokens.');
+      } else {
+        toast.error('Failed to join session');
+      }
+      
       throw error; // Re-throw so the Play component can handle it
     }
   }, [effectiveUserId, fetchSessions]);
