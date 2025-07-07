@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
 import { useCourtBookings } from '@/hooks/useCourtBookings';
+import { useRealTimeCourtBookings } from '@/hooks/useRealTimeCourtBookings';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -36,6 +37,7 @@ interface ClubCourtBookingProps {
 export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
   const { user } = useAuth();
   const { createBooking, getAvailableTimeSlots } = useCourtBookings(club.id);
+  const { bookings, getAvailableSlots, loading: bookingsLoading } = useRealTimeCourtBookings(club.id);
   
   const [courts, setCourts] = useState<ClubCourt[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>();
@@ -81,8 +83,29 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
     
     setLoadingSlots(true);
     try {
-      const slots = await getAvailableTimeSlots(selectedCourt, selectedDate);
-      setAvailableSlots(slots);
+      // Use realtime bookings data to get available slots
+      const dateStr = selectedDate.toISOString().split('T')[0];
+      const availableFromRealtime = getAvailableSlots(selectedCourt, dateStr);
+      
+      // Convert string slots to proper format
+      const formattedSlots = availableFromRealtime.map(slotStr => {
+        const [start, end] = slotStr.split('-');
+        const startDate = new Date(selectedDate);
+        const [startHour, startMin] = start.split(':').map(Number);
+        startDate.setHours(startHour, startMin, 0, 0);
+        
+        const endDate = new Date(selectedDate);
+        const [endHour, endMin] = end.split(':').map(Number);
+        endDate.setHours(endHour, endMin, 0, 0);
+        
+        return {
+          start: startDate,
+          end: endDate,
+          time: start
+        };
+      });
+      
+      setAvailableSlots(formattedSlots);
     } catch (error) {
       console.error('Error loading available slots:', error);
     } finally {

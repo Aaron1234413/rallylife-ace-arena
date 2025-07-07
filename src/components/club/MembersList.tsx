@@ -16,23 +16,23 @@ import {
   Settings
 } from 'lucide-react';
 import { Club, ClubMembership } from '@/hooks/useClubs';
+import { useRealTimeClubMembers } from '@/hooks/useRealTimeClubMembers';
 import { formatDistanceToNow } from 'date-fns';
 
 interface MembersListProps {
   club: Club;
-  members: ClubMembership[];
   canManageMembers: boolean;
-  onRefresh: () => void;
 }
 
-export function MembersList({ club, members, canManageMembers, onRefresh }: MembersListProps) {
+export function MembersList({ club, canManageMembers }: MembersListProps) {
+  const { members, loading, updateMemberRole, removeMember } = useRealTimeClubMembers(club.id);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [inviteMessage, setInviteMessage] = useState('');
   const [isInviting, setIsInviting] = useState(false);
 
-  // Mock members data if empty
-  const mockMembers: ClubMembership[] = members.length > 0 ? members : [
+  // Use realtime members or mock data for demo
+  const displayMembers = members.length > 0 ? members : [
     {
       id: '1',
       club_id: club.id,
@@ -47,7 +47,8 @@ export function MembersList({ club, members, canManageMembers, onRefresh }: Memb
       },
       joined_at: '2024-01-15T10:00:00Z',
       updated_at: '2024-01-15T10:00:00Z',
-      profiles: {
+      user: {
+        id: 'owner-1',
         full_name: 'John Smith',
         avatar_url: null,
         email: 'john.smith@email.com'
@@ -67,7 +68,8 @@ export function MembersList({ club, members, canManageMembers, onRefresh }: Memb
       },
       joined_at: '2024-02-01T14:30:00Z',
       updated_at: '2024-02-01T14:30:00Z',
-      profiles: {
+      user: {
+        id: 'member-1',
         full_name: 'Sarah Johnson',
         avatar_url: null,
         email: 'sarah.johnson@email.com'
@@ -87,7 +89,8 @@ export function MembersList({ club, members, canManageMembers, onRefresh }: Memb
       },
       joined_at: '2024-02-15T09:15:00Z',
       updated_at: '2024-02-15T09:15:00Z',
-      profiles: {
+      user: {
+        id: 'member-2',
         full_name: 'Mike Davis',
         avatar_url: null,
         email: 'mike.davis@email.com'
@@ -107,7 +110,8 @@ export function MembersList({ club, members, canManageMembers, onRefresh }: Memb
       },
       joined_at: '2024-03-01T11:20:00Z',
       updated_at: '2024-03-01T11:20:00Z',
-      profiles: {
+      user: {
+        id: 'member-3',
         full_name: 'Emma Wilson',
         avatar_url: null,
         email: 'emma.wilson@email.com'
@@ -152,7 +156,6 @@ export function MembersList({ club, members, canManageMembers, onRefresh }: Memb
       setInviteEmail('');
       setInviteMessage('');
       setShowInviteDialog(false);
-      onRefresh();
       
       // In real implementation, would call the actual invite function
       console.log('Inviting:', inviteEmail, 'with message:', inviteMessage);
@@ -170,7 +173,7 @@ export function MembersList({ club, members, canManageMembers, onRefresh }: Memb
         <div>
           <h2 className="text-lg font-semibold text-tennis-green-dark">Club Members</h2>
           <p className="text-sm text-tennis-green-medium">
-            {mockMembers.length} member{mockMembers.length !== 1 ? 's' : ''}
+            {displayMembers.length} member{displayMembers.length !== 1 ? 's' : ''}
           </p>
         </div>
         
@@ -188,15 +191,21 @@ export function MembersList({ club, members, canManageMembers, onRefresh }: Memb
       {/* Members List */}
       <Card>
         <CardContent className="p-0">
-          <div className="divide-y">
-            {mockMembers.map((member) => (
+          {loading ? (
+            <div className="p-8 text-center">
+              <div className="animate-spin h-8 w-8 border-b-2 border-tennis-green-primary mx-auto"></div>
+              <p className="text-sm text-tennis-green-medium mt-2">Loading members...</p>
+            </div>
+          ) : (
+            <div className="divide-y">
+              {displayMembers.map((member) => (
               <div key={member.id} className="p-4 hover:bg-tennis-green-bg/30 transition-colors">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-3">
                     <Avatar className="h-10 w-10">
-                      <AvatarImage src={member.profiles?.avatar_url || undefined} />
+                      <AvatarImage src={member.user?.avatar_url || undefined} />
                       <AvatarFallback>
-                        {member.profiles?.full_name?.slice(0, 2).toUpperCase() || 'U'}
+                        {member.user?.full_name?.slice(0, 2).toUpperCase() || 'U'}
                       </AvatarFallback>
                     </Avatar>
                     
@@ -204,14 +213,14 @@ export function MembersList({ club, members, canManageMembers, onRefresh }: Memb
                       <div className="flex items-center gap-2">
                         {getRoleIcon(member.role)}
                         <h3 className="font-medium text-tennis-green-dark">
-                          {member.profiles?.full_name || 'Unknown User'}
+                          {member.user?.full_name || 'Unknown User'}
                         </h3>
                         {getRoleBadge(member.role)}
                       </div>
                       <div className="flex items-center gap-4 text-sm text-tennis-green-medium">
                         <span className="flex items-center gap-1">
                           <Mail className="h-3 w-3" />
-                          {member.profiles?.email}
+                          {member.user?.email}
                         </span>
                         <span>
                           Joined {formatDistanceToNow(new Date(member.joined_at), { addSuffix: true })}
@@ -227,8 +236,9 @@ export function MembersList({ club, members, canManageMembers, onRefresh }: Memb
                   )}
                 </div>
               </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
 

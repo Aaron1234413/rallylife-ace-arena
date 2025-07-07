@@ -200,9 +200,7 @@ export default function Club() {
           <TabsContent value="members">
             <MembersList 
               club={club} 
-              members={clubMembers}
               canManageMembers={canManageMembers}
-              onRefresh={handleRefresh}
             />
           </TabsContent>
 

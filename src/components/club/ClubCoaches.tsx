@@ -19,6 +19,7 @@ import {
   Award
 } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
+import { useRealTimeCoachBookings } from '@/hooks/useRealTimeCoachBookings';
 
 interface Coach {
   id: string;
@@ -43,6 +44,7 @@ interface ClubCoachesProps {
 }
 
 export function ClubCoaches({ club, canManage }: ClubCoachesProps) {
+  const { bookings, availability, getCoachAvailability, createBooking } = useRealTimeCoachBookings(club.id);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
   const [inviteEmail, setInviteEmail] = useState('');
   const [isInviting, setIsInviting] = useState(false);
