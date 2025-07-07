@@ -9,5 +9,8 @@ verify_jwt = false
 [functions.token-pack-purchase]
 verify_jwt = true
 
+[functions.process-merchandise-order]
+verify_jwt = true
+
 [functions.stripe-webhook]
 verify_jwt = false

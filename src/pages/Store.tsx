@@ -275,14 +275,6 @@ const Store = () => {
           {/* Merchandise */}
           <TabsContent value="merchandise">
             <MerchandiseStore
-              onPurchaseWithTokens={async (item) => {
-                if (!item.price_tokens) return false;
-                const success = await spendTokens(item.price_tokens, 'regular', 'merchandise', `Purchased ${item.name}`);
-                if (success) {
-                  toast.success(`Successfully purchased ${item.name} with tokens!`);
-                }
-                return success;
-              }}
               regularTokens={playerTokenData?.regular_tokens || 0}
             />
           </TabsContent>

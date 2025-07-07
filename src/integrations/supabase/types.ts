@@ -3211,6 +3211,93 @@ export type Database = {
           },
         ]
       }
+      merchandise_orders: {
+        Row: {
+          cash_amount: number | null
+          created_at: string
+          estimated_delivery: string | null
+          id: string
+          item_id: string
+          item_name: string
+          item_price_usd: number
+          notes: string | null
+          order_metadata: Json | null
+          payment_status: string | null
+          shipping_address_line1: string
+          shipping_address_line2: string | null
+          shipping_city: string
+          shipping_cost: number | null
+          shipping_country: string
+          shipping_name: string
+          shipping_postal_code: string
+          shipping_state: string
+          status: string
+          stripe_session_id: string | null
+          supplier_order_id: string | null
+          tokens_used: number | null
+          total_amount: number
+          tracking_number: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          cash_amount?: number | null
+          created_at?: string
+          estimated_delivery?: string | null
+          id?: string
+          item_id: string
+          item_name: string
+          item_price_usd: number
+          notes?: string | null
+          order_metadata?: Json | null
+          payment_status?: string | null
+          shipping_address_line1: string
+          shipping_address_line2?: string | null
+          shipping_city: string
+          shipping_cost?: number | null
+          shipping_country?: string
+          shipping_name: string
+          shipping_postal_code: string
+          shipping_state: string
+          status?: string
+          stripe_session_id?: string | null
+          supplier_order_id?: string | null
+          tokens_used?: number | null
+          total_amount: number
+          tracking_number?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          cash_amount?: number | null
+          created_at?: string
+          estimated_delivery?: string | null
+          id?: string
+          item_id?: string
+          item_name?: string
+          item_price_usd?: number
+          notes?: string | null
+          order_metadata?: Json | null
+          payment_status?: string | null
+          shipping_address_line1?: string
+          shipping_address_line2?: string | null
+          shipping_city?: string
+          shipping_cost?: number | null
+          shipping_country?: string
+          shipping_name?: string
+          shipping_postal_code?: string
+          shipping_state?: string
+          status?: string
+          stripe_session_id?: string | null
+          supplier_order_id?: string | null
+          tokens_used?: number | null
+          total_amount?: number
+          tracking_number?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
       messages: {
         Row: {
           content: string

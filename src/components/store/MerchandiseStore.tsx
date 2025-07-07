@@ -20,30 +20,38 @@ import {
   merchandiseCategories,
   type MerchandiseItem 
 } from '@/data/merchandiseItems';
+import { MerchandiseCheckout } from './MerchandiseCheckout';
 
 interface MerchandiseStoreProps {
-  onPurchaseWithTokens?: (item: MerchandiseItem) => Promise<boolean>;
   regularTokens?: number;
   className?: string;
 }
 
 export function MerchandiseStore({ 
-  onPurchaseWithTokens, 
   regularTokens = 0,
   className = '' 
 }: MerchandiseStoreProps) {
   const [selectedCategory, setSelectedCategory] = useState<string>('featured');
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
+  const [selectedItem, setSelectedItem] = useState<MerchandiseItem | null>(null);
 
   const handleExternalPurchase = (item: MerchandiseItem) => {
     window.open(item.external_url, '_blank');
   };
 
-  const handleTokenPurchase = async (item: MerchandiseItem) => {
-    if (onPurchaseWithTokens && item.price_tokens) {
-      await onPurchaseWithTokens(item);
-    }
+  const handleRakoCheckout = (item: MerchandiseItem) => {
+    setSelectedItem(item);
   };
+
+  // Show checkout if item is selected
+  if (selectedItem) {
+    return (
+      <MerchandiseCheckout 
+        item={selectedItem} 
+        onBack={() => setSelectedItem(null)} 
+      />
+    );
+  }
 
   const getItemsForCategory = (category: string): MerchandiseItem[] => {
     if (category === 'featured') {
@@ -112,24 +120,21 @@ export function MerchandiseStore({
 
                 <div className="flex items-center gap-2 mt-3">
                   <Button
-                    onClick={() => handleExternalPurchase(item)}
+                    onClick={() => handleRakoCheckout(item)}
                     className="bg-tennis-green-primary hover:bg-tennis-green-dark"
                   >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Buy Now
+                    <ShoppingCart className="h-4 w-4 mr-2" />
+                    Buy with Rako
                   </Button>
                   
-                  {item.price_tokens && onPurchaseWithTokens && (
-                    <Button
-                      variant="outline"
-                      onClick={() => handleTokenPurchase(item)}
-                      disabled={!canAffordTokens || !item.in_stock}
-                      className="border-tennis-green-primary text-tennis-green-primary hover:bg-tennis-green-primary hover:text-white"
-                    >
-                      <Coins className="h-4 w-4 mr-2" />
-                      Use Tokens
-                    </Button>
-                  )}
+                  <Button
+                    variant="outline"
+                    onClick={() => handleExternalPurchase(item)}
+                    className="border-tennis-green-primary text-tennis-green-primary hover:bg-tennis-green-primary hover:text-white"
+                  >
+                    <ExternalLink className="h-4 w-4 mr-2" />
+                    Buy Direct
+                  </Button>
                 </div>
               </div>
             </div>
@@ -191,26 +196,23 @@ export function MerchandiseStore({
 
               <div className="space-y-2">
                 <Button
-                  onClick={() => handleExternalPurchase(item)}
+                  onClick={() => handleRakoCheckout(item)}
                   className="w-full bg-tennis-green-primary hover:bg-tennis-green-dark"
                   size="sm"
                 >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Buy Now
+                  <ShoppingCart className="h-4 w-4 mr-2" />
+                  Buy with Rako
                 </Button>
                 
-                {item.price_tokens && onPurchaseWithTokens && (
-                  <Button
-                    variant="outline"
-                    onClick={() => handleTokenPurchase(item)}
-                    disabled={!canAffordTokens || !item.in_stock}
-                    className="w-full border-tennis-green-primary text-tennis-green-primary hover:bg-tennis-green-primary hover:text-white"
-                    size="sm"
-                  >
-                    <Coins className="h-4 w-4 mr-2" />
-                    Use Tokens
-                  </Button>
-                )}
+                <Button
+                  variant="outline"
+                  onClick={() => handleExternalPurchase(item)}
+                  className="w-full border-tennis-green-primary text-tennis-green-primary hover:bg-tennis-green-primary hover:text-white"
+                  size="sm"
+                >
+                  <ExternalLink className="h-4 w-4 mr-2" />
+                  Buy Direct
+                </Button>
               </div>
             </div>
           </div>
