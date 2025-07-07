@@ -28,6 +28,7 @@ import { NearbyPlayersWidget } from '@/components/play/NearbyPlayersWidget';
 import { useJoinSessionState } from '@/hooks/useJoinSessionState';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { TokenInsufficientError } from '@/components/tokens/TokenInsufficientError';
+import { TokenPurchaseFlow } from '@/components/tokens/TokenPurchaseFlow';
 
 const Play = () => {
   const { user } = useAuth();
@@ -39,6 +40,11 @@ const Play = () => {
     loading: tokensLoading,
     refreshTokens 
   } = usePlayerTokens();
+  
+  // Token purchase flow state
+  const [tokenPurchaseOpen, setTokenPurchaseOpen] = useState(false);
+  const [selectedSession, setSelectedSession] = useState<any>(null);
+  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -280,11 +286,17 @@ const Play = () => {
                 <p className="text-xs text-red-700 mb-2">
                   You have {regularTokens} tokens but need {session.stakes_amount} to join.
                 </p>
-                <Link to="/store?category=tokens">
-                  <Button size="sm" variant="outline" className="text-xs h-7">
-                    Get More Tokens
-                  </Button>
-                </Link>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  className="text-xs h-7"
+                  onClick={() => {
+                    setSelectedSession(session);
+                    setTokenPurchaseOpen(true);
+                  }}
+                >
+                  Get More Tokens
+                </Button>
               </div>
             )}
             
@@ -623,6 +635,15 @@ const Play = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Token Purchase Flow Modal */}
+        <TokenPurchaseFlow
+          open={tokenPurchaseOpen}
+          onOpenChange={setTokenPurchaseOpen}
+          tokensNeeded={selectedSession?.stakes_amount || 0}
+          sessionTitle={selectedSession?.title || selectedSession?.session_type}
+          returnPath="/play"
+        />
 
       </div>
     </div>

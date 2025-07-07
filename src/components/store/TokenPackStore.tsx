@@ -11,10 +11,47 @@ interface TokenPackStoreProps {
   targetType: 'player' | 'coach' | 'club';
   onPurchase: (pack: TokenPackItem) => Promise<boolean>;
   clubId?: string; // Required for club purchases
+  tokensNeeded?: number | null; // For highlighting recommended packs
+  highlightRecommended?: boolean; // Whether to show highlighting
 }
 
-export function TokenPackStore({ targetType, onPurchase, clubId }: TokenPackStoreProps) {
+export function TokenPackStore({ 
+  targetType, 
+  onPurchase, 
+  clubId, 
+  tokensNeeded, 
+  highlightRecommended = false 
+}: TokenPackStoreProps) {
   const tokenPacks = getTokenPacksByTarget(targetType);
+  
+  // Check if a pack meets the token requirement
+  const meetsRequirement = (pack: TokenPackItem): boolean => {
+    if (!tokensNeeded) return false;
+    return (pack.token_amount + pack.bonus_tokens) >= tokensNeeded;
+  };
+  
+  // Sort packs to show recommended ones first when highlighting
+  const sortedPacks = highlightRecommended && tokensNeeded
+    ? [...tokenPacks].sort((a, b) => {
+        const aTotal = a.token_amount + a.bonus_tokens;
+        const bTotal = b.token_amount + b.bonus_tokens;
+        const aMeetsReq = aTotal >= tokensNeeded;
+        const bMeetsReq = bTotal >= tokensNeeded;
+        
+        // Recommended packs first
+        if (aMeetsReq && !bMeetsReq) return -1;
+        if (!aMeetsReq && bMeetsReq) return 1;
+        
+        // Among suitable packs, show best value first
+        if (aMeetsReq && bMeetsReq) {
+          const aEfficiency = aTotal / a.price_usd;
+          const bEfficiency = bTotal / b.price_usd;
+          return bEfficiency - aEfficiency;
+        }
+        
+        return 0;
+      })
+    : tokenPacks;
 
   const handlePurchase = async (pack: TokenPackItem) => {
     if (pack.target_type === 'club' && !clubId) {
@@ -68,21 +105,34 @@ export function TokenPackStore({ targetType, onPurchase, clubId }: TokenPackStor
       </div>
 
       <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-2 xl:grid-cols-4">
-        {tokenPacks.map((pack) => (
-          <Card 
-            key={pack.id} 
-            className={`relative hover:shadow-lg transition-all duration-300 ${
-              pack.popular ? 'border-tennis-yellow shadow-md ring-2 ring-tennis-yellow/50' : ''
-            }`}
-          >
-            {pack.popular && (
-              <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
-                <Badge className="bg-tennis-yellow text-tennis-green-dark font-bold px-3 py-1">
-                  <Star className="h-3 w-3 mr-1" />
-                  Most Popular
-                </Badge>
-              </div>
-            )}
+        {sortedPacks.map((pack) => {
+          const isRecommended = highlightRecommended && meetsRequirement(pack);
+          return (
+            <Card 
+              key={pack.id} 
+              className={`relative hover:shadow-lg transition-all duration-300 ${
+                pack.popular ? 'border-tennis-yellow shadow-md ring-2 ring-tennis-yellow/50' : ''
+              } ${
+                isRecommended ? 'border-tennis-green-primary shadow-lg ring-2 ring-tennis-green-primary/50' : ''
+              }`}
+            >
+              {isRecommended && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2 z-10">
+                  <Badge className="bg-tennis-green-primary text-white font-bold px-3 py-1">
+                    <CheckCircle className="h-3 w-3 mr-1" />
+                    Perfect Match
+                  </Badge>
+                </div>
+              )}
+              
+              {pack.popular && !isRecommended && (
+                <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                  <Badge className="bg-tennis-yellow text-tennis-green-dark font-bold px-3 py-1">
+                    <Star className="h-3 w-3 mr-1" />
+                    Most Popular
+                  </Badge>
+                </div>
+              )}
 
             <CardHeader className="pb-3">
               <div className="flex items-start justify-between">
@@ -161,7 +211,8 @@ export function TokenPackStore({ targetType, onPurchase, clubId }: TokenPackStor
               </div>
             </CardContent>
           </Card>
-        ))}
+          );
+        })}
       </div>
 
       {/* Info Card */}
