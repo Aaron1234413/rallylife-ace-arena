@@ -4948,12 +4948,20 @@ export type Database = {
         Returns: Json
       }
       add_coach_tokens: {
-        Args: {
-          user_id: string
-          amount: number
-          source?: string
-          description?: string
-        }
+        Args:
+          | {
+              coach_id: string
+              token_amount: number
+              token_type: string
+              transaction_type: string
+              description: string
+            }
+          | {
+              user_id: string
+              amount: number
+              source?: string
+              description?: string
+            }
         Returns: Json
       }
       add_crp: {
