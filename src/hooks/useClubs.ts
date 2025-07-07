@@ -8,6 +8,7 @@ export interface Club {
   name: string;
   description: string | null;
   logo_url: string | null;
+  location: string | null;
   owner_id: string;
   is_public: boolean;
   member_count: number;
@@ -93,7 +94,7 @@ export function useClubs() {
 
       if (error) throw error;
       console.log('🏆 [CLUBS] Public clubs fetched:', data?.length || 0, 'clubs');
-      setClubs(data || []);
+      setClubs((data || []) as Club[]);
     } catch (error) {
       console.error('🏆 [CLUBS] Error fetching public clubs:', error);
       toast.error('Failed to load clubs');
@@ -131,7 +132,7 @@ export function useClubs() {
 
       if (clubsError) throw clubsError;
       console.log('🏆 [CLUBS] My clubs fetched:', clubs?.length || 0, 'clubs');
-      setMyClubs(clubs || []);
+      setMyClubs((clubs || []) as Club[]);
     } catch (error) {
       console.error('🏆 [CLUBS] Error fetching my clubs:', error);
       toast.error('Failed to load your clubs');
@@ -141,6 +142,7 @@ export function useClubs() {
   const createClub = async (clubData: {
     name: string;
     description?: string;
+    location?: string;
     is_public: boolean;
     court_count?: number;
     coach_slots?: number;
@@ -160,6 +162,7 @@ export function useClubs() {
         .insert({
           name: clubData.name,
           description: clubData.description,
+          location: clubData.location,
           is_public: clubData.is_public,
           owner_id: user.id,
           court_count: clubData.court_count || 1,
