@@ -242,7 +242,7 @@ const Store = () => {
           <TabsContent value="subscriptions">
             <SubscriptionStore
               targetType={isPlayer ? 'player' : isCoach ? 'coach' : 'player'}
-              currentSubscription={isPlayer ? playerSub : isCoach ? coachSub : undefined}
+              currentSubscription={undefined} // Will be enhanced later to map existing subscriptions
               onSubscribe={handleSubscriptionPurchase}
               onManageSubscription={handleManageSubscription}
             />
