@@ -32,6 +32,9 @@ import { ClubCoachBooking } from '@/components/club/ClubCoachBooking';
 import { CoachClubServices } from '@/components/coach/CoachClubServices';
 import { ClubSessionCalendar } from '@/components/club/sessions/ClubSessionCalendar';
 import { CreateClubSession } from '@/components/club/sessions/CreateClubSession';
+import { ClubAnalyticsDashboard } from '@/components/club/analytics/ClubAnalyticsDashboard';
+import { ClubManagementDashboard } from '@/components/club/management/ClubManagementDashboard';
+import { useClubAnalytics } from '@/hooks/useClubAnalytics';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -45,6 +48,7 @@ export default function Club() {
     fetchClubMembers 
   } = useClubs();
   const [refreshing, setRefreshing] = useState(false);
+  const { analytics } = useClubAnalytics(clubId || '');
 
   // Find the club in either clubs or myClubs
   const club = [...clubs, ...myClubs].find(c => c.id === clubId);
@@ -193,6 +197,8 @@ export default function Club() {
             <TabsTrigger value="sessions" className="text-base font-medium">Sessions</TabsTrigger>
             <TabsTrigger value="create-session" className="text-base font-medium">New Session</TabsTrigger>
             <TabsTrigger value="my-bookings" className="text-base font-medium">My Bookings</TabsTrigger>
+            {(isOwner || canManageMembers) && <TabsTrigger value="analytics" className="text-base font-medium">Analytics</TabsTrigger>}
+            {(isOwner || canManageMembers) && <TabsTrigger value="management" className="text-base font-medium">Management</TabsTrigger>}
             {isCoach && <TabsTrigger value="my-services" className="text-base font-medium">My Services</TabsTrigger>}
             {canEditClub && <TabsTrigger value="settings" className="text-base font-medium">Settings</TabsTrigger>}
           </TabsList>
@@ -267,6 +273,18 @@ export default function Club() {
           {isCoach && (
             <TabsContent value="my-services">
               <CoachClubServices club={club} canManage={isCoach} />
+            </TabsContent>
+          )}
+
+          {(isOwner || canManageMembers) && analytics && (
+            <TabsContent value="analytics">
+              <ClubAnalyticsDashboard analytics={analytics} />
+            </TabsContent>
+          )}
+
+          {(isOwner || canManageMembers) && (
+            <TabsContent value="management">
+              <ClubManagementDashboard clubId={club.id} />
             </TabsContent>
           )}
 
