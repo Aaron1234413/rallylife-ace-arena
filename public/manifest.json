@@ -1,0 +1,27 @@
+{
+  "name": "RAKO - Tennis. Together.",
+  "short_name": "RAKO",
+  "description": "Transforming the Global Tennis Experience - Connect, Play and Level Up",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0D4F3C",
+  "theme_color": "#0D4F3C",
+  "orientation": "portrait-primary",
+  "icons": [
+    {
+      "src": "/lovable-uploads/58f3675a-2b0c-4e9f-8944-08e9bfac8703.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/lovable-uploads/58f3675a-2b0c-4e9f-8944-08e9bfac8703.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "categories": ["sports", "social", "games"],
+  "lang": "en",
+  "dir": "ltr"
+}
