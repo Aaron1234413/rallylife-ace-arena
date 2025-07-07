@@ -29,6 +29,7 @@ import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { DurationEstimator } from '@/components/training/DurationEstimator';
+import { LocationInput } from '@/components/ui/location-input';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -384,11 +385,10 @@ const CreateSession = () => {
                 <MapPin className="h-4 w-4 text-gray-500" />
                 Location *
               </Label>
-              <Input
+              <LocationInput
+                value={location ? { address: location } : null}
+                onChange={(locationData) => setLocation(locationData?.address || '')}
                 placeholder="e.g., Central Park Tennis Courts, NYC"
-                value={location}
-                onChange={(e) => setLocation(e.target.value)}
-                required
               />
             </div>
 

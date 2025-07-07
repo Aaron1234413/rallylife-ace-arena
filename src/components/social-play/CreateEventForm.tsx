@@ -7,10 +7,11 @@ import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { Textarea } from '@/components/ui/textarea';
 import { Calendar } from '@/components/ui/calendar';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
-import { MapPin, Calendar as CalendarIcon, Clock } from 'lucide-react';
+import { Calendar as CalendarIcon, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
 import { UserSearchSelector } from './UserSearchSelector';
+import { LocationInput } from '@/components/ui/location-input';
 
 interface User {
   id: string;
@@ -122,17 +123,11 @@ export const CreateEventForm: React.FC<CreateEventFormProps> = ({
         <Label htmlFor="location" className="text-base font-medium">
           Location
         </Label>
-        <div className="relative">
-          <MapPin className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-          <Input
-            id="location"
-            placeholder="Tennis court or venue"
-            value={location}
-            onChange={(e) => setLocation(e.target.value)}
-            className="pl-10"
-            required
-          />
-        </div>
+        <LocationInput
+          value={location ? { address: location } : null}
+          onChange={(locationData) => setLocation(locationData?.address || '')}
+          placeholder="Tennis court or venue"
+        />
       </div>
 
       {/* Date and Time */}
