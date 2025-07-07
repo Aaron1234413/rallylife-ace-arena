@@ -84,7 +84,7 @@ export function ClubProfile({ club, isPreview = false }: ClubProfileProps) {
                 </div>
               </div>
               
-              <div className="flex items-center gap-4 text-gray-600 mb-3">
+              <div className="flex items-center gap-4 text-gray-600 mb-3 flex-wrap">
                 <div className="flex items-center gap-1">
                   <Users className="h-4 w-4" />
                   <span>{club.member_count} members</span>
@@ -93,6 +93,12 @@ export function ClubProfile({ club, isPreview = false }: ClubProfileProps) {
                   <Calendar className="h-4 w-4" />
                   <span>Created {formatDistanceToNow(new Date(club.created_at), { addSuffix: true })}</span>
                 </div>
+                {club.location && (
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-4 w-4" />
+                    <span>{club.location}</span>
+                  </div>
+                )}
               </div>
 
               {!isMember && !isPreview && (
@@ -199,6 +205,16 @@ export function ClubProfile({ club, isPreview = false }: ClubProfileProps) {
                 {club.is_public ? 'Anyone can join' : 'Invitation only'}
               </span>
             </div>
+            
+            {club.location && (
+              <div className="flex items-center justify-between py-2 border-b">
+                <span className="font-medium">Location</span>
+                <span className="text-gray-600 flex items-center gap-1">
+                  <MapPin className="h-3 w-3" />
+                  {club.location}
+                </span>
+              </div>
+            )}
             
             <div className="flex items-center justify-between py-2">
               <span className="font-medium">Created</span>

@@ -20,6 +20,7 @@ import { TierSelector } from './TierSelector';
 import { OperatingHoursEditor, OperatingHours } from './OperatingHoursEditor';
 import { useClubs } from '@/hooks/useClubs';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
+import { LocationInput } from '@/components/ui/location-input';
 
 interface ClubCreationWizardProps {
   onComplete: () => void;
@@ -30,6 +31,7 @@ interface ClubFormData {
   // Basic Info
   name: string;
   description: string;
+  location: string;
   isPublic: boolean;
   
   // Operational Details
@@ -64,6 +66,7 @@ export function ClubCreationWizard({ onComplete, onCancel }: ClubCreationWizardP
   const [formData, setFormData] = useState<ClubFormData>({
     name: '',
     description: '',
+    location: '',
     isPublic: true,
     courtCount: 2,
     coachSlots: 1,
@@ -137,6 +140,7 @@ export function ClubCreationWizard({ onComplete, onCancel }: ClubCreationWizardP
       await createClub({
         name: formData.name.trim(),
         description: formData.description.trim() || undefined,
+        location: formData.location.trim() || undefined,
         is_public: formData.isPublic,
         court_count: formData.courtCount,
         coach_slots: formData.coachSlots,
@@ -248,6 +252,20 @@ export function ClubCreationWizard({ onComplete, onCancel }: ClubCreationWizardP
                   />
                   <p className="text-xs text-muted-foreground">
                     {formData.description.length}/200 characters
+                  </p>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-sm font-medium">
+                    Location <span className="text-muted-foreground">(optional)</span>
+                  </label>
+                  <LocationInput
+                    value={formData.location ? { address: formData.location } : null}
+                    onChange={(locationData) => updateFormData({ location: locationData?.address || '' })}
+                    placeholder="Club address or location"
+                  />
+                  <p className="text-xs text-muted-foreground">
+                    Help members find your club's physical location
                   </p>
                 </div>
 

@@ -24,6 +24,7 @@ import { useClubSubscription } from '@/hooks/useClubSubscription';
 import { SubscriptionStatus } from './SubscriptionStatus';
 import { TierUpgradeModal } from './TierUpgradeModal';
 import { OperatingHoursEditor, OperatingHours } from './OperatingHoursEditor';
+import { LocationInput } from '@/components/ui/location-input';
 
 interface ClubSettingsProps {
   club: Club;
@@ -36,6 +37,7 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
   const [formData, setFormData] = useState({
     name: club.name,
     description: club.description || '',
+    location: club.location || '',
     is_public: club.is_public,
     logo_url: club.logo_url || '',
     court_count: club.court_count || 1,
@@ -86,6 +88,7 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
   const hasChanges = 
     formData.name !== club.name ||
     formData.description !== (club.description || '') ||
+    formData.location !== (club.location || '') ||
     formData.is_public !== club.is_public ||
     formData.logo_url !== (club.logo_url || '');
 
@@ -128,6 +131,19 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
               disabled={isUpdating}
               rows={4}
             />
+          </div>
+
+          <div className="space-y-2">
+            <Label htmlFor="location">Club Location</Label>
+            <LocationInput
+              value={formData.location ? { address: formData.location } : null}
+              onChange={(locationData) => setFormData(prev => ({ ...prev, location: locationData?.address || '' }))}
+              placeholder="Club address or location"
+              disabled={isUpdating}
+            />
+            <p className="text-xs text-tennis-green-medium">
+              Help members find your club's physical location
+            </p>
           </div>
 
           <div className="space-y-2">
@@ -205,6 +221,7 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
               setFormData({
                 name: club.name,
                 description: club.description || '',
+                location: club.location || '',
                 is_public: club.is_public,
                 logo_url: club.logo_url || '',
                 court_count: club.court_count || 1,
