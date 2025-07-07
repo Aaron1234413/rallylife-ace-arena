@@ -11,6 +11,8 @@ import { TrainingSessionProvider } from "@/contexts/TrainingSessionContext";
 import { SocialPlaySessionProvider } from "@/contexts/SocialPlaySessionContext";
 import { NewUserGuide } from "@/components/onboarding/NewUserGuide";
 import { useAuth } from "@/hooks/useAuth";
+import { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
+import { PWAInstaller } from "@/components/mobile/PWAInstaller";
 
 import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
@@ -84,6 +86,10 @@ function AppWithGuide() {
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>
+
+      {/* Mobile Components */}
+      <MobileBottomNav />
+      <PWAInstaller />
 
       {/* New User Guide - Fixed Overlay */}
       {user && (

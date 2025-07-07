@@ -16,12 +16,12 @@ interface HybridPaymentProps {
 }
 
 export function HybridPayment({ itemName, totalCost, onPaymentSuccess, metadata }: HybridPaymentProps) {
-  const { tokens } = usePlayerTokens();
+  const { tokenData } = usePlayerTokens();
   const [tokensToUse, setTokensToUse] = useState(0);
   const [isProcessing, setIsProcessing] = useState(false);
 
   const tokenValue = 0.01; // $0.01 per token
-  const maxTokensUsable = Math.min(tokens.regular, Math.floor(totalCost / tokenValue));
+  const maxTokensUsable = Math.min(tokenData.regular_tokens, Math.floor(totalCost / tokenValue));
   const tokenDiscount = tokensToUse * tokenValue;
   const cashAmount = Math.max(0, totalCost - tokenDiscount);
 
@@ -82,7 +82,7 @@ export function HybridPayment({ itemName, totalCost, onPaymentSuccess, metadata 
             <span className="text-sm font-medium">Available Tokens:</span>
           </div>
           <Badge className="bg-tennis-yellow text-tennis-green-dark">
-            {tokens.regular.toLocaleString()}
+            {tokenData.regular_tokens.toLocaleString()}
           </Badge>
         </div>
 
