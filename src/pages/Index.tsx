@@ -15,9 +15,6 @@ import { CoachInteractionPanel } from "@/components/coach/dashboard/CoachInterac
 import { MobileActionPanel } from "@/components/dashboard/mobile";
 
 import { UpcomingCourtBookings } from "@/components/dashboard/UpcomingCourtBookings";
-import { UpgradeCard } from "@/components/subscription/UpgradeCard";
-import { ClubTokenStatus } from "@/components/dashboard/ClubTokenStatus";
-import { TokenBalanceWidget } from "@/components/dashboard/TokenBalanceWidget";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
@@ -346,32 +343,10 @@ const Index = () => {
               />
             </ErrorBoundary>
 
-            {/* Enhanced Dashboard Widgets */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {/* Token Balance Widget */}
-              <ErrorBoundary fallbackTitle="Token Balance Error">
-                <TokenBalanceWidget 
-                  tokenData={tokenData} 
-                  userRole="player"
-                  loading={tokensLoading}
-                />
-              </ErrorBoundary>
-
-              {/* Club Token Status for each club */}
-              {userClubs.map((membership) => (
-                <ErrorBoundary key={membership.club_id} fallbackTitle="Club Token Status Error">
-                  <ClubTokenStatus 
-                    clubId={membership.club_id}
-                    clubName={membership.clubs?.name || 'Unknown Club'}
-                  />
-                </ErrorBoundary>
-              ))}
-
-              {/* Court Bookings Widget */}
-              <ErrorBoundary fallbackTitle="Court Bookings Error">
-                <UpcomingCourtBookings />
-              </ErrorBoundary>
-            </div>
+            {/* Court Bookings Widget */}
+            <ErrorBoundary fallbackTitle="Court Bookings Error">
+              <UpcomingCourtBookings />
+            </ErrorBoundary>
           </>
         )}
 
@@ -405,27 +380,6 @@ const Index = () => {
               <CoachQuickActions />
             </ErrorBoundary>
 
-            {/* Enhanced Coach Dashboard Widgets */}
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {/* Coach Token Balance Widget */}
-              <ErrorBoundary fallbackTitle="Coach Token Balance Error">
-                <TokenBalanceWidget 
-                  tokenData={coachTokenData} 
-                  userRole="coach"
-                  loading={coachTokensLoading}
-                />
-              </ErrorBoundary>
-
-              {/* Club Token Status for coach's clubs */}
-              {userClubs.map((membership) => (
-                <ErrorBoundary key={membership.club_id} fallbackTitle="Club Token Status Error">
-                  <ClubTokenStatus 
-                    clubId={membership.club_id}
-                    clubName={membership.clubs?.name || 'Unknown Club'}
-                  />
-                </ErrorBoundary>
-              ))}
-            </div>
 
             {/* Coach Interaction Panel - Focused coaching tools */}
             <ErrorBoundary fallbackTitle="Coach Interaction Error">
