@@ -4,12 +4,9 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
-  Star, 
-  ExternalLink, 
   ShoppingCart, 
   Coins,
   Package,
-  Filter,
   Grid,
   List
 } from 'lucide-react';
@@ -35,10 +32,6 @@ export function MerchandiseStore({
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
   const [selectedItem, setSelectedItem] = useState<MerchandiseItem | null>(null);
 
-  const handleExternalPurchase = (item: MerchandiseItem) => {
-    window.open(item.external_url, '_blank');
-  };
-
   const handleRakoCheckout = (item: MerchandiseItem) => {
     setSelectedItem(item);
   };
@@ -60,49 +53,18 @@ export function MerchandiseStore({
     return getMerchandiseByCategory(category as MerchandiseItem['category']);
   };
 
-  const renderStarRating = (rating?: number) => {
-    if (!rating) return null;
-    
-    return (
-      <div className="flex items-center gap-1">
-        {[...Array(5)].map((_, i) => (
-          <Star 
-            key={i} 
-            className={`h-3 w-3 ${
-              i < Math.floor(rating) 
-                ? 'text-yellow-400 fill-current' 
-                : 'text-gray-300'
-            }`} 
-          />
-        ))}
-        <span className="text-xs text-gray-600 ml-1">{rating}</span>
-      </div>
-    );
-  };
 
   const renderMerchandiseItem = (item: MerchandiseItem) => {
-    const canAffordTokens = item.price_tokens ? regularTokens >= item.price_tokens : false;
-
     if (viewMode === 'list') {
       return (
         <Card key={item.id} className="hover:shadow-md transition-shadow">
           <CardContent className="p-4">
             <div className="flex items-center gap-4">
-              <div className="flex-shrink-0">
-                <div className="w-16 h-16 bg-gray-100 rounded-lg flex items-center justify-center">
-                  <Package className="h-8 w-8 text-gray-400" />
-                </div>
-              </div>
-              
               <div className="flex-grow">
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="font-semibold text-tennis-green-dark">{item.name}</h3>
                     <p className="text-sm text-gray-600 mb-2">{item.description}</p>
-                    {renderStarRating(item.rating)}
-                    {item.reviews && (
-                      <span className="text-xs text-gray-500">({item.reviews} reviews)</span>
-                    )}
                   </div>
                   
                   <div className="text-right">
@@ -126,15 +88,6 @@ export function MerchandiseStore({
                     <ShoppingCart className="h-4 w-4 mr-2" />
                     Buy with Rako
                   </Button>
-                  
-                  <Button
-                    variant="outline"
-                    onClick={() => handleExternalPurchase(item)}
-                    className="border-tennis-green-primary text-tennis-green-primary hover:bg-tennis-green-primary hover:text-white"
-                  >
-                    <ExternalLink className="h-4 w-4 mr-2" />
-                    Buy Direct
-                  </Button>
                 </div>
               </div>
             </div>
@@ -147,11 +100,6 @@ export function MerchandiseStore({
       <Card key={item.id} className="hover:shadow-md transition-shadow h-full">
         <CardContent className="p-4">
           <div className="space-y-3">
-            {/* Product Image */}
-            <div className="aspect-square bg-gray-100 rounded-lg flex items-center justify-center">
-              <Package className="h-12 w-12 text-gray-400" />
-            </div>
-
             {/* Product Info */}
             <div>
               <h3 className="font-semibold text-tennis-green-dark line-clamp-2">
@@ -160,14 +108,6 @@ export function MerchandiseStore({
               <p className="text-sm text-gray-600 line-clamp-2 mt-1">
                 {item.description}
               </p>
-            </div>
-
-            {/* Rating */}
-            <div className="flex items-center justify-between">
-              {renderStarRating(item.rating)}
-              {item.reviews && (
-                <span className="text-xs text-gray-500">({item.reviews})</span>
-              )}
             </div>
 
             {/* Features */}
@@ -194,26 +134,14 @@ export function MerchandiseStore({
                 )}
               </div>
 
-              <div className="space-y-2">
-                <Button
-                  onClick={() => handleRakoCheckout(item)}
-                  className="w-full bg-tennis-green-primary hover:bg-tennis-green-dark"
-                  size="sm"
-                >
-                  <ShoppingCart className="h-4 w-4 mr-2" />
-                  Buy with Rako
-                </Button>
-                
-                <Button
-                  variant="outline"
-                  onClick={() => handleExternalPurchase(item)}
-                  className="w-full border-tennis-green-primary text-tennis-green-primary hover:bg-tennis-green-primary hover:text-white"
-                  size="sm"
-                >
-                  <ExternalLink className="h-4 w-4 mr-2" />
-                  Buy Direct
-                </Button>
-              </div>
+              <Button
+                onClick={() => handleRakoCheckout(item)}
+                className="w-full bg-tennis-green-primary hover:bg-tennis-green-dark"
+                size="sm"
+              >
+                <ShoppingCart className="h-4 w-4 mr-2" />
+                Buy with Rako
+              </Button>
             </div>
           </div>
         </CardContent>
