@@ -24,7 +24,8 @@ import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
 import { useAuth } from '@/hooks/useAuth';
 import { LocationBasedRecommendations } from '@/components/play/LocationBasedRecommendations';
-import { LocationFilters } from '@/components/play/LocationFilters';
+import { EnhancedLocationFilters } from '@/components/play/EnhancedLocationFilters';
+import { NearbyPlayersWidget } from '@/components/play/NearbyPlayersWidget';
 
 const Play = () => {
   const { user } = useAuth();
@@ -37,6 +38,10 @@ const Play = () => {
   const [sortBy, setSortBy] = useState('distance');
   const [sessionTypeFilter, setSessionTypeFilter] = useState('all');
   const [stakesFilter, setStakesFilter] = useState('all');
+  const [levelFilter, setLevelFilter] = useState('all');
+  const [availabilityFilter, setAvailabilityFilter] = useState('all');
+  const [showOnlyWithLocation, setShowOnlyWithLocation] = useState(false);
+  const [showTravelTime, setShowTravelTime] = useState(true);
   
   // Location-based data
   const { 
@@ -115,12 +120,19 @@ const Play = () => {
   const activeFiltersCount = [
     sessionTypeFilter !== 'all',
     stakesFilter !== 'all',
+    levelFilter !== 'all',
+    availabilityFilter !== 'all',
+    showOnlyWithLocation,
     sortBy !== (hasLocation ? 'distance' : 'created_at')
   ].filter(Boolean).length;
 
   const clearFilters = () => {
     setSessionTypeFilter('all');
     setStakesFilter('all');
+    setLevelFilter('all');
+    setAvailabilityFilter('all');
+    setShowOnlyWithLocation(false);
+    setShowTravelTime(true);
     setSortBy(hasLocation ? 'distance' : 'created_at');
   };
 
@@ -287,9 +299,9 @@ const Play = () => {
           </CardContent>
         </Card>
 
-        {/* Advanced Filters */}
+        {/* Enhanced Filters */}
         {showFilters && (
-          <LocationFilters
+          <EnhancedLocationFilters
             radiusKm={radiusKm}
             onRadiusChange={setRadiusKm}
             sortBy={sortBy}
@@ -298,9 +310,18 @@ const Play = () => {
             onSessionTypeFilterChange={setSessionTypeFilter}
             stakesFilter={stakesFilter}
             onStakesFilterChange={setStakesFilter}
+            levelFilter={levelFilter}
+            onLevelFilterChange={setLevelFilter}
+            availabilityFilter={availabilityFilter}
+            onAvailabilityFilterChange={setAvailabilityFilter}
+            showOnlyWithLocation={showOnlyWithLocation}
+            onShowOnlyWithLocationChange={setShowOnlyWithLocation}
+            showTravelTime={showTravelTime}
+            onShowTravelTimeChange={setShowTravelTime}
             hasLocation={hasLocation}
             activeFiltersCount={activeFiltersCount}
             onClearFilters={clearFilters}
+            currentLocation={currentLocation}
           />
         )}
 
@@ -310,6 +331,22 @@ const Play = () => {
             recommendations={recommendations}
             onJoinSession={joinSession}
             loading={recommendationsLoading}
+          />
+        )}
+
+        {/* Nearby Players */}
+        {hasLocation && nearbyPlayers.length > 0 && (
+          <NearbyPlayersWidget
+            players={nearbyPlayers}
+            loading={locationLoading}
+            onMessagePlayer={(playerId) => {
+              // Navigate to messages with this player
+              console.log('Message player:', playerId);
+            }}
+            onInvitePlayer={(playerId) => {
+              // Create invitation to join session
+              console.log('Invite player:', playerId);
+            }}
           />
         )}
 
