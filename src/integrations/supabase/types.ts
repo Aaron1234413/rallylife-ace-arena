@@ -1244,6 +1244,48 @@ export type Database = {
           },
         ]
       }
+      club_token_pools: {
+        Row: {
+          allocated_tokens: number
+          club_id: string
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          month_year: string
+          overdraft_tokens: number | null
+          purchased_tokens: number | null
+          rollover_tokens: number | null
+          updated_at: string | null
+          used_tokens: number | null
+        }
+        Insert: {
+          allocated_tokens: number
+          club_id: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          month_year: string
+          overdraft_tokens?: number | null
+          purchased_tokens?: number | null
+          rollover_tokens?: number | null
+          updated_at?: string | null
+          used_tokens?: number | null
+        }
+        Update: {
+          allocated_tokens?: number
+          club_id?: string
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          month_year?: string
+          overdraft_tokens?: number | null
+          purchased_tokens?: number | null
+          rollover_tokens?: number | null
+          updated_at?: string | null
+          used_tokens?: number | null
+        }
+        Relationships: []
+      }
       club_usage_tracking: {
         Row: {
           active_coaches: number | null
@@ -1995,6 +2037,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      coach_subscriptions: {
+        Row: {
+          coach_id: string
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          max_clubs_allowed: number
+          monthly_token_allocation: number
+          plan_type: string
+          status: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          max_clubs_allowed: number
+          monthly_token_allocation: number
+          plan_type: string
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          max_clubs_allowed?: number
+          monthly_token_allocation?: number
+          plan_type?: string
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
       }
       coach_token_transactions: {
         Row: {
@@ -3436,6 +3520,48 @@ export type Database = {
         }
         Relationships: []
       }
+      player_subscriptions: {
+        Row: {
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          max_clubs_allowed: number
+          monthly_token_allocation: number
+          plan_type: string
+          player_id: string
+          status: string | null
+          stripe_subscription_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          max_clubs_allowed: number
+          monthly_token_allocation: number
+          plan_type: string
+          player_id: string
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          max_clubs_allowed?: number
+          monthly_token_allocation?: number
+          plan_type?: string
+          player_id?: string
+          status?: string | null
+          stripe_subscription_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: []
+      }
       player_training_assignments: {
         Row: {
           assigned_date: string
@@ -4313,6 +4439,45 @@ export type Database = {
         }
         Relationships: []
       }
+      token_redemptions: {
+        Row: {
+          cash_amount: number
+          club_id: string
+          created_at: string | null
+          id: string
+          player_id: string
+          redemption_percentage: number
+          service_details: Json | null
+          service_type: string
+          tokens_used: number
+          total_service_value: number
+        }
+        Insert: {
+          cash_amount: number
+          club_id: string
+          created_at?: string | null
+          id?: string
+          player_id: string
+          redemption_percentage: number
+          service_details?: Json | null
+          service_type: string
+          tokens_used: number
+          total_service_value: number
+        }
+        Update: {
+          cash_amount?: number
+          club_id?: string
+          created_at?: string | null
+          id?: string
+          player_id?: string
+          redemption_percentage?: number
+          service_details?: Json | null
+          service_type?: string
+          tokens_used?: number
+          total_service_value?: number
+        }
+        Relationships: []
+      }
       token_transactions: {
         Row: {
           amount: number
@@ -4989,6 +5154,10 @@ export type Database = {
         }
         Returns: boolean
       }
+      check_token_availability: {
+        Args: { club_id_param: string; requested_tokens: number }
+        Returns: boolean
+      }
       claim_achievement_reward: {
         Args: { user_id: string; achievement_id: string }
         Returns: Json
@@ -5614,6 +5783,10 @@ export type Database = {
         Args: { user_id: string }
         Returns: undefined
       }
+      initialize_monthly_token_pool: {
+        Args: { club_id_param: string; month_year_param: string }
+        Returns: undefined
+      }
       initialize_player_avatar: {
         Args: { user_id: string }
         Returns: undefined
@@ -5912,6 +6085,18 @@ export type Database = {
       postgis_wagyu_version: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      process_token_redemption: {
+        Args: {
+          club_id_param: string
+          player_id_param: string
+          service_type_param: string
+          service_details_param: Json
+          tokens_to_use: number
+          cash_amount_param: number
+          total_service_value_param: number
+        }
+        Returns: boolean
       }
       purchase_avatar_item: {
         Args: { user_id: string; item_id: string }
