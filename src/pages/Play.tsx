@@ -476,54 +476,6 @@ const Play = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Quick Stats - Now Dynamic */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-tennis-green-primary">
-                {locationLoading ? '...' : nearbyPlayers.length}
-              </div>
-              <div className="text-sm text-gray-600">
-                {hasLocation ? 'Nearby Players' : 'Total Players'}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-tennis-green-primary">
-                {locationLoading ? '...' : nearbySessions.length}
-              </div>
-              <div className="text-sm text-gray-600">
-                {hasLocation ? 'Nearby Sessions' : 'Available Sessions'}
-              </div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-tennis-green-primary">
-                {availableSessions.filter(s => {
-                  const created = new Date(s.created_at);
-                  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
-                  return created >= weekAgo;
-                }).length}
-              </div>
-              <div className="text-sm text-gray-600">This Week</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-tennis-green-primary">
-                {currentLocation ? 
-                  `${Math.round(currentLocation.lat * 100) / 100}°` : 
-                  'N/A'
-                }
-              </div>
-              <div className="text-sm text-gray-600">
-                {hasLocation ? 'Your Location' : 'Location Off'}
-              </div>
-            </CardContent>
-          </Card>
-        </div>
       </div>
     </div>
   );
