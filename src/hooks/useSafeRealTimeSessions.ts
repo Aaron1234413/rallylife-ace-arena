@@ -198,16 +198,20 @@ export function useSafeRealTimeSessions(
   useEffect(() => {
     if (!enabled || !effectiveUserId) return;
 
+    let sessionsChannel: any = null;
+    let participantsChannel: any = null;
+
     try {
       // Clear any existing channels first
       clearChannels();
 
-      // Create unique channel names to avoid conflicts
-      const sessionChannelName = `safe-sessions-${effectiveUserId}-${Date.now()}`;
-      const participantChannelName = `safe-participants-${effectiveUserId}-${Date.now()}`;
+      // Create unique channel names to avoid conflicts with timestamp and random
+      const uniqueId = `${effectiveUserId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const sessionChannelName = `safe-sessions-${uniqueId}`;
+      const participantChannelName = `safe-participants-${uniqueId}`;
 
       // Subscribe to sessions table changes
-      const sessionsChannel = supabase
+      sessionsChannel = supabase
         .channel(sessionChannelName)
         .on(
           'postgres_changes',
@@ -220,14 +224,10 @@ export function useSafeRealTimeSessions(
             fetchSessions();
           }
         )
-        .subscribe((status) => {
-          if (status === 'CHANNEL_ERROR') {
-            console.error('Session channel subscription error');
-          }
-        });
+        .subscribe();
 
       // Subscribe to session_participants table changes
-      const participantsChannel = supabase
+      participantsChannel = supabase
         .channel(participantChannelName)
         .on(
           'postgres_changes',
@@ -240,11 +240,7 @@ export function useSafeRealTimeSessions(
             fetchSessions();
           }
         )
-        .subscribe((status) => {
-          if (status === 'CHANNEL_ERROR') {
-            console.error('Participants channel subscription error');
-          }
-        });
+        .subscribe();
 
       channelsRef.current = [sessionsChannel, participantsChannel];
     } catch (error) {

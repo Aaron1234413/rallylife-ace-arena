@@ -27,6 +27,7 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
+import { useUserLocation } from '@/hooks/useUserLocation';
 import { DurationEstimator } from '@/components/training/DurationEstimator';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -37,6 +38,7 @@ const CreateSession = () => {
   const [searchParams] = useSearchParams();
   const { tokenData } = usePlayerTokens();
   const { hpData } = usePlayerHP();
+  const { currentLocation } = useUserLocation();
 
   // Form state
   const [sessionType, setSessionType] = useState(searchParams.get('type') || 'match');
@@ -153,7 +155,7 @@ const CreateSession = () => {
     setCreating(true);
 
     try {
-      // Create session
+      // Create session with location coordinates if available
       const sessionData = {
         creator_id: user.id,
         session_type: sessionType,
@@ -163,7 +165,11 @@ const CreateSession = () => {
         location: location.trim(),
         notes: notes.trim() || null,
         is_private: isPrivate,
-        invitation_code: isPrivate ? invitationCode : null
+        invitation_code: isPrivate ? invitationCode : null,
+        // Add coordinates if user has current location
+        latitude: currentLocation?.lat || null,
+        longitude: currentLocation?.lng || null,
+        location_coordinates_set: !!currentLocation
       };
 
       const { data: session, error: sessionError } = await supabase

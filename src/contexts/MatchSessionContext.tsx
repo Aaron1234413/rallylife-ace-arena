@@ -111,6 +111,7 @@ export const MatchSessionProvider: React.FC<{ children: ReactNode }> = ({ childr
           .select('*')
           .eq('player_id', user.id)
           .eq('status', 'active')
+          .limit(1)
           .maybeSingle();
 
         if (error) {

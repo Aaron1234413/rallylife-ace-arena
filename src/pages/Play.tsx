@@ -19,12 +19,22 @@ import {
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
+import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useAuth } from '@/hooks/useAuth';
 
 const Play = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('all');
+  
+  // Location-based data
+  const { 
+    nearbySessions, 
+    nearbyPlayers, 
+    loading: locationLoading,
+    hasLocation,
+    currentLocation 
+  } = useLocationBasedSessions(50);
 
   // Get real session data
   const { 
@@ -299,30 +309,51 @@ const Play = () => {
           </TabsContent>
         </Tabs>
 
-        {/* Quick Stats */}
+        {/* Quick Stats - Now Dynamic */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-tennis-green-primary">12</div>
-              <div className="text-sm text-gray-600">Active Players</div>
+              <div className="text-2xl font-bold text-tennis-green-primary">
+                {locationLoading ? '...' : nearbyPlayers.length}
+              </div>
+              <div className="text-sm text-gray-600">
+                {hasLocation ? 'Nearby Players' : 'Total Players'}
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-tennis-green-primary">5</div>
-              <div className="text-sm text-gray-600">Available Courts</div>
+              <div className="text-2xl font-bold text-tennis-green-primary">
+                {locationLoading ? '...' : nearbySessions.length}
+              </div>
+              <div className="text-sm text-gray-600">
+                {hasLocation ? 'Nearby Sessions' : 'Available Sessions'}
+              </div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-tennis-green-primary">8</div>
+              <div className="text-2xl font-bold text-tennis-green-primary">
+                {availableSessions.filter(s => {
+                  const created = new Date(s.created_at);
+                  const weekAgo = new Date(Date.now() - 7 * 24 * 60 * 60 * 1000);
+                  return created >= weekAgo;
+                }).length}
+              </div>
               <div className="text-sm text-gray-600">This Week</div>
             </CardContent>
           </Card>
           <Card>
             <CardContent className="p-4 text-center">
-              <div className="text-2xl font-bold text-tennis-green-primary">3.2</div>
-              <div className="text-sm text-gray-600">Avg Rating</div>
+              <div className="text-2xl font-bold text-tennis-green-primary">
+                {currentLocation ? 
+                  `${Math.round(currentLocation.lat * 100) / 100}°` : 
+                  'N/A'
+                }
+              </div>
+              <div className="text-sm text-gray-600">
+                {hasLocation ? 'Your Location' : 'Location Off'}
+              </div>
             </CardContent>
           </Card>
         </div>
