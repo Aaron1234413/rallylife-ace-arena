@@ -1,1 +1,13 @@
 project_id = "fxpzmbgslbquzdsutxhv"
+
+[functions.process-hybrid-payment]
+verify_jwt = true
+
+[functions.monthly-token-allocation]
+verify_jwt = false
+
+[functions.token-pack-purchase]
+verify_jwt = true
+
+[functions.stripe-webhook]
+verify_jwt = false
