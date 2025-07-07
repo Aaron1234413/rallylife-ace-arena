@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
-// import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
+import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
 import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
 import { useAuth } from '@/hooks/useAuth';
@@ -28,7 +28,6 @@ import { NearbyPlayersWidget } from '@/components/play/NearbyPlayersWidget';
 import { useJoinSessionState } from '@/hooks/useJoinSessionState';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { TokenInsufficientError } from '@/components/tokens/TokenInsufficientError';
-import { TokenPurchaseFlow } from '@/components/tokens/TokenPurchaseFlow';
 
 const Play = () => {
   const { user } = useAuth();
@@ -40,11 +39,6 @@ const Play = () => {
     loading: tokensLoading,
     refreshTokens 
   } = usePlayerTokens();
-  
-  // Token purchase flow state
-  const [tokenPurchaseOpen, setTokenPurchaseOpen] = useState(false);
-  const [selectedSession, setSelectedSession] = useState<any>(null);
-  
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -78,26 +72,18 @@ const Play = () => {
     }
   }, [hasLocation, sortBy]);
 
-  // Temporarily use mock data instead of real-time sessions
-  const allSessions = []; // Empty array for now to prevent errors
-  const sessionsLoading = false;
-  const sessionError = null;
+  // Get real session data
+  const { 
+    sessions: availableSessions, 
+    loading: availableLoading, 
+    joinSession,
+    error: sessionError 
+  } = useSafeRealTimeSessions('available', user?.id);
   
-  // Mock joinSession function
-  const joinSession = async (sessionId: string) => {
-    console.log('Would join session:', sessionId);
-    // For now, just show a message
-    alert('Session join functionality temporarily disabled while fixing real-time issues');
-  };
-  
-  // Filter sessions locally to get available and my sessions
-  const availableSessions = allSessions.filter(session => session.status === 'waiting' && !session.is_private);
-  const mySessions = allSessions.filter(session => 
-    session.creator_id === user?.id || session.user_joined
-  );
-  
-  const availableLoading = sessionsLoading;
-  const mySessionsLoading = sessionsLoading;
+  const { 
+    sessions: mySessions, 
+    loading: mySessionsLoading 
+  } = useSafeRealTimeSessions('my-sessions', user?.id);
 
   // Enhanced session filtering and sorting
   const filteredAndSortedSessions = useMemo(() => {
@@ -294,17 +280,11 @@ const Play = () => {
                 <p className="text-xs text-red-700 mb-2">
                   You have {regularTokens} tokens but need {session.stakes_amount} to join.
                 </p>
-                <Button 
-                  size="sm" 
-                  variant="outline" 
-                  className="text-xs h-7"
-                  onClick={() => {
-                    setSelectedSession(session);
-                    setTokenPurchaseOpen(true);
-                  }}
-                >
-                  Get More Tokens
-                </Button>
+                <Link to="/store?category=tokens">
+                  <Button size="sm" variant="outline" className="text-xs h-7">
+                    Get More Tokens
+                  </Button>
+                </Link>
               </div>
             )}
             
@@ -643,17 +623,6 @@ const Play = () => {
             )}
           </TabsContent>
         </Tabs>
-
-        {/* Token Purchase Flow Modal */}
-        <TokenPurchaseFlow
-          open={tokenPurchaseOpen}
-          onOpenChange={setTokenPurchaseOpen}
-          tokensNeeded={selectedSession?.stakes_amount || 0}
-          sessionTitle={selectedSession?.session_type ? 
-            `${selectedSession.session_type.charAt(0).toUpperCase() + selectedSession.session_type.slice(1)} Session` : 
-            'Session'}
-          returnPath="/play"
-        />
 
       </div>
     </div>

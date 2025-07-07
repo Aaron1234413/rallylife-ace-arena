@@ -21,17 +21,13 @@ import {
   Coins, 
   Crown, 
   Package,
-  Store as StoreIcon,
-  ArrowLeft
+  Store as StoreIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { HealthPackItem, TokenPackItem, SubscriptionPlan } from '@/types/store';
-import { useSearchParams, useNavigate } from 'react-router-dom';
 
 const Store = () => {
   const { user } = useAuth();
-  const [searchParams] = useSearchParams();
-  const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [loading, setLoading] = useState(false);
@@ -48,12 +44,6 @@ const Store = () => {
 
   // Real-time updates
   const { notifications } = useRealTimeTokens();
-  
-  // URL parameters for smart store integration
-  const tokensNeeded = searchParams.get('needed') ? parseInt(searchParams.get('needed')!) : null;
-  const sessionTitle = searchParams.get('session');
-  const returnPath = searchParams.get('returnTo') || '/play';
-  const initialCategory = searchParams.get('category') || 'tokens'; // Default to tokens if coming from insufficient error
 
   useEffect(() => {
     if (user) {
@@ -220,38 +210,7 @@ const Store = () => {
           )}
         </div>
 
-        {/* Smart Return Path Banner */}
-        {(tokensNeeded || sessionTitle) && (
-          <Card className="mb-6 border-l-4 border-l-tennis-green-primary bg-tennis-green-bg/50">
-            <CardContent className="p-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-3">
-                  <Coins className="h-5 w-5 text-tennis-green-primary" />
-                  <div>
-                    <h3 className="font-semibold text-tennis-green-dark">
-                      {tokensNeeded ? `Need ${tokensNeeded} tokens` : 'Token Purchase'}
-                      {sessionTitle && ` for "${sessionTitle}"`}
-                    </h3>
-                    <p className="text-sm text-tennis-green-medium">
-                      After purchasing, you can return to your session and join the game.
-                    </p>
-                  </div>
-                </div>
-                <Button 
-                  variant="outline" 
-                  size="sm"
-                  onClick={() => navigate(returnPath)}
-                  className="flex items-center gap-2"
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Return
-                </Button>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        <Tabs defaultValue={initialCategory} className="w-full">
+        <Tabs defaultValue="subscriptions" className="w-full">
           <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="subscriptions" className="flex items-center gap-2">
               <Crown className="h-4 w-4" />
@@ -310,8 +269,6 @@ const Store = () => {
               targetType={isPlayer ? 'player' : isCoach ? 'coach' : 'player'}
               onPurchase={handleTokenPackPurchase}
               clubId={selectedClubId}
-              tokensNeeded={tokensNeeded}
-              highlightRecommended={tokensNeeded !== null}
             />
           </TabsContent>
 
