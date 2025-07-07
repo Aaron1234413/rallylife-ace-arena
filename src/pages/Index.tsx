@@ -16,6 +16,8 @@ import { MobileActionPanel } from "@/components/dashboard/mobile";
 
 import { UpcomingCourtBookings } from "@/components/dashboard/UpcomingCourtBookings";
 import { UpgradeCard } from "@/components/subscription/UpgradeCard";
+import { ClubTokenStatus } from "@/components/dashboard/ClubTokenStatus";
+import { TokenBalanceWidget } from "@/components/dashboard/TokenBalanceWidget";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
@@ -32,6 +34,7 @@ const Index = () => {
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
   const [dataInitialized, setDataInitialized] = useState(false);
+  const [userClubs, setUserClubs] = useState<any[]>([]);
 
   // Player hooks with error handling
   const { hpData, loading: hpLoading, restoreHP, initializeHP } = usePlayerHP();
@@ -82,11 +85,43 @@ const Index = () => {
 
       console.log('🏠 [INDEX] Profile fetched successfully:', data);
       setProfile(data);
+
+      // Fetch user's clubs
+      await fetchUserClubs();
     } catch (error) {
       console.error('🏠 [INDEX] Unexpected error:', error);
       setProfileError('An unexpected error occurred while loading your profile');
     } finally {
       setProfileLoading(false);
+    }
+  };
+
+  const fetchUserClubs = async () => {
+    if (!user) return;
+
+    try {
+      const { data: memberships, error } = await supabase
+        .from('club_memberships')
+        .select(`
+          club_id,
+          role,
+          clubs:club_id (
+            id,
+            name,
+            logo_url
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'active');
+
+      if (error) {
+        console.error('Error fetching user clubs:', error);
+        return;
+      }
+
+      setUserClubs(memberships || []);
+    } catch (error) {
+      console.error('Error fetching clubs:', error);
     }
   };
 
@@ -310,10 +345,32 @@ const Index = () => {
               />
             </ErrorBoundary>
 
-            {/* Court Bookings Widget */}
-            <ErrorBoundary fallbackTitle="Court Bookings Error">
-              <UpcomingCourtBookings />
-            </ErrorBoundary>
+            {/* Enhanced Dashboard Widgets */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {/* Token Balance Widget */}
+              <ErrorBoundary fallbackTitle="Token Balance Error">
+                <TokenBalanceWidget 
+                  tokenData={tokenData} 
+                  userRole="player"
+                  loading={tokensLoading}
+                />
+              </ErrorBoundary>
+
+              {/* Club Token Status for each club */}
+              {userClubs.map((membership) => (
+                <ErrorBoundary key={membership.club_id} fallbackTitle="Club Token Status Error">
+                  <ClubTokenStatus 
+                    clubId={membership.club_id}
+                    clubName={membership.clubs?.name || 'Unknown Club'}
+                  />
+                </ErrorBoundary>
+              ))}
+
+              {/* Court Bookings Widget */}
+              <ErrorBoundary fallbackTitle="Court Bookings Error">
+                <UpcomingCourtBookings />
+              </ErrorBoundary>
+            </div>
           </>
         )}
 
@@ -346,6 +403,28 @@ const Index = () => {
             <ErrorBoundary fallbackTitle="Coach Actions Error">
               <CoachQuickActions />
             </ErrorBoundary>
+
+            {/* Enhanced Coach Dashboard Widgets */}
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+              {/* Coach Token Balance Widget */}
+              <ErrorBoundary fallbackTitle="Coach Token Balance Error">
+                <TokenBalanceWidget 
+                  tokenData={coachTokenData} 
+                  userRole="coach"
+                  loading={coachTokensLoading}
+                />
+              </ErrorBoundary>
+
+              {/* Club Token Status for coach's clubs */}
+              {userClubs.map((membership) => (
+                <ErrorBoundary key={membership.club_id} fallbackTitle="Club Token Status Error">
+                  <ClubTokenStatus 
+                    clubId={membership.club_id}
+                    clubName={membership.clubs?.name || 'Unknown Club'}
+                  />
+                </ErrorBoundary>
+              ))}
+            </div>
 
             {/* Coach Interaction Panel - Focused coaching tools */}
             <ErrorBoundary fallbackTitle="Coach Interaction Error">

@@ -22,13 +22,12 @@ import Onboarding from "@/pages/Onboarding";
 import Search from "@/pages/Search";
 import Store from "@/pages/Store";
 import Profile from "@/pages/Profile";
-import Pulse from "@/pages/Pulse";
+import Play from "@/pages/Play";
 import Academy from "@/pages/Academy";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Messages from "@/pages/Messages";
 import Scheduling from "@/pages/Scheduling";
 import Feed from "@/pages/Feed";
-import Maps from "@/pages/Maps";
 import StartMatch from "@/pages/StartMatch";
 import EndMatch from "@/pages/EndMatch";
 import StartTraining from "@/pages/StartTraining";
@@ -63,17 +62,16 @@ function AppWithGuide() {
           <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/coach-dashboard" element={<ProtectedRoute><CoachDashboard /></ProtectedRoute>} />
           <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+          <Route path="/play" element={<ProtectedRoute><Play /></ProtectedRoute>} />
           <Route path="/sessions" element={<ProtectedRoute><Sessions /></ProtectedRoute>} />
           <Route path="/sessions/create" element={<ProtectedRoute><CreateSession /></ProtectedRoute>} />
           <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
           <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/pulse" element={<ProtectedRoute><Pulse /></ProtectedRoute>} />
           <Route path="/academy" element={<ProtectedRoute><Academy /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
           <Route path="/scheduling" element={<ProtectedRoute><Scheduling /></ProtectedRoute>} />
           <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
-          <Route path="/maps" element={<ProtectedRoute><Maps /></ProtectedRoute>} />
           <Route path="/start-match" element={<ProtectedRoute><StartMatch /></ProtectedRoute>} />
           <Route path="/end-match" element={<ProtectedRoute><EndMatch /></ProtectedRoute>} />
           <Route path="/start-training" element={<ProtectedRoute><StartTraining /></ProtectedRoute>} />

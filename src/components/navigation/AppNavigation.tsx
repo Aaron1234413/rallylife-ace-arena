@@ -5,14 +5,12 @@ import { Button } from '@/components/ui/button';
 import { 
   Home, 
   MessageSquare, 
-  Rss,
+  Activity,
   LogOut,
-  User,
-  Bolt,
-  Store,
-  GraduationCap,
   Users,
-  MessageCircle
+  ShoppingBag,
+  Gamepad2,
+  User
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -21,17 +19,22 @@ export function AppNavigation() {
   const { signOut, user } = useAuth();
   const location = useLocation();
 
-  // Basic navigation items available to all users
-  const navItems = [
+  // Primary navigation items
+  const primaryRoutes = [
     { path: '/dashboard', label: 'Dashboard', icon: Home },
-    { path: '/sessions', label: 'Sessions', icon: Users },
-    { path: '/clubs', label: 'Clubs', icon: Users },
-    { path: '/pulse', label: 'Pulse', icon: Bolt },
-    { path: '/academy', label: 'Academy', icon: GraduationCap },
+    { path: '/play', label: 'Play', icon: Gamepad2 },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
-    { path: '/feed', label: 'Feed', icon: Rss },
-    { path: '/store', label: 'Store', icon: Store },
+    { path: '/store', label: 'Store', icon: ShoppingBag }
   ];
+
+  // Secondary navigation items
+  const secondaryRoutes = [
+    { path: '/feed', label: 'Feed', icon: Activity },
+    { path: '/clubs', label: 'Clubs', icon: Users },
+    { path: '/profile', label: 'Profile', icon: User }
+  ];
+
+  const allNavItems = [...primaryRoutes, ...secondaryRoutes];
 
   const isActive = (path: string) => location.pathname === path;
 
@@ -48,7 +51,7 @@ export function AppNavigation() {
 
           {/* Desktop Navigation Links - Responsive Text */}
           <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
-            {navItems.map((item) => {
+            {allNavItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -70,7 +73,7 @@ export function AppNavigation() {
 
           {/* Medium Screen Navigation - Icons Only */}
           <div className="hidden md:flex lg:hidden items-center space-x-1">
-            {navItems.map((item) => {
+            {allNavItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
@@ -118,7 +121,7 @@ export function AppNavigation() {
         {/* Mobile Navigation - Improved Grid */}
         <div className="md:hidden pb-3 pt-2">
           <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
-            {navItems.map((item) => {
+            {allNavItems.slice(0, 8).map((item) => {
               const Icon = item.icon;
               return (
                 <Link
