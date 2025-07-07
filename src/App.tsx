@@ -27,7 +27,7 @@ import Academy from "@/pages/Academy";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import Messages from "@/pages/Messages";
 import Scheduling from "@/pages/Scheduling";
-import Feed from "@/pages/Feed";
+
 import StartMatch from "@/pages/StartMatch";
 import EndMatch from "@/pages/EndMatch";
 import StartTraining from "@/pages/StartTraining";
@@ -71,7 +71,7 @@ function AppWithGuide() {
           <Route path="/academy" element={<ProtectedRoute><Academy /></ProtectedRoute>} />
           <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
           <Route path="/scheduling" element={<ProtectedRoute><Scheduling /></ProtectedRoute>} />
-          <Route path="/feed" element={<ProtectedRoute><Feed /></ProtectedRoute>} />
+          
           <Route path="/start-match" element={<ProtectedRoute><StartMatch /></ProtectedRoute>} />
           <Route path="/end-match" element={<ProtectedRoute><EndMatch /></ProtectedRoute>} />
           <Route path="/start-training" element={<ProtectedRoute><StartTraining /></ProtectedRoute>} />

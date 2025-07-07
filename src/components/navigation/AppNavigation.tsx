@@ -29,7 +29,6 @@ export function AppNavigation() {
 
   // Secondary navigation items
   const secondaryRoutes = [
-    { path: '/feed', label: 'Feed', icon: Activity },
     { path: '/clubs', label: 'Clubs', icon: Users },
     { path: '/profile', label: 'Profile', icon: User }
   ];
