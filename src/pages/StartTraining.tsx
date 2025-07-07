@@ -35,7 +35,7 @@ export default function StartTraining() {
     updateSessionData(sessionData);
     console.log('Starting training session with data:', sessionData);
     
-    navigate('/');
+    navigate('/dashboard');
   };
 
   const canStart = sessionType && intensity && estimatedDuration > 0;
@@ -107,7 +107,7 @@ export default function StartTraining() {
               <div className="flex gap-4 pt-6">
                 <Button 
                   variant="outline" 
-                  onClick={() => navigate('/')}
+                  onClick={() => navigate('/dashboard')}
                   className="flex-1 h-12 border-tennis-green-bg/30 text-tennis-green-dark hover:bg-tennis-green-bg/10"
                   size="lg"
                 >

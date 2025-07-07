@@ -187,7 +187,7 @@ const StartMatch = () => {
 
   const handleResumeMatch = () => {
     toast.success('Resuming your match!');
-    navigate('/');
+    navigate('/dashboard');
   };
 
   const handleStartNewMatch = () => {

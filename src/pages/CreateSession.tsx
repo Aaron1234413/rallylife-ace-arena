@@ -191,8 +191,8 @@ const CreateSession = () => {
 
       toast.success('Session created successfully!');
       
-      // Navigate to sessions page
-      navigate('/sessions');
+      // Navigate back to dashboard
+      navigate('/dashboard');
       
     } catch (error) {
       console.error('Error creating session:', error);
@@ -222,7 +222,7 @@ const CreateSession = () => {
         <div className="flex items-center gap-4">
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/sessions')}
+            onClick={() => navigate('/dashboard')}
             className="p-2"
           >
             <ArrowLeft className="h-5 w-5" />

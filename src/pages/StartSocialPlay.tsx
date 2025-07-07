@@ -10,12 +10,12 @@ const StartSocialPlay = () => {
   const navigate = useNavigate();
 
   const handleBackToDashboard = () => {
-    navigate('/');
+    navigate('/dashboard');
   };
 
   const handleSessionCreated = () => {
     // Navigate back to dashboard after successful session creation and join
-    navigate('/');
+    navigate('/dashboard');
   };
 
   return (
