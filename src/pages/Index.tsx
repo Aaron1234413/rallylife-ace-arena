@@ -22,7 +22,7 @@ import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
 import ErrorBoundary from "@/components/ErrorBoundary";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
 
 const Index = () => {
@@ -30,6 +30,7 @@ const Index = () => {
   
   const { user } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
   const [profile, setProfile] = useState<any>(null);
   const [profileLoading, setProfileLoading] = useState(true);
   const [profileError, setProfileError] = useState<string | null>(null);
@@ -172,7 +173,7 @@ const Index = () => {
 
       initializeData();
     }
-  }, [user, profile, dataInitialized, hpData, xpData, equippedItems, cxpData, crpData]);
+  }, [user?.id, profile?.role, dataInitialized]);
 
   // Enhanced XP earning function that checks for avatar unlocks and achievements
   const handleAddXP = async (amount: number, activityType: string, description?: string) => {
@@ -280,7 +281,7 @@ const Index = () => {
           <h2 className="text-2xl font-bold text-tennis-green-dark mb-4">Welcome to Rako</h2>
           <p className="text-gray-700 mb-4">Please log in to access your dashboard</p>
           <button 
-            onClick={() => window.location.href = '/auth'} 
+            onClick={() => navigate('/auth')} 
             className="bg-tennis-green-dark text-white px-4 py-2 rounded hover:bg-tennis-green"
           >
             Go to Login
@@ -299,7 +300,7 @@ const Index = () => {
           <h2 className="text-2xl font-bold text-tennis-green-dark mb-4">Profile Setup Required</h2>
           <p className="text-gray-700 mb-4">We couldn't find your profile. Please complete the onboarding process.</p>
           <button 
-            onClick={() => window.location.href = '/onboarding'} 
+            onClick={() => navigate('/onboarding')} 
             className="bg-tennis-green-dark text-white px-4 py-2 rounded hover:bg-tennis-green"
           >
             Complete Setup
@@ -441,7 +442,7 @@ const Index = () => {
               Your profile is being set up. If this persists, please complete the onboarding process.
             </p>
             <button 
-              onClick={() => window.location.href = '/onboarding'} 
+              onClick={() => navigate('/onboarding')} 
               className="bg-tennis-green-dark text-white px-4 py-2 rounded hover:bg-tennis-green"
             >
               Complete Onboarding
