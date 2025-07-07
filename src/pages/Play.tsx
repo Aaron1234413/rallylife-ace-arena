@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,18 +14,29 @@ import {
   Filter,
   Plus,
   Gamepad2,
-  Coins
+  Coins,
+  SlidersHorizontal
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
 import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
 import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
+import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
 import { useAuth } from '@/hooks/useAuth';
+import { LocationBasedRecommendations } from '@/components/play/LocationBasedRecommendations';
+import { LocationFilters } from '@/components/play/LocationFilters';
 
 const Play = () => {
   const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('all');
+  const [showFilters, setShowFilters] = useState(false);
+  
+  // Location and filter states
+  const [radiusKm, setRadiusKm] = useState(50);
+  const [sortBy, setSortBy] = useState('distance');
+  const [sessionTypeFilter, setSessionTypeFilter] = useState('all');
+  const [stakesFilter, setStakesFilter] = useState('all');
   
   // Location-based data
   const { 
@@ -34,7 +45,10 @@ const Play = () => {
     loading: locationLoading,
     hasLocation,
     currentLocation 
-  } = useLocationBasedSessions(50);
+  } = useLocationBasedSessions(radiusKm);
+
+  // Recommendations
+  const { recommendations, loading: recommendationsLoading } = useLocationBasedRecommendations(radiusKm);
 
   // Get real session data
   const { 
@@ -48,22 +62,70 @@ const Play = () => {
     loading: mySessionsLoading 
   } = useSafeRealTimeSessions('my-sessions', user?.id);
 
-  // Filter sessions based on search and format
-  const filteredAvailableSessions = availableSessions.filter(session => {
-    const matchesSearch = !searchQuery || 
-      session.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      session.creator_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      session.session_type.toLowerCase().includes(searchQuery.toLowerCase());
-    
-    const matchesFormat = selectedFormat === 'all' || 
-      session.session_type === selectedFormat ||
-      session.format === selectedFormat;
-    
-    return matchesSearch && matchesFormat;
-  });
+  // Enhanced session filtering and sorting
+  const filteredAndSortedSessions = useMemo(() => {
+    let filtered = availableSessions.filter(session => {
+      // Search filter
+      const matchesSearch = !searchQuery || 
+        session.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        session.creator_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        session.session_type.toLowerCase().includes(searchQuery.toLowerCase());
+      
+      // Format filter
+      const matchesFormat = selectedFormat === 'all' || 
+        session.session_type === selectedFormat ||
+        session.format === selectedFormat;
 
-  // Separate sessions by timing - for now treating all as active since we don't have timing data
-  const activeSessions = filteredAvailableSessions.filter(session => session.status === 'waiting');
+      // Session type filter
+      const matchesSessionType = sessionTypeFilter === 'all' || 
+        session.session_type === sessionTypeFilter;
+
+      // Stakes filter
+      const matchesStakes = stakesFilter === 'all' || 
+        (stakesFilter === 'free' && session.stakes_amount === 0) ||
+        (stakesFilter === 'low' && session.stakes_amount > 0 && session.stakes_amount <= 50) ||
+        (stakesFilter === 'medium' && session.stakes_amount > 50 && session.stakes_amount <= 200) ||
+        (stakesFilter === 'high' && session.stakes_amount > 200);
+      
+      return matchesSearch && matchesFormat && matchesSessionType && matchesStakes;
+    });
+
+    // Sorting
+    filtered.sort((a, b) => {
+      switch (sortBy) {
+        case 'distance':
+          // Use location data if available
+          const aDistance = nearbySessions.find(ns => ns.id === a.id)?.distance_km ?? 999;
+          const bDistance = nearbySessions.find(ns => ns.id === b.id)?.distance_km ?? 999;
+          return aDistance - bDistance;
+        case 'participants':
+          return (b.participant_count || 0) - (a.participant_count || 0);
+        case 'stakes':
+          return b.stakes_amount - a.stakes_amount;
+        case 'created_at':
+        default:
+          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      }
+    });
+
+    return filtered;
+  }, [availableSessions, searchQuery, selectedFormat, sessionTypeFilter, stakesFilter, sortBy, nearbySessions]);
+
+  // Count active filters
+  const activeFiltersCount = [
+    sessionTypeFilter !== 'all',
+    stakesFilter !== 'all',
+    sortBy !== (hasLocation ? 'distance' : 'created_at')
+  ].filter(Boolean).length;
+
+  const clearFilters = () => {
+    setSessionTypeFilter('all');
+    setStakesFilter('all');
+    setSortBy(hasLocation ? 'distance' : 'created_at');
+  };
+
+  // Separate sessions by timing
+  const activeSessions = filteredAndSortedSessions.filter(session => session.status === 'waiting');
   const upcomingSessions = []; // We'll enhance this later with scheduled sessions
 
   const getTypeColor = (type: string) => {
@@ -88,6 +150,10 @@ const Play = () => {
     const TypeIcon = getTypeIcon(session.session_type || session.type);
     const sessionType = session.session_type || session.type;
     
+    // Find distance data if available
+    const nearbySession = nearbySessions.find(ns => ns.id === session.id);
+    const distance = nearbySession?.distance_km;
+    
     const handleJoinSession = async () => {
       if (session.user_joined) return;
       await joinSession(session.id);
@@ -103,9 +169,16 @@ const Play = () => {
                 {session.title || `${sessionType.charAt(0).toUpperCase() + sessionType.slice(1)} Session`}
               </CardTitle>
             </div>
-            <Badge className={getTypeColor(sessionType)}>
-              {sessionType.charAt(0).toUpperCase() + sessionType.slice(1)}
-            </Badge>
+            <div className="flex flex-col items-end gap-1">
+              <Badge className={getTypeColor(sessionType)}>
+                {sessionType.charAt(0).toUpperCase() + sessionType.slice(1)}
+              </Badge>
+              {distance && (
+                <Badge variant="outline" className="text-xs">
+                  {distance.toFixed(1)}km away
+                </Badge>
+              )}
+            </div>
           </div>
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-1">
@@ -190,9 +263,18 @@ const Play = () => {
                 />
               </div>
               <div className="flex gap-2">
-                <Button variant="outline" size="sm">
-                  <Filter className="h-4 w-4 mr-2" />
+                <Button 
+                  variant={showFilters ? "default" : "outline"} 
+                  size="sm"
+                  onClick={() => setShowFilters(!showFilters)}
+                >
+                  <SlidersHorizontal className="h-4 w-4 mr-2" />
                   Filters
+                  {activeFiltersCount > 0 && (
+                    <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
+                      {activeFiltersCount}
+                    </Badge>
+                  )}
                 </Button>
                 <Link to="/sessions/create">
                   <Button size="sm" className="bg-tennis-green-primary hover:bg-tennis-green-medium">
@@ -205,22 +287,70 @@ const Play = () => {
           </CardContent>
         </Card>
 
-        {/* Session Types */}
+        {/* Advanced Filters */}
+        {showFilters && (
+          <LocationFilters
+            radiusKm={radiusKm}
+            onRadiusChange={setRadiusKm}
+            sortBy={sortBy}
+            onSortChange={setSortBy}
+            sessionTypeFilter={sessionTypeFilter}
+            onSessionTypeFilterChange={setSessionTypeFilter}
+            stakesFilter={stakesFilter}
+            onStakesFilterChange={setStakesFilter}
+            hasLocation={hasLocation}
+            activeFiltersCount={activeFiltersCount}
+            onClearFilters={clearFilters}
+          />
+        )}
+
+        {/* Smart Recommendations */}
+        {hasLocation && (
+          <LocationBasedRecommendations
+            recommendations={recommendations}
+            onJoinSession={joinSession}
+            loading={recommendationsLoading}
+          />
+        )}
+
+        {/* Session Tabs */}
         <Tabs defaultValue="active" className="w-full">
           <TabsList className="grid w-full grid-cols-3">
-            <TabsTrigger value="active">Active Now</TabsTrigger>
+            <TabsTrigger value="active">
+              Active Now
+              <Badge variant="secondary" className="ml-2">
+                {activeSessions.length}
+              </Badge>
+            </TabsTrigger>
             <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
-            <TabsTrigger value="my-sessions">My Sessions</TabsTrigger>
+            <TabsTrigger value="my-sessions">
+              My Sessions
+              <Badge variant="secondary" className="ml-2">
+                {mySessions.length}
+              </Badge>
+            </TabsTrigger>
           </TabsList>
           
           <TabsContent value="active" className="space-y-4">
             <div className="flex items-center justify-between">
               <h2 className="text-xl font-semibold text-tennis-green-dark">
                 Active Sessions
+                {hasLocation && sortBy === 'distance' && (
+                  <span className="text-sm font-normal text-gray-600 ml-2">
+                    (Sorted by distance)
+                  </span>
+                )}
               </h2>
-              <Badge variant="outline">
-                {activeSessions.length} available
-              </Badge>
+              <div className="flex items-center gap-2">
+                {hasLocation && (
+                  <Badge variant="outline" className="text-xs">
+                    Within {radiusKm}km
+                  </Badge>
+                )}
+                <Badge variant="outline">
+                  {activeSessions.length} available
+                </Badge>
+              </div>
             </div>
             
             {availableLoading ? (
