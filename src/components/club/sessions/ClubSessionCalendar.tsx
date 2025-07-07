@@ -1,397 +1,408 @@
-import React, { useState } from 'react';
+import React, { useState, useMemo } from 'react';
+import { Calendar, dateFnsLocalizer } from 'react-big-calendar';
+import { format, parse, startOfWeek, getDay } from 'date-fns';
+import { enUS } from 'date-fns/locale';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { format, startOfWeek, endOfWeek, eachDayOfInterval, addWeeks, subWeeks, isSameDay, isToday } from 'date-fns';
 import { 
   Calendar as CalendarIcon,
-  ChevronLeft, 
-  ChevronRight,
   Clock,
-  Target,
-  GraduationCap,
-  Users,
   MapPin,
   User,
-  Trophy,
-  MoreHorizontal
+  Users,
+  Settings,
+  Filter,
+  Plus
 } from 'lucide-react';
-import { Club } from '@/hooks/useClubs';
 import { useClubSessions, ClubSession } from '@/hooks/useClubSessions';
-import { cn } from '@/lib/utils';
+import { useClubCourts } from '@/hooks/useClubCourts';
+import { CreateClubSession } from './CreateClubSession';
+import { SessionCancellation } from './SessionCancellation';
+import 'react-big-calendar/lib/css/react-big-calendar.css';
+
+const localizer = dateFnsLocalizer({
+  format,
+  parse,
+  startOfWeek,
+  getDay,
+  locales: {
+    'en-US': enUS,
+  },
+});
 
 interface ClubSessionCalendarProps {
-  club: Club;
+  clubId: string;
 }
 
-type CalendarView = 'week' | 'day';
+interface CalendarEvent {
+  id: string;
+  title: string;
+  start: Date;
+  end: Date;
+  resource: ClubSession;
+}
 
-export function ClubSessionCalendar({ club }: ClubSessionCalendarProps) {
-  const { sessions, getSessionsForDate } = useClubSessions(club.id);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [view, setView] = useState<CalendarView>('week');
-  const [selectedSession, setSelectedSession] = useState<ClubSession | null>(null);
-  const [showSessionDetails, setShowSessionDetails] = useState(false);
-
-  const weekStart = startOfWeek(currentDate, { weekStartsOn: 1 }); // Monday start
-  const weekEnd = endOfWeek(currentDate, { weekStartsOn: 1 });
-  const weekDays = eachDayOfInterval({ start: weekStart, end: weekEnd });
-
-  const timeSlots = Array.from({ length: 28 }, (_, i) => {
-    const hour = Math.floor(i / 2) + 6; // Start from 6 AM
-    const minute = i % 2 === 0 ? '00' : '30';
-    return `${hour.toString().padStart(2, '0')}:${minute}`;
+export function ClubSessionCalendar({ clubId }: ClubSessionCalendarProps) {
+  const { sessions, loading, refetch, cancelSession } = useClubSessions(clubId);
+  const { courts } = useClubCourts(clubId);
+  const [view, setView] = useState<'month' | 'week' | 'day'>('week');
+  const [selectedEvent, setSelectedEvent] = useState<ClubSession | null>(null);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [filters, setFilters] = useState({
+    sessionType: 'all',
+    status: 'active',
+    court: 'all'
   });
 
-  const getSessionTypeIcon = (type: string) => {
-    switch (type) {
-      case 'court_booking':
-        return <Target className="h-3 w-3" />;
-      case 'coaching':
-        return <GraduationCap className="h-3 w-3" />;
-      case 'group_training':
-        return <Users className="h-3 w-3" />;
-      case 'tournament':
-        return <Trophy className="h-3 w-3" />;
-      default:
-        return <CalendarIcon className="h-3 w-3" />;
-    }
-  };
+  // Convert sessions to calendar events
+  const events: CalendarEvent[] = useMemo(() => {
+    return sessions
+      .filter(session => {
+        // Apply filters
+        if (filters.sessionType !== 'all' && session.session_type !== filters.sessionType) {
+          return false;
+        }
+        if (filters.status === 'active' && session.status === 'cancelled') {
+          return false;
+        }
+        if (filters.court !== 'all' && session.court_id !== filters.court) {
+          return false;
+        }
+        return true;
+      })
+      .map(session => ({
+        id: session.id,
+        title: session.title,
+        start: new Date(session.start_datetime),
+        end: new Date(session.end_datetime),
+        resource: session
+      }));
+  }, [sessions, filters]);
 
-  const getSessionTypeColor = (type: string) => {
-    switch (type) {
-      case 'court_booking':
-        return 'bg-blue-500';
-      case 'coaching':
-        return 'bg-green-500';
-      case 'group_training':
-        return 'bg-purple-500';
-      case 'tournament':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
-
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case 'scheduled':
-        return <Badge variant="outline" className="text-xs">Scheduled</Badge>;
-      case 'confirmed':
-        return <Badge className="text-xs bg-green-100 text-green-800">Confirmed</Badge>;
-      case 'cancelled':
-        return <Badge variant="destructive" className="text-xs">Cancelled</Badge>;
-      case 'completed':
-        return <Badge className="text-xs bg-blue-100 text-blue-800">Completed</Badge>;
-      default:
-        return <Badge variant="secondary" className="text-xs">{status}</Badge>;
-    }
-  };
-
-  const handleSessionClick = (session: ClubSession) => {
-    setSelectedSession(session);
-    setShowSessionDetails(true);
-  };
-
-  const navigateWeek = (direction: 'prev' | 'next') => {
-    setCurrentDate(direction === 'prev' ? subWeeks(currentDate, 1) : addWeeks(currentDate, 1));
-  };
-
-  const renderWeekView = () => (
-    <div className="grid grid-cols-8 gap-px bg-gray-200 rounded-lg overflow-hidden">
-      {/* Time column header */}
-      <div className="bg-tennis-green-bg/30 p-2">
-        <p className="text-xs font-medium text-center">Time</p>
-      </div>
-      
-      {/* Day headers */}
-      {weekDays.map((day) => (
-        <div key={day.toISOString()} className={cn(
-          "bg-tennis-green-bg/30 p-2",
-          isToday(day) && "bg-tennis-green-primary/20"
-        )}>
-          <p className="text-xs font-medium text-center">
-            {format(day, 'EEE')}
-          </p>
-          <p className={cn(
-            "text-lg font-bold text-center",
-            isToday(day) ? "text-tennis-green-primary" : "text-tennis-green-dark"
-          )}>
-            {format(day, 'd')}
-          </p>
-        </div>
-      ))}
-      
-      {/* Time slots and sessions */}
-      {timeSlots.map((timeSlot) => (
-        <React.Fragment key={timeSlot}>
-          {/* Time label */}
-          <div className="bg-white p-2 border-r">
-            <p className="text-xs text-tennis-green-medium font-medium">{timeSlot}</p>
-          </div>
-          
-          {/* Day columns */}
-          {weekDays.map((day) => {
-            const daySessions = getSessionsForDate(day).filter(session => {
-              const sessionTime = format(new Date(session.start_datetime), 'HH:mm');
-              return sessionTime === timeSlot;
-            });
-
-            return (
-              <div key={`${day.toISOString()}-${timeSlot}`} className="bg-white p-1 min-h-[60px] relative">
-                {daySessions.map((session) => (
-                  <div
-                    key={session.id}
-                    onClick={() => handleSessionClick(session)}
-                    className={cn(
-                      "absolute inset-1 rounded p-1 cursor-pointer hover:opacity-80 transition-opacity",
-                      getSessionTypeColor(session.session_type),
-                      "text-white text-xs"
-                    )}
-                    style={{
-                      height: `${parseFloat(format(new Date(session.end_datetime).getTime() - new Date(session.start_datetime).getTime(), 'H')) * 60}px`,
-                      minHeight: '40px'
-                    }}
-                  >
-                    <div className="flex items-start gap-1">
-                      {getSessionTypeIcon(session.session_type)}
-                      <div className="flex-1 min-w-0">
-                        <p className="font-medium truncate">{session.title}</p>
-                        <p className="text-xs opacity-80">
-                          {format(new Date(session.start_datetime), 'HH:mm')} - 
-                          {format(new Date(session.end_datetime), 'HH:mm')}
-                        </p>
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            );
-          })}
-        </React.Fragment>
-      ))}
-    </div>
-  );
-
-  const renderDayView = () => {
-    const daySessions = getSessionsForDate(currentDate);
+  // Custom event component
+  const EventComponent = ({ event }: { event: CalendarEvent }) => {
+    const session = event.resource;
+    const court = courts.find(c => c.id === session.court_id);
     
     return (
-      <div className="space-y-4">
-        <div className="text-center">
-          <h3 className="text-lg font-semibold">
-            {format(currentDate, 'EEEE, MMMM d, yyyy')}
-          </h3>
-        </div>
-        
-        <div className="grid gap-2">
-          {timeSlots.map((timeSlot) => {
-            const slotSessions = daySessions.filter(session => {
-              const sessionTime = format(new Date(session.start_datetime), 'HH:mm');
-              return sessionTime === timeSlot;
-            });
-
-            return (
-              <div key={timeSlot} className="grid grid-cols-[80px_1fr] gap-4 p-2 border-b">
-                <div className="text-sm font-medium text-tennis-green-medium">
-                  {timeSlot}
-                </div>
-                <div className="space-y-2">
-                  {slotSessions.length > 0 ? (
-                    slotSessions.map((session) => (
-                      <div
-                        key={session.id}
-                        onClick={() => handleSessionClick(session)}
-                        className="p-3 rounded-lg border hover:bg-tennis-green-bg/30 cursor-pointer transition-colors"
-                      >
-                        <div className="flex items-center justify-between">
-                          <div className="flex items-center gap-2">
-                            <div className={cn(
-                              "p-1 rounded",
-                              getSessionTypeColor(session.session_type)
-                            )}>
-                              {getSessionTypeIcon(session.session_type)}
-                            </div>
-                            <div>
-                              <p className="font-medium">{session.title}</p>
-                              <p className="text-sm text-tennis-green-medium">
-                                {format(new Date(session.start_datetime), 'HH:mm')} - 
-                                {format(new Date(session.end_datetime), 'HH:mm')}
-                              </p>
-                            </div>
-                          </div>
-                          {getStatusBadge(session.status)}
-                        </div>
-                      </div>
-                    ))
-                  ) : (
-                    <div className="text-tennis-green-medium/50 text-sm italic">
-                      No sessions scheduled
-                    </div>
-                  )}
-                </div>
-              </div>
-            );
-          })}
+      <div className="p-1 text-xs">
+        <div className="font-medium truncate">{session.title}</div>
+        {court && (
+          <div className="text-tennis-green-medium truncate">{court.name}</div>
+        )}
+        <div className="flex items-center gap-1 mt-1">
+          <Badge 
+            variant={session.status === 'confirmed' ? 'default' : 'secondary'}
+            className="text-xs px-1 py-0"
+          >
+            {session.status}
+          </Badge>
         </div>
       </div>
     );
   };
 
+  // Event style getter
+  const eventStyleGetter = (event: CalendarEvent) => {
+    const session = event.resource;
+    let backgroundColor = '#0D4F3C'; // tennis-green-primary
+    let borderColor = '#0D4F3C';
+    
+    switch (session.session_type) {
+      case 'coaching':
+        backgroundColor = '#1E40AF'; // blue
+        borderColor = '#1E40AF';
+        break;
+      case 'group_training':
+        backgroundColor = '#7C2D12'; // orange
+        borderColor = '#7C2D12';
+        break;
+      case 'tournament':
+        backgroundColor = '#B91C1C'; // red
+        borderColor = '#B91C1C';
+        break;
+    }
+
+    if (session.status === 'cancelled') {
+      backgroundColor = '#6B7280'; // gray
+      borderColor = '#6B7280';
+    }
+
+    return {
+      style: {
+        backgroundColor,
+        borderColor,
+        color: 'white',
+        border: 'none',
+        borderRadius: '4px',
+        fontSize: '12px'
+      }
+    };
+  };
+
+  const handleSelectEvent = (event: CalendarEvent) => {
+    setSelectedEvent(event.resource);
+  };
+
+  const handleSelectSlot = ({ start, end }: { start: Date; end: Date }) => {
+    // Open create dialog with pre-selected time
+    setShowCreateDialog(true);
+  };
+
+  const handleCancelSession = async (sessionId: string, reason?: string) => {
+    await cancelSession(sessionId, reason);
+    setShowCancelDialog(false);
+    setSelectedEvent(null);
+    refetch();
+  };
+
+  if (loading) {
+    return (
+      <Card>
+        <CardContent className="p-8 text-center">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-tennis-green-primary mx-auto"></div>
+          <p className="mt-4 text-tennis-green-medium">Loading calendar...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <div className="space-y-6">
-      {/* Calendar Header */}
-      <div className="flex items-center justify-between">
+      {/* Header & Controls */}
+      <div className="flex flex-col sm:flex-row gap-4 justify-between items-start">
         <div>
-          <h2 className="text-lg font-semibold text-tennis-green-dark">Session Calendar</h2>
-          <p className="text-sm text-tennis-green-medium">
-            {view === 'week' 
-              ? `Week of ${format(weekStart, 'MMM d')} - ${format(weekEnd, 'MMM d, yyyy')}`
-              : format(currentDate, 'MMMM d, yyyy')
-            }
-          </p>
+          <h2 className="text-2xl font-bold text-tennis-green-dark">Session Calendar</h2>
+          <p className="text-tennis-green-medium">Manage your club sessions and bookings</p>
         </div>
         
-        <div className="flex items-center gap-2">
-          <Select value={view} onValueChange={(value: CalendarView) => setView(value)}>
-            <SelectTrigger className="w-24">
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="week">Week</SelectItem>
-              <SelectItem value="day">Day</SelectItem>
-            </SelectContent>
-          </Select>
-          
-          <div className="flex items-center gap-1">
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => view === 'week' ? navigateWeek('prev') : setCurrentDate(new Date(currentDate.getTime() - 24 * 60 * 60 * 1000))}
-            >
-              <ChevronLeft className="h-4 w-4" />
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setCurrentDate(new Date())}
-            >
-              Today
-            </Button>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => view === 'week' ? navigateWeek('next') : setCurrentDate(new Date(currentDate.getTime() + 24 * 60 * 60 * 1000))}
-            >
-              <ChevronRight className="h-4 w-4" />
-            </Button>
-          </div>
+        <div className="flex gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowCreateDialog(true)}
+            className="flex items-center gap-2"
+          >
+            <Plus className="h-4 w-4" />
+            New Session
+          </Button>
         </div>
       </div>
 
-      {/* Calendar Content */}
+      {/* View Controls & Filters */}
       <Card>
         <CardContent className="p-4">
-          {view === 'week' ? renderWeekView() : renderDayView()}
+          <div className="flex flex-col sm:flex-row gap-4 justify-between">
+            {/* View Buttons */}
+            <div className="flex gap-2">
+              {(['month', 'week', 'day'] as const).map(viewType => (
+                <Button
+                  key={viewType}
+                  variant={view === viewType ? 'default' : 'outline'}
+                  size="sm"
+                  onClick={() => setView(viewType)}
+                >
+                  {viewType.charAt(0).toUpperCase() + viewType.slice(1)}
+                </Button>
+              ))}
+            </div>
+
+            {/* Filters */}
+            <div className="flex gap-2 items-center">
+              <Filter className="h-4 w-4 text-tennis-green-medium" />
+              
+              <select
+                value={filters.sessionType}
+                onChange={(e) => setFilters(prev => ({ ...prev, sessionType: e.target.value }))}
+                className="text-sm border rounded px-2 py-1"
+              >
+                <option value="all">All Types</option>
+                <option value="court_booking">Court Booking</option>
+                <option value="coaching">Coaching</option>
+                <option value="group_training">Group Training</option>
+                <option value="tournament">Tournament</option>
+              </select>
+
+              <select
+                value={filters.court}
+                onChange={(e) => setFilters(prev => ({ ...prev, court: e.target.value }))}
+                className="text-sm border rounded px-2 py-1"
+              >
+                <option value="all">All Courts</option>
+                {courts.map(court => (
+                  <option key={court.id} value={court.id}>{court.name}</option>
+                ))}
+              </select>
+
+              <select
+                value={filters.status}
+                onChange={(e) => setFilters(prev => ({ ...prev, status: e.target.value }))}
+                className="text-sm border rounded px-2 py-1"
+              >
+                <option value="active">Active Only</option>
+                <option value="all">All Status</option>
+                <option value="cancelled">Cancelled Only</option>
+              </select>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Calendar */}
+      <Card>
+        <CardContent className="p-4">
+          <div style={{ height: '600px' }}>
+            <Calendar
+              localizer={localizer}
+              events={events}
+              startAccessor="start"
+              endAccessor="end"
+              view={view}
+              onView={setView}
+              onSelectEvent={handleSelectEvent}
+              onSelectSlot={handleSelectSlot}
+              selectable
+              eventPropGetter={eventStyleGetter}
+              components={{
+                event: EventComponent,
+              }}
+              step={30}
+              timeslots={2}
+              min={new Date(2000, 0, 1, 6, 0, 0)} // 6 AM
+              max={new Date(2000, 0, 1, 22, 0, 0)} // 10 PM
+              formats={{
+                timeGutterFormat: 'HH:mm',
+                eventTimeRangeFormat: ({ start, end }, culture, localizer) =>
+                  `${localizer.format(start, 'HH:mm', culture)} - ${localizer.format(end, 'HH:mm', culture)}`
+              }}
+            />
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* Legend */}
+      <Card>
+        <CardContent className="p-4">
+          <h3 className="font-medium mb-3">Session Types</h3>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-tennis-green-primary rounded"></div>
+              <span className="text-sm">Court Booking</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-blue-600 rounded"></div>
+              <span className="text-sm">Coaching</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-orange-600 rounded"></div>
+              <span className="text-sm">Group Training</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-red-600 rounded"></div>
+              <span className="text-sm">Tournament</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <div className="w-4 h-4 bg-gray-500 rounded"></div>
+              <span className="text-sm">Cancelled</span>
+            </div>
+          </div>
         </CardContent>
       </Card>
 
       {/* Session Details Modal */}
-      <Dialog open={showSessionDetails} onOpenChange={setShowSessionDetails}>
-        <DialogContent className="sm:max-w-md">
-          <DialogHeader>
-            <DialogTitle className="flex items-center gap-2">
-              {selectedSession && getSessionTypeIcon(selectedSession.session_type)}
-              Session Details
-            </DialogTitle>
-          </DialogHeader>
-          
-          {selectedSession && (
-            <div className="space-y-4">
-              <div>
-                <h3 className="font-semibold text-lg">{selectedSession.title}</h3>
-                {selectedSession.description && (
-                  <p className="text-tennis-green-medium mt-1">{selectedSession.description}</p>
-                )}
-              </div>
-              
-              <div className="grid gap-3">
-                <div className="flex items-center gap-2">
-                  <Clock className="h-4 w-4 text-tennis-green-medium" />
-                  <span className="text-sm">
-                    {format(new Date(selectedSession.start_datetime), 'PPP p')} - 
-                    {format(new Date(selectedSession.end_datetime), 'p')}
-                  </span>
-                </div>
-                
-                {selectedSession.court_id && (
-                  <div className="flex items-center gap-2">
-                    <Target className="h-4 w-4 text-tennis-green-medium" />
-                    <span className="text-sm">Court {selectedSession.court_id.slice(-1)}</span>
-                  </div>
-                )}
-                
-                {selectedSession.coach_id && (
-                  <div className="flex items-center gap-2">
-                    <GraduationCap className="h-4 w-4 text-tennis-green-medium" />
-                    <span className="text-sm">Coach Session</span>
-                  </div>
-                )}
-                
-                <div className="flex items-center gap-2">
-                  <Users className="h-4 w-4 text-tennis-green-medium" />
-                  <span className="text-sm">
-                    {selectedSession.participants.length}
-                    {selectedSession.max_participants && ` / ${selectedSession.max_participants}`} participants
-                  </span>
-                </div>
-              </div>
-              
-              <div className="flex items-center justify-between pt-2 border-t">
-                {getStatusBadge(selectedSession.status)}
-                <div className="text-right">
-                  <p className="text-sm font-medium">
-                    {selectedSession.payment_method === 'tokens' 
-                      ? `${selectedSession.cost_tokens} tokens`
-                      : `$${selectedSession.cost_money}`
-                    }
-                  </p>
-                  <p className="text-xs text-tennis-green-medium">
-                    {selectedSession.payment_status}
-                  </p>
-                </div>
-              </div>
-            </div>
-          )}
-        </DialogContent>
-      </Dialog>
+      {selectedEvent && (
+        <SessionDetailsModal 
+          session={selectedEvent}
+          onClose={() => setSelectedEvent(null)}
+          onCancel={() => setShowCancelDialog(true)}
+        />
+      )}
 
-      {/* Legend */}
-      <Card>
+      {/* Create Session Dialog */}
+      <CreateClubSession
+        clubId={clubId}
+        isOpen={showCreateDialog}
+        onClose={() => setShowCreateDialog(false)}
+        onSuccess={() => {
+          refetch();
+          setShowCreateDialog(false);
+        }}
+      />
+
+      {/* Cancel Session Dialog */}
+      <SessionCancellation
+        session={selectedEvent}
+        isOpen={showCancelDialog}
+        onClose={() => setShowCancelDialog(false)}
+        onConfirm={handleCancelSession}
+      />
+    </div>
+  );
+}
+
+// Session Details Modal Component
+interface SessionDetailsModalProps {
+  session: ClubSession;
+  onClose: () => void;
+  onCancel: () => void;
+}
+
+function SessionDetailsModal({ session, onClose, onCancel }: SessionDetailsModalProps) {
+  return (
+    <div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
+      <Card className="w-full max-w-md">
         <CardHeader>
-          <CardTitle className="text-sm">Session Types</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <CalendarIcon className="h-5 w-5" />
+            Session Details
+          </CardTitle>
         </CardHeader>
-        <CardContent className="space-y-2">
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <CardContent className="space-y-4">
+          <div>
+            <h3 className="font-semibold text-lg">{session.title}</h3>
+            {session.description && (
+              <p className="text-tennis-green-medium mt-1">{session.description}</p>
+            )}
+          </div>
+
+          <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-blue-500 rounded"></div>
-              <span className="text-xs">Court Booking</span>
+              <Clock className="h-4 w-4 text-tennis-green-medium" />
+              <span className="text-sm">
+                {format(new Date(session.start_datetime), 'PPP p')} - 
+                {format(new Date(session.end_datetime), 'p')}
+              </span>
             </div>
+
             <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-green-500 rounded"></div>
-              <span className="text-xs">Coaching</span>
+              <Badge className="capitalize">{session.session_type.replace('_', ' ')}</Badge>
+              <Badge variant={session.status === 'confirmed' ? 'default' : 'secondary'}>
+                {session.status}
+              </Badge>
             </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-purple-500 rounded"></div>
-              <span className="text-xs">Group Training</span>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="w-3 h-3 bg-red-500 rounded"></div>
-              <span className="text-xs">Tournament</span>
-            </div>
+
+            {session.cost_tokens > 0 && (
+              <div className="flex items-center gap-2">
+                <span className="text-sm">Cost: {session.cost_tokens} tokens</span>
+              </div>
+            )}
+          </div>
+
+          <div className="flex gap-2 pt-4">
+            <Button variant="outline" onClick={onClose} className="flex-1">
+              Close
+            </Button>
+            {session.status !== 'cancelled' && (
+              <Button 
+                variant="destructive" 
+                onClick={onCancel}
+                className="flex-1"
+              >
+                Cancel Session
+              </Button>
+            )}
           </div>
         </CardContent>
       </Card>

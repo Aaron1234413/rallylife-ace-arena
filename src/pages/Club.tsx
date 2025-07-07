@@ -222,7 +222,7 @@ export default function Club() {
 
           <TabsContent value="sessions">
             {isMember ? (
-              <ClubSessionCalendar club={club} />
+              <ClubSessionCalendar clubId={club.id} />
             ) : (
               <div className="text-center p-8 bg-white rounded-lg shadow-lg">
                 <h3 className="font-medium mb-2">Member Access Required</h3>
@@ -235,7 +235,12 @@ export default function Club() {
 
           <TabsContent value="create-session">
             {isMember ? (
-              <CreateClubSession club={club} />
+              <CreateClubSession 
+                clubId={club.id}
+                isOpen={true}
+                onClose={() => {}}
+                onSuccess={() => {}}
+              />
             ) : (
               <div className="text-center p-8 bg-white rounded-lg shadow-lg">
                 <h3 className="font-medium mb-2">Member Access Required</h3>
