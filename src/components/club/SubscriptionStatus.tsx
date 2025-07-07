@@ -16,11 +16,26 @@ interface SubscriptionStatusProps {
 }
 
 export function SubscriptionStatus({ clubId, subscription, usage, onUpgrade }: SubscriptionStatusProps) {
-  const { tiers } = useSubscriptionTiers();
+  const { tiers, loading } = useSubscriptionTiers();
   const { openCustomerPortal } = useClubSubscription(clubId);
   const { tierLimits, usageStatus } = useTierEnforcement(subscription, usage);
 
   const currentTier = tiers.find(t => t.id === subscription?.tier_id) || tiers[0];
+  
+  // Show loading state while tiers are being fetched
+  if (loading || !currentTier) {
+    return (
+      <Card>
+        <CardContent className="p-6">
+          <div className="animate-pulse space-y-4">
+            <div className="h-4 bg-tennis-green-bg rounded w-1/3"></div>
+            <div className="h-8 bg-tennis-green-bg rounded"></div>
+            <div className="h-4 bg-tennis-green-bg rounded w-1/2"></div>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
 
   const getTierIcon = (tierId: string) => {
     switch (tierId) {
