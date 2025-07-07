@@ -25,16 +25,18 @@ import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecomme
 import { useAuth } from '@/hooks/useAuth';
 import { EnhancedLocationFilters } from '@/components/play/EnhancedLocationFilters';
 import { NearbyPlayersWidget } from '@/components/play/NearbyPlayersWidget';
+import { useJoinSessionState } from '@/hooks/useJoinSessionState';
 
 const Play = () => {
   const { user } = useAuth();
+  const { isJoining, startJoining, stopJoining } = useJoinSessionState();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
   
   // Location and filter states
   const [radiusKm, setRadiusKm] = useState(50);
-  const [sortBy, setSortBy] = useState('distance');
+  const [sortBy, setSortBy] = useState('created_at'); // Default to created_at instead of distance
   const [sessionTypeFilter, setSessionTypeFilter] = useState('all');
   const [stakesFilter, setStakesFilter] = useState('all');
   const [levelFilter, setLevelFilter] = useState('all');
@@ -54,11 +56,19 @@ const Play = () => {
   // Recommendations
   const { recommendations, loading: recommendationsLoading } = useLocationBasedRecommendations(radiusKm);
 
+  // Auto-switch to distance sorting when location becomes available
+  React.useEffect(() => {
+    if (hasLocation && sortBy === 'created_at') {
+      setSortBy('distance');
+    }
+  }, [hasLocation, sortBy]);
+
   // Get real session data
   const { 
     sessions: availableSessions, 
     loading: availableLoading, 
-    joinSession 
+    joinSession,
+    error: sessionError 
   } = useSafeRealTimeSessions('available', user?.id);
   
   const { 
@@ -166,8 +176,19 @@ const Play = () => {
     const distance = nearbySession?.distance_km;
     
     const handleJoinSession = async () => {
-      if (session.user_joined) return;
-      await joinSession(session.id);
+      if (session.user_joined || isJoining(session.id)) return;
+      
+      console.log('Attempting to join session:', session.id);
+      startJoining(session.id);
+      
+      try {
+        await joinSession(session.id);
+        console.log('Successfully joined session:', session.id);
+      } catch (error) {
+        console.error('Failed to join session:', error);
+      } finally {
+        stopJoining();
+      }
     };
     
     return (
@@ -234,11 +255,20 @@ const Play = () => {
               </span>
               <Button 
                 size="sm" 
-                className="bg-tennis-green-primary hover:bg-tennis-green-medium"
+                className={session.user_joined 
+                  ? "bg-green-500 hover:bg-green-600 text-white" 
+                  : "bg-tennis-green-primary hover:bg-tennis-green-medium"
+                }
                 onClick={handleJoinSession}
-                disabled={session.user_joined}
+                disabled={session.user_joined || !user || isJoining(session.id)}
+                title={!user ? 'Please log in to join sessions' : undefined}
               >
-                {session.user_joined ? 'Joined' : 'Join Session'}
+                {isJoining(session.id) ? (
+                  <div className="flex items-center gap-2">
+                    <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                    Joining...
+                  </div>
+                ) : session.user_joined ? '✓ Joined' : 'Join Session'}
               </Button>
             </div>
           </div>
@@ -429,6 +459,22 @@ const Play = () => {
                 </Badge>
               </div>
             </div>
+            
+            {sessionError && (
+              <Card className="border-l-4 border-l-red-500 mb-4">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <div className="h-5 w-5 text-red-600">⚠️</div>
+                    <div>
+                      <h3 className="font-medium text-red-800">Failed to Load Sessions</h3>
+                      <p className="text-sm text-red-700">
+                        There was an error loading sessions. Please try refreshing the page.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
             
             {availableLoading ? (
               <div className="text-center py-8">

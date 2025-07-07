@@ -48,17 +48,21 @@ export function useLocationBasedSessions(radiusKm: number = 50) {
 
   useEffect(() => {
     const fetchNearbyData = async () => {
+      setLoading(true);
+      setError(null);
+
+      // If no location, still try to fetch some general session data
       if (!currentLocation) {
+        console.log('No location available, skipping location-based queries');
         setLoading(false);
         setNearbySessions([]);
         setNearbyPlayers([]);
         return;
       }
 
-      setLoading(true);
-      setError(null);
-
       try {
+        console.log('Fetching nearby data with location:', currentLocation, 'radius:', radiusKm);
+        
         // Fetch nearby sessions with enhanced data
         const { data: sessionsData, error: sessionsError } = await supabase.rpc('get_nearby_sessions', {
           user_lat: currentLocation.lat,
@@ -66,10 +70,11 @@ export function useLocationBasedSessions(radiusKm: number = 50) {
           radius_km: radiusKm
         });
 
-        if (sessionsError) throw sessionsError;
-
-        // Get full session details for nearby sessions
-        if (sessionsData && sessionsData.length > 0) {
+        if (sessionsError) {
+          console.warn('Error fetching nearby sessions:', sessionsError);
+          // Don't throw error, just log it and continue
+          setNearbySessions([]);
+        } else if (sessionsData && sessionsData.length > 0) {
           const sessionIds = sessionsData.map((s: any) => s.session_id);
           
           const { data: fullSessions, error: fullSessionsError } = await supabase
@@ -119,10 +124,10 @@ export function useLocationBasedSessions(radiusKm: number = 50) {
           radius_km: radiusKm
         });
 
-        if (playersError) throw playersError;
-
-        // Get full player details with recent activity and level info
-        if (playersData && playersData.length > 0) {
+        if (playersError) {
+          console.warn('Error fetching nearby players:', playersError);
+          setNearbyPlayers([]);
+        } else if (playersData && playersData.length > 0) {
           const playerIds = playersData.map((p: any) => p.player_id);
           
           const { data: fullPlayers, error: fullPlayersError } = await supabase
