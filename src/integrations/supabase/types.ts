@@ -4417,6 +4417,8 @@ export type Database = {
           created_at: string
           id: string
           lifetime_earned: number
+          monthly_subscription_tokens: number | null
+          personal_tokens: number | null
           player_id: string
           regular_tokens: number
           updated_at: string
@@ -4425,6 +4427,8 @@ export type Database = {
           created_at?: string
           id?: string
           lifetime_earned?: number
+          monthly_subscription_tokens?: number | null
+          personal_tokens?: number | null
           player_id: string
           regular_tokens?: number
           updated_at?: string
@@ -4433,6 +4437,8 @@ export type Database = {
           created_at?: string
           id?: string
           lifetime_earned?: number
+          monthly_subscription_tokens?: number | null
+          personal_tokens?: number | null
           player_id?: string
           regular_tokens?: number
           updated_at?: string
@@ -4979,6 +4985,10 @@ export type Database = {
           content_param: string
         }
         Returns: string
+      }
+      add_monthly_subscription_tokens: {
+        Args: { user_id_param: string; token_amount: number }
+        Returns: undefined
       }
       add_tokens: {
         Args: {
