@@ -13,6 +13,14 @@ export interface Club {
   member_count: number;
   created_at: string;
   updated_at: string;
+  court_count?: number;
+  coach_slots?: number;
+  operating_hours?: any;
+  subscription_tier?: string;
+  subscription_status?: string;
+  stripe_subscription_id?: string;
+  current_member_count?: number;
+  current_coach_count?: number;
 }
 
 export interface ClubMembership {
@@ -134,6 +142,10 @@ export function useClubs() {
     name: string;
     description?: string;
     is_public: boolean;
+    court_count?: number;
+    coach_slots?: number;
+    operating_hours?: any;
+    subscription_tier?: string;
   }) => {
     if (!user) throw new Error('User not authenticated');
 
@@ -150,6 +162,18 @@ export function useClubs() {
           description: clubData.description,
           is_public: clubData.is_public,
           owner_id: user.id,
+          court_count: clubData.court_count || 1,
+          coach_slots: clubData.coach_slots || 1,
+          operating_hours: clubData.operating_hours || {
+            monday: { open: '06:00', close: '22:00' },
+            tuesday: { open: '06:00', close: '22:00' },
+            wednesday: { open: '06:00', close: '22:00' },
+            thursday: { open: '06:00', close: '22:00' },
+            friday: { open: '06:00', close: '22:00' },
+            saturday: { open: '08:00', close: '20:00' },
+            sunday: { open: '08:00', close: '20:00' }
+          },
+          subscription_tier: clubData.subscription_tier || 'community',
         })
         .select()
         .single();

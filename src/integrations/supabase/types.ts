@@ -1195,36 +1195,60 @@ export type Database = {
       }
       clubs: {
         Row: {
+          coach_slots: number | null
+          court_count: number | null
           created_at: string
+          current_coach_count: number | null
+          current_member_count: number | null
           description: string | null
           id: string
           is_public: boolean
           logo_url: string | null
           member_count: number
           name: string
+          operating_hours: Json | null
           owner_id: string
+          stripe_subscription_id: string | null
+          subscription_status: string | null
+          subscription_tier: string | null
           updated_at: string
         }
         Insert: {
+          coach_slots?: number | null
+          court_count?: number | null
           created_at?: string
+          current_coach_count?: number | null
+          current_member_count?: number | null
           description?: string | null
           id?: string
           is_public?: boolean
           logo_url?: string | null
           member_count?: number
           name: string
+          operating_hours?: Json | null
           owner_id: string
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          subscription_tier?: string | null
           updated_at?: string
         }
         Update: {
+          coach_slots?: number | null
+          court_count?: number | null
           created_at?: string
+          current_coach_count?: number | null
+          current_member_count?: number | null
           description?: string | null
           id?: string
           is_public?: boolean
           logo_url?: string | null
           member_count?: number
           name?: string
+          operating_hours?: Json | null
           owner_id?: string
+          stripe_subscription_id?: string | null
+          subscription_status?: string | null
+          subscription_tier?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -4137,6 +4161,39 @@ export type Database = {
           routine_id?: string
           routine_name?: string
           user_id?: string
+        }
+        Relationships: []
+      }
+      subscription_tiers: {
+        Row: {
+          coach_limit: number
+          created_at: string | null
+          features: Json
+          id: string
+          member_limit: number
+          name: string
+          price_monthly: number
+          updated_at: string | null
+        }
+        Insert: {
+          coach_limit: number
+          created_at?: string | null
+          features: Json
+          id: string
+          member_limit: number
+          name: string
+          price_monthly: number
+          updated_at?: string | null
+        }
+        Update: {
+          coach_limit?: number
+          created_at?: string | null
+          features?: Json
+          id?: string
+          member_limit?: number
+          name?: string
+          price_monthly?: number
+          updated_at?: string | null
         }
         Relationships: []
       }
