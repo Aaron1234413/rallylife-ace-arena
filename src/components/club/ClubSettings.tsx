@@ -14,10 +14,16 @@ import {
   Users, 
   Image,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Crown
 } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
 import { toast } from 'sonner';
+import { useAuth } from '@/hooks/useAuth';
+import { useClubSubscription } from '@/hooks/useClubSubscription';
+import { SubscriptionStatus } from './SubscriptionStatus';
+import { TierUpgradeModal } from './TierUpgradeModal';
+import { OperatingHoursEditor, OperatingHours } from './OperatingHoursEditor';
 
 interface ClubSettingsProps {
   club: Club;
@@ -25,14 +31,30 @@ interface ClubSettingsProps {
 }
 
 export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
+  const { user } = useAuth();
+  const { subscription, usage, updateUsageTracking } = useClubSubscription(club.id);
   const [formData, setFormData] = useState({
     name: club.name,
     description: club.description || '',
     is_public: club.is_public,
-    logo_url: club.logo_url || ''
+    logo_url: club.logo_url || '',
+    court_count: club.court_count || 1,
+    coach_slots: club.coach_slots || 1,
+    operating_hours: club.operating_hours || {
+      monday: { open: '06:00', close: '22:00' },
+      tuesday: { open: '06:00', close: '22:00' },
+      wednesday: { open: '06:00', close: '22:00' },
+      thursday: { open: '06:00', close: '22:00' },
+      friday: { open: '06:00', close: '22:00' },
+      saturday: { open: '08:00', close: '20:00' },
+      sunday: { open: '08:00', close: '20:00' }
+    }
   });
   const [isUpdating, setIsUpdating] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  
+  const isOwner = user?.id === club.owner_id;
 
   const handleSave = async () => {
     setIsUpdating(true);
@@ -184,7 +206,18 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
                 name: club.name,
                 description: club.description || '',
                 is_public: club.is_public,
-                logo_url: club.logo_url || ''
+                logo_url: club.logo_url || '',
+                court_count: club.court_count || 1,
+                coach_slots: club.coach_slots || 1,
+                operating_hours: club.operating_hours || {
+                  monday: { open: '06:00', close: '22:00' },
+                  tuesday: { open: '06:00', close: '22:00' },
+                  wednesday: { open: '06:00', close: '22:00' },
+                  thursday: { open: '06:00', close: '22:00' },
+                  friday: { open: '06:00', close: '22:00' },
+                  saturday: { open: '08:00', close: '20:00' },
+                  sunday: { open: '08:00', close: '20:00' }
+                }
               });
             }}
             disabled={isUpdating}
@@ -193,6 +226,75 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
           </Button>
         )}
       </div>
+
+      {/* Subscription Management for Owners */}
+      {isOwner && (
+        <div className="space-y-6">
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Crown className="h-5 w-5 text-tennis-green-primary" />
+                Subscription & Billing
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <SubscriptionStatus
+                clubId={club.id}
+                subscription={subscription}
+                usage={usage}
+                onUpgrade={() => setShowUpgradeModal(true)}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Operating Hours */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Operating Hours</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <OperatingHoursEditor
+                operatingHours={formData.operating_hours as OperatingHours}
+                onOperatingHoursChange={(hours) => setFormData(prev => ({ ...prev, operating_hours: hours }))}
+                disabled={isUpdating}
+              />
+            </CardContent>
+          </Card>
+
+          {/* Club Capacity */}
+          <Card>
+            <CardHeader>
+              <CardTitle>Club Capacity</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label htmlFor="court_count">Number of Courts</Label>
+                  <Input
+                    id="court_count"
+                    type="number"
+                    min="1"
+                    value={formData.court_count}
+                    onChange={(e) => setFormData(prev => ({ ...prev, court_count: parseInt(e.target.value) || 1 }))}
+                    disabled={isUpdating}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="coach_slots">Coach Slots</Label>
+                  <Input
+                    id="coach_slots"
+                    type="number"
+                    min="1"
+                    value={formData.coach_slots}
+                    onChange={(e) => setFormData(prev => ({ ...prev, coach_slots: parseInt(e.target.value) || 1 }))}
+                    disabled={isUpdating}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
 
       {/* Danger Zone */}
       <Card className="border-red-200">
@@ -245,6 +347,14 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Upgrade Modal */}
+      <TierUpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        clubId={club.id}
+        currentSubscription={subscription}
+      />
     </div>
   );
 }

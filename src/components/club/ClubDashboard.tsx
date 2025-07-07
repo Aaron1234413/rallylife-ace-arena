@@ -1,15 +1,32 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Activity, Calendar, Users, Trophy, Target } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
 import { formatDistanceToNow } from 'date-fns';
+import { useAuth } from '@/hooks/useAuth';
+import { useClubSubscription } from '@/hooks/useClubSubscription';
+import { SubscriptionStatus } from './SubscriptionStatus';
+import { UsageLimitWarning } from './UsageLimitWarning';
+import { TierUpgradeModal } from './TierUpgradeModal';
 
 interface ClubDashboardProps {
   club: Club;
 }
 
 export function ClubDashboard({ club }: ClubDashboardProps) {
+  const { user } = useAuth();
+  const { subscription, usage, updateUsageTracking } = useClubSubscription(club.id);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  
+  const isOwner = user?.id === club.owner_id;
+
+  // Update usage tracking when component mounts
+  React.useEffect(() => {
+    if (isOwner) {
+      updateUsageTracking();
+    }
+  }, [isOwner, updateUsageTracking]);
   // Mock activity data
   const recentActivities = [
     {
@@ -123,6 +140,24 @@ export function ClubDashboard({ club }: ClubDashboardProps) {
 
   return (
     <div className="space-y-6">
+      {/* Subscription Status & Usage Warning for Owners */}
+      {isOwner && (
+        <div className="space-y-4">
+          <UsageLimitWarning 
+            subscription={subscription}
+            usage={usage}
+            onUpgrade={() => setShowUpgradeModal(true)}
+            compact
+          />
+          <SubscriptionStatus
+            clubId={club.id}
+            subscription={subscription}
+            usage={usage}
+            onUpgrade={() => setShowUpgradeModal(true)}
+          />
+        </div>
+      )}
+
       {/* Stats Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
         {stats.map((stat, index) => {
@@ -212,6 +247,14 @@ export function ClubDashboard({ club }: ClubDashboardProps) {
           </CardContent>
         </Card>
       )}
+
+      {/* Upgrade Modal */}
+      <TierUpgradeModal
+        isOpen={showUpgradeModal}
+        onClose={() => setShowUpgradeModal(false)}
+        clubId={club.id}
+        currentSubscription={subscription}
+      />
     </div>
   );
 }

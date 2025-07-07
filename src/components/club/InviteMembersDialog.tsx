@@ -5,8 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent } from '@/components/ui/card';
-import { UserPlus, Mail, Copy, Check } from 'lucide-react';
+import { UserPlus, Mail, Copy, Check, Crown } from 'lucide-react';
 import { useClubs } from '@/hooks/useClubs';
+import { useClubSubscription } from '@/hooks/useClubSubscription';
+import { useTierEnforcement } from '@/hooks/useTierEnforcement';
+import { UsageLimitWarning } from './UsageLimitWarning';
 import { toast } from 'sonner';
 
 interface InviteMembersDialogProps {
@@ -21,7 +24,11 @@ export function InviteMembersDialog({ clubId, onInviteSent, trigger }: InviteMem
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [copiedCode, setCopiedCode] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+  
   const { inviteMember } = useClubs();
+  const { subscription, usage } = useClubSubscription(clubId);
+  const { checkCanInviteMember } = useTierEnforcement(subscription, usage);
 
   // For demo purposes - in real app this would come from club settings
   const clubInviteCode = 'TEMP123'; // This would be generated per club
@@ -36,6 +43,13 @@ export function InviteMembersDialog({ clubId, onInviteSent, trigger }: InviteMem
 
     if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())) {
       toast.error('Please enter a valid email address');
+      return;
+    }
+
+    // Check tier limits before inviting
+    const canInvite = checkCanInviteMember();
+    if (!canInvite.allowed) {
+      toast.error(canInvite.reason);
       return;
     }
 
@@ -89,6 +103,14 @@ export function InviteMembersDialog({ clubId, onInviteSent, trigger }: InviteMem
         </DialogHeader>
         
         <div className="space-y-6">
+          {/* Usage Warning */}
+          <UsageLimitWarning 
+            subscription={subscription}
+            usage={usage}
+            onUpgrade={() => setShowUpgradeModal(true)}
+            compact
+          />
+
           {/* Email Invitation */}
           <Card>
             <CardContent className="p-4">
