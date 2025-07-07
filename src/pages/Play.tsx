@@ -23,7 +23,6 @@ import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
 import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
 import { useAuth } from '@/hooks/useAuth';
-import { LocationBasedRecommendations } from '@/components/play/LocationBasedRecommendations';
 import { EnhancedLocationFilters } from '@/components/play/EnhancedLocationFilters';
 import { NearbyPlayersWidget } from '@/components/play/NearbyPlayersWidget';
 
@@ -325,17 +324,58 @@ const Play = () => {
           />
         )}
 
-        {/* Smart Recommendations */}
-        {hasLocation && (
-          <LocationBasedRecommendations
-            recommendations={recommendations}
-            onJoinSession={joinSession}
-            loading={recommendationsLoading}
-          />
+        {/* Smart Recommendations - Show top recommendations */}
+        {hasLocation && recommendations.length > 0 && (
+          <Card className="border-l-4 border-l-blue-500">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <Star className="h-5 w-5 text-blue-600" />
+                Recommended for You
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 md:grid-cols-2">
+                {recommendations.slice(0, 2).map((session) => (
+                  <div key={session.id} className="p-3 border rounded-lg bg-blue-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h4 className="font-medium">{session.title}</h4>
+                      <Badge variant="secondary" className="text-xs">
+                        {Math.round(session.recommendation_score * 100)}% match
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-gray-600 mb-2">{session.recommendation_reason}</p>
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs text-gray-500">{session.distance_km.toFixed(1)}km away</span>
+                      <Button size="sm" onClick={() => joinSession(session.id)}>
+                        Join Session
+                      </Button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
         )}
 
-        {/* Nearby Players */}
-        {hasLocation && nearbyPlayers.length > 0 && (
+        {/* Location Status and Nearby Players */}
+        {!hasLocation && (
+          <Card className="border-l-4 border-l-yellow-500">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <MapPin className="h-5 w-5 text-yellow-600" />
+                <div>
+                  <h3 className="font-medium text-yellow-800">Location Access Needed</h3>
+                  <p className="text-sm text-yellow-700">
+                    Enable location services to see nearby players and sessions. 
+                    Click the location icon in your browser's address bar to allow location access.
+                  </p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+        
+        {hasLocation && (
           <NearbyPlayersWidget
             players={nearbyPlayers}
             loading={locationLoading}

@@ -48,7 +48,12 @@ export function useLocationBasedSessions(radiusKm: number = 50) {
 
   useEffect(() => {
     const fetchNearbyData = async () => {
-      if (!currentLocation) return;
+      if (!currentLocation) {
+        setLoading(false);
+        setNearbySessions([]);
+        setNearbyPlayers([]);
+        return;
+      }
 
       setLoading(true);
       setError(null);
