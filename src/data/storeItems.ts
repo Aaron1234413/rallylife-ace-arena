@@ -15,8 +15,8 @@ export const healthPacks: HealthPackItem[] = [
     name: 'Small Health Potion',
     description: 'Restore 25 HP instantly',
     hp_restore: 25,
-    price_tokens: 50,
-    price_usd: 0.35,
+    price_tokens: 125,
+    price_usd: 1.25,
     rarity: 'common',
     instant_use: true,
     icon_url: '/icons/health-potion-small.png'
@@ -26,19 +26,19 @@ export const healthPacks: HealthPackItem[] = [
     name: 'Medium Health Potion',
     description: 'Restore 50 HP instantly',
     hp_restore: 50,
-    price_tokens: 90,
-    price_usd: 0.63,
+    price_tokens: 150,
+    price_usd: 1.50,
     rarity: 'common',
     instant_use: true,
     icon_url: '/icons/health-potion-medium.png'
   },
   {
     id: 'large_health_potion',
-    name: 'Large Health Potion',
-    description: 'Restore 75 HP instantly',
-    hp_restore: 75,
-    price_tokens: 125,
-    price_usd: 0.88,
+    name: 'Full Health Potion',
+    description: 'Restore full HP instantly',
+    hp_restore: 100,
+    price_tokens: 200,
+    price_usd: 2.00,
     rarity: 'rare',
     instant_use: true,
     icon_url: '/icons/health-potion-large.png'
@@ -240,7 +240,8 @@ export const subscriptionPlans: SubscriptionPlan[] = [
       'Coach connections',
       'Priority support',
       'Enhanced features',
-      'Monthly challenges'
+      'Monthly challenges',
+      'Tournament tracking'
     ],
     token_allocation: 250,
     tier_level: 2,
@@ -316,7 +317,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
 export const storeCategories: StoreCategories = {
   health_packs: healthPacks,
   token_packs: [...playerTokenPacks, ...coachTokenPacks, ...clubTokenPacks],
-  avatar_items: [], // Removed for Phase 2
+  avatar_items: [], // Removed 
   subscriptions: subscriptionPlans
 };
 
@@ -329,9 +330,6 @@ export const getSubscriptionsByTarget = (targetType: 'player' | 'coach' | 'club'
   return storeCategories.subscriptions.filter(plan => plan.target_type === targetType);
 };
 
-export const getItemsByRarity = (rarity: 'common' | 'rare' | 'epic' | 'legendary'): (HealthPackItem | AvatarItem)[] => {
-  return [
-    ...storeCategories.health_packs.filter(item => item.rarity === rarity),
-    ...storeCategories.avatar_items.filter(item => item.rarity === rarity)
-  ];
+export const getItemsByRarity = (rarity: 'common' | 'rare' | 'epic' | 'legendary'): HealthPackItem[] => {
+  return storeCategories.health_packs.filter(item => item.rarity === rarity);
 };
