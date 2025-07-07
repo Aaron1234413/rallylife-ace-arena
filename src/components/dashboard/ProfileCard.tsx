@@ -1,7 +1,7 @@
 
 import React from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { User } from 'lucide-react';
+import { User, MapPin } from 'lucide-react';
 import { CRPDisplay } from '@/components/crp/CRPDisplay';
 import { CXPDisplay } from '@/components/cxp/CXPDisplay';
 import { CTKDisplay } from '@/components/ctk/CTKDisplay';
@@ -43,6 +43,12 @@ export function ProfileCard({ profile, user, profileLoading, isPlayer }: Profile
                 <p><strong className="text-tennis-green-dark">Email:</strong> <span className="break-all">{user?.email}</span></p>
                 <p><strong className="text-tennis-green-dark">Full Name:</strong> {profile?.full_name}</p>
                 <p><strong className="text-tennis-green-dark">Role:</strong> {profile?.role}</p>
+                {profile?.location && (
+                  <div className="flex items-center gap-2">
+                    <MapPin className="h-3 w-3 text-tennis-green-medium" />
+                    <p><strong className="text-tennis-green-dark">Location:</strong> {profile.location}</p>
+                  </div>
+                )}
                 <p className="text-tennis-green-medium text-xs mt-3">
                   🎾 Phase 2.5 (Achievement System) is now live! 
                   {isPlayer ? ' Earn achievements by playing, training, and progressing in the game!' : ' Monitor your players\' achievement progress and unlocks.'}

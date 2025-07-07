@@ -12,6 +12,7 @@ import { CoachAvatarCustomization } from '@/components/avatar/CoachAvatarCustomi
 import { CRPDisplay } from '@/components/crp/CRPDisplay';
 import { CXPDisplay } from '@/components/cxp/CXPDisplay';
 import { CTKDisplay } from '@/components/ctk/CTKDisplay';
+import { ProfileEditDialog } from '@/components/profile/ProfileEditDialog';
 import { User, Mail, UserCheck, Edit, Trophy, Target, Calendar, Settings, Palette, MapPin } from 'lucide-react';
 
 const Profile = () => {
@@ -293,7 +294,11 @@ const Profile = () => {
               </CardTitle>
             </CardHeader>
             <CardContent>
-              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+              <ProfileEditDialog 
+                profile={profile} 
+                onProfileUpdate={fetchProfile}
+              >
                 <Button 
                   variant="outline" 
                   className="border-tennis-green-medium text-tennis-green-dark hover:bg-tennis-green-light/20"
@@ -301,6 +306,7 @@ const Profile = () => {
                   <Edit className="h-4 w-4 mr-2" />
                   Edit Profile
                 </Button>
+              </ProfileEditDialog>
                 <Button 
                   variant="outline" 
                   className="border-tennis-green-medium text-tennis-green-dark hover:bg-tennis-green-light/20"
