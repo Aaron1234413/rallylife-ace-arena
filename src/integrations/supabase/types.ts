@@ -1334,6 +1334,7 @@ export type Database = {
           description: string | null
           id: string
           is_public: boolean
+          location: string | null
           logo_url: string | null
           member_count: number
           name: string
@@ -1353,6 +1354,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_public?: boolean
+          location?: string | null
           logo_url?: string | null
           member_count?: number
           name: string
@@ -1372,6 +1374,7 @@ export type Database = {
           description?: string | null
           id?: string
           is_public?: boolean
+          location?: string | null
           logo_url?: string | null
           member_count?: number
           name?: string
