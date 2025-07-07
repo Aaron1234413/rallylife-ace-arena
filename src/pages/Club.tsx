@@ -30,6 +30,8 @@ import { MyClubBookings } from '@/components/club/courts/MyClubBookings';
 import { ClubCoaches } from '@/components/club/ClubCoaches';
 import { ClubCoachBooking } from '@/components/club/ClubCoachBooking';
 import { CoachClubServices } from '@/components/coach/CoachClubServices';
+import { ClubSessionCalendar } from '@/components/club/sessions/ClubSessionCalendar';
+import { CreateClubSession } from '@/components/club/sessions/CreateClubSession';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -188,6 +190,8 @@ export default function Club() {
             <TabsTrigger value="coaches" className="text-base font-medium">Coaches</TabsTrigger>
             <TabsTrigger value="coaching" className="text-base font-medium">Book Coaching</TabsTrigger>
             <TabsTrigger value="courts" className="text-base font-medium">Courts</TabsTrigger>
+            <TabsTrigger value="sessions" className="text-base font-medium">Sessions</TabsTrigger>
+            <TabsTrigger value="create-session" className="text-base font-medium">New Session</TabsTrigger>
             <TabsTrigger value="my-bookings" className="text-base font-medium">My Bookings</TabsTrigger>
             {isCoach && <TabsTrigger value="my-services" className="text-base font-medium">My Services</TabsTrigger>}
             {canEditClub && <TabsTrigger value="settings" className="text-base font-medium">Settings</TabsTrigger>}
@@ -214,6 +218,32 @@ export default function Club() {
 
           <TabsContent value="courts">
             <ClubCourtBooking club={club} canBook={isMember} />
+          </TabsContent>
+
+          <TabsContent value="sessions">
+            {isMember ? (
+              <ClubSessionCalendar club={club} />
+            ) : (
+              <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+                <h3 className="font-medium mb-2">Member Access Required</h3>
+                <p className="text-sm text-muted-foreground">
+                  You must be a club member to view sessions.
+                </p>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="create-session">
+            {isMember ? (
+              <CreateClubSession club={club} />
+            ) : (
+              <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+                <h3 className="font-medium mb-2">Member Access Required</h3>
+                <p className="text-sm text-muted-foreground">
+                  You must be a club member to create sessions.
+                </p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="my-bookings">
