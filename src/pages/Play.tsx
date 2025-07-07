@@ -26,10 +26,19 @@ import { useAuth } from '@/hooks/useAuth';
 import { EnhancedLocationFilters } from '@/components/play/EnhancedLocationFilters';
 import { NearbyPlayersWidget } from '@/components/play/NearbyPlayersWidget';
 import { useJoinSessionState } from '@/hooks/useJoinSessionState';
+import { usePlayerTokens } from '@/hooks/usePlayerTokens';
+import { TokenInsufficientError } from '@/components/tokens/TokenInsufficientError';
 
 const Play = () => {
   const { user } = useAuth();
   const { isJoining, startJoining, stopJoining } = useJoinSessionState();
+  
+  // Token balance for checking stakes
+  const { 
+    regularTokens, 
+    loading: tokensLoading,
+    refreshTokens 
+  } = usePlayerTokens();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -175,6 +184,11 @@ const Play = () => {
     const nearbySession = nearbySessions.find(ns => ns.id === session.id);
     const distance = nearbySession?.distance_km;
     
+    // Token balance checking
+    const hasStakes = session.stakes_amount > 0;
+    const hasInsufficientTokens = hasStakes && regularTokens < session.stakes_amount;
+    const tokensShort = hasInsufficientTokens ? session.stakes_amount - regularTokens : 0;
+    
     const handleJoinSession = async () => {
       if (session.user_joined || isJoining(session.id)) return;
       
@@ -190,8 +204,13 @@ const Play = () => {
       }
     };
     
+    // Determine card styling based on token availability
+    const cardBorderClass = hasInsufficientTokens 
+      ? "border-l-red-500" 
+      : "border-l-tennis-green-primary";
+    
     return (
-      <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-tennis-green-primary">
+      <Card className={`hover:shadow-lg transition-all duration-300 border-l-4 ${cardBorderClass}`}>
         <CardHeader className="pb-3">
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
@@ -235,12 +254,37 @@ const Play = () => {
               </div>
             </div>
             
-            {session.stakes_amount > 0 && (
-              <div className="flex items-center gap-2 text-sm">
-                <Coins className="h-3 w-3 text-yellow-600" />
-                <span className="text-yellow-600 font-medium">
+            {hasStakes && (
+              <div className={`flex items-center gap-2 text-sm ${hasInsufficientTokens ? 'text-red-600' : 'text-yellow-600'}`}>
+                <Coins className="h-3 w-3" />
+                <span className="font-medium">
                   Stakes: {session.stakes_amount} tokens
                 </span>
+                {hasInsufficientTokens && (
+                  <Badge variant="destructive" className="text-xs">
+                    Need {tokensShort} more
+                  </Badge>
+                )}
+              </div>
+            )}
+            
+            {/* Token insufficient warning */}
+            {hasInsufficientTokens && (
+              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                <div className="flex items-center gap-2 mb-2">
+                  <Coins className="h-4 w-4 text-red-600" />
+                  <span className="text-sm font-medium text-red-800">
+                    Insufficient Tokens
+                  </span>
+                </div>
+                <p className="text-xs text-red-700 mb-2">
+                  You have {regularTokens} tokens but need {session.stakes_amount} to join.
+                </p>
+                <Link to="/store?category=tokens">
+                  <Button size="sm" variant="outline" className="text-xs h-7">
+                    Get More Tokens
+                  </Button>
+                </Link>
               </div>
             )}
             
@@ -249,26 +293,45 @@ const Play = () => {
             )}
             
             <div className="flex items-center justify-between pt-2">
-              <span className="text-sm text-gray-500">
-                Created by {session.creator_name || 'Unknown'}
-              </span>
-              <Button 
-                size="sm" 
-                className={session.user_joined 
-                  ? "bg-green-500 hover:bg-green-600 text-white" 
-                  : "bg-tennis-green-primary hover:bg-tennis-green-medium"
-                }
-                onClick={handleJoinSession}
-                disabled={session.user_joined || !user || isJoining(session.id)}
-                title={!user ? 'Please log in to join sessions' : undefined}
-              >
-                {isJoining(session.id) ? (
-                  <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
-                    Joining...
-                  </div>
-                ) : session.user_joined ? '✓ Joined' : 'Join Session'}
-              </Button>
+              <div className="flex flex-col">
+                <span className="text-sm text-gray-500">
+                  Created by {session.creator_name || 'Unknown'}
+                </span>
+                {!tokensLoading && user && (
+                  <span className="text-xs text-gray-400">
+                    Your balance: {regularTokens} tokens
+                  </span>
+                )}
+              </div>
+              
+              {hasInsufficientTokens ? (
+                <Button 
+                  size="sm" 
+                  variant="outline"
+                  disabled
+                  className="text-red-600 border-red-300"
+                >
+                  Need {tokensShort} More Tokens
+                </Button>
+              ) : (
+                <Button 
+                  size="sm" 
+                  className={session.user_joined 
+                    ? "bg-green-500 hover:bg-green-600 text-white" 
+                    : "bg-tennis-green-primary hover:bg-tennis-green-medium"
+                  }
+                  onClick={handleJoinSession}
+                  disabled={session.user_joined || !user || isJoining(session.id)}
+                  title={!user ? 'Please log in to join sessions' : undefined}
+                >
+                  {isJoining(session.id) ? (
+                    <div className="flex items-center gap-2">
+                      <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                      Joining...
+                    </div>
+                  ) : session.user_joined ? '✓ Joined' : 'Join Session'}
+                </Button>
+              )}
             </div>
           </div>
         </CardContent>
