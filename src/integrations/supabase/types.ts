@@ -1193,6 +1193,95 @@ export type Database = {
           },
         ]
       }
+      club_subscriptions: {
+        Row: {
+          club_id: string | null
+          created_at: string | null
+          current_period_end: string | null
+          current_period_start: string | null
+          id: string
+          status: string
+          stripe_subscription_id: string | null
+          tier_id: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          club_id?: string | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          tier_id?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          club_id?: string | null
+          created_at?: string | null
+          current_period_end?: string | null
+          current_period_start?: string | null
+          id?: string
+          status?: string
+          stripe_subscription_id?: string | null
+          tier_id?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_subscriptions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_subscriptions_tier_id_fkey"
+            columns: ["tier_id"]
+            isOneToOne: false
+            referencedRelation: "subscription_tiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      club_usage_tracking: {
+        Row: {
+          active_coaches: number | null
+          active_members: number | null
+          club_id: string | null
+          id: string
+          sessions_created: number | null
+          tracking_date: string | null
+          updated_at: string | null
+        }
+        Insert: {
+          active_coaches?: number | null
+          active_members?: number | null
+          club_id?: string | null
+          id?: string
+          sessions_created?: number | null
+          tracking_date?: string | null
+          updated_at?: string | null
+        }
+        Update: {
+          active_coaches?: number | null
+          active_members?: number | null
+          club_id?: string | null
+          id?: string
+          sessions_created?: number | null
+          tracking_date?: string | null
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_usage_tracking_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       clubs: {
         Row: {
           coach_slots: number | null
@@ -7025,6 +7114,10 @@ export type Database = {
           quiz_completed?: boolean
         }
         Returns: Json
+      }
+      update_club_usage_tracking: {
+        Args: { club_id_param: string }
+        Returns: undefined
       }
       update_user_location: {
         Args: {
