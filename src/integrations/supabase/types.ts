@@ -3759,7 +3759,10 @@ export type Database = {
           email: string
           full_name: string | null
           id: string
+          latitude: number | null
           location: string | null
+          location_updated_at: string | null
+          longitude: number | null
           onboarding_completed: boolean
           preferences: Json | null
           ready_player_me_url: string | null
@@ -3772,7 +3775,10 @@ export type Database = {
           email: string
           full_name?: string | null
           id: string
+          latitude?: number | null
           location?: string | null
+          location_updated_at?: string | null
+          longitude?: number | null
           onboarding_completed?: boolean
           preferences?: Json | null
           ready_player_me_url?: string | null
@@ -3785,7 +3791,10 @@ export type Database = {
           email?: string
           full_name?: string | null
           id?: string
+          latitude?: number | null
           location?: string | null
+          location_updated_at?: string | null
+          longitude?: number | null
           onboarding_completed?: boolean
           preferences?: Json | null
           ready_player_me_url?: string | null
@@ -4204,7 +4213,10 @@ export type Database = {
           id: string
           invitation_code: string | null
           is_private: boolean
+          latitude: number | null
           location: string | null
+          location_coordinates_set: boolean | null
+          longitude: number | null
           max_players: number
           notes: string | null
           session_type: string
@@ -4219,7 +4231,10 @@ export type Database = {
           id?: string
           invitation_code?: string | null
           is_private?: boolean
+          latitude?: number | null
           location?: string | null
+          location_coordinates_set?: boolean | null
+          longitude?: number | null
           max_players: number
           notes?: string | null
           session_type: string
@@ -4234,7 +4249,10 @@ export type Database = {
           id?: string
           invitation_code?: string | null
           is_private?: boolean
+          latitude?: number | null
           location?: string | null
+          location_coordinates_set?: boolean | null
+          longitude?: number | null
           max_players?: number
           notes?: string | null
           session_type?: string
@@ -5217,6 +5235,10 @@ export type Database = {
         Args: { level: number }
         Returns: number
       }
+      calculate_distance: {
+        Args: { lat1: number; lng1: number; lat2: number; lng2: number }
+        Returns: number
+      }
       calculate_hp_decay: {
         Args: { user_id: string }
         Returns: number
@@ -5772,6 +5794,20 @@ export type Database = {
           likes_count: number
           comments_count: number
           user_has_liked: boolean
+        }[]
+      }
+      get_nearby_players: {
+        Args: { user_lat: number; user_lng: number; radius_km?: number }
+        Returns: {
+          player_id: string
+          distance_km: number
+        }[]
+      }
+      get_nearby_sessions: {
+        Args: { user_lat: number; user_lng: number; radius_km?: number }
+        Returns: {
+          session_id: string
+          distance_km: number
         }[]
       }
       get_proj4_from_srid: {
