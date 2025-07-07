@@ -259,27 +259,36 @@ export function useSafeRealTimeSessions(
     }
 
     try {
+      console.log('Attempting to join session:', sessionId);
       const { data, error } = await supabase.rpc('join_session', {
         session_id_param: sessionId,
         user_id_param: effectiveUserId
       });
 
-      if (error) throw error;
+      if (error) {
+        console.error('RPC Error:', error);
+        throw error;
+      }
 
+      console.log('Join session response:', data);
       const result = data as { success: boolean; error?: string; participant_count?: number; session_ready?: boolean };
 
-      if (result.success) {
+      if (result && result.success) {
+        console.log('Successfully joined session:', sessionId);
         toast.success('Successfully joined session!');
         if (result.session_ready) {
           toast.success('Session is ready to start!');
         }
         await fetchSessions();
       } else {
-        toast.error(result.error || 'Failed to join session');
+        console.error('Join session failed:', result?.error);
+        toast.error(result?.error || 'Failed to join session');
+        throw new Error(result?.error || 'Failed to join session');
       }
     } catch (error) {
       console.error('Error joining session:', error);
       toast.error('Failed to join session');
+      throw error; // Re-throw so the Play component can handle it
     }
   }, [effectiveUserId, fetchSessions]);
 

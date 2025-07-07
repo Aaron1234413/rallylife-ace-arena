@@ -178,14 +178,13 @@ const Play = () => {
     const handleJoinSession = async () => {
       if (session.user_joined || isJoining(session.id)) return;
       
-      console.log('Attempting to join session:', session.id);
       startJoining(session.id);
       
       try {
         await joinSession(session.id);
-        console.log('Successfully joined session:', session.id);
       } catch (error) {
         console.error('Failed to join session:', error);
+        // Error is already handled by the hook, just need to ensure we stop joining
       } finally {
         stopJoining();
       }
