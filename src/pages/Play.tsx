@@ -641,7 +641,9 @@ const Play = () => {
           open={tokenPurchaseOpen}
           onOpenChange={setTokenPurchaseOpen}
           tokensNeeded={selectedSession?.stakes_amount || 0}
-          sessionTitle={selectedSession?.title || selectedSession?.session_type}
+          sessionTitle={selectedSession?.session_type ? 
+            `${selectedSession.session_type.charAt(0).toUpperCase() + selectedSession.session_type.slice(1)} Session` : 
+            'Session'}
           returnPath="/play"
         />
 
