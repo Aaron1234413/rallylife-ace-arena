@@ -206,7 +206,7 @@ export function useSafeRealTimeSessions(
       clearChannels();
 
       // Create unique channel names to avoid conflicts with timestamp and random
-      const uniqueId = `${effectiveUserId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const uniqueId = `${effectiveUserId}-${activeTab}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
       const sessionChannelName = `safe-sessions-${uniqueId}`;
       const participantChannelName = `safe-participants-${uniqueId}`;
 
@@ -221,10 +221,10 @@ export function useSafeRealTimeSessions(
             table: 'sessions'
           },
           () => {
+            console.log('Sessions table changed, refetching...');
             fetchSessions();
           }
-        )
-        .subscribe();
+        );
 
       // Subscribe to session_participants table changes
       participantsChannel = supabase
@@ -237,10 +237,19 @@ export function useSafeRealTimeSessions(
             table: 'session_participants'
           },
           () => {
+            console.log('Participants table changed, refetching...');
             fetchSessions();
           }
-        )
-        .subscribe();
+        );
+
+      // Subscribe both channels at once after setting up all listeners
+      sessionsChannel.subscribe((status: string) => {
+        console.log('Sessions channel subscription status:', status);
+      });
+      
+      participantsChannel.subscribe((status: string) => {
+        console.log('Participants channel subscription status:', status);
+      });
 
       channelsRef.current = [sessionsChannel, participantsChannel];
     } catch (error) {
@@ -250,7 +259,7 @@ export function useSafeRealTimeSessions(
     return () => {
       clearChannels();
     };
-  }, [effectiveUserId, activeTab, enabled, fetchSessions, clearChannels]);
+  }, [effectiveUserId, activeTab, enabled, clearChannels]); // Remove fetchSessions from dependencies to prevent re-subscriptions
 
   const joinSession = useCallback(async (sessionId: string) => {
     if (!effectiveUserId) {
