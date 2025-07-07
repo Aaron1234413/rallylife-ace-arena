@@ -9,9 +9,11 @@ import {
   Calendar, 
   AlertTriangle,
   ChevronRight,
-  Building
+  Building,
+  Shield
 } from 'lucide-react';
 import { useClubTokenPool } from '@/hooks/useClubTokenPool';
+import { calculateClubPoolStatus } from '@/utils/gameEconomics';
 import { Link } from 'react-router-dom';
 
 interface ClubTokenStatusProps {
@@ -50,14 +52,15 @@ export function ClubTokenStatus({ clubId, clubName }: ClubTokenStatusProps) {
     );
   }
 
+  const poolStatus = calculateClubPoolStatus(currentPool);
+  const { available_balance, can_redeem, usage_percentage, is_low_balance } = poolStatus;
+  
   const totalTokens = currentPool.allocated_tokens + currentPool.rollover_tokens + currentPool.purchased_tokens;
-  const availableTokens = totalTokens - currentPool.used_tokens;
-  const usagePercentage = totalTokens > 0 ? (currentPool.used_tokens / totalTokens) * 100 : 0;
-  const isLowTokens = availableTokens < (totalTokens * 0.2); // Less than 20% remaining
+  const hasOverdraft = currentPool.overdraft_tokens > 0;
 
   return (
     <Card className={`hover:shadow-lg transition-all duration-300 ${
-      isLowTokens ? 'border-orange-200 bg-orange-50' : 'border-tennis-green-primary/20'
+      is_low_balance ? 'border-orange-200 bg-orange-50' : 'border-tennis-green-primary/20'
     }`}>
       <CardHeader className="pb-2">
         <div className="flex items-center justify-between">
@@ -65,9 +68,17 @@ export function ClubTokenStatus({ clubId, clubName }: ClubTokenStatusProps) {
             <Building className="h-4 w-4 text-tennis-green-primary" />
             {clubName}
           </CardTitle>
-          <Badge variant={isLowTokens ? "destructive" : "outline"} className="text-xs">
-            {currentPool.month_year}
-          </Badge>
+          <div className="flex items-center gap-2">
+            <Badge variant={is_low_balance ? "destructive" : "outline"} className="text-xs">
+              {currentPool.month_year}
+            </Badge>
+            {hasOverdraft && (
+              <Badge variant="secondary" className="text-xs flex items-center gap-1">
+                <Shield className="h-3 w-3" />
+                Overdraft
+              </Badge>
+            )}
+          </div>
         </div>
       </CardHeader>
       
@@ -77,22 +88,24 @@ export function ClubTokenStatus({ clubId, clubName }: ClubTokenStatusProps) {
           <div className="flex items-center justify-between">
             <span className="text-sm text-gray-600">Available Tokens</span>
             <div className="text-right">
-              <div className="text-lg font-bold text-tennis-green-primary">
-                {availableTokens.toLocaleString()}
+              <div className={`text-lg font-bold ${can_redeem ? 'text-tennis-green-primary' : 'text-red-600'}`}>
+                {available_balance.toLocaleString()}
               </div>
               <div className="text-xs text-gray-500">
                 of {totalTokens.toLocaleString()}
+                {hasOverdraft && ` (+${currentPool.overdraft_tokens} overdraft)`}
               </div>
             </div>
           </div>
           
           <Progress 
-            value={100 - usagePercentage} 
+            value={Math.max(0, 100 - usage_percentage)} 
             className="h-2"
           />
           
           <div className="text-xs text-gray-500 text-center">
-            {usagePercentage.toFixed(1)}% used this month
+            {usage_percentage.toFixed(1)}% used this month
+            {!can_redeem && <span className="text-red-600 font-medium"> • Pool Exhausted</span>}
           </div>
         </div>
 
@@ -126,7 +139,7 @@ export function ClubTokenStatus({ clubId, clubName }: ClubTokenStatusProps) {
             <span className="text-gray-600">Token Value</span>
             <div className="text-right">
               <div className="font-medium text-tennis-green-dark">
-                ${(availableTokens * 0.007).toFixed(2)}
+                ${(available_balance * 0.007).toFixed(2)}
               </div>
               <div className="text-xs text-gray-500">
                 $0.007 per token
@@ -136,13 +149,22 @@ export function ClubTokenStatus({ clubId, clubName }: ClubTokenStatusProps) {
         </div>
 
         {/* Low Tokens Warning */}
-        {isLowTokens && (
+        {is_low_balance && (
           <div className="bg-orange-100 border border-orange-200 rounded-lg p-3">
             <div className="flex items-center gap-2 text-orange-800">
               <AlertTriangle className="h-4 w-4" />
               <div className="text-sm">
-                <div className="font-medium">Low Token Balance</div>
-                <div className="text-xs">Consider purchasing more tokens</div>
+                <div className="font-medium">
+                  {can_redeem ? 'Low Token Balance' : 'Token Pool Exhausted'}
+                </div>
+                <div className="text-xs">
+                  {can_redeem 
+                    ? 'Consider purchasing more tokens' 
+                    : hasOverdraft 
+                      ? 'Using overdraft protection'
+                      : 'No tokens available for redemption'
+                  }
+                </div>
               </div>
             </div>
           </div>

@@ -15,10 +15,27 @@ export interface CoachTokens {
 export interface PlayerTokens {
   id: string;
   player_id: string;
-  regular_tokens: number;
+  personal_tokens?: number; // Accumulating balance (renamed from regular_tokens)
+  monthly_subscription_tokens?: number; // Added monthly based on subscription
+  regular_tokens: number; // For backward compatibility
+  premium_tokens?: number;
   lifetime_earned: number;
   created_at: string;
   updated_at: string;
+}
+
+export interface TokenRedemption {
+  id: string;
+  club_id: string;
+  player_id: string;
+  service_type: string; // 'lesson', 'court_time', 'clinic'
+  cash_amount: number;
+  tokens_used: number;
+  redemption_percentage: number;
+  club_pool_deducted: number;
+  service_details: any;
+  total_service_value: number;
+  created_at: string;
 }
 
 export interface CoachTokenTransaction {
@@ -267,6 +284,9 @@ export function usePlayerTokens() {
     transactions,
     loading,
     regularTokens: tokenData?.regular_tokens || 0,
+    personalTokens: tokenData?.personal_tokens || tokenData?.regular_tokens || 0,
+    monthlySubscriptionTokens: tokenData?.monthly_subscription_tokens || 0,
+    premiumTokens: tokenData?.premium_tokens || 0,
     lifetimeEarned: tokenData?.lifetime_earned || 0,
     addTokens,
     spendTokens,

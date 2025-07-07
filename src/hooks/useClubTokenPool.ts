@@ -6,14 +6,17 @@ export interface ClubTokenPool {
   id: string;
   club_id: string;
   month_year: string;
-  allocated_tokens: number;
-  used_tokens: number;
-  overdraft_tokens: number;
-  purchased_tokens: number;
-  rollover_tokens: number;
+  allocated_tokens: number; // Monthly allocation based on plan
+  used_tokens: number; // Redeemed by members
+  overdraft_tokens: number; // Negative balance (Pro plan only)
+  purchased_tokens: number; // Additional token purchases
+  rollover_tokens: number; // From previous month (Plus/Pro)
   expires_at?: string;
   created_at: string;
   updated_at: string;
+  // Calculated fields
+  available_balance?: number; // Calculated field
+  can_redeem?: boolean; // Based on pool + overdraft
 }
 
 export interface TokenRedemption {
