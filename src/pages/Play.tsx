@@ -13,77 +13,48 @@ import {
   Search,
   Filter,
   Plus,
-  Gamepad2
+  Gamepad2,
+  Coins
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
+import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
+import { useAuth } from '@/hooks/useAuth';
 
 const Play = () => {
+  const { user } = useAuth();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('all');
 
-  // Mock data for sessions/matches
-  const activeSessions = [
-    {
-      id: 1,
-      title: 'Competitive Singles',
-      type: 'match',
-      format: 'singles',
-      level: 'Intermediate',
-      location: 'Central Tennis Club',
-      time: '2:00 PM',
-      players: 1,
-      maxPlayers: 2,
-      stakes: { tokens: 50, rating: 15 },
-      creator: 'Alex M.',
-      distance: '0.8 miles'
-    },
-    {
-      id: 2,
-      title: 'Doubles Practice',
-      type: 'social',
-      format: 'doubles',
-      level: 'Beginner',
-      location: 'Riverside Courts',
-      time: '4:30 PM',
-      players: 2,
-      maxPlayers: 4,
-      stakes: { tokens: 0, rating: 0 },
-      creator: 'Sarah L.',
-      distance: '1.2 miles'
-    },
-    {
-      id: 3,
-      title: 'Rally & Drills',
-      type: 'training',
-      format: 'group',
-      level: 'All Levels',
-      location: 'Tennis Academy',
-      time: '6:00 PM',
-      players: 3,
-      maxPlayers: 6,
-      stakes: { tokens: 25, rating: 0 },
-      creator: 'Mike R.',
-      distance: '2.1 miles'
-    }
-  ];
+  // Get real session data
+  const { 
+    sessions: availableSessions, 
+    loading: availableLoading, 
+    joinSession 
+  } = useSafeRealTimeSessions('available', user?.id);
+  
+  const { 
+    sessions: mySessions, 
+    loading: mySessionsLoading 
+  } = useSafeRealTimeSessions('my-sessions', user?.id);
 
-  const upcomingSessions = [
-    {
-      id: 4,
-      title: 'Tournament Prep',
-      type: 'match',
-      format: 'singles',
-      level: 'Advanced',
-      location: 'Elite Tennis Center',
-      time: 'Tomorrow 10:00 AM',
-      players: 0,
-      maxPlayers: 2,
-      stakes: { tokens: 100, rating: 25 },
-      creator: 'David K.',
-      distance: '3.4 miles'
-    }
-  ];
+  // Filter sessions based on search and format
+  const filteredAvailableSessions = availableSessions.filter(session => {
+    const matchesSearch = !searchQuery || 
+      session.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      session.creator_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      session.session_type.toLowerCase().includes(searchQuery.toLowerCase());
+    
+    const matchesFormat = selectedFormat === 'all' || 
+      session.session_type === selectedFormat ||
+      session.format === selectedFormat;
+    
+    return matchesSearch && matchesFormat;
+  });
+
+  // Separate sessions by timing - for now treating all as active since we don't have timing data
+  const activeSessions = filteredAvailableSessions.filter(session => session.status === 'waiting');
+  const upcomingSessions = []; // We'll enhance this later with scheduled sessions
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -104,7 +75,13 @@ const Play = () => {
   };
 
   const SessionCard = ({ session }: { session: any }) => {
-    const TypeIcon = getTypeIcon(session.type);
+    const TypeIcon = getTypeIcon(session.session_type || session.type);
+    const sessionType = session.session_type || session.type;
+    
+    const handleJoinSession = async () => {
+      if (session.user_joined) return;
+      await joinSession(session.id);
+    };
     
     return (
       <Card className="hover:shadow-lg transition-all duration-300 border-l-4 border-l-tennis-green-primary">
@@ -112,20 +89,22 @@ const Play = () => {
           <div className="flex items-start justify-between">
             <div className="flex items-center gap-2">
               <TypeIcon className="h-4 w-4 text-tennis-green-primary" />
-              <CardTitle className="text-lg">{session.title}</CardTitle>
+              <CardTitle className="text-lg">
+                {session.title || `${sessionType.charAt(0).toUpperCase() + sessionType.slice(1)} Session`}
+              </CardTitle>
             </div>
-            <Badge className={getTypeColor(session.type)}>
-              {session.type.charAt(0).toUpperCase() + session.type.slice(1)}
+            <Badge className={getTypeColor(sessionType)}>
+              {sessionType.charAt(0).toUpperCase() + sessionType.slice(1)}
             </Badge>
           </div>
           <div className="flex items-center gap-4 text-sm text-gray-600">
             <div className="flex items-center gap-1">
               <MapPin className="h-3 w-3" />
-              <span>{session.location}</span>
+              <span>{session.location || 'Location TBD'}</span>
             </div>
             <div className="flex items-center gap-1">
               <Clock className="h-3 w-3" />
-              <span>{session.time}</span>
+              <span>{new Date(session.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
             </div>
           </div>
         </CardHeader>
@@ -134,34 +113,38 @@ const Play = () => {
           <div className="space-y-3">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-4">
-                <Badge variant="outline">{session.format}</Badge>
-                <Badge variant="outline">{session.level}</Badge>
-                <span className="text-sm text-gray-500">{session.distance}</span>
+                {session.format && <Badge variant="outline">{session.format}</Badge>}
+                <Badge variant="outline">{session.status}</Badge>
               </div>
               <div className="text-sm font-medium">
-                {session.players}/{session.maxPlayers} players
+                {session.participant_count || 0}/{session.max_players} players
               </div>
             </div>
             
-            {session.stakes.tokens > 0 && (
+            {session.stakes_amount > 0 && (
               <div className="flex items-center gap-2 text-sm">
+                <Coins className="h-3 w-3 text-yellow-600" />
                 <span className="text-yellow-600 font-medium">
-                  Stakes: {session.stakes.tokens} tokens
+                  Stakes: {session.stakes_amount} tokens
                 </span>
-                {session.stakes.rating > 0 && (
-                  <span className="text-blue-600 font-medium">
-                    +{session.stakes.rating} rating
-                  </span>
-                )}
               </div>
+            )}
+            
+            {session.notes && (
+              <p className="text-sm text-gray-600 italic">{session.notes}</p>
             )}
             
             <div className="flex items-center justify-between pt-2">
               <span className="text-sm text-gray-500">
-                Created by {session.creator}
+                Created by {session.creator_name || 'Unknown'}
               </span>
-              <Button size="sm" className="bg-tennis-green-primary hover:bg-tennis-green-medium">
-                Join Session
+              <Button 
+                size="sm" 
+                className="bg-tennis-green-primary hover:bg-tennis-green-medium"
+                onClick={handleJoinSession}
+                disabled={session.user_joined}
+              >
+                {session.user_joined ? 'Joined' : 'Join Session'}
               </Button>
             </div>
           </div>
@@ -230,11 +213,33 @@ const Play = () => {
               </Badge>
             </div>
             
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {activeSessions.map((session) => (
-                <SessionCard key={session.id} session={session} />
-              ))}
-            </div>
+            {availableLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin w-8 h-8 border-4 border-tennis-green-primary border-t-transparent rounded-full mx-auto"></div>
+                <p className="text-gray-500 mt-2">Loading sessions...</p>
+              </div>
+            ) : activeSessions.length === 0 ? (
+              <div className="text-center py-12">
+                <Gamepad2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-600 mb-2">
+                  No Active Sessions
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  Be the first to create a session in your area!
+                </p>
+                <Link to="/sessions/create">
+                  <Button className="bg-tennis-green-primary hover:bg-tennis-green-medium">
+                    Create Session
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {activeSessions.map((session) => (
+                  <SessionCard key={session.id} session={session} />
+                ))}
+              </div>
+            )}
           </TabsContent>
           
           <TabsContent value="upcoming" className="space-y-4">
@@ -255,20 +260,42 @@ const Play = () => {
           </TabsContent>
           
           <TabsContent value="my-sessions" className="space-y-4">
-            <div className="text-center py-12">
-              <Gamepad2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-              <h3 className="text-lg font-medium text-gray-600 mb-2">
-                No Active Sessions
-              </h3>
-              <p className="text-gray-500 mb-4">
-                You haven't joined any sessions yet. Start playing!
-              </p>
-              <Link to="/sessions/create">
-                <Button className="bg-tennis-green-primary hover:bg-tennis-green-medium">
-                  Create Your First Session
-                </Button>
-              </Link>
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold text-tennis-green-dark">
+                My Sessions
+              </h2>
+              <Badge variant="outline">
+                {mySessions.length} sessions
+              </Badge>
             </div>
+            
+            {mySessionsLoading ? (
+              <div className="text-center py-8">
+                <div className="animate-spin w-8 h-8 border-4 border-tennis-green-primary border-t-transparent rounded-full mx-auto"></div>
+                <p className="text-gray-500 mt-2">Loading your sessions...</p>
+              </div>
+            ) : mySessions.length === 0 ? (
+              <div className="text-center py-12">
+                <Gamepad2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+                <h3 className="text-lg font-medium text-gray-600 mb-2">
+                  No Active Sessions
+                </h3>
+                <p className="text-gray-500 mb-4">
+                  You haven't joined any sessions yet. Start playing!
+                </p>
+                <Link to="/sessions/create">
+                  <Button className="bg-tennis-green-primary hover:bg-tennis-green-medium">
+                    Create Your First Session
+                  </Button>
+                </Link>
+              </div>
+            ) : (
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                {mySessions.map((session) => (
+                  <SessionCard key={session.id} session={session} />
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
 
