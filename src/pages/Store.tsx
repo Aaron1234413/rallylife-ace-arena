@@ -6,10 +6,10 @@ import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { usePlayerSubscription } from '@/hooks/usePlayerSubscription';
 import { useCoachSubscription } from '@/hooks/useCoachSubscription';
 import { useRealTimeTokens } from '@/hooks/useRealTimeTokens';
-import { EnhancedStoreLayout } from '@/components/store/EnhancedStoreLayout';
 import { HealthPackStore } from '@/components/store/HealthPackStore';
 import { TokenPackStore } from '@/components/store/TokenPackStore';
 import { SubscriptionStore } from '@/components/store/SubscriptionStore';
+import { MerchandiseStore } from '@/components/store/MerchandiseStore';
 import { supabase } from '@/integrations/supabase/client';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -20,12 +20,8 @@ import {
   Heart,
   Coins, 
   Crown, 
-  Zap, 
-  Star,
-  Gift,
   Package,
-  Shirt,
-  TrendingUp
+  Store as StoreIcon
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { HealthPackItem, TokenPackItem, SubscriptionPlan } from '@/types/store';
@@ -112,7 +108,7 @@ const Store = () => {
       setLoading(true);
       
       // Create Stripe checkout session
-      const { data, error } = await supabase.functions.invoke('create-checkout', {
+      const { data, error } = await supabase.functions.invoke('token-pack-purchase', {
         body: {
           pack_id: pack.id,
           target_type: pack.target_type,
@@ -201,7 +197,7 @@ const Store = () => {
             Rako Store
           </h1>
           <p className="text-tennis-green-medium">
-            Discover premium items, token packages, and subscriptions
+            Subscriptions, health packs, tokens, and tennis merchandise
           </p>
           
           {/* Real-time notifications */}
@@ -215,7 +211,7 @@ const Store = () => {
         </div>
 
         <Tabs defaultValue="subscriptions" className="w-full">
-          <TabsList className="grid w-full grid-cols-5">
+          <TabsList className="grid w-full grid-cols-4">
             <TabsTrigger value="subscriptions" className="flex items-center gap-2">
               <Crown className="h-4 w-4" />
               <span className="hidden sm:inline">Subscriptions</span>
@@ -228,13 +224,9 @@ const Store = () => {
               <Coins className="h-4 w-4" />
               <span className="hidden sm:inline">Tokens</span>
             </TabsTrigger>
-            <TabsTrigger value="avatar-items" className="flex items-center gap-2">
-              <Shirt className="h-4 w-4" />
-              <span className="hidden sm:inline">Avatar</span>
-            </TabsTrigger>
-            <TabsTrigger value="legacy" className="flex items-center gap-2">
-              <Package className="h-4 w-4" />
-              <span className="hidden sm:inline">Legacy</span>
+            <TabsTrigger value="merchandise" className="flex items-center gap-2">
+              <StoreIcon className="h-4 w-4" />
+              <span className="hidden sm:inline">Merchandise</span>
             </TabsTrigger>
           </TabsList>
 
@@ -280,55 +272,19 @@ const Store = () => {
             />
           </TabsContent>
 
-          {/* Avatar Items */}
-          <TabsContent value="avatar-items">
-            {isPlayer ? (
-              <EnhancedStoreLayout
-                tokenData={playerTokenData}
-                onSpendTokens={spendTokens}
-              />
-            ) : (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <Shirt className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                  <h3 className="font-medium mb-2 text-tennis-green-dark">Player Feature</h3>
-                  <p className="text-sm text-tennis-green-medium">
-                    Avatar customization is available for players only.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-          </TabsContent>
-
-          {/* Legacy Items (existing store components) */}
-          <TabsContent value="legacy">
-            <div className="text-center mb-6">
-              <Package className="h-12 w-12 text-tennis-green-primary mx-auto mb-4" />
-              <h2 className="text-2xl font-bold text-tennis-green-dark mb-2">
-                Legacy Store Items
-              </h2>
-              <p className="text-gray-600">
-                Previous store items and functionality
-              </p>
-            </div>
-            
-            {isPlayer && (
-              <EnhancedStoreLayout
-                tokenData={playerTokenData}
-                onSpendTokens={spendTokens}
-              />
-            )}
-            
-            {!isPlayer && !isCoach && (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <h3 className="font-medium mb-2 text-tennis-green-dark">Profile Setup Required</h3>
-                  <p className="text-sm text-tennis-green-medium">
-                    Please complete your profile setup to access items.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
+          {/* Merchandise */}
+          <TabsContent value="merchandise">
+            <MerchandiseStore
+              onPurchaseWithTokens={async (item) => {
+                if (!item.price_tokens) return false;
+                const success = await spendTokens(item.price_tokens, 'regular', 'merchandise', `Purchased ${item.name}`);
+                if (success) {
+                  toast.success(`Successfully purchased ${item.name} with tokens!`);
+                }
+                return success;
+              }}
+              regularTokens={playerTokenData?.regular_tokens || 0}
+            />
           </TabsContent>
         </Tabs>
       </div>

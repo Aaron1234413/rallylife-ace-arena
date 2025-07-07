@@ -8,7 +8,7 @@ import {
   StoreCategories 
 } from '@/types/store';
 
-// Health Packs
+// Health Packs - Simplified
 export const healthPacks: HealthPackItem[] = [
   {
     id: 'small_health_potion',
@@ -42,37 +42,6 @@ export const healthPacks: HealthPackItem[] = [
     rarity: 'rare',
     instant_use: true,
     icon_url: '/icons/health-potion-large.png'
-  },
-  {
-    id: 'recovery_elixir',
-    name: 'Recovery Elixir',
-    description: 'Restore to full HP and prevent decay for 24 hours',
-    hp_restore: 100,
-    price_tokens: 200,
-    price_usd: 1.40,
-    rarity: 'epic',
-    instant_use: true,
-    cooldown_hours: 24,
-    icon_url: '/icons/recovery-elixir.png',
-    effects: [
-      { type: 'prevent_decay', value: 1, duration_hours: 24 }
-    ]
-  },
-  {
-    id: 'legendary_vitality',
-    name: 'Legendary Vitality Serum',
-    description: 'Full HP restore + 25 max HP boost for 7 days',
-    hp_restore: 100,
-    price_tokens: 500,
-    price_usd: 3.50,
-    rarity: 'legendary',
-    instant_use: true,
-    cooldown_hours: 168, // 7 days
-    icon_url: '/icons/vitality-serum.png',
-    effects: [
-      { type: 'max_hp_boost', value: 25, duration_hours: 168 },
-      { type: 'prevent_decay', value: 1, duration_hours: 168 }
-    ]
   }
 ];
 
@@ -234,55 +203,7 @@ export const clubTokenPacks: TokenPackItem[] = [
   }
 ];
 
-// Avatar Items
-export const avatarItems: AvatarItem[] = [
-  {
-    id: 'basic_tennis_shirt',
-    name: 'Classic Tennis Shirt',
-    description: 'A timeless white tennis shirt',
-    category: 'clothing',
-    rarity: 'common',
-    price_tokens: 100,
-    image_url: '/avatars/tennis-shirt-basic.png',
-    is_premium: false
-  },
-  {
-    id: 'pro_tennis_shoes',
-    name: 'Professional Tennis Shoes',
-    description: 'High-performance court shoes',
-    category: 'equipment',
-    rarity: 'rare',
-    price_tokens: 300,
-    price_usd: 2.10,
-    unlock_level: 5,
-    image_url: '/avatars/tennis-shoes-pro.png',
-    is_premium: false
-  },
-  {
-    id: 'championship_headband',
-    name: 'Championship Headband',
-    description: 'Worn by tournament champions',
-    category: 'accessories',
-    rarity: 'epic',
-    price_tokens: 500,
-    price_usd: 3.50,
-    unlock_level: 10,
-    image_url: '/avatars/headband-championship.png',
-    is_premium: true
-  },
-  {
-    id: 'legendary_racket',
-    name: 'Legendary Carbon Racket',
-    description: 'The ultimate professional racket',
-    category: 'equipment',
-    rarity: 'legendary',
-    price_tokens: 1000,
-    price_usd: 7.00,
-    unlock_level: 20,
-    image_url: '/avatars/racket-legendary.png',
-    is_premium: true
-  }
-];
+// Avatar Items - REMOVED for Phase 2
 
 // Subscription Plans
 export const subscriptionPlans: SubscriptionPlan[] = [
@@ -296,10 +217,10 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     target_type: 'player',
     features: [
       '100 monthly tokens',
-      'Basic analytics',
-      'Court booking',
       'Match tracking',
-      'Community access'
+      'Training sessions',
+      'Community access',
+      'Basic stats'
     ],
     token_allocation: 100,
     tier_level: 1,
@@ -315,11 +236,11 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     target_type: 'player',
     features: [
       '250 monthly tokens',
-      'Advanced analytics',
-      'Priority booking',
+      'Advanced stats tracking',
       'Coach connections',
-      'Tournament access',
-      'Premium avatar items'
+      'Priority support',
+      'Enhanced features',
+      'Monthly challenges'
     ],
     token_allocation: 250,
     tier_level: 2,
@@ -336,12 +257,12 @@ export const subscriptionPlans: SubscriptionPlan[] = [
     target_type: 'player',
     features: [
       '500 monthly tokens',
-      'Professional analytics',
-      'Exclusive courts',
-      'Personal coaching',
-      'Tournament privileges',
-      'All avatar items',
-      'Priority support'
+      'Professional stats',
+      'Premium features',
+      'Personal coaching access',
+      'Tournament tracking',
+      'VIP support',
+      'All features unlocked'
     ],
     token_allocation: 500,
     tier_level: 3,
@@ -395,7 +316,7 @@ export const subscriptionPlans: SubscriptionPlan[] = [
 export const storeCategories: StoreCategories = {
   health_packs: healthPacks,
   token_packs: [...playerTokenPacks, ...coachTokenPacks, ...clubTokenPacks],
-  avatar_items: avatarItems,
+  avatar_items: [], // Removed for Phase 2
   subscriptions: subscriptionPlans
 };
 
