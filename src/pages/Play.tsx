@@ -19,7 +19,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
-import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
+// import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
 import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
 import { useAuth } from '@/hooks/useAuth';
@@ -78,13 +78,17 @@ const Play = () => {
     }
   }, [hasLocation, sortBy]);
 
-  // Get real session data - use a single hook call to avoid subscription conflicts
-  const { 
-    sessions: allSessions, 
-    loading: sessionsLoading, 
-    joinSession,
-    error: sessionError 
-  } = useSafeRealTimeSessions('available', user?.id);
+  // Temporarily use mock data instead of real-time sessions
+  const allSessions = []; // Empty array for now to prevent errors
+  const sessionsLoading = false;
+  const sessionError = null;
+  
+  // Mock joinSession function
+  const joinSession = async (sessionId: string) => {
+    console.log('Would join session:', sessionId);
+    // For now, just show a message
+    alert('Session join functionality temporarily disabled while fixing real-time issues');
+  };
   
   // Filter sessions locally to get available and my sessions
   const availableSessions = allSessions.filter(session => session.status === 'waiting' && !session.is_private);
