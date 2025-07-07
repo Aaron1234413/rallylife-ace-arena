@@ -78,18 +78,22 @@ const Play = () => {
     }
   }, [hasLocation, sortBy]);
 
-  // Get real session data
+  // Get real session data - use a single hook call to avoid subscription conflicts
   const { 
-    sessions: availableSessions, 
-    loading: availableLoading, 
+    sessions: allSessions, 
+    loading: sessionsLoading, 
     joinSession,
     error: sessionError 
   } = useSafeRealTimeSessions('available', user?.id);
   
-  const { 
-    sessions: mySessions, 
-    loading: mySessionsLoading 
-  } = useSafeRealTimeSessions('my-sessions', user?.id);
+  // Filter sessions locally to get available and my sessions
+  const availableSessions = allSessions.filter(session => session.status === 'waiting' && !session.is_private);
+  const mySessions = allSessions.filter(session => 
+    session.creator_id === user?.id || session.user_joined
+  );
+  
+  const availableLoading = sessionsLoading;
+  const mySessionsLoading = sessionsLoading;
 
   // Enhanced session filtering and sorting
   const filteredAndSortedSessions = useMemo(() => {
