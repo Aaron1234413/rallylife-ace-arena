@@ -6,6 +6,8 @@ import { Club } from '@/hooks/useClubs';
 import { formatDistanceToNow } from 'date-fns';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubSubscription } from '@/hooks/useClubSubscription';
+import { useRealTimeClubActivity } from '@/hooks/useRealTimeClubActivity';
+import { useRealTimeClubMembers } from '@/hooks/useRealTimeClubMembers';
 import { SubscriptionStatus } from './SubscriptionStatus';
 import { UsageLimitWarning } from './UsageLimitWarning';
 import { TierUpgradeModal } from './TierUpgradeModal';
@@ -17,9 +19,12 @@ interface ClubDashboardProps {
 export function ClubDashboard({ club }: ClubDashboardProps) {
   const { user } = useAuth();
   const { subscription, usage, updateUsageTracking } = useClubSubscription(club.id);
+  const { activities, getActivitySummary } = useRealTimeClubActivity(club.id);
+  const { members, getTotalMemberCount } = useRealTimeClubMembers(club.id);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
   
   const isOwner = user?.id === club.owner_id;
+  const activitySummary = getActivitySummary();
 
   // Update usage tracking when component mounts
   React.useEffect(() => {
@@ -27,37 +32,31 @@ export function ClubDashboard({ club }: ClubDashboardProps) {
       updateUsageTracking();
     }
   }, [isOwner, updateUsageTracking]);
-  // Mock activity data
-  const recentActivities = [
-    {
-      id: '1',
-      type: 'member_joined',
-      user: 'Alex Johnson',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000),
-      details: 'joined the club'
-    },
-    {
-      id: '2',
-      type: 'court_booked',
-      user: 'Sarah Wilson',
-      timestamp: new Date(Date.now() - 5 * 60 * 60 * 1000),
-      details: 'booked Court 1 for tomorrow'
-    },
-    {
-      id: '3',
-      type: 'event_created',
-      user: 'Mike Davis',
-      timestamp: new Date(Date.now() - 1 * 24 * 60 * 60 * 1000),
-      details: 'created "Weekend Tournament"'
-    },
-    {
-      id: '4',
-      type: 'lesson_scheduled',
-      user: 'Emma Brown',
-      timestamp: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      details: 'scheduled a lesson with Coach Martinez'
+  // Use real-time activities instead of mock data
+  const recentActivities = activities.slice(0, 10).map(activity => ({
+    id: activity.id,
+    type: activity.activity_type,
+    user: activity.user?.full_name || 'Unknown User',
+    timestamp: new Date(activity.created_at),
+    details: getActivityDescription(activity)
+  }));
+
+  function getActivityDescription(activity: any) {
+    switch (activity.activity_type) {
+      case 'member_joined':
+        return 'joined the club';
+      case 'court_booked':
+        return `booked ${activity.activity_data?.court_name || 'a court'}`;
+      case 'lesson_booked':
+        return `booked a lesson with ${activity.activity_data?.coach_name || 'a coach'}`;
+      case 'event_created':
+        return `created "${activity.activity_data?.event_name || 'an event'}"`;
+      case 'member_achievement':
+        return `earned "${activity.activity_data?.achievement_name || 'an achievement'}"`;
+      default:
+        return 'performed an action';
     }
-  ];
+  }
 
   const upcomingEvents = [
     {
@@ -86,25 +85,25 @@ export function ClubDashboard({ club }: ClubDashboardProps) {
   const stats = [
     {
       label: 'Active Members',
-      value: club.member_count,
+      value: getTotalMemberCount() || club.member_count,
       icon: Users,
       color: 'text-blue-600'
     },
     {
-      label: 'Courts Available',
-      value: '4',
-      icon: Target,
+      label: 'Today\'s Activity',
+      value: activitySummary.total,
+      icon: Activity,
       color: 'text-green-600'
     },
     {
-      label: 'Monthly Events',
-      value: '8',
+      label: 'Bookings Today',
+      value: activitySummary.bookings,
       icon: Calendar,
       color: 'text-purple-600'
     },
     {
-      label: 'Championships Won',
-      value: '3',
+      label: 'New Members',
+      value: activitySummary.new_members,
       icon: Trophy,
       color: 'text-amber-600'
     }
@@ -190,7 +189,7 @@ export function ClubDashboard({ club }: ClubDashboardProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {recentActivities.map((activity, index) => (
+            {recentActivities.length > 0 ? recentActivities.map((activity, index) => (
               <div key={activity.id} className="flex items-start gap-4 p-4 rounded-xl bg-tennis-green-bg/30 hover:bg-tennis-green-bg/40 transition-colors animate-fade-in" style={{ animationDelay: `${index * 0.1}s` }}>
                 <div className="flex-shrink-0 mt-1">
                   {getActivityIcon(activity.type)}
@@ -205,7 +204,13 @@ export function ClubDashboard({ club }: ClubDashboardProps) {
                   </p>
                 </div>
               </div>
-            ))}
+            )) : (
+              <div className="text-center py-8 text-tennis-green-medium">
+                <Activity className="h-12 w-12 mx-auto mb-3 opacity-50" />
+                <p>No recent activity</p>
+                <p className="text-sm">Activity will appear here as members interact with the club</p>
+              </div>
+            )}
           </CardContent>
         </Card>
 
