@@ -1,10 +1,36 @@
-// Game Mechanics Configuration for Phase 3 Token Economics
+// Game Mechanics Configuration for Level-Balanced Token Economics
+
+// XP base ranges by session type
+export const XP_RANGES = {
+  social: { min: 10, max: 20 },
+  competitive: { min: 20, max: 40 },
+  training: { min: 15, max: 30 }
+} as const;
 
 // HP loss calculations
 export const HP_LOSS = {
   social: { min: 2, max: 5 },
   competitive: { min: 5, max: 10 },
   training: { min: 3, max: 8 }
+} as const;
+
+// Level difference thresholds and multipliers
+export const LEVEL_BALANCE = {
+  max_stake_level_difference: 10, // Can't stake against players >10 levels apart
+  xp_multipliers: {
+    equal_levels: { higher: 1.0, lower: 1.0 }, // 0-2 level difference
+    moderate_diff: { higher: 0.75, lower: 1.5 }, // 3-4 level difference  
+    large_diff: { higher: 0.5, lower: 2.0 } // 5+ level difference
+  },
+  stake_adjustments: {
+    equal_levels: 1.0, // 0-2 level difference - normal stakes
+    moderate_diff: 0.75, // 3-5 level difference - 75% stakes
+    large_diff: 0.5 // 6+ level difference - 50% stakes
+  },
+  hp_reductions: {
+    moderate_diff: 1, // -1 HP when fighting 3+ levels lower
+    large_diff: 2 // -2 HP when fighting 6+ levels lower
+  }
 } as const;
 
 // Token economics with rake system
@@ -48,10 +74,60 @@ export const SUBSCRIPTION_TOKENS = {
 } as const;
 
 /**
- * Calculate HP loss based on activity type and intensity
+ * Calculate level difference category for balancing
+ */
+export function getLevelDifferenceCategory(playerLevel: number, opponentLevel: number): 'equal_levels' | 'moderate_diff' | 'large_diff' {
+  const levelDiff = Math.abs(playerLevel - opponentLevel);
+  
+  if (levelDiff <= 2) return 'equal_levels';
+  if (levelDiff <= 4) return 'moderate_diff';
+  return 'large_diff';
+}
+
+/**
+ * Check if players can stake against each other
+ */
+export function canPlayersStake(playerLevel: number, opponentLevel: number): boolean {
+  return Math.abs(playerLevel - opponentLevel) <= LEVEL_BALANCE.max_stake_level_difference;
+}
+
+/**
+ * Calculate XP gain with level balancing
+ */
+export function calculateXPGain(
+  activityType: 'social' | 'competitive' | 'training',
+  playerLevel: number,
+  opponentLevel: number,
+  isWinner: boolean = true
+): number {
+  const baseXP = XP_RANGES[activityType];
+  let xp = Math.floor(Math.random() * (baseXP.max - baseXP.min + 1)) + baseXP.min;
+  
+  // Training sessions don't get level modifiers
+  if (activityType === 'training') {
+    return xp;
+  }
+  
+  const category = getLevelDifferenceCategory(playerLevel, opponentLevel);
+  const isPlayerHigherLevel = playerLevel > opponentLevel;
+  
+  // Apply level-based multipliers
+  if (isPlayerHigherLevel) {
+    xp = Math.floor(xp * LEVEL_BALANCE.xp_multipliers[category].higher);
+  } else if (playerLevel < opponentLevel) {
+    xp = Math.floor(xp * LEVEL_BALANCE.xp_multipliers[category].lower);
+  }
+  
+  return Math.max(1, xp); // Minimum 1 XP
+}
+
+/**
+ * Calculate HP loss based on activity type, intensity, and level difference
  */
 export function calculateHPLoss(
   activityType: 'social' | 'competitive' | 'training',
+  playerLevel: number,
+  opponentLevel: number,
   intensity: 'low' | 'medium' | 'high' | 'extreme' = 'medium',
   duration?: number
 ): number {
@@ -68,6 +144,16 @@ export function calculateHPLoss(
   
   hpLoss = Math.floor(hpLoss * intensityMultiplier[intensity]);
   
+  // Level-based HP reduction for fighting lower level opponents
+  if (playerLevel > opponentLevel) {
+    const levelDiff = playerLevel - opponentLevel;
+    if (levelDiff >= 6) {
+      hpLoss -= LEVEL_BALANCE.hp_reductions.large_diff;
+    } else if (levelDiff >= 3) {
+      hpLoss -= LEVEL_BALANCE.hp_reductions.moderate_diff;
+    }
+  }
+  
   // Adjust for duration (if provided in minutes)
   if (duration) {
     const durationMultiplier = Math.min(1 + (duration - 60) / 120, 2); // Max 2x for very long sessions
@@ -75,6 +161,22 @@ export function calculateHPLoss(
   }
   
   return Math.max(1, hpLoss); // Minimum 1 HP loss
+}
+
+/**
+ * Calculate adjusted stake amount based on level difference
+ */
+export function calculateAdjustedStake(
+  originalStake: number,
+  playerLevel: number,
+  opponentLevel: number
+): number {
+  if (!canPlayersStake(playerLevel, opponentLevel)) {
+    return 0; // Can't stake
+  }
+  
+  const category = getLevelDifferenceCategory(playerLevel, opponentLevel);
+  return Math.floor(originalStake * LEVEL_BALANCE.stake_adjustments[category]);
 }
 
 /**

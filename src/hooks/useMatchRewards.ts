@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { SelectedOpponent } from '@/components/match/OpponentSearchSelector';
 import { analyzeOpponent, analyzeDoublesOpponents, estimateDifficulty, OpponentAnalysis, DoublesOpponentAnalysis } from '@/services/opponentAnalyzer';
-import { calculateMatchRewards, RewardCalculation } from '@/utils/rewardCalculator';
+import { calculateSessionRewards, RewardCalculation } from '@/utils/rewardCalculator';
 import { supabase } from '@/integrations/supabase/client';
 
 interface MatchRewardsState {
@@ -69,12 +69,12 @@ export function useMatchRewards({
         // Doubles analysis
         const doublesAnalysis = await analyzeDoublesOpponents(partner, opponent1, opponent2);
         
-        const rewards = calculateMatchRewards(
+        const rewards = calculateSessionRewards(
+          'competitive', // Assuming competitive for doubles
           playerLevel,
           doublesAnalysis.averageOpponentLevel,
-          playerSkill,
-          'intermediate', // Use default for average
-          true // isDoubles
+          true, // Assume winner for preview
+          0 // No stakes for preview
         );
 
         setState(prev => ({
@@ -93,12 +93,12 @@ export function useMatchRewards({
         // Add difficulty estimation
         opponentAnalysis.estimatedDifficulty = estimateDifficulty(playerLevel, opponentAnalysis.level);
         
-        const rewards = calculateMatchRewards(
+        const rewards = calculateSessionRewards(
+          'competitive', // Assuming competitive for match rewards
           playerLevel,
           opponentAnalysis.level,
-          playerSkill,
-          opponentAnalysis.skillLevel,
-          false // isDoubles
+          true, // Assume winner for preview
+          0 // No stakes for preview
         );
 
         setState(prev => ({

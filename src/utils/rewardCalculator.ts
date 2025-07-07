@@ -16,9 +16,10 @@ export interface BaseRewards {
   tokens: number;
 }
 
-export const BASE_MATCH_REWARDS = {
-  win: { xp: 60, hp: 5, tokens: 30 },
-  lose: { xp: 50, hp: -10, tokens: 20 }
+export const BASE_SESSION_REWARDS = {
+  social: { base_tokens: 15 },
+  competitive: { base_tokens: 30 },
+  training: { coach_fee: 12 }
 } as const;
 
 export const calculateLevelDifferenceMultiplier = (playerLevel: number, opponentLevel: number): number => {
@@ -57,39 +58,52 @@ export const calculateSkillLevelMultiplier = (playerSkill: string, opponentSkill
   return 1.0;
 };
 
-export const calculateMatchRewards = (
+export const calculateSessionRewards = (
+  sessionType: 'social' | 'competitive' | 'training',
   playerLevel: number,
   opponentLevel: number,
-  playerSkill: string = 'intermediate',
-  opponentSkill: string = 'intermediate',
-  isDoubles: boolean = false
+  isWinner: boolean,
+  stakesAmount: number = 0,
+  sessionDuration: number = 60
 ): RewardCalculation => {
+  // Import the new level-balanced functions
+  const { calculateXPGain, calculateHPLoss, calculateAdjustedStake, canPlayersStake } = require('./gameEconomics');
+  
+  // Calculate XP with level balancing
+  const xpGained = calculateXPGain(sessionType, playerLevel, opponentLevel, isWinner);
+  
+  // Calculate HP loss with level balancing
+  const hpLoss = calculateHPLoss(sessionType, playerLevel, opponentLevel, 'medium', sessionDuration);
+  
+  // Calculate token rewards based on session type
+  let tokenRewards = 0;
+  if (sessionType === 'training') {
+    tokenRewards = BASE_SESSION_REWARDS.training.coach_fee;
+  } else if (stakesAmount > 0 && canPlayersStake(playerLevel, opponentLevel)) {
+    const adjustedStake = calculateAdjustedStake(stakesAmount, playerLevel, opponentLevel);
+    if (sessionType === 'competitive') {
+      // 10% rake, 90% to winner
+      tokenRewards = isWinner ? Math.floor(adjustedStake * 0.9) : 0;
+    } else if (sessionType === 'social') {
+      // 10% rake, 90% distributed, max 20 token stakes
+      const cappedStake = Math.min(adjustedStake, 20);
+      tokenRewards = isWinner ? Math.floor(cappedStake * 0.9) : 0;
+    }
+  } else {
+    // Base participation rewards when no stakes
+    tokenRewards = BASE_SESSION_REWARDS[sessionType]?.base_tokens || 0;
+  }
+  
   const levelMultiplier = calculateLevelDifferenceMultiplier(playerLevel, opponentLevel);
-  const skillMultiplier = calculateSkillLevelMultiplier(playerSkill, opponentSkill);
-  const doublesMultiplier = isDoubles ? 1.2 : 1.0; // 20% bonus for doubles
-  
-  const totalMultiplier = levelMultiplier * skillMultiplier * doublesMultiplier;
-  
-  const winRewards = {
-    xp: Math.round(BASE_MATCH_REWARDS.win.xp * totalMultiplier),
-    hp: Math.max(1, Math.round(BASE_MATCH_REWARDS.win.hp * (totalMultiplier * 0.8))), // HP less affected
-    tokens: Math.round(BASE_MATCH_REWARDS.win.tokens * totalMultiplier)
-  };
-  
-  const loseRewards = {
-    xp: Math.round(BASE_MATCH_REWARDS.lose.xp * Math.min(1.5, totalMultiplier)), // Cap lose XP bonus
-    hp: Math.round(BASE_MATCH_REWARDS.lose.hp * Math.max(0.5, 1 / totalMultiplier)), // Easier opponents = less HP loss
-    tokens: Math.round(BASE_MATCH_REWARDS.lose.tokens * Math.min(1.3, totalMultiplier)) // Cap lose token bonus
-  };
   
   return {
-    winXP: winRewards.xp,
-    winHP: winRewards.hp,
-    winTokens: winRewards.tokens,
-    loseXP: loseRewards.xp,
-    loseHP: loseRewards.hp,
-    loseTokens: loseRewards.tokens,
-    difficultyMultiplier: totalMultiplier,
+    winXP: isWinner ? xpGained : Math.floor(xpGained * 0.7), // Losers get 70% XP
+    winHP: isWinner ? Math.max(1, -hpLoss + 2) : -hpLoss, // Winners get slight HP bonus
+    winTokens: tokenRewards,
+    loseXP: Math.floor(xpGained * 0.7),
+    loseHP: -hpLoss,
+    loseTokens: Math.floor(tokenRewards * 0.3), // Participation reward
+    difficultyMultiplier: levelMultiplier,
     levelDifference: opponentLevel - playerLevel
   };
 };
