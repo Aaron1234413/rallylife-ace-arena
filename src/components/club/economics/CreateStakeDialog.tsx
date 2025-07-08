@@ -65,19 +65,25 @@ export function CreateStakeDialog({ open, onOpenChange, club }: CreateStakeDialo
     }
   ];
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating stake:', formData);
-    onOpenChange(false);
-    // Reset form
-    setFormData({
-      target_player_id: '',
-      stake_type: '',
-      stake_amount_tokens: 100,
-      odds_multiplier: 1.5,
-      description: '',
-      expires_at: undefined
-    });
+    const { usePlayerStaking } = await import('@/hooks/usePlayerStaking');
+    const { createStake } = usePlayerStaking(club.id);
+    
+    const success = await createStake(formData);
+    
+    if (success) {
+      onOpenChange(false);
+      // Reset form
+      setFormData({
+        target_player_id: '',
+        stake_type: '',
+        stake_amount_tokens: 100,
+        odds_multiplier: 1.5,
+        description: '',
+        expires_at: undefined
+      });
+    }
   };
 
   const getStakeTypeIcon = (type: string) => {

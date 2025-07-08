@@ -5624,6 +5624,14 @@ export type Database = {
         }
         Returns: Json
       }
+      book_club_service: {
+        Args: {
+          service_id_param: string
+          tokens_to_use: number
+          cash_amount_cents: number
+        }
+        Returns: string
+      }
       box: {
         Args: { "": unknown } | { "": unknown }
         Returns: unknown
@@ -5820,6 +5828,21 @@ export type Database = {
         }
         Returns: Json
       }
+      create_club_service: {
+        Args: {
+          club_id_param: string
+          service_name: string
+          service_description: string
+          service_type_param: string
+          price_tokens_param: number
+          price_usd_param: number
+          hybrid_payment_enabled_param: boolean
+          duration_minutes_param: number
+          max_participants_param: number
+          available_slots_param: number
+        }
+        Returns: string
+      }
       create_coaching_challenge: {
         Args: {
           player_user_id: string
@@ -5862,6 +5885,18 @@ export type Database = {
           challenge_id_param?: string
         }
         Returns: Json
+      }
+      create_player_stake: {
+        Args: {
+          club_id_param: string
+          target_player_id_param: string
+          stake_type_param: string
+          stake_amount_param: number
+          odds_multiplier_param: number
+          description_param: string
+          expires_at_param: string
+        }
+        Returns: string
       }
       decline_match_invitation: {
         Args: { invitation_id: string }
@@ -6708,15 +6743,25 @@ export type Database = {
         Returns: string
       }
       process_token_redemption: {
-        Args: {
-          club_id_param: string
-          player_id_param: string
-          service_type_param: string
-          service_details_param: Json
-          tokens_to_use: number
-          cash_amount_param: number
-          total_service_value_param: number
-        }
+        Args:
+          | {
+              club_id_param: string
+              player_id_param: string
+              service_type_param: string
+              service_details_param: Json
+              tokens_to_use: number
+              cash_amount_param: number
+              total_service_value_param: number
+            }
+          | {
+              club_id_param: string
+              player_id_param: string
+              service_type_param: string
+              service_details_param: Json
+              tokens_to_use: number
+              cash_amount_param: number
+              total_service_value_param: number
+            }
         Returns: boolean
       }
       purchase_avatar_item: {
@@ -6725,6 +6770,10 @@ export type Database = {
       }
       purchase_coach_avatar_item: {
         Args: { user_id: string; item_id: string }
+        Returns: Json
+      }
+      resolve_player_stake: {
+        Args: { stake_id_param: string; outcome_won: boolean }
         Returns: Json
       }
       restore_hp: {

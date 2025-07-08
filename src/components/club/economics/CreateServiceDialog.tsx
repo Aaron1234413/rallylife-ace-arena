@@ -36,22 +36,28 @@ export function CreateServiceDialog({ open, onOpenChange, club }: CreateServiceD
     available_slots: 10
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating service:', formData);
-    onOpenChange(false);
-    // Reset form
-    setFormData({
-      name: '',
-      description: '',
-      service_type: '',
-      price_tokens: 0,
-      price_usd: 0,
-      hybrid_payment_enabled: true,
-      duration_minutes: 60,
-      max_participants: 1,
-      available_slots: 10
-    });
+    const { useClubServices } = await import('@/hooks/useClubServices');
+    const { createService } = useClubServices(club.id);
+    
+    const success = await createService(formData);
+    
+    if (success) {
+      onOpenChange(false);
+      // Reset form
+      setFormData({
+        name: '',
+        description: '',
+        service_type: '',
+        price_tokens: 0,
+        price_usd: 0,
+        hybrid_payment_enabled: true,
+        duration_minutes: 60,
+        max_participants: 1,
+        available_slots: 10
+      });
+    }
   };
 
   return (

@@ -57,9 +57,21 @@ export function TokenPurchaseDialog({ open, onOpenChange, club }: TokenPurchaseD
   ];
 
   const handlePurchase = async () => {
-    // Implementation for token purchase
-    console.log('Purchasing tokens:', selectedPack || customAmount);
-    onOpenChange(false);
+    const { useClubTokenPool } = await import('@/hooks/useClubTokenPool');
+    const { purchaseTokens } = useClubTokenPool(club.id);
+    
+    let tokenAmount = 0;
+    if (selectedPack) {
+      const pack = tokenPacks.find(p => p.id === selectedPack);
+      tokenAmount = pack ? pack.tokens + pack.bonus : 0;
+    } else if (customAmount) {
+      tokenAmount = parseInt(customAmount);
+    }
+    
+    if (tokenAmount >= 100) {
+      await purchaseTokens(tokenAmount);
+      onOpenChange(false);
+    }
   };
 
   const getPackIcon = (packId: string) => {

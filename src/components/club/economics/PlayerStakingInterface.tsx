@@ -15,6 +15,7 @@ import {
   Users
 } from 'lucide-react';
 import { CreateStakeDialog } from './CreateStakeDialog';
+import { usePlayerStaking } from '@/hooks/usePlayerStaking';
 
 interface PlayerStakingInterfaceProps {
   club: {
@@ -25,9 +26,20 @@ interface PlayerStakingInterfaceProps {
 
 export function PlayerStakingInterface({ club }: PlayerStakingInterfaceProps) {
   const [showCreateStake, setShowCreateStake] = useState(false);
+  const { activeStakes, myStakes, loading, getStakeStats } = usePlayerStaking(club.id);
 
-  // Mock staking data
-  const activeStakes = [
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-purple-500"></div>
+      </div>
+    );
+  }
+
+  const stats = getStakeStats();
+
+  // Fallback mock data if none exists
+  const displayActiveStakes = activeStakes.length > 0 ? activeStakes : [
     {
       id: '1',
       staker_name: 'John Smith',
@@ -69,7 +81,12 @@ export function PlayerStakingInterface({ club }: PlayerStakingInterfaceProps) {
     }
   ];
 
-  const myStakes = [
+  // Fallback mock stakes for display if none exist
+  const displayMyStakes = myStakes.length > 0 ? myStakes.map(stake => ({
+    ...stake,
+    potential_payout: Math.round(stake.stake_amount_tokens * stake.odds_multiplier),
+    status: stake.stake_status
+  })) : [
     {
       id: '4',
       target_player_name: 'Emma Wilson',
@@ -136,18 +153,18 @@ export function PlayerStakingInterface({ club }: PlayerStakingInterfaceProps) {
             
             <div className="grid grid-cols-3 gap-4 p-4 bg-gradient-to-r from-purple-50 to-purple-100 rounded-lg">
               <div className="text-center">
-                <div className="text-lg font-bold text-purple-900">{activeStakes.length}</div>
+                <div className="text-lg font-bold text-purple-900">{stats.activeStakesCount}</div>
                 <div className="text-xs text-purple-700">Active Stakes</div>
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-purple-900">
-                  {activeStakes.reduce((sum, stake) => sum + stake.stake_amount_tokens, 0).toLocaleString()}
+                  {stats.totalStaked.toLocaleString()}
                 </div>
                 <div className="text-xs text-purple-700">Total Staked</div>
               </div>
               <div className="text-center">
                 <div className="text-lg font-bold text-purple-900">
-                  {activeStakes.reduce((sum, stake) => sum + stake.potential_payout, 0).toLocaleString()}
+                  {stats.totalPotentialPayout.toLocaleString()}
                 </div>
                 <div className="text-xs text-purple-700">Potential Payout</div>
               </div>
@@ -164,7 +181,7 @@ export function PlayerStakingInterface({ club }: PlayerStakingInterfaceProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {myStakes.map((stake) => (
+            {displayMyStakes.map((stake) => (
               <div
                 key={stake.id}
                 className="flex items-center gap-4 p-4 border rounded-lg hover:shadow-md transition-all"
@@ -206,7 +223,7 @@ export function PlayerStakingInterface({ club }: PlayerStakingInterfaceProps) {
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            {activeStakes.map((stake) => {
+            {displayActiveStakes.map((stake) => {
               const Icon = getStakeTypeIcon(stake.stake_type);
               const hoursRemaining = Math.ceil((new Date(stake.expires_at).getTime() - new Date().getTime()) / (1000 * 60 * 60));
               

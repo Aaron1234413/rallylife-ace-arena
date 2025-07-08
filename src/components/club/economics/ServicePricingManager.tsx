@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { CreateServiceDialog } from './CreateServiceDialog';
 import { HybridPaymentSelector } from '../../payments/HybridPaymentSelector';
+import { useClubServices } from '@/hooks/useClubServices';
 
 interface ServicePricingManagerProps {
   club: {
@@ -25,9 +26,18 @@ interface ServicePricingManagerProps {
 
 export function ServicePricingManager({ club, canManage }: ServicePricingManagerProps) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const { services, loading } = useClubServices(club.id);
 
-  // Mock services data
-  const services = [
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center py-8">
+        <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
+
+  // Fallback mock services if none exist
+  const displayServices = services.length > 0 ? services : [
     {
       id: '1',
       name: 'Private Tennis Lesson',
@@ -130,7 +140,7 @@ export function ServicePricingManager({ club, canManage }: ServicePricingManager
 
         {/* Services List */}
         <div className="space-y-4">
-          {services.map((service) => {
+          {displayServices.map((service) => {
             const Icon = getServiceIcon(service.service_type);
             
             return (

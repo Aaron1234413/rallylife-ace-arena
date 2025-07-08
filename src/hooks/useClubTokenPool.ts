@@ -159,7 +159,9 @@ export function useClubTokenPool(clubId: string) {
       if (error) throw error;
 
       if (data?.url) {
+        // Open Stripe checkout in new window
         window.open(data.url, '_blank');
+        toast.success('Redirecting to Stripe for payment...');
       }
     } catch (error) {
       console.error('Error purchasing tokens:', error);
