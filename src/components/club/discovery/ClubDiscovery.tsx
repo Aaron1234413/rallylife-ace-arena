@@ -19,39 +19,6 @@ interface ClubDiscoveryProps {
 }
 
 export function ClubDiscovery({ currentClubId }: ClubDiscoveryProps) {
-  // Mock data for nearby clubs
-  const nearbyClubs = [
-    {
-      id: '1',
-      name: 'Elite Tennis Center',
-      location: '2.1 miles away',
-      memberCount: 85,
-      isPublic: true,
-      rating: 4.8,
-      logo: null,
-      description: 'Premier tennis facility with 8 courts'
-    },
-    {
-      id: '2', 
-      name: 'Riverside Tennis Club',
-      location: '3.4 miles away',
-      memberCount: 120,
-      isPublic: true,
-      rating: 4.6,
-      logo: null,
-      description: 'Family-friendly club by the river'
-    },
-    {
-      id: '3',
-      name: 'Metro Sports Complex',
-      location: '5.2 miles away', 
-      memberCount: 200,
-      isPublic: false,
-      rating: 4.9,
-      logo: null,
-      description: 'Professional training facility'
-    }
-  ];
 
   // Mock data for upcoming tournaments
   const upcomingTournaments = [
@@ -116,65 +83,6 @@ export function ClubDiscovery({ currentClubId }: ClubDiscoveryProps) {
         </CardContent>
       </Card>
 
-      {/* Nearby Clubs */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-            <Globe className="h-5 w-5 text-blue-500" />
-            Nearby Tennis Clubs
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          {nearbyClubs.map((club) => (
-            <div
-              key={club.id}
-              className="flex items-center gap-4 p-4 border rounded-lg hover:shadow-md transition-all"
-            >
-              <Avatar className="h-12 w-12 bg-gradient-to-br from-blue-500 to-purple-600">
-                <AvatarImage src={club.logo || undefined} />
-                <AvatarFallback className="text-white font-bold">
-                  {club.name.slice(0, 2).toUpperCase()}
-                </AvatarFallback>
-              </Avatar>
-              
-              <div className="flex-1 min-w-0">
-                <div className="flex items-start justify-between mb-2">
-                  <div>
-                    <h3 className="font-semibold text-tennis-green-dark">
-                      {club.name}
-                    </h3>
-                    <p className="text-sm text-tennis-green-medium">
-                      {club.description}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Star className="h-4 w-4 text-yellow-500 fill-current" />
-                    <span className="text-sm font-medium">{club.rating}</span>
-                  </div>
-                </div>
-                
-                <div className="flex items-center gap-4 text-sm text-tennis-green-medium">
-                  <div className="flex items-center gap-1">
-                    <MapPin className="h-4 w-4" />
-                    {club.location}
-                  </div>
-                  <div className="flex items-center gap-1">
-                    <Users className="h-4 w-4" />
-                    {club.memberCount} members
-                  </div>
-                  <Badge variant={club.isPublic ? "default" : "secondary"}>
-                    {club.isPublic ? "Public" : "Private"}
-                  </Badge>
-                </div>
-              </div>
-              
-              <Button variant="outline" size="sm">
-                View Club
-              </Button>
-            </div>
-          ))}
-        </CardContent>
-      </Card>
 
       {/* Upcoming Tournaments */}
       <Card>
