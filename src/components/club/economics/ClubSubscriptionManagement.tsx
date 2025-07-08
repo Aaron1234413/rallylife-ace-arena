@@ -73,10 +73,10 @@ export function ClubSubscriptionManagement({ club, isOwner }: ClubSubscriptionMa
             </div>
             <div className="flex-1">
               <h3 className="font-semibold text-amber-900 capitalize">
-                {currentTierId} Plan
+                {currentTierId === 'community' ? 'Community Free Plan' : `${currentTierId} Plan`}
               </h3>
               <p className="text-sm text-amber-700">
-                {currentTierId === 'community' ? 'Free tier' : `$${tiers.find(t => t.id === currentTierId)?.price_monthly}/month`}
+                {currentTierId === 'community' ? '$0/month' : `$${tiers.find(t => t.id === currentTierId)?.price_monthly}/month`}
               </p>
             </div>
             <Badge className="bg-amber-200 text-amber-800">

@@ -38,11 +38,11 @@ export function useClubSubscription(clubId: string) {
       setSubscription(data);
     } catch (error) {
       console.error('Error fetching subscription:', error);
-      // Mock subscription for development
+      // Mock subscription for development - default to community tier
       setSubscription({
         id: 'mock-sub',
         club_id: clubId,
-        tier_id: 'free',
+        tier_id: 'community',
         status: 'active',
         stripe_subscription_id: 'sub_mock'
       });
