@@ -3361,6 +3361,99 @@ export type Database = {
           },
         ]
       }
+      open_sessions: {
+        Row: {
+          cancelled_at: string | null
+          cancelled_reason: string | null
+          club_id: string
+          cost_per_person_money: number
+          cost_per_person_tokens: number
+          court_id: string | null
+          created_at: string
+          creator_id: string
+          creator_type: string
+          current_participants: number
+          description: string | null
+          duration_minutes: number
+          end_time: string
+          equipment_provided: Json | null
+          id: string
+          is_public: boolean
+          max_participants: number
+          payment_method: string
+          requires_approval: boolean
+          scheduled_date: string
+          session_notes: string | null
+          session_type: string
+          skill_level_max: number | null
+          skill_level_min: number | null
+          start_time: string
+          status: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          cancelled_at?: string | null
+          cancelled_reason?: string | null
+          club_id: string
+          cost_per_person_money?: number
+          cost_per_person_tokens?: number
+          court_id?: string | null
+          created_at?: string
+          creator_id: string
+          creator_type: string
+          current_participants?: number
+          description?: string | null
+          duration_minutes: number
+          end_time: string
+          equipment_provided?: Json | null
+          id?: string
+          is_public?: boolean
+          max_participants?: number
+          payment_method?: string
+          requires_approval?: boolean
+          scheduled_date: string
+          session_notes?: string | null
+          session_type: string
+          skill_level_max?: number | null
+          skill_level_min?: number | null
+          start_time: string
+          status?: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          cancelled_at?: string | null
+          cancelled_reason?: string | null
+          club_id?: string
+          cost_per_person_money?: number
+          cost_per_person_tokens?: number
+          court_id?: string | null
+          created_at?: string
+          creator_id?: string
+          creator_type?: string
+          current_participants?: number
+          description?: string | null
+          duration_minutes?: number
+          end_time?: string
+          equipment_provided?: Json | null
+          id?: string
+          is_public?: boolean
+          max_participants?: number
+          payment_method?: string
+          requires_approval?: boolean
+          scheduled_date?: string
+          session_notes?: string | null
+          session_type?: string
+          skill_level_max?: number | null
+          skill_level_min?: number | null
+          start_time?: string
+          status?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       performance_boosters: {
         Row: {
           cooldown_hours: number | null
@@ -6044,6 +6137,10 @@ export type Database = {
       }
       join_club_via_invitation: {
         Args: { invitation_code_param: string }
+        Returns: Json
+      }
+      join_open_session: {
+        Args: { session_id_param: string; role_param?: string }
         Returns: Json
       }
       join_session: {
