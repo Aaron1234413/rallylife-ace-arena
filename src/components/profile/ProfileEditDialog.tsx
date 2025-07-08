@@ -38,11 +38,15 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
   const [loading, setLoading] = useState(false);
   const [fullName, setFullName] = useState('');
   const [location, setLocation] = useState<LocationData | null>(null);
+  const [utrRating, setUtrRating] = useState(4.0);
+  const [ustaRating, setUstaRating] = useState(3.0);
 
   useEffect(() => {
     if (profile && open) {
       setFullName(profile.full_name || '');
       setLocation(profile.location ? { address: profile.location } : null);
+      setUtrRating(profile.utr_rating || 4.0);
+      setUstaRating(profile.usta_rating || 3.0);
     }
   }, [profile, open]);
 
@@ -52,6 +56,8 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
       const updateData: any = {
         full_name: fullName.trim() || null,
         location: location?.address || null,
+        utr_rating: utrRating,
+        usta_rating: ustaRating,
         updated_at: new Date().toISOString()
       };
 
@@ -125,6 +131,61 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
             <p className="text-xs text-muted-foreground">
               Your location helps us find nearby tennis sessions and players
             </p>
+          </div>
+
+          {/* Skill Ratings */}
+          <div className="grid grid-cols-2 gap-4">
+            {/* UTR Rating */}
+            <div className="space-y-2">
+              <Label htmlFor="utrRating" className="text-base font-medium">
+                UTR Rating
+              </Label>
+              <Input
+                id="utrRating"
+                type="number"
+                min="1.0"
+                max="16.5"
+                step="0.1"
+                value={utrRating}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value) && value >= 1.0 && value <= 16.5) {
+                    setUtrRating(value);
+                  }
+                }}
+                placeholder="4.0"
+                className="text-center"
+              />
+              <p className="text-xs text-muted-foreground">
+                Universal Tennis Rating (1.0 - 16.5)
+              </p>
+            </div>
+
+            {/* USTA Rating */}
+            <div className="space-y-2">
+              <Label htmlFor="ustaRating" className="text-base font-medium">
+                USTA Rating
+              </Label>
+              <Input
+                id="ustaRating"
+                type="number"
+                min="1.0"
+                max="7.0"
+                step="0.5"
+                value={ustaRating}
+                onChange={(e) => {
+                  const value = parseFloat(e.target.value);
+                  if (!isNaN(value) && value >= 1.0 && value <= 7.0) {
+                    setUstaRating(value);
+                  }
+                }}
+                placeholder="3.0"
+                className="text-center"
+              />
+              <p className="text-xs text-muted-foreground">
+                USTA Rating (1.0 - 7.0)
+              </p>
+            </div>
           </div>
         </div>
 
