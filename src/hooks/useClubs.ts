@@ -11,6 +11,7 @@ export interface Club {
   location: string | null;
   owner_id: string;
   is_public: boolean;
+  is_private?: boolean;
   member_count: number;
   created_at: string;
   updated_at: string;

@@ -25,6 +25,7 @@ import { SubscriptionStatus } from './SubscriptionStatus';
 import { TierUpgradeModal } from './TierUpgradeModal';
 import { OperatingHoursEditor, OperatingHours } from './OperatingHoursEditor';
 import { LocationInput } from '@/components/ui/location-input';
+import { ClubInvitationManager } from './ClubInvitationManager';
 
 interface ClubSettingsProps {
   club: Club;
@@ -38,7 +39,7 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
     name: club.name,
     description: club.description || '',
     location: club.location || '',
-    is_public: club.is_public,
+    is_private: club.is_private ?? true,
     logo_url: club.logo_url || '',
     court_count: club.court_count || 1,
     coach_slots: club.coach_slots || 1,
@@ -89,7 +90,7 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
     formData.name !== club.name ||
     formData.description !== (club.description || '') ||
     formData.location !== (club.location || '') ||
-    formData.is_public !== club.is_public ||
+    formData.is_private !== (club.is_private ?? true) ||
     formData.logo_url !== (club.logo_url || '');
 
   return (
@@ -163,45 +164,12 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
         </CardContent>
       </Card>
 
-      {/* Privacy Settings */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Privacy & Access</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-4">
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <div className="flex items-center gap-2">
-                {formData.is_public ? (
-                  <Globe className="h-4 w-4 text-green-600" />
-                ) : (
-                  <Lock className="h-4 w-4 text-gray-600" />
-                )}
-                <Label>Club Visibility</Label>
-              </div>
-              <p className="text-sm text-tennis-green-medium">
-                {formData.is_public 
-                  ? 'Anyone can discover and join this club'
-                  : 'Members must be invited to join this club'
-                }
-              </p>
-            </div>
-            
-            <Switch
-              checked={formData.is_public}
-              onCheckedChange={(checked) => setFormData(prev => ({ ...prev, is_public: checked }))}
-              disabled={isUpdating}
-            />
-          </div>
-
-          <div className="flex items-center gap-2 p-3 bg-tennis-green-bg/30 rounded-lg">
-            <Users className="h-4 w-4 text-tennis-green-primary" />
-            <span className="text-sm">
-              Current members: <strong>{club.member_count}</strong>
-            </span>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Club Privacy & Invitations */}
+      <ClubInvitationManager
+        clubId={club.id}
+        isPrivate={formData.is_private}
+        onPrivacyChange={(isPrivate) => setFormData(prev => ({ ...prev, is_private: isPrivate }))}
+      />
 
       {/* Actions */}
       <div className="flex gap-3">
@@ -222,7 +190,7 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
                 name: club.name,
                 description: club.description || '',
                 location: club.location || '',
-                is_public: club.is_public,
+                is_private: club.is_private ?? true,
                 logo_url: club.logo_url || '',
                 court_count: club.court_count || 1,
                 coach_slots: club.coach_slots || 1,

@@ -39,6 +39,7 @@ import Sessions from "@/pages/Sessions";
 import CreateSession from "@/pages/CreateSession";
 import Club from "@/pages/Club";
 import Clubs from "@/pages/Clubs";
+import JoinClub from "@/pages/JoinClub";
 import PaymentGate from "@/pages/PaymentGate";
 
 const queryClient = new QueryClient();
@@ -81,6 +82,7 @@ function AppWithGuide() {
           <Route path="/payment-gate" element={<ProtectedRoute><PaymentGate /></ProtectedRoute>} />
           <Route path="/clubs" element={<ProtectedRoute><Clubs /></ProtectedRoute>} />
           <Route path="/club/:clubId" element={<ProtectedRoute><Club /></ProtectedRoute>} />
+          <Route path="/join/:inviteCode" element={<ProtectedRoute><JoinClub /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>
