@@ -59,7 +59,7 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
     };
 
     loadData();
-  }, [club.id, fetchClubMembers]);
+  }, [club.id]); // Removed fetchClubMembers from deps to prevent infinite re-renders
 
   const getRoleIcon = (role: string, isOwner: boolean) => {
     if (isOwner) return <Crown className="h-3 w-3 text-amber-500" />;
