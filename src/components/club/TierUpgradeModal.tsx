@@ -110,11 +110,15 @@ export function TierUpgradeModal({ isOpen, onClose, clubId, currentSubscription 
           )}
 
           {/* Available Tiers */}
-          <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-4 sm:grid-cols-1 lg:grid-cols-2 xl:grid-cols-3">
             {availableTiers.map((tier) => {
               const TierIcon = getTierIcon(tier.id);
               const isSelected = selectedTier === tier.id;
               const isRecommended = tier.id === 'core';
+
+              // Get token amount from features
+              const tokenFeature = tier.features.find(f => f.includes('tokens per month'));
+              const tokenAmount = tokenFeature?.match(/(\d+,?\d*)/)?.[0] || '0';
 
               return (
                 <Card
@@ -134,7 +138,7 @@ export function TierUpgradeModal({ isOpen, onClose, clubId, currentSubscription 
                     </div>
                   )}
 
-                  <CardHeader className="pb-3">
+                  <CardHeader className="pb-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <div className={`p-2 rounded-lg bg-gradient-to-br ${getTierColor(tier.id)}`}>
@@ -149,9 +153,9 @@ export function TierUpgradeModal({ isOpen, onClose, clubId, currentSubscription 
                       )}
                     </div>
 
-                    <div className="space-y-1">
-                      <div className="flex items-baseline gap-1">
-                        <span className="text-2xl font-bold text-tennis-green-dark">
+                    <div className="text-center py-2">
+                      <div className="flex items-baseline justify-center gap-1">
+                        <span className="text-3xl font-bold text-tennis-green-dark">
                           ${tier.price_monthly}
                         </span>
                         <span className="text-sm text-tennis-green-medium">/month</span>
@@ -160,36 +164,34 @@ export function TierUpgradeModal({ isOpen, onClose, clubId, currentSubscription 
                   </CardHeader>
 
                   <CardContent className="space-y-4">
-                    <div className="grid grid-cols-2 gap-3 text-sm">
-                      <div className="space-y-1">
-                        <span className="text-tennis-green-medium">Members</span>
-                        <div className="font-semibold text-tennis-green-dark">
-                          {tier.member_limit}
-                        </div>
+                    {/* Key Stats */}
+                    <div className="space-y-3">
+                      <div className="flex items-center justify-between py-2 border-b border-tennis-green-bg">
+                        <span className="text-sm text-tennis-green-medium">Monthly Tokens</span>
+                        <span className="font-semibold text-tennis-green-dark">{tokenAmount}</span>
                       </div>
-                      <div className="space-y-1">
-                        <span className="text-tennis-green-medium">Coaches</span>
-                        <div className="font-semibold text-tennis-green-dark">
-                          {tier.coach_limit}
-                        </div>
+                      <div className="flex items-center justify-between py-2 border-b border-tennis-green-bg">
+                        <span className="text-sm text-tennis-green-medium">Max Members</span>
+                        <span className="font-semibold text-tennis-green-dark">
+                          {tier.member_limit === 999999 ? 'Unlimited' : tier.member_limit}
+                        </span>
+                      </div>
+                      <div className="flex items-center justify-between py-2">
+                        <span className="text-sm text-tennis-green-medium">Max Coaches</span>
+                        <span className="font-semibold text-tennis-green-dark">
+                          {tier.coach_limit === 999999 ? 'Unlimited' : tier.coach_limit}
+                        </span>
                       </div>
                     </div>
 
+                    {/* Simple Features */}
                     <div className="space-y-2">
-                      <span className="text-sm font-medium text-tennis-green-dark">Features:</span>
-                      <ul className="space-y-1">
-                        {tier.features.slice(0, 4).map((feature, index) => (
-                          <li key={index} className="flex items-center gap-2 text-xs text-tennis-green-medium">
-                            <Check className="h-3 w-3 text-tennis-green-primary flex-shrink-0" />
-                            <span>{feature}</span>
-                          </li>
-                        ))}
-                        {tier.features.length > 4 && (
-                          <li className="text-xs text-tennis-green-medium italic">
-                            +{tier.features.length - 4} more features
-                          </li>
-                        )}
-                      </ul>
+                      <div className="text-xs text-tennis-green-medium text-center">
+                        {tier.id === 'free' && 'Basic club features'}
+                        {tier.id === 'core' && 'Real-time updates + analytics'}
+                        {tier.id === 'plus' && 'Token rollover + priority support'}
+                        {tier.id === 'pro' && 'Unlimited everything + premium support'}
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
