@@ -31,6 +31,7 @@ import { CourtBooking } from '@/components/club/dashboard/CourtBooking';
 import { ClubAnalyticsDashboard } from '@/components/club/analytics/ClubAnalyticsDashboard';
 import { useClubAnalytics } from '@/hooks/useClubAnalytics';
 import { ClubDiscovery } from '@/components/club/discovery/ClubDiscovery';
+import { ClubEconomics } from '@/components/club/economics/ClubEconomics';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -236,6 +237,14 @@ export default function Club() {
 
           <TabsContent value="discovery">
             <ClubDiscovery currentClubId={club.id} />
+          </TabsContent>
+
+          <TabsContent value="economics">
+            <ClubEconomics 
+              club={club} 
+              isOwner={isOwner} 
+              canManage={canManageMembers || canEditClub} 
+            />
           </TabsContent>
 
         </Tabs>

@@ -7,7 +7,8 @@ import {
   Calendar,
   MapPin,
   BarChart3,
-  Compass
+  Compass,
+  DollarSign
 } from 'lucide-react';
 
 interface SimplifiedClubNavProps {
@@ -69,6 +70,12 @@ export function SimplifiedClubNav({
       label: 'Discovery',
       icon: Compass,
       show: true
+    },
+    {
+      value: 'economics',
+      label: 'Economics',
+      icon: DollarSign,
+      show: canManageMembers || canEditClub
     }
   ];
 

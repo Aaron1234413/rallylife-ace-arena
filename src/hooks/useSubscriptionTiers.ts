@@ -8,6 +8,7 @@ export interface SubscriptionTier {
   price_monthly: number;
   member_limit: number;
   coach_limit: number;
+  token_allocation?: number;
   features: string[];
   created_at: string;
   updated_at: string;

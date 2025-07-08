@@ -3919,6 +3919,65 @@ export type Database = {
         }
         Relationships: []
       }
+      player_stakes: {
+        Row: {
+          club_id: string
+          created_at: string
+          description: string | null
+          expires_at: string | null
+          id: string
+          odds_multiplier: number | null
+          payout_amount: number | null
+          resolved_at: string | null
+          stake_amount_tokens: number
+          stake_status: string
+          stake_type: string
+          staker_id: string
+          target_player_id: string
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          odds_multiplier?: number | null
+          payout_amount?: number | null
+          resolved_at?: string | null
+          stake_amount_tokens: number
+          stake_status?: string
+          stake_type: string
+          staker_id: string
+          target_player_id: string
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          description?: string | null
+          expires_at?: string | null
+          id?: string
+          odds_multiplier?: number | null
+          payout_amount?: number | null
+          resolved_at?: string | null
+          stake_amount_tokens?: number
+          stake_status?: string
+          stake_type?: string
+          staker_id?: string
+          target_player_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "player_stakes_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       player_subscriptions: {
         Row: {
           created_at: string | null
