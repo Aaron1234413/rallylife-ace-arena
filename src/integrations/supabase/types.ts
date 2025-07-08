@@ -4752,6 +4752,9 @@ export type Database = {
           member_limit: number
           name: string
           price_monthly: number
+          stripe_price_id_monthly: string | null
+          stripe_price_id_yearly: string | null
+          token_allocation: number | null
           updated_at: string | null
         }
         Insert: {
@@ -4762,6 +4765,9 @@ export type Database = {
           member_limit: number
           name: string
           price_monthly: number
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_yearly?: string | null
+          token_allocation?: number | null
           updated_at?: string | null
         }
         Update: {
@@ -4772,6 +4778,9 @@ export type Database = {
           member_limit?: number
           name?: string
           price_monthly?: number
+          stripe_price_id_monthly?: string | null
+          stripe_price_id_yearly?: string | null
+          token_allocation?: number | null
           updated_at?: string | null
         }
         Relationships: []
