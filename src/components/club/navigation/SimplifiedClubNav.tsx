@@ -18,6 +18,7 @@ interface SimplifiedClubNavProps {
   canManageMembers: boolean;
   canEditClub: boolean;
   isCoach: boolean;
+  isOwner: boolean;
 }
 
 export function SimplifiedClubNav({ 
@@ -26,7 +27,8 @@ export function SimplifiedClubNav({
   isMember, 
   canManageMembers,
   canEditClub,
-  isCoach 
+  isCoach,
+  isOwner 
 }: SimplifiedClubNavProps) {
   const tabs = [
     {
@@ -63,7 +65,7 @@ export function SimplifiedClubNav({
       value: 'analytics',
       label: 'Analytics',
       icon: BarChart3,
-      show: canManageMembers || canEditClub
+      show: isOwner || canManageMembers || canEditClub
     },
     {
       value: 'discovery',
@@ -75,7 +77,7 @@ export function SimplifiedClubNav({
       value: 'economics',
       label: 'Economics',
       icon: DollarSign,
-      show: canManageMembers || canEditClub
+      show: isOwner || canManageMembers || canEditClub
     }
   ];
 

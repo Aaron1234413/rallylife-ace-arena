@@ -195,6 +195,7 @@ export default function Club() {
             canManageMembers={canManageMembers}
             canEditClub={canEditClub}
             isCoach={isCoach}
+            isOwner={isOwner}
           />
 
           <TabsContent value="play">
