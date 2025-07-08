@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -16,6 +16,10 @@ import {
 import { LiveClubActivityFeed } from './LiveClubActivityFeed';
 import { WhoIsLookingToPlay } from './WhoIsLookingToPlay';
 import { SessionManagement } from './SessionManagement';
+import { CreateMatchDialog } from '../sessions/CreateMatchDialog';
+import { CreateTrainingDialog } from '../sessions/CreateTrainingDialog';
+import { CreateWellbeingDialog } from '../sessions/CreateWellbeingDialog';
+import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
 
 interface ClubMobileDashboardProps {
   club: {
@@ -30,6 +34,12 @@ interface ClubMobileDashboardProps {
 
 export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps) {
   const navigate = useNavigate();
+  
+  // Dialog states for session creation
+  const [showMatchDialog, setShowMatchDialog] = useState(false);
+  const [showTrainingDialog, setShowTrainingDialog] = useState(false);
+  const [showWellbeingDialog, setShowWellbeingDialog] = useState(false);
+  const [showSocialPlayDialog, setShowSocialPlayDialog] = useState(false);
 
   const sessionTypes = [
     {
@@ -63,7 +73,31 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
   ];
 
   const handleCreateSession = (sessionType: string) => {
-    navigate(`/sessions/create?type=${sessionType}`);
+    switch (sessionType) {
+      case 'match':
+        setShowMatchDialog(true);
+        break;
+      case 'training':
+        setShowTrainingDialog(true);
+        break;
+      case 'social_play':
+        setShowSocialPlayDialog(true);
+        break;
+      case 'wellbeing':
+        setShowWellbeingDialog(true);
+        break;
+      default:
+        // Fallback to navigation for unknown types
+        navigate(`/sessions/create?type=${sessionType}`);
+    }
+  };
+
+  const handleSessionCreated = () => {
+    // Close any open dialogs
+    setShowMatchDialog(false);
+    setShowTrainingDialog(false);
+    setShowWellbeingDialog(false);
+    setShowSocialPlayDialog(false);
   };
 
   if (!isMember) {
@@ -123,6 +157,35 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
       <LiveClubActivityFeed clubId={club.id} />
       
       <WhoIsLookingToPlay clubId={club.id} />
+
+      {/* Session Creation Dialogs */}
+      <CreateMatchDialog
+        open={showMatchDialog}
+        onOpenChange={setShowMatchDialog}
+        onMatchCreated={handleSessionCreated}
+        clubId={club.id}
+      />
+      
+      <CreateTrainingDialog
+        open={showTrainingDialog}
+        onOpenChange={setShowTrainingDialog}
+        onTrainingCreated={handleSessionCreated}
+        clubId={club.id}
+      />
+      
+      <CreateWellbeingDialog
+        open={showWellbeingDialog}
+        onOpenChange={setShowWellbeingDialog}
+        onWellbeingCreated={handleSessionCreated}
+        clubId={club.id}
+      />
+      
+      <CreateSocialPlayDialog
+        open={showSocialPlayDialog}
+        onOpenChange={setShowSocialPlayDialog}
+        onEventCreated={handleSessionCreated}
+        clubId={club.id}
+      />
     </div>
   );
 }

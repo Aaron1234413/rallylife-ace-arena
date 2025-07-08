@@ -19,6 +19,9 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
+import { CreateMatchDialog } from '../sessions/CreateMatchDialog';
+import { CreateTrainingDialog } from '../sessions/CreateTrainingDialog';
+import { CreateWellbeingDialog } from '../sessions/CreateWellbeingDialog';
 import { SessionParticipantsList } from '../sessions/SessionParticipantsList';
 import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
 import { toast } from 'sonner';
@@ -51,6 +54,10 @@ interface UnifiedSession {
 export function SessionManagement({ clubId }: SessionManagementProps) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedSession, setSelectedSession] = useState<UnifiedSession | null>(null);
+  const [showMatchDialog, setShowMatchDialog] = useState(false);
+  const [showTrainingDialog, setShowTrainingDialog] = useState(false);
+  const [showWellbeingDialog, setShowWellbeingDialog] = useState(false);
+  const [showSocialPlayDialog, setShowSocialPlayDialog] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
   
@@ -102,7 +109,32 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
   };
 
   const handleCreateSession = (sessionType: string) => {
-    navigate(`/sessions/create?type=${sessionType}`);
+    switch (sessionType) {
+      case 'match':
+        setShowMatchDialog(true);
+        break;
+      case 'training':
+        setShowTrainingDialog(true);
+        break;
+      case 'social_play':
+        setShowSocialPlayDialog(true);
+        break;
+      case 'wellbeing':
+        setShowWellbeingDialog(true);
+        break;
+      default:
+        // Fallback to navigation for unknown types
+        navigate(`/sessions/create?type=${sessionType}`);
+    }
+  };
+
+  const handleSessionCreated = () => {
+    // Sessions will auto-refresh via real-time updates from useUnifiedSessions
+    // Close any open dialogs
+    setShowMatchDialog(false);
+    setShowTrainingDialog(false);
+    setShowWellbeingDialog(false);
+    setShowSocialPlayDialog(false);
   };
 
   const getSessionTypeColor = (type: string) => {
@@ -288,6 +320,35 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
           </div>
         </CardContent>
       </Card>
+
+      {/* Session Creation Dialogs */}
+      <CreateMatchDialog
+        open={showMatchDialog}
+        onOpenChange={setShowMatchDialog}
+        onMatchCreated={handleSessionCreated}
+        clubId={clubId}
+      />
+      
+      <CreateTrainingDialog
+        open={showTrainingDialog}
+        onOpenChange={setShowTrainingDialog}
+        onTrainingCreated={handleSessionCreated}
+        clubId={clubId}
+      />
+      
+      <CreateWellbeingDialog
+        open={showWellbeingDialog}
+        onOpenChange={setShowWellbeingDialog}
+        onWellbeingCreated={handleSessionCreated}
+        clubId={clubId}
+      />
+      
+      <CreateSocialPlayDialog
+        open={showSocialPlayDialog}
+        onOpenChange={setShowSocialPlayDialog}
+        onEventCreated={handleSessionCreated}
+        clubId={clubId}
+      />
 
       {/* Session Details Dialog */}
       {selectedSession && (
