@@ -1112,9 +1112,12 @@ export type Database = {
           invitation_code: string
           invitee_email: string
           inviter_id: string
+          is_active: boolean | null
+          max_uses: number | null
           message: string | null
           status: string
           updated_at: string
+          uses_count: number | null
         }
         Insert: {
           accepted_at?: string | null
@@ -1125,9 +1128,12 @@ export type Database = {
           invitation_code?: string
           invitee_email: string
           inviter_id: string
+          is_active?: boolean | null
+          max_uses?: number | null
           message?: string | null
           status?: string
           updated_at?: string
+          uses_count?: number | null
         }
         Update: {
           accepted_at?: string | null
@@ -1138,9 +1144,12 @@ export type Database = {
           invitation_code?: string
           invitee_email?: string
           inviter_id?: string
+          is_active?: boolean | null
+          max_uses?: number | null
           message?: string | null
           status?: string
           updated_at?: string
+          uses_count?: number | null
         }
         Relationships: [
           {
@@ -1333,6 +1342,7 @@ export type Database = {
           current_member_count: number | null
           description: string | null
           id: string
+          is_private: boolean | null
           is_public: boolean
           location: string | null
           logo_url: string | null
@@ -1353,6 +1363,7 @@ export type Database = {
           current_member_count?: number | null
           description?: string | null
           id?: string
+          is_private?: boolean | null
           is_public?: boolean
           location?: string | null
           logo_url?: string | null
@@ -1373,6 +1384,7 @@ export type Database = {
           current_member_count?: number | null
           description?: string | null
           id?: string
+          is_private?: boolean | null
           is_public?: boolean
           location?: string | null
           logo_url?: string | null
@@ -5967,6 +5979,10 @@ export type Database = {
       is_session_participant: {
         Args: { session_id: string }
         Returns: boolean
+      }
+      join_club_via_invitation: {
+        Args: { invitation_code_param: string }
+        Returns: Json
       }
       join_session: {
         Args: { session_id_param: string; user_id_param: string }
