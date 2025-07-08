@@ -324,7 +324,7 @@ export function useOpenSessions(clubId: string) {
     if (!user || !clubId) return;
 
     const channel = supabase
-      .channel(`open_sessions_${clubId}_${user.id}`)
+      .channel(`open_sessions_realtime_${clubId}_${user.id}`)
       .on(
         'postgres_changes',
         {

@@ -3542,6 +3542,13 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "open_sessions_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "club_courts"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "open_sessions_creator_id_fkey"
             columns: ["creator_id"]
             isOneToOne: false
