@@ -3403,6 +3403,45 @@ export type Database = {
         }
         Relationships: []
       }
+      play_availability: {
+        Row: {
+          club_id: string
+          created_at: string
+          expires_at: string
+          id: string
+          is_available: boolean
+          notes: string | null
+          player_id: string
+          preferred_times: Json | null
+          skill_preferences: Json | null
+          updated_at: string
+        }
+        Insert: {
+          club_id: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_available?: boolean
+          notes?: string | null
+          player_id: string
+          preferred_times?: Json | null
+          skill_preferences?: Json | null
+          updated_at?: string
+        }
+        Update: {
+          club_id?: string
+          created_at?: string
+          expires_at?: string
+          id?: string
+          is_available?: boolean
+          notes?: string | null
+          player_id?: string
+          preferred_times?: Json | null
+          skill_preferences?: Json | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       player_achievements: {
         Row: {
           achievement_id: string
@@ -5313,6 +5352,10 @@ export type Database = {
         Args: { user_id: string; achievement_id: string }
         Returns: Json
       }
+      cleanup_expired_availability: {
+        Args: Record<PropertyKey, never>
+        Returns: number
+      }
       complete_academy_onboarding: {
         Args: { user_id: string; starting_level?: number }
         Returns: undefined
@@ -5841,6 +5884,25 @@ export type Database = {
       get_quiz_difficulty_for_level: {
         Args: { player_level: number }
         Returns: string[]
+      }
+      get_skill_matched_players: {
+        Args: {
+          club_id_param: string
+          utr_tolerance?: number
+          usta_tolerance?: number
+        }
+        Returns: {
+          player_id: string
+          full_name: string
+          avatar_url: string
+          utr_rating: number
+          usta_rating: number
+          location: string
+          notes: string
+          preferred_times: Json
+          expires_at: string
+          skill_match_score: number
+        }[]
       }
       get_todays_challenge: {
         Args: Record<PropertyKey, never>
@@ -7447,6 +7509,15 @@ export type Database = {
       toggle_feed_like: {
         Args: { activity_id_param: string; user_id_param: string }
         Returns: boolean
+      }
+      toggle_play_availability: {
+        Args: {
+          club_id_param: string
+          is_available_param?: boolean
+          preferred_times_param?: Json
+          notes_param?: string
+        }
+        Returns: Json
       }
       unlock_avatar_item: {
         Args: { user_id: string; item_id: string; unlock_method?: string }

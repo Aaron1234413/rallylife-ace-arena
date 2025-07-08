@@ -34,6 +34,7 @@ import { ClubSessionCalendar } from '@/components/club/sessions/ClubSessionCalen
 import { CreateClubSession } from '@/components/club/sessions/CreateClubSession';
 import { ClubAnalyticsDashboard } from '@/components/club/analytics/ClubAnalyticsDashboard';
 import { ClubManagementDashboard } from '@/components/club/management/ClubManagementDashboard';
+import { PlayAvailabilityWidget } from '@/components/club/PlayAvailabilityWidget';
 import { useClubAnalytics } from '@/hooks/useClubAnalytics';
 
 export default function Club() {
@@ -190,6 +191,7 @@ export default function Club() {
         <Tabs defaultValue="overview" className="space-y-8">
           <TabsList className="bg-white border h-12 p-1 shadow-sm">
             <TabsTrigger value="overview" className="text-base font-medium">Overview</TabsTrigger>
+            <TabsTrigger value="looking-to-play" className="text-base font-medium">Looking to Play</TabsTrigger>
             <TabsTrigger value="members" className="text-base font-medium">Members</TabsTrigger>
             <TabsTrigger value="coaches" className="text-base font-medium">Coaches</TabsTrigger>
             <TabsTrigger value="coaching" className="text-base font-medium">Book Coaching</TabsTrigger>
@@ -205,6 +207,25 @@ export default function Club() {
 
           <TabsContent value="overview">
             <ClubDashboard club={club} />
+          </TabsContent>
+
+          <TabsContent value="looking-to-play">
+            {isMember ? (
+              <PlayAvailabilityWidget 
+                clubId={club.id}
+                onPlayerSelect={(playerId) => {
+                  // Could navigate to player profile or open message dialog
+                  console.log('Selected player:', playerId);
+                }}
+              />
+            ) : (
+              <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+                <h3 className="font-medium mb-2">Member Access Required</h3>
+                <p className="text-sm text-muted-foreground">
+                  You must be a club member to see who's looking to play.
+                </p>
+              </div>
+            )}
           </TabsContent>
 
           <TabsContent value="members">
