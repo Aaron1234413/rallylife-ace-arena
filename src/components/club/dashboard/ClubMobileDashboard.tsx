@@ -11,6 +11,8 @@ import {
   UserCheck,
   MapPin
 } from 'lucide-react';
+import { LiveClubActivityFeed } from './LiveClubActivityFeed';
+import { WhoIsLookingToPlay } from './WhoIsLookingToPlay';
 
 interface ClubMobileDashboardProps {
   club: {
@@ -80,41 +82,47 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
         </CardContent>
       </Card>
 
-      {/* Phase 2 Enhanced Features */}
+      {/* Phase 3: Live Activity & Member Status */}
+      <LiveClubActivityFeed clubId={club.id} />
+      
+      <WhoIsLookingToPlay clubId={club.id} />
+
+      {/* Phase 3 Features */}
       <Card>
         <CardHeader>
           <CardTitle className="text-tennis-green-dark flex items-center gap-2">
-            <UserCheck className="h-5 w-5 text-green-500" />
-            Phase 2 Features Now Available!
+            <Activity className="h-5 w-5 text-blue-500" />
+            Phase 3 Features Now Live!
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
-            <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <Users className="h-5 w-5 text-green-600" />
+            <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <MessageCircle className="h-5 w-5 text-blue-600" />
               <div className="flex-1">
-                <p className="font-medium text-green-800">Enhanced Member List</p>
-                <p className="text-sm text-green-700">Search, filter, and view detailed profiles</p>
+                <p className="font-medium text-blue-800">Live Activity Feed</p>
+                <p className="text-sm text-blue-700">See real-time club activity and member updates</p>
               </div>
             </div>
             
-            <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
-              <UserPlus className="h-5 w-5 text-green-600" />
+            <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+              <Users className="h-5 w-5 text-blue-600" />
               <div className="flex-1">
-                <p className="font-medium text-green-800">Coach Profiles</p>
-                <p className="text-sm text-green-700">Browse coaches with detailed information</p>
+                <p className="font-medium text-blue-800">Member Status Tracking</p>
+                <p className="text-sm text-blue-700">See who's online and looking to play</p>
               </div>
             </div>
           </div>
           
-          <div className="p-4 bg-gradient-to-r from-tennis-green-primary/5 to-tennis-green-primary/10 rounded-lg border">
+          <div className="p-4 bg-gradient-to-r from-blue-500/5 to-blue-500/10 rounded-lg border">
             <p className="text-sm font-medium text-tennis-green-dark mb-2">
-              🎉 Try the new features:
+              🔥 New in Phase 3:
             </p>
             <ul className="text-sm text-tennis-green-medium space-y-1">
-              <li>• Click on any member to view their detailed profile</li>
-              <li>• Use the search bar to find specific members or coaches</li>
-              <li>• Filter members by role (Owner, Admin, Coach, Member)</li>
+              <li>• Real-time activity updates from club members</li>
+              <li>• See who's currently looking to play</li>
+              <li>• Member online/offline status tracking</li>
+              <li>• Interactive "Looking to Play" widget</li>
             </ul>
           </div>
         </CardContent>
@@ -123,32 +131,23 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
       {/* Next Phase Preview */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-tennis-green-dark">Coming in Phase 3</CardTitle>
+          <CardTitle className="text-tennis-green-dark">Coming in Phase 4</CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex items-center gap-3 p-3 bg-tennis-green-bg/30 rounded-lg">
-            <MessageCircle className="h-5 w-5 text-tennis-green-medium" />
-            <div className="flex-1">
-              <p className="font-medium text-tennis-green-dark">Member Activity Feed</p>
-              <p className="text-sm text-tennis-green-medium">See real-time club activity and updates</p>
-            </div>
-            <Badge variant="secondary">Phase 3</Badge>
-          </div>
-          
-          <div className="flex items-center gap-3 p-3 bg-tennis-green-bg/30 rounded-lg">
-            <Activity className="h-5 w-5 text-tennis-green-medium" />
-            <div className="flex-1">
-              <p className="font-medium text-tennis-green-dark">Member Status Tracking</p>
-              <p className="text-sm text-tennis-green-medium">See who's online and looking to play</p>
-            </div>
-            <Badge variant="secondary">Phase 3</Badge>
-          </div>
-          
           <div className="flex items-center gap-3 p-3 bg-tennis-green-bg/30 rounded-lg">
             <Calendar className="h-5 w-5 text-tennis-green-medium" />
             <div className="flex-1">
               <p className="font-medium text-tennis-green-dark">Session Management</p>
               <p className="text-sm text-tennis-green-medium">Create and join club sessions</p>
+            </div>
+            <Badge variant="secondary">Phase 4</Badge>
+          </div>
+          
+          <div className="flex items-center gap-3 p-3 bg-tennis-green-bg/30 rounded-lg">
+            <MapPin className="h-5 w-5 text-tennis-green-medium" />
+            <div className="flex-1">
+              <p className="font-medium text-tennis-green-dark">Court Booking</p>
+              <p className="text-sm text-tennis-green-medium">Reserve courts and manage bookings</p>
             </div>
             <Badge variant="secondary">Phase 4</Badge>
           </div>
