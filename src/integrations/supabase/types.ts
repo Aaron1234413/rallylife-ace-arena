@@ -6853,19 +6853,12 @@ export type Database = {
         Returns: string
       }
       set_play_availability: {
-        Args:
-          | {
-              club_id_param: string
-              available_until_param?: string
-              message_param?: string
-              session_type_param?: string
-            }
-          | {
-              club_id_param: string
-              message_param?: string
-              session_type_param?: string
-              available_until_param?: string
-            }
+        Args: {
+          club_id_param: string
+          message_param?: string
+          session_type_param?: string
+          available_until_param?: string
+        }
         Returns: Json
       }
       spend_coach_tokens: {
