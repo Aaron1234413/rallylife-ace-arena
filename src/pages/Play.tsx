@@ -3,6 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { 
   Users, 
   Trophy, 
@@ -15,7 +26,9 @@ import {
   Plus,
   Gamepad2,
   Coins,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Trash2,
+  Loader2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link } from 'react-router-dom';
@@ -28,10 +41,20 @@ import { NearbyPlayersWidget } from '@/components/play/NearbyPlayersWidget';
 import { useJoinSessionState } from '@/hooks/useJoinSessionState';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { TokenInsufficientError } from '@/components/tokens/TokenInsufficientError';
+import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
+import { toast } from 'sonner';
 
 const Play = () => {
   const { user } = useAuth();
   const { isJoining, startJoining, stopJoining } = useJoinSessionState();
+  
+  // Add unified sessions hook for delete functionality
+  const { cancelSession } = useUnifiedSessions({
+    includeNonClubSessions: true
+  });
+  
+  // State for delete operations
+  const [deletingStates, setDeletingStates] = useState<Record<string, boolean>>({});
   
   // Token balance for checking stakes
   const { 
@@ -184,6 +207,9 @@ const Play = () => {
     const nearbySession = nearbySessions.find(ns => ns.id === session.id);
     const distance = nearbySession?.distance_km;
     
+    // Check if current user is the session creator
+    const isCreator = user && session.creator_id === user.id;
+    
     // Token balance checking
     const hasStakes = session.stakes_amount > 0;
     const hasInsufficientTokens = hasStakes && regularTokens < session.stakes_amount;
@@ -203,6 +229,21 @@ const Play = () => {
         stopJoining();
       }
     };
+
+    const handleDeleteSession = async () => {
+      setDeletingStates(prev => ({ ...prev, [session.id]: true }));
+      try {
+        const success = await cancelSession(session.id);
+        if (success) {
+          toast.success('Session deleted successfully');
+        }
+      } catch (error) {
+        console.error('Error deleting session:', error);
+        toast.error('Failed to delete session');
+      } finally {
+        setDeletingStates(prev => ({ ...prev, [session.id]: false }));
+      }
+    };
     
     // Determine card styling based on token availability
     const cardBorderClass = hasInsufficientTokens 
@@ -219,14 +260,62 @@ const Play = () => {
                 {session.title || `${sessionType.charAt(0).toUpperCase() + sessionType.slice(1)} Session`}
               </CardTitle>
             </div>
-            <div className="flex flex-col items-end gap-1">
-              <Badge className={getTypeColor(sessionType)}>
-                {sessionType.charAt(0).toUpperCase() + sessionType.slice(1)}
-              </Badge>
-              {distance && (
-                <Badge variant="outline" className="text-xs">
-                  {distance.toFixed(1)}km away
+            <div className="flex items-center gap-2">
+              <div className="flex flex-col items-end gap-1">
+                <Badge className={getTypeColor(sessionType)}>
+                  {sessionType.charAt(0).toUpperCase() + sessionType.slice(1)}
                 </Badge>
+                {distance && (
+                  <Badge variant="outline" className="text-xs">
+                    {distance.toFixed(1)}km away
+                  </Badge>
+                )}
+              </div>
+              {isCreator && (
+                <AlertDialog>
+                  <AlertDialogTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm"
+                      className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
+                      disabled={deletingStates[session.id]}
+                      title="Delete session"
+                    >
+                      {deletingStates[session.id] ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <Trash2 className="h-4 w-4" />
+                      )}
+                    </Button>
+                  </AlertDialogTrigger>
+                  <AlertDialogContent>
+                    <AlertDialogHeader>
+                      <AlertDialogTitle>Delete Session</AlertDialogTitle>
+                      <AlertDialogDescription>
+                        Are you sure you want to delete this session? This action cannot be undone.
+                        {session.participant_count && session.participant_count > 0 && (
+                          <span className="block mt-2 text-orange-600 font-medium">
+                            Warning: This session has {session.participant_count} participant(s) who will be notified of the cancellation.
+                          </span>
+                        )}
+                        {session.stakes_amount > 0 && (
+                          <span className="block mt-2 text-blue-600 font-medium">
+                            Stakes will be refunded to participants.
+                          </span>
+                        )}
+                      </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                      <AlertDialogCancel>Cancel</AlertDialogCancel>
+                      <AlertDialogAction
+                        onClick={handleDeleteSession}
+                        className="bg-red-600 hover:bg-red-700"
+                      >
+                        Delete Session
+                      </AlertDialogAction>
+                    </AlertDialogFooter>
+                  </AlertDialogContent>
+                </AlertDialog>
               )}
             </div>
           </div>
@@ -296,6 +385,11 @@ const Play = () => {
               <div className="flex flex-col">
                 <span className="text-sm text-gray-500">
                   Created by {session.creator_name || 'Unknown'}
+                  {isCreator && (
+                    <span className="ml-2 text-xs bg-tennis-green-primary/10 text-tennis-green-primary px-2 py-1 rounded">
+                      You created this
+                    </span>
+                  )}
                 </span>
                 {!tokensLoading && user && (
                   <span className="text-xs text-gray-400">
@@ -304,33 +398,35 @@ const Play = () => {
                 )}
               </div>
               
-              {hasInsufficientTokens ? (
-                <Button 
-                  size="sm" 
-                  variant="outline"
-                  disabled
-                  className="text-red-600 border-red-300"
-                >
-                  Need {tokensShort} More Tokens
-                </Button>
-              ) : (
-                <Button 
-                  size="sm" 
-                  className={session.user_joined 
-                    ? "bg-green-500 hover:bg-green-600 text-white" 
-                    : "bg-tennis-green-primary hover:bg-tennis-green-medium"
-                  }
-                  onClick={handleJoinSession}
-                  disabled={session.user_joined || !user || isJoining(session.id)}
-                  title={!user ? 'Please log in to join sessions' : undefined}
-                >
-                  {isJoining(session.id) ? (
-                    <div className="flex items-center gap-2">
-                      <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
-                      Joining...
-                    </div>
-                  ) : session.user_joined ? '✓ Joined' : 'Join Session'}
-                </Button>
+              {!isCreator && (
+                hasInsufficientTokens ? (
+                  <Button 
+                    size="sm" 
+                    variant="outline"
+                    disabled
+                    className="text-red-600 border-red-300"
+                  >
+                    Need {tokensShort} More Tokens
+                  </Button>
+                ) : (
+                  <Button 
+                    size="sm" 
+                    className={session.user_joined 
+                      ? "bg-green-500 hover:bg-green-600 text-white" 
+                      : "bg-tennis-green-primary hover:bg-tennis-green-medium"
+                    }
+                    onClick={handleJoinSession}
+                    disabled={session.user_joined || !user || isJoining(session.id)}
+                    title={!user ? 'Please log in to join sessions' : undefined}
+                  >
+                    {isJoining(session.id) ? (
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
+                        Joining...
+                      </div>
+                    ) : session.user_joined ? '✓ Joined' : 'Join Session'}
+                  </Button>
+                )
               )}
             </div>
           </div>
