@@ -43,10 +43,13 @@ import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { TokenInsufficientError } from '@/components/tokens/TokenInsufficientError';
 import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
 import { toast } from 'sonner';
+import { MobileSessionCard } from '@/components/play/MobileSessionCard';
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const Play = () => {
   const { user } = useAuth();
   const { isJoining, startJoining, stopJoining } = useJoinSessionState();
+  const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   
   // Get initial tab from URL params or default to "active"
@@ -194,6 +197,36 @@ const Play = () => {
   // Separate sessions by timing
   const activeSessions = filteredAndSortedSessions.filter(session => session.status === 'waiting');
   const upcomingSessions = []; // We'll enhance this later with scheduled sessions
+
+  // Mobile-first session handlers
+  const handleJoinSession = async (sessionId: string) => {
+    if (isJoining(sessionId)) return;
+    
+    startJoining(sessionId);
+    
+    try {
+      await joinSession(sessionId);
+    } catch (error) {
+      console.error('Failed to join session:', error);
+    } finally {
+      stopJoining();
+    }
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    setDeletingStates(prev => ({ ...prev, [sessionId]: true }));
+    try {
+      const success = await cancelSession(sessionId);
+      if (success) {
+        toast.success('Session deleted successfully');
+      }
+    } catch (error) {
+      console.error('Error deleting session:', error);
+      toast.error('Failed to delete session');
+    } finally {
+      setDeletingStates(prev => ({ ...prev, [sessionId]: false }));
+    }
+  };
 
   const getTypeColor = (type: string) => {
     switch (type) {
@@ -669,10 +702,27 @@ const Play = () => {
                 </Link>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {activeSessions.map((session) => (
-                  <SessionCard key={session.id} session={session} />
-                ))}
+              <div className={`space-y-4 ${!isMobile && 'md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0'}`}>
+                {activeSessions.map((session) => {
+                  const nearbySession = nearbySessions.find(ns => ns.id === session.id);
+                  const distance = nearbySession?.distance_km;
+                  
+                  return isMobile ? (
+                    <MobileSessionCard
+                      key={session.id}
+                      session={session}
+                      user={user}
+                      onJoinSession={handleJoinSession}
+                      onDeleteSession={handleDeleteSession}
+                      isJoining={isJoining(session.id)}
+                      isDeleting={deletingStates[session.id] || false}
+                      regularTokens={regularTokens}
+                      distance={distance}
+                    />
+                  ) : (
+                    <SessionCard key={session.id} session={session} />
+                  );
+                })}
               </div>
             )}
           </TabsContent>
@@ -725,10 +775,27 @@ const Play = () => {
                 </Link>
               </div>
             ) : (
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                {mySessions.map((session) => (
-                  <SessionCard key={session.id} session={session} />
-                ))}
+              <div className={`space-y-4 ${!isMobile && 'md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0'}`}>
+                {mySessions.map((session) => {
+                  const nearbySession = nearbySessions.find(ns => ns.id === session.id);
+                  const distance = nearbySession?.distance_km;
+                  
+                  return isMobile ? (
+                    <MobileSessionCard
+                      key={session.id}
+                      session={session}
+                      user={user}
+                      onJoinSession={handleJoinSession}
+                      onDeleteSession={handleDeleteSession}
+                      isJoining={isJoining(session.id)}
+                      isDeleting={deletingStates[session.id] || false}
+                      regularTokens={regularTokens}
+                      distance={distance}
+                    />
+                  ) : (
+                    <SessionCard key={session.id} session={session} />
+                  );
+                })}
               </div>
             )}
           </TabsContent>
