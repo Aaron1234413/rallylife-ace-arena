@@ -16,9 +16,6 @@ import {
 import { LiveClubActivityFeed } from './LiveClubActivityFeed';
 import { WhoIsLookingToPlay } from './WhoIsLookingToPlay';
 import { SessionManagement } from './SessionManagement';
-import { CreateMatchDialog } from '../sessions/CreateMatchDialog';
-import { CreateTrainingDialog } from '../sessions/CreateTrainingDialog';
-import { CreateWellbeingDialog } from '../sessions/CreateWellbeingDialog';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
 
 interface ClubMobileDashboardProps {
@@ -35,10 +32,7 @@ interface ClubMobileDashboardProps {
 export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps) {
   const navigate = useNavigate();
   
-  // Dialog states for session creation
-  const [showMatchDialog, setShowMatchDialog] = useState(false);
-  const [showTrainingDialog, setShowTrainingDialog] = useState(false);
-  const [showWellbeingDialog, setShowWellbeingDialog] = useState(false);
+  // Dialog state for social play only
   const [showSocialPlayDialog, setShowSocialPlayDialog] = useState(false);
 
   const sessionTypes = [
@@ -73,30 +67,16 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
   ];
 
   const handleCreateSession = (sessionType: string) => {
-    switch (sessionType) {
-      case 'match':
-        setShowMatchDialog(true);
-        break;
-      case 'training':
-        setShowTrainingDialog(true);
-        break;
-      case 'social_play':
-        setShowSocialPlayDialog(true);
-        break;
-      case 'wellbeing':
-        setShowWellbeingDialog(true);
-        break;
-      default:
-        // Fallback to navigation for unknown types
-        navigate(`/sessions/create?type=${sessionType}`);
+    if (sessionType === 'social_play') {
+      setShowSocialPlayDialog(true);
+    } else {
+      // Navigate to the unified CreateSession page with club context
+      navigate(`/club/${club.id}/sessions/create?type=${sessionType}`);
     }
   };
 
   const handleSessionCreated = () => {
-    // Close any open dialogs
-    setShowMatchDialog(false);
-    setShowTrainingDialog(false);
-    setShowWellbeingDialog(false);
+    // Close social play dialog
     setShowSocialPlayDialog(false);
   };
 
@@ -158,28 +138,7 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
       
       <WhoIsLookingToPlay clubId={club.id} />
 
-      {/* Session Creation Dialogs */}
-      <CreateMatchDialog
-        open={showMatchDialog}
-        onOpenChange={setShowMatchDialog}
-        onMatchCreated={handleSessionCreated}
-        clubId={club.id}
-      />
-      
-      <CreateTrainingDialog
-        open={showTrainingDialog}
-        onOpenChange={setShowTrainingDialog}
-        onTrainingCreated={handleSessionCreated}
-        clubId={club.id}
-      />
-      
-      <CreateWellbeingDialog
-        open={showWellbeingDialog}
-        onOpenChange={setShowWellbeingDialog}
-        onWellbeingCreated={handleSessionCreated}
-        clubId={club.id}
-      />
-      
+      {/* Social Play Dialog - Only one we keep as dialog */}
       <CreateSocialPlayDialog
         open={showSocialPlayDialog}
         onOpenChange={setShowSocialPlayDialog}
