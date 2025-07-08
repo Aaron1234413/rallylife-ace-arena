@@ -82,6 +82,7 @@ function AppWithGuide() {
           <Route path="/payment-gate" element={<ProtectedRoute><PaymentGate /></ProtectedRoute>} />
           <Route path="/clubs" element={<ProtectedRoute><Clubs /></ProtectedRoute>} />
           <Route path="/club/:clubId" element={<ProtectedRoute><Club /></ProtectedRoute>} />
+          <Route path="/club/:clubId/sessions/create" element={<ProtectedRoute><CreateSession /></ProtectedRoute>} />
           <Route path="/join/:inviteCode" element={<ProtectedRoute><JoinClub /></ProtectedRoute>} />
           <Route path="/join-club/:linkSlug" element={<ProtectedRoute><JoinClub /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />
