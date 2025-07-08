@@ -16,7 +16,7 @@ const navItems = [
   { icon: Home, label: 'Home', path: '/' },
   { icon: Calendar, label: 'Sessions', path: '/sessions' },
   { icon: Users, label: 'Clubs', path: '/clubs' },
-  { icon: Map, label: 'Maps', path: '/maps' },
+  { icon: Trophy, label: 'Play', path: '/play' },
   { icon: MessageSquare, label: 'Messages', path: '/messages' },
   { icon: User, label: 'Profile', path: '/profile' }
 ];

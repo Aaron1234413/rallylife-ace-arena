@@ -38,6 +38,8 @@ import { PlayAvailabilityWidget } from '@/components/club/PlayAvailabilityWidget
 import { CreateOpenSessionDialog } from '@/components/club/sessions/CreateOpenSessionDialog';
 import { OpenSessionsList } from '@/components/club/sessions/OpenSessionsList';
 import { useClubAnalytics } from '@/hooks/useClubAnalytics';
+import { ClubMobileDashboard } from '@/components/club/dashboard/ClubMobileDashboard';
+import { SimplifiedClubNav } from '@/components/club/navigation/SimplifiedClubNav';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -52,6 +54,7 @@ export default function Club() {
   } = useClubs();
   const [refreshing, setRefreshing] = useState(false);
   const [showCreateSession, setShowCreateSession] = useState(false);
+  const [activeTab, setActiveTab] = useState('play');
   const { analytics } = useClubAnalytics(clubId || '');
 
   // Find the club in either clubs or myClubs
@@ -190,75 +193,21 @@ export default function Club() {
           </CardContent>
         </Card>
 
-        {/* Club Content */}
-        <Tabs defaultValue="overview" className="space-y-8">
-          <TabsList className="bg-white border h-12 p-1 shadow-sm">
-            <TabsTrigger value="overview" className="text-base font-medium">Overview</TabsTrigger>
-            <TabsTrigger value="looking-to-play" className="text-base font-medium">Looking to Play</TabsTrigger>
-            <TabsTrigger value="open-sessions" className="text-base font-medium">Open Sessions</TabsTrigger>
-            <TabsTrigger value="members" className="text-base font-medium">Members</TabsTrigger>
-            <TabsTrigger value="coaches" className="text-base font-medium">Coaches</TabsTrigger>
-            <TabsTrigger value="coaching" className="text-base font-medium">Book Coaching</TabsTrigger>
-            <TabsTrigger value="courts" className="text-base font-medium">Courts</TabsTrigger>
-            <TabsTrigger value="sessions" className="text-base font-medium">Sessions</TabsTrigger>
-            <TabsTrigger value="create-session" className="text-base font-medium">New Session</TabsTrigger>
-            <TabsTrigger value="my-bookings" className="text-base font-medium">My Bookings</TabsTrigger>
-            {(isOwner || canManageMembers) && <TabsTrigger value="analytics" className="text-base font-medium">Analytics</TabsTrigger>}
-            {(isOwner || canManageMembers) && <TabsTrigger value="management" className="text-base font-medium">Management</TabsTrigger>}
-            {isCoach && <TabsTrigger value="my-services" className="text-base font-medium">My Services</TabsTrigger>}
-            {canEditClub && <TabsTrigger value="settings" className="text-base font-medium">Settings</TabsTrigger>}
-          </TabsList>
+        {/* Mobile-First Club Navigation */}
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <SimplifiedClubNav
+            activeTab={activeTab}
+            onTabChange={setActiveTab}
+            isMember={isMember}
+            canManageMembers={canManageMembers}
+            canEditClub={canEditClub}
+            isCoach={isCoach}
+          />
 
-          <TabsContent value="overview">
-            <ClubDashboard club={club} />
+          <TabsContent value="play">
+            <ClubMobileDashboard club={club} isMember={isMember} />
           </TabsContent>
 
-          <TabsContent value="looking-to-play">
-            {isMember ? (
-              <PlayAvailabilityWidget 
-                clubId={club.id}
-                onPlayerSelect={(playerId) => {
-                  // Could navigate to player profile or open message dialog
-                  console.log('Selected player:', playerId);
-                }}
-              />
-            ) : (
-              <div className="text-center p-8 bg-white rounded-lg shadow-lg">
-                <h3 className="font-medium mb-2">Member Access Required</h3>
-                <p className="text-sm text-muted-foreground">
-                  You must be a club member to see who's looking to play.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="open-sessions">
-            {isMember ? (
-              <div className="space-y-6">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <h2 className="text-2xl font-bold text-tennis-green-dark">Open Sessions</h2>
-                    <p className="text-tennis-green-medium">Join or create sessions with other members</p>
-                  </div>
-                  <Button 
-                    onClick={() => setShowCreateSession(true)}
-                    className="flex items-center gap-2"
-                  >
-                    <Activity className="h-4 w-4" />
-                    Create Session
-                  </Button>
-                </div>
-                <OpenSessionsList clubId={club.id} />
-              </div>
-            ) : (
-              <div className="text-center p-8 bg-white rounded-lg shadow-lg">
-                <h3 className="font-medium mb-2">Member Access Required</h3>
-                <p className="text-sm text-muted-foreground">
-                  You must be a club member to view and join open sessions.
-                </p>
-              </div>
-            )}
-          </TabsContent>
 
           <TabsContent value="members">
             <MembersList 

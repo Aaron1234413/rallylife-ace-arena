@@ -6552,6 +6552,15 @@ export type Database = {
         }
         Returns: string
       }
+      set_play_availability: {
+        Args: {
+          club_id_param: string
+          available_until_param?: string
+          message_param?: string
+          session_type_param?: string
+        }
+        Returns: Json
+      }
       spend_coach_tokens: {
         Args: {
           user_id: string
@@ -7648,6 +7657,10 @@ export type Database = {
         Args: { session_id_param: string; starter_id_param: string }
         Returns: Json
       }
+      stop_looking_to_play: {
+        Args: { club_id_param: string }
+        Returns: Json
+      }
       submit_player_feedback: {
         Args: {
           coach_user_id: string
@@ -7710,6 +7723,10 @@ export type Database = {
         Returns: Json
       }
       update_club_usage_tracking: {
+        Args: { club_id_param: string }
+        Returns: undefined
+      }
+      update_member_last_seen: {
         Args: { club_id_param: string }
         Returns: undefined
       }
