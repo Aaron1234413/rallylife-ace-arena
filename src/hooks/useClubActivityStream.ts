@@ -30,7 +30,7 @@ export function useClubActivityStream(clubId: string) {
         .from('club_activity_stream')
         .select(`
           *,
-          user:user_id (
+          user:profiles!club_activity_stream_user_id_fkey (
             full_name,
             avatar_url
           )

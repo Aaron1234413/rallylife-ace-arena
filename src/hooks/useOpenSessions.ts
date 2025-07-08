@@ -80,11 +80,11 @@ export function useOpenSessions(clubId: string) {
         .from('open_sessions')
         .select(`
           *,
-          creator:creator_id (
+          creator:profiles!open_sessions_creator_id_fkey (
             full_name,
             avatar_url
           ),
-          court:court_id (
+          court:club_courts!open_sessions_court_id_fkey (
             name,
             surface_type
           )
@@ -112,11 +112,11 @@ export function useOpenSessions(clubId: string) {
         .from('open_sessions')
         .select(`
           *,
-          creator:creator_id (
+          creator:profiles!open_sessions_creator_id_fkey (
             full_name,
             avatar_url
           ),
-          court:court_id (
+          court:club_courts!open_sessions_court_id_fkey (
             name,
             surface_type
           )
@@ -324,7 +324,7 @@ export function useOpenSessions(clubId: string) {
     if (!user || !clubId) return;
 
     const channel = supabase
-      .channel(`open_sessions_${clubId}`)
+      .channel(`open_sessions_${clubId}_${user.id}`)
       .on(
         'postgres_changes',
         {

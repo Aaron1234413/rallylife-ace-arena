@@ -34,7 +34,7 @@ export function useMemberPresence(clubId: string) {
         .from('member_status')
         .select(`
           *,
-          user:user_id (
+          user:profiles!member_status_user_id_fkey (
             full_name,
             avatar_url
           )
