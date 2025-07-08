@@ -206,11 +206,14 @@ const CreateSession = () => {
 
       toast.success('Session created successfully!');
       
+      console.log('Session created successfully, redirecting...', { clubId, sessionId: session.id });
+      
       // Navigate back to appropriate location
       if (clubId) {
+        console.log('Redirecting to club page:', `/club/${clubId}`);
         navigate(`/club/${clubId}`);
       } else {
-        // Redirect to play page with my-sessions tab selected
+        console.log('Redirecting to play page with my-sessions tab');
         navigate('/play?tab=my-sessions');
       }
       
