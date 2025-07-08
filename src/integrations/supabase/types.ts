@@ -3766,11 +3766,14 @@ export type Database = {
           location: string | null
           location_updated_at: string | null
           longitude: number | null
+          looking_to_play_until: string | null
           onboarding_completed: boolean
           preferences: Json | null
           ready_player_me_url: string | null
           role: Database["public"]["Enums"]["user_role"]
           updated_at: string
+          usta_rating: number | null
+          utr_rating: number | null
         }
         Insert: {
           avatar_url?: string | null
@@ -3782,11 +3785,14 @@ export type Database = {
           location?: string | null
           location_updated_at?: string | null
           longitude?: number | null
+          looking_to_play_until?: string | null
           onboarding_completed?: boolean
           preferences?: Json | null
           ready_player_me_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
+          usta_rating?: number | null
+          utr_rating?: number | null
         }
         Update: {
           avatar_url?: string | null
@@ -3798,11 +3804,14 @@ export type Database = {
           location?: string | null
           location_updated_at?: string | null
           longitude?: number | null
+          looking_to_play_until?: string | null
           onboarding_completed?: boolean
           preferences?: Json | null
           ready_player_me_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           updated_at?: string
+          usta_rating?: number | null
+          utr_rating?: number | null
         }
         Relationships: []
       }

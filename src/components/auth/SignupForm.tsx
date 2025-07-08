@@ -9,31 +9,40 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Mail, Lock, User, UserCheck, Users } from 'lucide-react';
+import { SkillLevelSelector } from '@/components/onboarding/SkillLevelSelector';
 
 export function SignupForm() {
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<'player' | 'coach'>('player');
+  const [utrRating, setUtrRating] = useState(4.0);
+  const [ustaRating, setUstaRating] = useState(3.0);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleBasicSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
+
+    if (password.length < 6) {
+      setError('Password must be at least 6 characters long');
+      return;
+    }
+
+    setStep(2);
+  };
+
+  const handleSkillLevelSubmit = async () => {
     setLoading(true);
     setError('');
     setSuccess(false);
 
-    if (password.length < 6) {
-      setError('Password must be at least 6 characters long');
-      setLoading(false);
-      return;
-    }
-
-    const { error } = await signUp(email, password, fullName, role);
+    const { error } = await signUp(email, password, fullName, role, utrRating, ustaRating);
     
     if (error) {
       if (error.message.includes('already registered')) {
@@ -44,6 +53,28 @@ export function SignupForm() {
     } else {
       setSuccess(true);
       // Redirect new players to payment gate, coaches to dashboard
+      const redirectPath = role === 'player' ? '/payment-gate' : '/dashboard';
+      setTimeout(() => navigate(redirectPath), 2000);
+    }
+    
+    setLoading(false);
+  };
+
+  const handleSkipSkillLevel = async () => {
+    setLoading(true);
+    setError('');
+    setSuccess(false);
+
+    const { error } = await signUp(email, password, fullName, role, 4.0, 3.0);
+    
+    if (error) {
+      if (error.message.includes('already registered')) {
+        setError('An account with this email already exists. Please sign in instead.');
+      } else {
+        setError(error.message);
+      }
+    } else {
+      setSuccess(true);
       const redirectPath = role === 'player' ? '/payment-gate' : '/dashboard';
       setTimeout(() => navigate(redirectPath), 2000);
     }
@@ -66,6 +97,37 @@ export function SignupForm() {
     );
   }
 
+  if (step === 2) {
+    return (
+      <Card className="border-0 shadow-none bg-transparent">
+        <CardContent className="pt-6">
+          {error && (
+            <Alert variant="destructive" className="border-red-200 bg-red-50 mb-4">
+              <AlertDescription className="text-red-700">{error}</AlertDescription>
+            </Alert>
+          )}
+          <SkillLevelSelector
+            utrRating={utrRating}
+            ustaRating={ustaRating}
+            onUtrChange={setUtrRating}
+            onUstaChange={setUstaRating}
+            onSkip={handleSkipSkillLevel}
+            onContinue={handleSkillLevelSubmit}
+          />
+          <div className="text-center mt-4">
+            <Button 
+              variant="ghost" 
+              onClick={() => setStep(1)}
+              className="text-tennis-green-medium hover:text-tennis-green-dark"
+            >
+              ← Back to account details
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="border-0 shadow-none bg-transparent">
       <CardHeader className="text-center pb-6">
@@ -73,7 +135,7 @@ export function SignupForm() {
         <CardDescription className="text-gray-600">Create your account to get started</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleBasicSubmit} className="space-y-4">
           {error && (
             <Alert variant="destructive" className="border-red-200 bg-red-50">
               <AlertDescription className="text-red-700">{error}</AlertDescription>
@@ -156,11 +218,9 @@ export function SignupForm() {
           
           <Button 
             type="submit" 
-            className="w-full h-12 bg-tennis-green-dark hover:bg-tennis-green-medium transition-colors font-medium" 
-            disabled={loading}
+            className="w-full h-12 bg-tennis-green-dark hover:bg-tennis-green-medium transition-colors font-medium"
           >
-            {loading && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            Create Account
+            Next: Set Your Skill Level
           </Button>
           
           <div className="text-center pt-2">

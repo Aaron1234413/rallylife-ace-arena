@@ -6,7 +6,7 @@ interface AuthContextType {
   user: User | null;
   session: Session | null;
   loading: boolean;
-  signUp: (email: string, password: string, fullName: string, role: 'player' | 'coach') => Promise<{ error: any }>;
+  signUp: (email: string, password: string, fullName: string, role: 'player' | 'coach', utrRating?: number, ustaRating?: number) => Promise<{ error: any }>;
   signIn: (email: string, password: string) => Promise<{ error: any }>;
   signOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<{ error: any }>;
@@ -39,7 +39,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => subscription.unsubscribe();
   }, []);
 
-  const signUp = async (email: string, password: string, fullName: string, role: 'player' | 'coach') => {
+  const signUp = async (email: string, password: string, fullName: string, role: 'player' | 'coach', utrRating: number = 4.0, ustaRating: number = 3.0) => {
     const redirectUrl = `${window.location.origin}/`;
     
     const { error } = await supabase.auth.signUp({
@@ -49,7 +49,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         emailRedirectTo: redirectUrl,
         data: {
           full_name: fullName,
-          role: role
+          role: role,
+          utr_rating: utrRating,
+          usta_rating: ustaRating
         }
       }
     });
