@@ -131,9 +131,6 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
 
       toast.success('Social play session created successfully!');
 
-      // For now, we'll skip invitations and just create the session
-      // Invitations can be added later through other means
-      
       // Reset form
       setTitle('');
       setLocation('');
@@ -145,7 +142,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
       setSelectedOpponents([]);
       
       handleOpenChange(false);
-      onEventCreated?.();
+      onEventCreated?.(); // This will trigger refresh in SessionManagement
     } catch (error) {
       console.error('Failed to create event or send invitations:', error);
       toast.error('Failed to create event or send invitations');

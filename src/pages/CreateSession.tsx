@@ -210,7 +210,8 @@ const CreateSession = () => {
       if (clubId) {
         navigate(`/club/${clubId}`);
       } else {
-        navigate('/dashboard');
+        // Redirect to play page with my-sessions tab selected
+        navigate('/play?tab=my-sessions');
       }
       
     } catch (error) {

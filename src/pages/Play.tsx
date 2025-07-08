@@ -31,7 +31,7 @@ import {
   Loader2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
 import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
@@ -47,6 +47,10 @@ import { toast } from 'sonner';
 const Play = () => {
   const { user } = useAuth();
   const { isJoining, startJoining, stopJoining } = useJoinSessionState();
+  const [searchParams, setSearchParams] = useSearchParams();
+  
+  // Get initial tab from URL params or default to "active"
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'active');
   
   // Add unified sessions hook for delete functionality
   const { cancelSession } = useUnifiedSessions({
@@ -94,6 +98,16 @@ const Play = () => {
       setSortBy('distance');
     }
   }, [hasLocation, sortBy]);
+
+  // Handle tab switching from URL parameters
+  React.useEffect(() => {
+    const tabParam = searchParams.get('tab');
+    if (tabParam && ['active', 'upcoming', 'my-sessions'].includes(tabParam)) {
+      setActiveTab(tabParam);
+      // Clear the URL parameter after switching
+      setSearchParams({});
+    }
+  }, [searchParams, setSearchParams]);
 
   // Get real session data
   const { 
@@ -579,7 +593,7 @@ const Play = () => {
         )}
 
         {/* Session Tabs */}
-        <Tabs defaultValue="active" className="w-full">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
           <TabsList className="grid w-full grid-cols-3">
             <TabsTrigger value="active">
               Active Now
