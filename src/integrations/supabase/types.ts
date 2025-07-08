@@ -949,6 +949,36 @@ export type Database = {
           },
         ]
       }
+      club_activity_stream: {
+        Row: {
+          activity_data: Json
+          activity_type: string
+          club_id: string
+          created_at: string
+          id: string
+          is_public: boolean
+          user_id: string
+        }
+        Insert: {
+          activity_data?: Json
+          activity_type: string
+          club_id: string
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          user_id: string
+        }
+        Update: {
+          activity_data?: Json
+          activity_type?: string
+          club_id?: string
+          created_at?: string
+          id?: string
+          is_public?: boolean
+          user_id?: string
+        }
+        Relationships: []
+      }
       club_courts: {
         Row: {
           club_id: string
@@ -3225,6 +3255,48 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      member_status: {
+        Row: {
+          availability_message: string | null
+          club_id: string
+          created_at: string
+          id: string
+          last_seen: string
+          location_lat: number | null
+          location_lng: number | null
+          looking_for_skill_level: number | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          availability_message?: string | null
+          club_id: string
+          created_at?: string
+          id?: string
+          last_seen?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          looking_for_skill_level?: number | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          availability_message?: string | null
+          club_id?: string
+          created_at?: string
+          id?: string
+          last_seen?: string
+          location_lat?: number | null
+          location_lng?: number | null
+          looking_for_skill_level?: number | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
       }
       merchandise_orders: {
         Row: {
