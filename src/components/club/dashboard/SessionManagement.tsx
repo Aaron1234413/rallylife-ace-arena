@@ -19,6 +19,8 @@ import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
+import { SessionParticipantsList } from '../sessions/SessionParticipantsList';
+import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
 import { toast } from 'sonner';
 
 interface SessionManagementProps {
@@ -40,6 +42,7 @@ interface UnifiedSession {
   session_source?: string;
   created_at: string;
   updated_at: string;
+  participant_count?: number;
   creator?: {
     full_name: string;
   };
@@ -47,55 +50,54 @@ interface UnifiedSession {
 
 export function SessionManagement({ clubId }: SessionManagementProps) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const [sessions, setSessions] = useState<UnifiedSession[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [joiningStates, setJoiningStates] = useState<Record<string, boolean>>({});
+  const [selectedSession, setSelectedSession] = useState<UnifiedSession | null>(null);
   const { user } = useAuth();
   const navigate = useNavigate();
+  
+  // Use unified sessions hook for real-time updates
+  const {
+    sessions,
+    loading,
+    joinSession,
+    leaveSession,
+    getSessionParticipants,
+    cancelSession
+  } = useUnifiedSessions({
+    clubId,
+    includeNonClubSessions: false
+  });
 
-  // Fetch club sessions
-  useEffect(() => {
-    const fetchSessions = async () => {
-      try {
-        setLoading(true);
-        const { data, error } = await supabase
-          .from('sessions')
-          .select(`
-            *,
-            profiles:creator_id (
-              full_name
-            )
-          `)
-          .eq('club_id', clubId)
-          .order('created_at', { ascending: false });
+  const [joiningStates, setJoiningStates] = useState<Record<string, boolean>>({});
 
-        if (error) throw error;
-
-        setSessions(data || []);
-      } catch (error) {
-        console.error('Error fetching club sessions:', error);
-        toast.error('Failed to load club sessions');
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    if (clubId) {
-      fetchSessions();
-    }
-  }, [clubId]);
+  // Sessions are now managed by useUnifiedSessions hook with real-time updates
 
   const handleJoinSession = async (sessionId: string) => {
     setJoiningStates(prev => ({ ...prev, [sessionId]: true }));
     try {
-      // For now, just show a success message
-      // TODO: Implement actual join logic with session_participants table
-      toast.success('Join session functionality coming soon!');
-    } catch (error) {
-      console.error('Failed to join session:', error);
-      toast.error('Failed to join session');
+      await joinSession(sessionId);
     } finally {
       setJoiningStates(prev => ({ ...prev, [sessionId]: false }));
+    }
+  };
+
+  const handleViewSessionDetails = (session: UnifiedSession) => {
+    setSelectedSession(session);
+  };
+
+  const handleRemoveParticipant = async (participantId: string) => {
+    try {
+      const { error } = await supabase
+        .from('session_participants')
+        .delete()
+        .eq('id', participantId);
+
+      if (error) throw error;
+      
+      toast.success('Participant removed successfully');
+      // Sessions will auto-refresh via real-time updates
+    } catch (error) {
+      console.error('Error removing participant:', error);
+      toast.error('Failed to remove participant');
     }
   };
 
@@ -206,31 +208,44 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
                       )}
 
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-2">
-                          <Users className="h-4 w-4 text-tennis-green-medium" />
-                          <span className="text-sm text-tennis-green-medium">
-                            0/{session.max_players} participants
-                          </span>
-                          <Badge variant="default" className="text-xs">
-                            Open
-                          </Badge>
+                        <div className="flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <Users className="h-4 w-4 text-tennis-green-medium" />
+                            <span className="text-sm text-tennis-green-medium">
+                              {session.participant_count || 0}/{session.max_players} participants
+                            </span>
+                            <Badge variant="default" className="text-xs">
+                              {(session.participant_count || 0) >= session.max_players ? 'Full' : 'Open'}
+                            </Badge>
+                          </div>
+                          
+                          <div className="flex gap-2">
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => handleViewSessionDetails(session)}
+                            >
+                              View Details
+                            </Button>
+                            <Button 
+                              variant="outline" 
+                              size="sm"
+                              onClick={() => handleJoinSession(session.id)}
+                              disabled={isJoining || (session.participant_count || 0) >= session.max_players}
+                            >
+                              {isJoining ? (
+                                <>
+                                  <Loader2 className="h-3 w-3 animate-spin mr-1" />
+                                  Joining...
+                                </>
+                              ) : (session.participant_count || 0) >= session.max_players ? (
+                                'Session Full'
+                              ) : (
+                                'Join Session'
+                              )}
+                            </Button>
+                          </div>
                         </div>
-                        
-                        <Button 
-                          variant="outline" 
-                          size="sm"
-                          onClick={() => handleJoinSession(session.id)}
-                          disabled={isJoining}
-                        >
-                          {isJoining ? (
-                            <>
-                              <Loader2 className="h-3 w-3 animate-spin mr-1" />
-                              Joining...
-                            </>
-                          ) : (
-                            'Join Session'
-                          )}
-                        </Button>
                       </div>
                     </div>
                   </div>
@@ -274,7 +289,85 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
         </CardContent>
       </Card>
 
-      {/* Dialog removed - now using direct navigation to session creation */}
+      {/* Session Details Dialog */}
+      {selectedSession && (
+        <SessionDetailsDialog
+          session={selectedSession}
+          open={!!selectedSession}
+          onOpenChange={(open) => !open && setSelectedSession(null)}
+          onRemoveParticipant={handleRemoveParticipant}
+          getSessionParticipants={getSessionParticipants}
+        />
+      )}
     </>
+  );
+}
+
+// Session Details Dialog Component
+function SessionDetailsDialog({
+  session,
+  open,
+  onOpenChange,
+  onRemoveParticipant,
+  getSessionParticipants
+}: {
+  session: UnifiedSession;
+  open: boolean;
+  onOpenChange: (open: boolean) => void;
+  onRemoveParticipant: (participantId: string) => void;
+  getSessionParticipants: (sessionId: string) => Promise<any[]>;
+}) {
+  const [participants, setParticipants] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (open && session) {
+      const loadParticipants = async () => {
+        setLoading(true);
+        try {
+          const data = await getSessionParticipants(session.id);
+          setParticipants(data);
+        } catch (error) {
+          console.error('Error loading participants:', error);
+        } finally {
+          setLoading(false);
+        }
+      };
+      loadParticipants();
+    }
+  }, [open, session, getSessionParticipants]);
+
+  return (
+    <div className={`fixed inset-0 z-50 ${open ? 'block' : 'hidden'}`}>
+      <div className="fixed inset-0 bg-black/80" onClick={() => onOpenChange(false)} />
+      <div className="fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-full max-w-2xl bg-white rounded-lg p-6 shadow-lg">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold">Session Details</h2>
+          <Button variant="ghost" onClick={() => onOpenChange(false)}>×</Button>
+        </div>
+        
+        <div className="space-y-4">
+          <div>
+            <h3 className="font-medium">{session.session_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} Session</h3>
+            <p className="text-sm text-gray-600">Created by {session.creator?.full_name}</p>
+          </div>
+          
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <Loader2 className="h-6 w-6 animate-spin" />
+              <span className="ml-2">Loading participants...</span>
+            </div>
+          ) : (
+            <SessionParticipantsList
+              sessionId={session.id}
+              participants={participants}
+              creatorId={session.creator_id}
+              onRemoveParticipant={onRemoveParticipant}
+              maxParticipants={session.max_players}
+            />
+          )}
+        </div>
+      </div>
+    </div>
   );
 }

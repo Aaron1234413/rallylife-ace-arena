@@ -23,6 +23,8 @@ import { SocialPlayStakesPreview } from './SocialPlayStakesPreview';
 import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { toast } from 'sonner';
 import { LocationInput } from '@/components/ui/location-input';
+import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 
 export interface SelectedPlayer {
   id: string;
@@ -50,6 +52,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   const [internalOpen, setInternalOpen] = useState(false);
   const { createEvent, isCreatingEvent } = useSocialPlayEvents();
   const { createSocialPlayInvitation } = useUnifiedInvitations();
+  const { user } = useAuth();
 
   // Form state
   const [title, setTitle] = useState('');
@@ -71,11 +74,8 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   const isFormValid = () => {
     const basicFieldsValid = title.trim() && location.trim() && scheduledDate && scheduledTime;
     
-    if (sessionType === 'singles') {
-      return basicFieldsValid && selectedOpponent;
-    } else {
-      return basicFieldsValid && selectedPartner && selectedOpponents.length === 2;
-    }
+    // For simplified version, just require basic fields
+    return basicFieldsValid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -91,67 +91,48 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
     scheduledDateTime.setHours(hours, minutes);
 
     try {
-      // Temporarily disabled - social play events need migration to unified sessions
-      // await createEvent(...);
-      
-      toast.success('Social play feature temporarily disabled - migration in progress');
-      handleOpenChange(false);
+      // Create session in unified sessions table
+      const sessionData = {
+        creator_id: user?.id,
+        session_type: 'social_play',
+        format: sessionType,
+        max_players: sessionType === 'singles' ? 2 : 4,
+        stakes_amount: 0, // Social play is typically free
+        location: location.trim(),
+        notes: description.trim() || null,
+        is_private: false,
+        club_id: clubId,
+        session_source: clubId ? 'member' : null,
+        latitude: null,
+        longitude: null,
+        location_coordinates_set: false
+      };
 
-      // Send invitations to selected players
-      const invitations = [];
-      
-      if (sessionType === 'singles' && selectedOpponent) {
-        invitations.push(
-          createSocialPlayInvitation({
-            invitedUserName: selectedOpponent.name,
-            invitedUserId: selectedOpponent.id,
-            sessionType,
-            eventTitle: title.trim(),
-            location: location.trim(),
-            scheduledTime: scheduledDateTime,
-            description: description.trim(),
-            message: `You're invited to join a social tennis event: ${title.trim()}`,
-          })
-        );
-      } else if (sessionType === 'doubles') {
-        // Invite partner
-        if (selectedPartner) {
-          invitations.push(
-            createSocialPlayInvitation({
-              invitedUserName: selectedPartner.name,
-              invitedUserId: selectedPartner.id,
-              sessionType,
-              eventTitle: title.trim(),
-              location: location.trim(),
-              scheduledTime: scheduledDateTime,
-              description: description.trim(),
-              message: `You're invited to be my partner in a doubles tennis event: ${title.trim()}`,
-            })
-          );
+      const { data: session, error: sessionError } = await supabase
+        .from('sessions')
+        .insert(sessionData)
+        .select()
+        .single();
+
+      if (sessionError) throw sessionError;
+
+      // Automatically join the session as creator
+      if (session && user) {
+        const { error: joinError } = await supabase
+          .rpc('join_session', {
+            session_id_param: session.id,
+            user_id_param: user.id
+          });
+
+        if (joinError) {
+          console.error('Failed to auto-join session:', joinError);
         }
-
-        // Invite opponents
-        selectedOpponents.forEach((opponent, index) => {
-          invitations.push(
-            createSocialPlayInvitation({
-              invitedUserName: opponent.name,
-              invitedUserId: opponent.id,
-              sessionType,
-              eventTitle: title.trim(),
-              location: location.trim(),
-              scheduledTime: scheduledDateTime,
-              description: description.trim(),
-              message: `You're invited to join a doubles tennis event: ${title.trim()}`,
-            })
-          );
-        });
       }
 
-      // Send all invitations
-      await Promise.all(invitations);
-      
-      const invitationCount = invitations.length;
-      toast.success(`Social play event created and ${invitationCount} invitation${invitationCount > 1 ? 's' : ''} sent!`);
+      toast.success('Social play session created successfully!');
+
+      // For now, we'll skip invitations and just create the session
+      // Invitations can be added later through other means
       
       // Reset form
       setTitle('');
@@ -223,16 +204,13 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
               </RadioGroup>
             </div>
 
-            {/* Player Selection */}
-            <SocialPlayParticipantSelector
-              sessionType={sessionType}
-              selectedOpponent={selectedOpponent}
-              selectedPartner={selectedPartner}
-              selectedOpponents={selectedOpponents}
-              onOpponentSelect={setSelectedOpponent}
-              onPartnerSelect={setSelectedPartner}
-              onOpponentsSelect={setSelectedOpponents}
-            />
+            {/* Player Selection - Simplified for now */}
+            <div className="space-y-3">
+              <Label className="text-base font-medium">Session Details</Label>
+              <p className="text-sm text-muted-foreground">
+                Once created, you can invite players to join your {sessionType} session.
+              </p>
+            </div>
 
             {/* Location */}
             <div className="space-y-2">

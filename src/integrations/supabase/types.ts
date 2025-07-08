@@ -4666,7 +4666,7 @@ export type Database = {
           longitude: number | null
           max_players: number
           notes: string | null
-          session_source: string
+          session_source: string | null
           session_type: string
           stakes_amount: number
           status: string
@@ -4686,7 +4686,7 @@ export type Database = {
           longitude?: number | null
           max_players: number
           notes?: string | null
-          session_source?: string
+          session_source?: string | null
           session_type: string
           stakes_amount?: number
           status?: string
@@ -4706,7 +4706,7 @@ export type Database = {
           longitude?: number | null
           max_players?: number
           notes?: string | null
-          session_source?: string
+          session_source?: string | null
           session_type?: string
           stakes_amount?: number
           status?: string

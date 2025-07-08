@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { useUnifiedSessions } from './useUnifiedSessions';
 
 export interface OpenSession {
   id: string;
@@ -64,74 +65,64 @@ export interface SessionParticipant {
   };
 }
 
-export function useOpenSessions(clubId: string) {
+export function useOpenSessions(clubId?: string) {
   const { user } = useAuth();
-  const [sessions, setSessions] = useState<OpenSession[]>([]);
-  const [userSessions, setUserSessions] = useState<OpenSession[]>([]);
-  const [loading, setLoading] = useState(true);
+  
+  // Use unified sessions hook with club filtering
+  const {
+    sessions: unifiedSessions,
+    loading,
+    joining,
+    joinSession: unifiedJoinSession,
+    leaveSession: unifiedLeaveSession,
+    getSessionParticipants: unifiedGetParticipants,
+    refreshSessions
+  } = useUnifiedSessions({
+    clubId,
+    includeNonClubSessions: false // Only club sessions for this hook
+  });
+
+  const {
+    sessions: userSessions,
+    loading: userSessionsLoading
+  } = useUnifiedSessions({
+    clubId,
+    includeNonClubSessions: false,
+    filterUserSessions: true // Only user's sessions
+  });
+
   const [creating, setCreating] = useState(false);
 
-  // Fetch open sessions for the club
-  const fetchSessions = async () => {
-    if (!user || !clubId) return;
+  // Convert unified sessions to OpenSession format for backward compatibility
+  const sessions: OpenSession[] = unifiedSessions.map(session => ({
+    id: session.id,
+    club_id: session.club_id || '',
+    creator_id: session.creator_id,
+    creator_type: session.session_source === 'coach' ? 'coach' : 'member',
+    session_type: session.session_type as any,
+    title: `${session.session_type.replace('_', ' ')} Session`,
+    description: session.notes,
+    scheduled_date: new Date().toISOString().split('T')[0], // Default to today
+    start_time: '09:00',
+    end_time: '11:00',
+    duration_minutes: 120,
+    max_participants: session.max_players,
+    current_participants: session.participant_count || 0,
+    cost_per_person_tokens: session.stakes_amount,
+    cost_per_person_money: 0,
+    payment_method: 'tokens',
+    requires_approval: false,
+    is_public: !session.is_private,
+    equipment_provided: [],
+    status: 'open',
+    created_at: session.created_at,
+    updated_at: session.updated_at,
+    creator: session.creator,
+    participants: []
+  } as OpenSession));
 
-    try {
-      const { data, error } = await supabase
-        .from('open_sessions')
-        .select(`
-          *,
-          creator:profiles!open_sessions_creator_id_fkey (
-            full_name,
-            avatar_url
-          ),
-          court:club_courts!open_sessions_court_id_fkey (
-            name,
-            surface_type
-          )
-        `)
-        .eq('club_id', clubId)
-        .in('status', ['open', 'full', 'in_progress'])
-        .gte('scheduled_date', new Date().toISOString().split('T')[0])
-        .order('scheduled_date', { ascending: true })
-        .order('start_time', { ascending: true });
-
-      if (error) throw error;
-      setSessions((data as any) || []);
-    } catch (error) {
-      console.error('Error fetching open sessions:', error);
-      toast.error('Failed to load sessions');
-    }
-  };
-
-  // Fetch user's own sessions
-  const fetchUserSessions = async () => {
-    if (!user || !clubId) return;
-
-    try {
-      const { data, error } = await supabase
-        .from('open_sessions')
-        .select(`
-          *,
-          creator:profiles!open_sessions_creator_id_fkey (
-            full_name,
-            avatar_url
-          ),
-          court:club_courts!open_sessions_court_id_fkey (
-            name,
-            surface_type
-          )
-        `)
-        .eq('club_id', clubId)
-        .eq('creator_id', user.id)
-        .order('scheduled_date', { ascending: true })
-        .order('start_time', { ascending: true });
-
-      if (error) throw error;
-      setUserSessions((data as any) || []);
-    } catch (error) {
-      console.error('Error fetching user sessions:', error);
-    }
-  };
+  // Legacy compatibility - now delegated to unified hook
+  const fetchSessions = refreshSessions;
 
   // Create a new open session
   const createSession = async (sessionData: Partial<OpenSession>) => {
@@ -170,7 +161,7 @@ export function useOpenSessions(clubId: string) {
       if (error) throw error;
 
       toast.success('Session created successfully!');
-      await Promise.all([fetchSessions(), fetchUserSessions()]);
+      await fetchSessions();
       return true;
     } catch (error) {
       console.error('Error creating session:', error);
@@ -181,58 +172,14 @@ export function useOpenSessions(clubId: string) {
     }
   };
 
-  // Join a session
+  // Join a session - delegate to unified hook
   const joinSession = async (sessionId: string, role: string = 'participant') => {
-    if (!user) return false;
-
-    try {
-      const { data, error } = await supabase
-        .rpc('join_open_session', {
-          session_id_param: sessionId,
-          role_param: role
-        });
-
-      if (error) throw error;
-
-      const result = data as { success: boolean; error?: string; tokens_paid?: number };
-      
-      if (result.success) {
-        toast.success(`Successfully joined session! ${result.tokens_paid ? `${result.tokens_paid} tokens charged.` : ''}`);
-        await fetchSessions();
-        return true;
-      } else {
-        toast.error(result.error || 'Failed to join session');
-        return false;
-      }
-    } catch (error) {
-      console.error('Error joining session:', error);
-      toast.error('Failed to join session');
-      return false;
-    }
+    return await unifiedJoinSession(sessionId);
   };
 
-  // Leave a session
+  // Leave a session - delegate to unified hook
   const leaveSession = async (sessionId: string) => {
-    if (!user) return false;
-
-    try {
-      // For now, directly delete from session_participants until the function is available
-      const { error } = await supabase
-        .from('session_participants')
-        .delete()
-        .eq('session_id', sessionId)
-        .eq('user_id', user.id);
-
-      if (error) throw error;
-
-      toast.success('Left session successfully!');
-      await fetchSessions();
-      return true;
-    } catch (error) {
-      console.error('Error leaving session:', error);
-      toast.error('Failed to leave session');
-      return false;
-    }
+    return await unifiedLeaveSession(sessionId);
   };
 
   // Cancel a session (for creators)
@@ -253,7 +200,7 @@ export function useOpenSessions(clubId: string) {
       if (error) throw error;
 
       toast.success('Session cancelled successfully');
-      await Promise.all([fetchSessions(), fetchUserSessions()]);
+      await fetchSessions();
       return true;
     } catch (error) {
       console.error('Error cancelling session:', error);
@@ -262,104 +209,59 @@ export function useOpenSessions(clubId: string) {
     }
   };
 
-  // Get session participants
+  // Get session participants - delegate to unified hook but convert types
   const getSessionParticipants = async (sessionId: string): Promise<SessionParticipant[]> => {
-    try {
-      const { data, error } = await supabase
-        .from('session_participants')
-        .select(`
-          *,
-          user:user_id (
-            full_name,
-            avatar_url
-          )
-        `)
-        .eq('session_id', sessionId)
-        .order('joined_at', { ascending: true });
-
-      if (error) throw error;
-      return (data as any) || [];
-    } catch (error) {
-      console.error('Error fetching session participants:', error);
-      return [];
-    }
+    const unifiedParticipants = await unifiedGetParticipants(sessionId);
+    return unifiedParticipants.map(p => ({
+      id: p.id,
+      session_id: p.session_id,
+      user_id: p.user_id,
+      joined_at: p.joined_at,
+      payment_status: p.payment_status as 'pending' | 'paid' | 'refunded' | 'waived',
+      attendance_status: p.attendance_status as 'registered' | 'attended' | 'no_show' | 'cancelled',
+      role: p.role as 'participant' | 'assistant_coach' | 'observer',
+      notes: p.notes,
+      tokens_paid: p.tokens_paid,
+      money_paid: p.money_paid,
+      user: p.user
+    } as SessionParticipant));
   };
 
   // Check if user has joined a session
   const hasUserJoinedSession = async (sessionId: string): Promise<boolean> => {
-    if (!user) return false;
-    
-    try {
-      const { data, error } = await supabase
-        .from('session_participants')
-        .select('id')
-        .eq('session_id', sessionId)
-        .eq('user_id', user.id)
-        .single();
-
-      return !error && !!data;
-    } catch (error) {
-      return false;
-    }
+    const unifiedSession = unifiedSessions.find(s => s.id === sessionId);
+    return unifiedSession?.user_has_joined || false;
   };
-
-  // Load initial data
-  useEffect(() => {
-    if (!user || !clubId) return;
-
-    const loadData = async () => {
-      setLoading(true);
-      try {
-        await Promise.all([fetchSessions(), fetchUserSessions()]);
-      } finally {
-        setLoading(false);
-      }
-    };
-
-    loadData();
-  }, [user, clubId]);
-
-  // Set up real-time subscriptions
-  useEffect(() => {
-    if (!user || !clubId) return;
-
-    const channel = supabase
-      .channel(`open_sessions_realtime_${clubId}_${user.id}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'open_sessions',
-          filter: `club_id=eq.${clubId}`
-        },
-        () => {
-          fetchSessions();
-          fetchUserSessions();
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'session_participants'
-        },
-        () => {
-          fetchSessions();
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
-  }, [user, clubId]);
 
   return {
     sessions,
-    userSessions,
-    loading,
+    userSessions: userSessions.map(session => ({
+      id: session.id,
+      club_id: session.club_id || '',
+      creator_id: session.creator_id,
+      creator_type: session.session_source === 'coach' ? 'coach' : 'member',
+      session_type: session.session_type as any,
+      title: `${session.session_type.replace('_', ' ')} Session`,
+      description: session.notes,
+      scheduled_date: new Date().toISOString().split('T')[0],
+      start_time: '09:00',
+      end_time: '11:00',
+      duration_minutes: 120,
+      max_participants: session.max_players,
+      current_participants: session.participant_count || 0,
+      cost_per_person_tokens: session.stakes_amount,
+      cost_per_person_money: 0,
+      payment_method: 'tokens',
+      requires_approval: false,
+      is_public: !session.is_private,
+      equipment_provided: [],
+      status: 'open',
+      created_at: session.created_at,
+      updated_at: session.updated_at,
+      creator: session.creator,
+      participants: []
+    } as OpenSession)),
+    loading: loading || userSessionsLoading,
     creating,
     createSession,
     joinSession,
