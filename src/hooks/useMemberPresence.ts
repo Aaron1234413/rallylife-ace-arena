@@ -158,7 +158,7 @@ export function useMemberPresence(clubId: string) {
 
     // Set up real-time subscription for member status changes
     const channel = supabase
-      .channel(`member_presence_${clubId}`)
+      .channel(`member_presence_${clubId}_${user.id}`)
       .on(
         'postgres_changes',
         {

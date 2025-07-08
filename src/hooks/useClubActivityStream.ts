@@ -123,7 +123,7 @@ export function useClubActivityStream(clubId: string) {
 
     // Set up real-time subscription for activity stream
     const channel = supabase
-      .channel(`club_activity_${clubId}`)
+      .channel(`club_activity_${clubId}_${user.id}`)
       .on(
         'postgres_changes',
         {
