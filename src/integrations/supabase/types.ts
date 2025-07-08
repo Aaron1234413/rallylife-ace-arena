@@ -4653,6 +4653,7 @@ export type Database = {
       }
       sessions: {
         Row: {
+          club_id: string | null
           created_at: string
           creator_id: string
           format: string | null
@@ -4665,12 +4666,14 @@ export type Database = {
           longitude: number | null
           max_players: number
           notes: string | null
+          session_source: string
           session_type: string
           stakes_amount: number
           status: string
           updated_at: string
         }
         Insert: {
+          club_id?: string | null
           created_at?: string
           creator_id: string
           format?: string | null
@@ -4683,12 +4686,14 @@ export type Database = {
           longitude?: number | null
           max_players: number
           notes?: string | null
+          session_source?: string
           session_type: string
           stakes_amount?: number
           status?: string
           updated_at?: string
         }
         Update: {
+          club_id?: string | null
           created_at?: string
           creator_id?: string
           format?: string | null
@@ -4701,12 +4706,20 @@ export type Database = {
           longitude?: number | null
           max_players?: number
           notes?: string | null
+          session_source?: string
           session_type?: string
           stakes_amount?: number
           status?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "sessions_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "sessions_creator_id_fkey"
             columns: ["creator_id"]
