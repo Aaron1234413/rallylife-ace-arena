@@ -1240,6 +1240,68 @@ export type Database = {
           },
         ]
       }
+      club_services: {
+        Row: {
+          available_slots: number | null
+          club_id: string
+          created_at: string
+          description: string | null
+          duration_minutes: number | null
+          hybrid_payment_enabled: boolean | null
+          id: string
+          is_active: boolean | null
+          max_participants: number | null
+          name: string
+          organizer_id: string
+          price_tokens: number
+          price_usd: number | null
+          service_type: string
+          updated_at: string
+        }
+        Insert: {
+          available_slots?: number | null
+          club_id: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          hybrid_payment_enabled?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          name: string
+          organizer_id: string
+          price_tokens?: number
+          price_usd?: number | null
+          service_type: string
+          updated_at?: string
+        }
+        Update: {
+          available_slots?: number | null
+          club_id?: string
+          created_at?: string
+          description?: string | null
+          duration_minutes?: number | null
+          hybrid_payment_enabled?: boolean | null
+          id?: string
+          is_active?: boolean | null
+          max_participants?: number | null
+          name?: string
+          organizer_id?: string
+          price_tokens?: number
+          price_usd?: number | null
+          service_type?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_services_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_subscriptions: {
         Row: {
           club_id: string | null
@@ -4336,6 +4398,66 @@ export type Database = {
           user_id?: string
         }
         Relationships: []
+      }
+      service_bookings: {
+        Row: {
+          booking_status: string
+          club_id: string
+          created_at: string
+          id: string
+          payment_type: string
+          player_id: string
+          scheduled_date: string | null
+          service_id: string
+          stripe_payment_intent_id: string | null
+          tokens_paid: number | null
+          updated_at: string
+          usd_paid: number | null
+        }
+        Insert: {
+          booking_status?: string
+          club_id: string
+          created_at?: string
+          id?: string
+          payment_type: string
+          player_id: string
+          scheduled_date?: string | null
+          service_id: string
+          stripe_payment_intent_id?: string | null
+          tokens_paid?: number | null
+          updated_at?: string
+          usd_paid?: number | null
+        }
+        Update: {
+          booking_status?: string
+          club_id?: string
+          created_at?: string
+          id?: string
+          payment_type?: string
+          player_id?: string
+          scheduled_date?: string | null
+          service_id?: string
+          stripe_payment_intent_id?: string | null
+          tokens_paid?: number | null
+          updated_at?: string
+          usd_paid?: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "service_bookings_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "service_bookings_service_id_fkey"
+            columns: ["service_id"]
+            isOneToOne: false
+            referencedRelation: "club_services"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       session_notifications: {
         Row: {
