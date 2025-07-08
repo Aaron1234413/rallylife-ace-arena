@@ -20,35 +20,38 @@ export function TierUpgradeModal({ isOpen, onClose, clubId, currentSubscription 
   const [selectedTier, setSelectedTier] = useState<string | null>(null);
   const [processing, setProcessing] = useState(false);
 
-  const currentTierId = currentSubscription?.tier_id || 'community';
+  const currentTierId = currentSubscription?.tier_id || 'free';
   const availableTiers = tiers.filter(tier => {
-    const tierOrder = { community: 0, competitive: 1, champions: 2 };
+    const tierOrder = { free: 0, core: 1, plus: 2, pro: 3 };
     return tierOrder[tier.id as keyof typeof tierOrder] > tierOrder[currentTierId as keyof typeof tierOrder];
   });
 
   const getTierIcon = (tierId: string) => {
     switch (tierId) {
-      case 'community': return Users;
-      case 'competitive': return Star;
-      case 'champions': return Crown;
+      case 'free': return Users;
+      case 'core': return Star;
+      case 'plus': return Crown;
+      case 'pro': return Crown;
       default: return Users;
     }
   };
 
   const getTierColor = (tierId: string) => {
     switch (tierId) {
-      case 'community': return 'from-emerald-500/10 to-emerald-500/5 border-emerald-200';
-      case 'competitive': return 'from-blue-500/10 to-blue-500/5 border-blue-200';
-      case 'champions': return 'from-amber-500/10 to-amber-500/5 border-amber-200';
+      case 'free': return 'from-emerald-500/10 to-emerald-500/5 border-emerald-200';
+      case 'core': return 'from-blue-500/10 to-blue-500/5 border-blue-200';
+      case 'plus': return 'from-amber-500/10 to-amber-500/5 border-amber-200';
+      case 'pro': return 'from-purple-500/10 to-purple-500/5 border-purple-200';
       default: return 'from-gray-500/10 to-gray-500/5 border-gray-200';
     }
   };
 
   const getBadgeColor = (tierId: string) => {
     switch (tierId) {
-      case 'community': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
-      case 'competitive': return 'bg-blue-100 text-blue-800 border-blue-200';
-      case 'champions': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'free': return 'bg-emerald-100 text-emerald-800 border-emerald-200';
+      case 'core': return 'bg-blue-100 text-blue-800 border-blue-200';
+      case 'plus': return 'bg-amber-100 text-amber-800 border-amber-200';
+      case 'pro': return 'bg-purple-100 text-purple-800 border-purple-200';
       default: return 'bg-gray-100 text-gray-800 border-gray-200';
     }
   };
@@ -100,7 +103,7 @@ export function TierUpgradeModal({ isOpen, onClose, clubId, currentSubscription 
               <div className="flex items-center gap-2 text-sm text-tennis-green-medium">
                 <span>Current Plan:</span>
                 <Badge className={getBadgeColor(currentTierId)}>
-                  {tiers.find(t => t.id === currentTierId)?.name || 'Community'}
+                  {tiers.find(t => t.id === currentTierId)?.name || 'Free'}
                 </Badge>
               </div>
             </div>
@@ -111,7 +114,7 @@ export function TierUpgradeModal({ isOpen, onClose, clubId, currentSubscription 
             {availableTiers.map((tier) => {
               const TierIcon = getTierIcon(tier.id);
               const isSelected = selectedTier === tier.id;
-              const isRecommended = tier.id === 'competitive';
+              const isRecommended = tier.id === 'core';
 
               return (
                 <Card
