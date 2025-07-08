@@ -141,19 +141,10 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
     <>
       <Card className="shadow-lg">
         <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-              <Calendar className="h-5 w-5 text-tennis-green-primary" />
-              Club Sessions
-            </CardTitle>
-            <Button
-              onClick={() => handleCreateSession('match')}
-              className="flex items-center gap-2"
-            >
-              <Plus className="h-4 w-4" />
-              Create Session
-            </Button>
-          </div>
+          <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
+            <Calendar className="h-5 w-5 text-tennis-green-primary" />
+            Club Sessions
+          </CardTitle>
         </CardHeader>
 
         <CardContent className="space-y-4">
@@ -270,34 +261,12 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
               <p className="text-tennis-green-medium">
                 No upcoming sessions
               </p>
-              <p className="text-sm text-tennis-green-medium/70 mb-4">
+              <p className="text-sm text-tennis-green-medium/70">
                 Be the first to create a session for your club!
               </p>
-              <Button
-                onClick={() => handleCreateSession('match')}
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Create First Session
-              </Button>
             </div>
           )}
 
-          {/* Quick Stats */}
-          <div className="grid grid-cols-3 gap-4 pt-4 border-t border-tennis-green-bg/50">
-            <div className="text-center">
-              <div className="text-lg font-bold text-tennis-green-dark">3</div>
-              <div className="text-xs text-tennis-green-medium">This Week</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-tennis-green-dark">24</div>
-              <div className="text-xs text-tennis-green-medium">Total Participants</div>
-            </div>
-            <div className="text-center">
-              <div className="text-lg font-bold text-tennis-green-dark">42</div>
-              <div className="text-xs text-tennis-green-medium">Available Spots</div>
-            </div>
-          </div>
         </CardContent>
       </Card>
 
