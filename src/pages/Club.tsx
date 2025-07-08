@@ -26,6 +26,8 @@ import { ClubMobileDashboard } from '@/components/club/dashboard/ClubMobileDashb
 import { SimplifiedClubNav } from '@/components/club/navigation/SimplifiedClubNav';
 import { MembersListSimple } from '@/components/club/MembersListSimple';
 import { CoachesListSimple } from '@/components/club/CoachesListSimple';
+import { SessionManagement } from '@/components/club/dashboard/SessionManagement';
+import { CourtBooking } from '@/components/club/dashboard/CourtBooking';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -202,6 +204,14 @@ export default function Club() {
 
           <TabsContent value="coaches">
             <CoachesListSimple club={club} canManage={canManageMembers} />
+          </TabsContent>
+
+          <TabsContent value="sessions">
+            <SessionManagement clubId={club.id} />
+          </TabsContent>
+
+          <TabsContent value="courts">
+            <CourtBooking clubId={club.id} />
           </TabsContent>
 
         </Tabs>

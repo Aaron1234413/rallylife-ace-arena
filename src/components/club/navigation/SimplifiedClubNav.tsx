@@ -4,7 +4,8 @@ import {
   Home,
   Users, 
   GraduationCap,
-  Calendar
+  Calendar,
+  MapPin
 } from 'lucide-react';
 
 interface SimplifiedClubNavProps {
@@ -42,6 +43,18 @@ export function SimplifiedClubNav({
       label: 'Coaches',
       icon: GraduationCap,
       show: true
+    },
+    {
+      value: 'sessions',
+      label: 'Sessions',
+      icon: Calendar,
+      show: isMember
+    },
+    {
+      value: 'courts',
+      label: 'Courts',
+      icon: MapPin,
+      show: isMember
     }
   ];
 

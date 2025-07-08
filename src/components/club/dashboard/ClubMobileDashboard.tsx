@@ -128,28 +128,43 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
         </CardContent>
       </Card>
 
-      {/* Next Phase Preview */}
+      {/* Phase 4 Complete! */}
       <Card>
         <CardHeader>
-          <CardTitle className="text-tennis-green-dark">Coming in Phase 4</CardTitle>
+          <CardTitle className="text-tennis-green-dark flex items-center gap-2">
+            <Calendar className="h-5 w-5 text-purple-500" />
+            Phase 4 Features Complete! 
+          </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
-          <div className="flex items-center gap-3 p-3 bg-tennis-green-bg/30 rounded-lg">
-            <Calendar className="h-5 w-5 text-tennis-green-medium" />
-            <div className="flex-1">
-              <p className="font-medium text-tennis-green-dark">Session Management</p>
-              <p className="text-sm text-tennis-green-medium">Create and join club sessions</p>
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex items-center gap-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <Calendar className="h-5 w-5 text-purple-600" />
+              <div className="flex-1">
+                <p className="font-medium text-purple-800">Session Management</p>
+                <p className="text-sm text-purple-700">Create and join club sessions</p>
+              </div>
             </div>
-            <Badge variant="secondary">Phase 4</Badge>
+            
+            <div className="flex items-center gap-3 p-3 bg-purple-50 border border-purple-200 rounded-lg">
+              <MapPin className="h-5 w-5 text-purple-600" />
+              <div className="flex-1">
+                <p className="font-medium text-purple-800">Court Booking</p>
+                <p className="text-sm text-purple-700">Reserve courts and manage bookings</p>
+              </div>
+            </div>
           </div>
           
-          <div className="flex items-center gap-3 p-3 bg-tennis-green-bg/30 rounded-lg">
-            <MapPin className="h-5 w-5 text-tennis-green-medium" />
-            <div className="flex-1">
-              <p className="font-medium text-tennis-green-dark">Court Booking</p>
-              <p className="text-sm text-tennis-green-medium">Reserve courts and manage bookings</p>
-            </div>
-            <Badge variant="secondary">Phase 4</Badge>
+          <div className="p-4 bg-gradient-to-r from-purple-500/5 to-purple-500/10 rounded-lg border">
+            <p className="text-sm font-medium text-tennis-green-dark mb-2">
+              🚀 Phase 4 Complete:
+            </p>
+            <ul className="text-sm text-tennis-green-medium space-y-1">
+              <li>• Create tournaments, lessons, and social sessions</li>
+              <li>• Real-time court availability and booking</li>
+              <li>• Visual time slot management</li>
+              <li>• Booking management with pricing</li>
+            </ul>
           </div>
         </CardContent>
       </Card>
