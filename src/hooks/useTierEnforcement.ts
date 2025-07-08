@@ -31,7 +31,7 @@ export function useTierEnforcement(
   const { getTierLimits } = useSubscriptionTiers();
 
   const tierLimits = useMemo((): TierLimits => {
-    const tierId = subscription?.tier_id || 'community';
+    const tierId = subscription?.tier_id || 'free';
     const baseLimits = getTierLimits(tierId);
     
     return {
@@ -40,11 +40,11 @@ export function useTierEnforcement(
       features: baseLimits.features,
       canInviteMembers: true, // All tiers can invite
       canAddCoaches: true, // All tiers can add coaches
-      hasRealtimeUpdates: tierId !== 'community',
-      hasSessionAnalytics: tierId !== 'community',
-      hasRecurringScheduling: tierId === 'champions',
-      hasPeakPricing: tierId === 'champions',
-      hasCustomBranding: tierId === 'champions'
+      hasRealtimeUpdates: tierId !== 'free',
+      hasSessionAnalytics: tierId !== 'free',
+      hasRecurringScheduling: ['plus', 'pro'].includes(tierId),
+      hasPeakPricing: ['plus', 'pro'].includes(tierId),
+      hasCustomBranding: tierId === 'pro'
     };
   }, [subscription?.tier_id, getTierLimits]);
 
@@ -130,17 +130,23 @@ export function useTierEnforcement(
     const currentTier = subscription.tier_id;
 
     if (usageStatus.isNearMemberLimit || usageStatus.isNearCoachLimit) {
-      if (currentTier === 'community') {
+      if (currentTier === 'free') {
         return {
           shouldUpgrade: true,
-          reason: 'You\'re approaching your limits. Upgrade to Competitive for higher limits and real-time features.',
-          suggestedTier: 'competitive'
+          reason: 'You\'re approaching your limits. Upgrade to Core for higher limits and real-time features.',
+          suggestedTier: 'core'
         };
-      } else if (currentTier === 'competitive') {
+      } else if (currentTier === 'core') {
         return {
           shouldUpgrade: true,
-          reason: 'You\'re approaching your limits. Upgrade to Champions for maximum capacity and premium features.',
-          suggestedTier: 'champions'
+          reason: 'You\'re approaching your limits. Upgrade to Plus for higher limits and token rollover.',
+          suggestedTier: 'plus'
+        };
+      } else if (currentTier === 'plus') {
+        return {
+          shouldUpgrade: true,
+          reason: 'You\'re approaching your limits. Upgrade to Pro for unlimited capacity and custom branding.',
+          suggestedTier: 'pro'
         };
       }
     }

@@ -42,7 +42,7 @@ export function useClubSubscription(clubId: string) {
       setSubscription({
         id: 'mock-sub',
         club_id: clubId,
-        tier_id: 'community',
+        tier_id: 'free',
         status: 'active',
         stripe_subscription_id: 'sub_mock'
       });
