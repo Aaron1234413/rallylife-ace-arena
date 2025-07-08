@@ -25,13 +25,9 @@ import { formatDistanceToNow } from 'date-fns';
 import { ClubMobileDashboard } from '@/components/club/dashboard/ClubMobileDashboard';
 import { SimplifiedClubNav } from '@/components/club/navigation/SimplifiedClubNav';
 import { MembersListSimple } from '@/components/club/MembersListSimple';
-import { CoachesListSimple } from '@/components/club/CoachesListSimple';
-import { SessionManagement } from '@/components/club/dashboard/SessionManagement';
 import { CourtBooking } from '@/components/club/dashboard/CourtBooking';
-import { ClubAnalyticsDashboard } from '@/components/club/analytics/ClubAnalyticsDashboard';
-import { useClubAnalytics } from '@/hooks/useClubAnalytics';
-import { ClubDiscovery } from '@/components/club/discovery/ClubDiscovery';
 import { ClubEconomics } from '@/components/club/economics/ClubEconomics';
+import { ClubSettings } from '@/components/club/ClubSettings';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -59,8 +55,6 @@ export default function Club() {
   // Mock check if user is a coach (would come from profiles table in real implementation)
   const isCoach = user?.email?.includes('coach') || false;
 
-  // Load analytics data
-  const { analytics, loading: analyticsLoading } = useClubAnalytics(club?.id || '');
 
   const handleRefresh = async () => {
     if (!club?.id) return;
@@ -210,34 +204,8 @@ export default function Club() {
             />
           </TabsContent>
 
-          <TabsContent value="coaches">
-            <CoachesListSimple club={club} canManage={canManageMembers} />
-          </TabsContent>
-
-          <TabsContent value="sessions">
-            <SessionManagement clubId={club.id} />
-          </TabsContent>
-
           <TabsContent value="courts">
             <CourtBooking clubId={club.id} />
-          </TabsContent>
-
-          <TabsContent value="analytics">
-            {analyticsLoading ? (
-              <div className="flex items-center justify-center py-8">
-                <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-tennis-green-primary"></div>
-              </div>
-            ) : analytics ? (
-              <ClubAnalyticsDashboard analytics={analytics} />
-            ) : (
-              <div className="text-center py-8">
-                <p className="text-tennis-green-medium">Analytics data not available</p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="discovery">
-            <ClubDiscovery currentClubId={club.id} />
           </TabsContent>
 
           <TabsContent value="economics">
@@ -245,6 +213,13 @@ export default function Club() {
               club={club} 
               isOwner={isOwner} 
               canManage={canManageMembers || canEditClub} 
+            />
+          </TabsContent>
+
+          <TabsContent value="settings">
+            <ClubSettings 
+              club={club} 
+              onSettingsUpdate={handleRefresh}
             />
           </TabsContent>
 

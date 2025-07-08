@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Progress } from '@/components/ui/progress';
 import { AlertTriangle, Bell, DollarSign, TrendingDown, Settings } from 'lucide-react';
-import { OverdraftAlert } from '@/types/clubAnalytics';
+import { OverdraftAlert } from '@/types/club';
 import { toast } from 'sonner';
 
 interface OverdraftMonitoringProps {

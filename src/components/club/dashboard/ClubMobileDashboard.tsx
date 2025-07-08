@@ -9,7 +9,9 @@ import {
   MessageCircle,
   UserPlus,
   UserCheck,
-  MapPin
+  MapPin,
+  DollarSign,
+  Settings
 } from 'lucide-react';
 import { LiveClubActivityFeed } from './LiveClubActivityFeed';
 import { WhoIsLookingToPlay } from './WhoIsLookingToPlay';
@@ -169,75 +171,42 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
         </CardContent>
       </Card>
 
-      {/* Phase 5 Complete! */}
+      {/* Phase 2 Complete! */}
       <Card>
         <CardHeader>
           <CardTitle className="text-tennis-green-dark flex items-center gap-2">
             <Activity className="h-5 w-5 text-emerald-500" />
-            Phase 5 Features Complete! 
+            Navigation Streamlined! 
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-3">
           <div className="grid gap-3 sm:grid-cols-2">
             <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-              <Activity className="h-5 w-5 text-emerald-600" />
+              <DollarSign className="h-5 w-5 text-emerald-600" />
               <div className="flex-1">
-                <p className="font-medium text-emerald-800">Club Analytics</p>
-                <p className="text-sm text-emerald-700">Token usage and member insights</p>
+                <p className="font-medium text-emerald-800">Economics Hub</p>
+                <p className="text-sm text-emerald-700">Overview, subscription & services</p>
               </div>
             </div>
             
             <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
-              <UserCheck className="h-5 w-5 text-emerald-600" />
+              <Settings className="h-5 w-5 text-emerald-600" />
               <div className="flex-1">
-                <p className="font-medium text-emerald-800">Management Tools</p>
-                <p className="text-sm text-emerald-700">Advanced club administration</p>
+                <p className="font-medium text-emerald-800">Settings</p>
+                <p className="text-sm text-emerald-700">Club management and configuration</p>
               </div>
             </div>
           </div>
           
           <div className="p-4 bg-gradient-to-r from-emerald-500/5 to-emerald-500/10 rounded-lg border">
             <p className="text-sm font-medium text-tennis-green-dark mb-2">
-              📊 Phase 5 Complete:
+              ✨ Phase 2 Complete:
             </p>
             <ul className="text-sm text-tennis-green-medium space-y-1">
-              <li>• Comprehensive token pool analytics</li>
-              <li>• Member activity and usage tracking</li>
-              <li>• Service redemption insights</li>
-              <li>• Financial performance metrics</li>
-            </ul>
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Phase 6 Complete! */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-tennis-green-dark flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-orange-500" />
-            Phase 6 Features Complete! 
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-1">
-            <div className="flex items-center gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
-              <MapPin className="h-5 w-5 text-orange-600" />
-              <div className="flex-1">
-                <p className="font-medium text-orange-800">Discovery Platform</p>
-                <p className="text-sm text-orange-700">Find nearby clubs, tournaments, and players</p>
-              </div>
-            </div>
-          </div>
-          
-          <div className="p-4 bg-gradient-to-r from-orange-500/5 to-orange-500/10 rounded-lg border">
-            <p className="text-sm font-medium text-tennis-green-dark mb-2">
-              🧭 Phase 6 Complete:
-            </p>
-            <ul className="text-sm text-tennis-green-medium space-y-1">
-              <li>• Discover nearby tennis clubs and facilities</li>
-              <li>• Browse upcoming tournaments and events</li>
-              <li>• Find recommended players at your skill level</li>
-              <li>• Explore the local tennis community</li>
+              <li>• Simplified navigation: Play | Members | Courts | Economics | Settings</li>
+              <li>• Economics page restructured with Overview, Subscription & Services</li>
+              <li>• Removed redundant Analytics and Discovery pages</li>
+              <li>• Clean, focused user interface</li>
             </ul>
           </div>
         </CardContent>

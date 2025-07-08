@@ -7,7 +7,7 @@ import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Badge } from '@/components/ui/badge';
 import { Switch } from '@/components/ui/switch';
 import { Users, Search, Edit2, Save, X } from 'lucide-react';
-import { MemberSpendingLimit } from '@/types/clubAnalytics';
+import { MemberSpendingLimit } from '@/types/club';
 import { toast } from 'sonner';
 
 interface MemberSpendingLimitsProps {

@@ -29,7 +29,7 @@ import { ClubInvitationManager } from './ClubInvitationManager';
 
 interface ClubSettingsProps {
   club: Club;
-  onSettingsUpdate: () => void;
+  onSettingsUpdate?: () => void;
 }
 
 export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {

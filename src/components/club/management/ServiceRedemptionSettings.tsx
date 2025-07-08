@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Switch } from '@/components/ui/switch';
 import { Slider } from '@/components/ui/slider';
 import { Save, Settings } from 'lucide-react';
-import { ServiceRedemptionSettings } from '@/types/clubAnalytics';
+import { ServiceRedemptionSettings } from '@/types/club';
 import { toast } from 'sonner';
 
 interface ServiceRedemptionSettingsProps {

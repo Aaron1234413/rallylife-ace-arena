@@ -5,18 +5,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { 
   DollarSign,
-  Coins,
-  TrendingUp,
-  Users,
   CreditCard,
-  Target,
   BarChart3,
   Crown
 } from 'lucide-react';
 import { ClubSubscriptionManagement } from './ClubSubscriptionManagement';
 import { TokenPoolManagement } from './TokenPoolManagement';
 import { ServicePricingManager } from './ServicePricingManager';
-import { PlayerStakingInterface } from './PlayerStakingInterface';
 import { EconomicsAnalytics } from './EconomicsAnalytics';
 
 interface ClubEconomicsProps {
@@ -70,7 +65,7 @@ export function ClubEconomics({ club, isOwner, canManage }: ClubEconomicsProps) 
 
       {/* Economics Navigation */}
       <Tabs value={activeEconomicsTab} onValueChange={setActiveEconomicsTab}>
-        <TabsList className="grid w-full grid-cols-5 bg-white border shadow-sm">
+        <TabsList className="grid w-full grid-cols-3 bg-white border shadow-sm">
           <TabsTrigger 
             value="overview" 
             className="flex items-center gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
@@ -86,46 +81,27 @@ export function ClubEconomics({ club, isOwner, canManage }: ClubEconomicsProps) 
             <span className="hidden sm:inline">Subscription</span>
           </TabsTrigger>
           <TabsTrigger 
-            value="tokens"
-            className="flex items-center gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
-          >
-            <Coins className="h-4 w-4" />
-            <span className="hidden sm:inline">Token Pool</span>
-          </TabsTrigger>
-          <TabsTrigger 
             value="services"
             className="flex items-center gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
           >
             <CreditCard className="h-4 w-4" />
             <span className="hidden sm:inline">Services</span>
           </TabsTrigger>
-          <TabsTrigger 
-            value="staking"
-            className="flex items-center gap-2 data-[state=active]:bg-emerald-500 data-[state=active]:text-white"
-          >
-            <Target className="h-4 w-4" />
-            <span className="hidden sm:inline">Staking</span>
-          </TabsTrigger>
         </TabsList>
 
         <TabsContent value="overview">
-          <EconomicsAnalytics club={club} tokenPoolData={tokenPoolData} />
+          <div className="space-y-6">
+            <EconomicsAnalytics club={club} tokenPoolData={tokenPoolData} />
+            <TokenPoolManagement club={club} tokenPoolData={tokenPoolData} canManage={canManage} />
+          </div>
         </TabsContent>
 
         <TabsContent value="subscription">
           <ClubSubscriptionManagement club={club} isOwner={isOwner} />
         </TabsContent>
 
-        <TabsContent value="tokens">
-          <TokenPoolManagement club={club} tokenPoolData={tokenPoolData} canManage={canManage} />
-        </TabsContent>
-
         <TabsContent value="services">
           <ServicePricingManager club={club} canManage={canManage} />
-        </TabsContent>
-
-        <TabsContent value="staking">
-          <PlayerStakingInterface club={club} />
         </TabsContent>
       </Tabs>
     </div>

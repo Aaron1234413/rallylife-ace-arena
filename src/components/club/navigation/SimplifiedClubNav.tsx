@@ -3,12 +3,9 @@ import { Tabs, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Home,
   Users, 
-  GraduationCap,
-  Calendar,
   MapPin,
-  BarChart3,
-  Compass,
-  DollarSign
+  DollarSign,
+  Settings
 } from 'lucide-react';
 
 interface SimplifiedClubNavProps {
@@ -33,7 +30,7 @@ export function SimplifiedClubNav({
   const tabs = [
     {
       value: 'play',
-      label: 'Dashboard',
+      label: 'Play',
       icon: Home,
       show: true
     },
@@ -44,40 +41,22 @@ export function SimplifiedClubNav({
       show: true
     },
     {
-      value: 'coaches',
-      label: 'Coaches',
-      icon: GraduationCap,
-      show: true
-    },
-    {
-      value: 'sessions',
-      label: 'Sessions',
-      icon: Calendar,
-      show: isMember
-    },
-    {
       value: 'courts',
       label: 'Courts',
       icon: MapPin,
       show: isMember
     },
     {
-      value: 'analytics',
-      label: 'Analytics',
-      icon: BarChart3,
-      show: isOwner || canManageMembers || canEditClub
-    },
-    {
-      value: 'discovery',
-      label: 'Discovery',
-      icon: Compass,
-      show: true
-    },
-    {
       value: 'economics',
       label: 'Economics',
       icon: DollarSign,
       show: isOwner || canManageMembers || canEditClub
+    },
+    {
+      value: 'settings',
+      label: 'Settings',
+      icon: Settings,
+      show: isOwner || canEditClub
     }
   ];
 
