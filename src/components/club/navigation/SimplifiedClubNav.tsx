@@ -65,15 +65,18 @@ export function SimplifiedClubNav({
   return (
     <div className="w-full overflow-x-auto">
       <Tabs value={activeTab} onValueChange={onTabChange} className="w-full">
-        <TabsList className="grid w-full bg-white border shadow-sm" style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, 1fr)` }}>
+        <TabsList 
+          className="grid w-full bg-white border shadow-sm min-h-[3rem] gap-1" 
+          style={{ gridTemplateColumns: `repeat(${visibleTabs.length}, 1fr)` }}
+        >
           {visibleTabs.map((tab) => (
             <TabsTrigger 
               key={tab.value}
               value={tab.value} 
-              className="flex items-center gap-2 data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white"
+              className="flex flex-col sm:flex-row items-center gap-1 sm:gap-2 data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white py-2 px-2 text-xs sm:text-sm min-h-[2.5rem]"
             >
-              <tab.icon className="h-4 w-4" />
-              <span className="hidden sm:inline">{tab.label}</span>
+              <tab.icon className="h-4 w-4 flex-shrink-0" />
+              <span className="text-[10px] sm:text-xs md:text-sm truncate">{tab.label}</span>
             </TabsTrigger>
           ))}
         </TabsList>

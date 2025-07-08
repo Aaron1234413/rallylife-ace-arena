@@ -112,32 +112,32 @@ export default function Club() {
           </Button>
         </div>
 
-        {/* Club Header */}
+        {/* Mobile-Optimized Club Header */}
         <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50 animate-fade-in">
-          <CardContent className="p-6">
-            <div className="flex items-start gap-4">
-              <Avatar className="h-20 w-20 bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg flex-shrink-0">
+          <CardContent className="p-4 sm:p-6">
+            <div className="flex items-start gap-3 sm:gap-4">
+              <Avatar className="h-16 w-16 sm:h-20 sm:w-20 bg-gradient-to-br from-blue-500 to-purple-600 shadow-lg flex-shrink-0">
                 <AvatarImage src={club.logo_url || undefined} />
-                <AvatarFallback className="text-white font-bold text-xl">
+                <AvatarFallback className="text-white font-bold text-lg sm:text-xl">
                   {club.name.slice(0, 2).toUpperCase()}
                 </AvatarFallback>
               </Avatar>
               
-              <div className="flex-1 min-w-0 space-y-4">
+              <div className="flex-1 min-w-0 space-y-3 sm:space-y-4">
                 {/* Title and Badges Row */}
-                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3">
+                <div className="flex flex-col gap-3">
                   <div className="space-y-2">
-                    <h1 className="text-3xl font-bold text-gray-900 leading-tight">
+                    <h1 className="text-xl sm:text-2xl lg:text-3xl font-bold text-gray-900 leading-tight">
                       {club.name}
                     </h1>
                     <div className="flex items-center gap-2 flex-wrap">
                       {isOwner && (
-                        <Badge className="bg-amber-100 text-amber-800 border-amber-200 px-3 py-1">
+                        <Badge className="bg-amber-100 text-amber-800 border-amber-200 px-2 py-1 text-xs">
                           <Crown className="h-3 w-3 mr-1" />
                           Owner
                         </Badge>
                       )}
-                      <Badge variant={club.is_public ? "default" : "secondary"} className="px-3 py-1">
+                      <Badge variant={club.is_public ? "default" : "secondary"} className="px-2 py-1 text-xs">
                         {club.is_public ? (
                           <><Globe className="h-3 w-3 mr-1" />Public</>
                         ) : (
@@ -147,34 +147,50 @@ export default function Club() {
                     </div>
                   </div>
                   
-                  {/* Action Buttons */}
-                  <div className="flex gap-2 flex-shrink-0">
+                  {/* Mobile Action Buttons */}
+                  <div className="flex gap-2 sm:hidden">
                     {isOwner && (
-                      <Button className="flex items-center gap-2 px-4 py-2 hover-scale">
-                        <Settings className="h-4 w-4" />
-                        Manage Club
+                      <Button size="sm" className="flex items-center gap-2 text-xs">
+                        <Settings className="h-3 w-3" />
+                        Manage
                       </Button>
                     )}
                     {!isOwner && !isMember && (
-                      <Button className="flex items-center gap-2 px-4 py-2 hover-scale">
-                        <UserPlus className="h-4 w-4" />
+                      <Button size="sm" className="flex items-center gap-2 text-xs">
+                        <UserPlus className="h-3 w-3" />
                         Join Club
                       </Button>
                     )}
                   </div>
                 </div>
 
-                {/* Club Info and Description */}
-                <div className="space-y-3 border-t border-gray-100 pt-3">
+                {/* Club Info */}
+                <div className="space-y-2 sm:space-y-3 border-t border-gray-100 pt-2 sm:pt-3">
                   <div className="flex items-center gap-2 text-gray-600">
                     <Users className="h-4 w-4" />
-                    <span className="font-medium">{club.member_count} members</span>
+                    <span className="font-medium text-sm sm:text-base">{club.member_count} members</span>
                   </div>
                   
                   {club.description && (
-                    <p className="text-gray-700 leading-relaxed">{club.description}</p>
+                    <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{club.description}</p>
                   )}
                 </div>
+              </div>
+
+              {/* Desktop Action Buttons */}
+              <div className="hidden sm:flex gap-2 flex-shrink-0">
+                {isOwner && (
+                  <Button className="flex items-center gap-2 px-4 py-2 hover-scale">
+                    <Settings className="h-4 w-4" />
+                    Manage Club
+                  </Button>
+                )}
+                {!isOwner && !isMember && (
+                  <Button className="flex items-center gap-2 px-4 py-2 hover-scale">
+                    <UserPlus className="h-4 w-4" />
+                    Join Club
+                  </Button>
+                )}
               </div>
             </div>
           </CardContent>

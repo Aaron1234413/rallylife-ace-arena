@@ -1,150 +1,292 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
+import { Badge } from '@/components/ui/badge';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { 
   Users, 
-  Activity, 
-  Calendar, 
-  Trophy,
+  Calendar,
+  MapPin,
+  Clock,
   Plus,
-  Zap,
-  GraduationCap,
-  Heart
+  ChevronRight,
+  Activity,
+  Crown,
+  Shield,
+  User as UserIcon,
+  Gamepad2,
+  UserPlus
 } from 'lucide-react';
-import { LiveClubActivityFeed } from './LiveClubActivityFeed';
-import { WhoIsLookingToPlay } from './WhoIsLookingToPlay';
-import { SessionManagement } from './SessionManagement';
-import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
+import { Link } from 'react-router-dom';
+import { useClubs } from '@/hooks/useClubs';
+import { formatDistanceToNow } from 'date-fns';
 
 interface ClubMobileDashboardProps {
   club: {
     id: string;
     name: string;
-    description?: string;
     member_count: number;
-    is_public: boolean;
+    court_count?: number;
+    owner_id: string;
   };
   isMember: boolean;
 }
 
 export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps) {
-  const navigate = useNavigate();
-  
-  // Dialog state for social play only
-  const [showSocialPlayDialog, setShowSocialPlayDialog] = useState(false);
+  const { clubMembers, clubActivities, fetchClubMembers, fetchClubActivities } = useClubs();
+  const [loading, setLoading] = useState(true);
 
-  const sessionTypes = [
-    {
-      type: 'match',
-      label: 'Tennis Match',
-      icon: Zap,
-      color: 'bg-blue-500',
-      description: 'Competitive match with scoring'
-    },
-    {
-      type: 'training',
-      label: 'Training Session',
-      icon: GraduationCap,
-      color: 'bg-green-500',
-      description: 'Practice and skill development'
-    },
-    {
-      type: 'social_play',
-      label: 'Social Play',
-      icon: Users,
-      color: 'bg-purple-500',
-      description: 'Casual play with friends'
-    },
-    {
-      type: 'wellbeing',
-      label: 'Wellbeing Session',
-      icon: Heart,
-      color: 'bg-pink-500',
-      description: 'Recovery and wellness'
-    }
-  ];
+  useEffect(() => {
+    const loadData = async () => {
+      if (club.id) {
+        setLoading(true);
+        await Promise.all([
+          fetchClubMembers(club.id),
+          fetchClubActivities(club.id)
+        ]);
+        setLoading(false);
+      }
+    };
 
-  const handleCreateSession = (sessionType: string) => {
-    if (sessionType === 'social_play') {
-      setShowSocialPlayDialog(true);
-    } else {
-      // Navigate to the unified CreateSession page with club context
-      navigate(`/club/${club.id}/sessions/create?type=${sessionType}`);
-    }
+    loadData();
+  }, [club.id, fetchClubMembers, fetchClubActivities]);
+
+  const getRoleIcon = (role: string, isOwner: boolean) => {
+    if (isOwner) return <Crown className="h-3 w-3 text-amber-500" />;
+    if (role === 'admin') return <Shield className="h-3 w-3 text-blue-500" />;
+    return <UserIcon className="h-3 w-3 text-gray-500" />;
   };
 
-  const handleSessionCreated = () => {
-    // Close social play dialog
-    setShowSocialPlayDialog(false);
+  const getRoleBadge = (role: string, isOwner: boolean) => {
+    if (isOwner) return <Badge className="bg-amber-100 text-amber-800 text-xs">Owner</Badge>;
+    if (role === 'admin') return <Badge className="bg-blue-100 text-blue-800 text-xs">Admin</Badge>;
+    if (role === 'coach') return <Badge className="bg-green-100 text-green-800 text-xs">Coach</Badge>;
+    return <Badge variant="secondary" className="text-xs">Member</Badge>;
   };
 
-  if (!isMember) {
+  if (loading) {
     return (
       <div className="space-y-4">
-        <Card>
-          <CardContent className="text-center py-8">
-            <h3 className="font-medium mb-2 text-tennis-green-dark">Join to Access Club Features</h3>
-            <p className="text-sm text-tennis-green-medium">
-              Become a member to see who's looking to play, join sessions, and access all club features.
-            </p>
-          </CardContent>
-        </Card>
+        {/* Loading skeletons */}
+        <div className="grid grid-cols-2 gap-4">
+          <div className="h-24 bg-gray-200 rounded-lg animate-pulse"></div>
+          <div className="h-24 bg-gray-200 rounded-lg animate-pulse"></div>
+        </div>
+        <div className="h-32 bg-gray-200 rounded-lg animate-pulse"></div>
+        <div className="h-40 bg-gray-200 rounded-lg animate-pulse"></div>
       </div>
     );
   }
 
   return (
-    <div className="space-y-4">
-      {/* Quick Session Creation Actions */}
-      <Card className="shadow-lg">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-            <Plus className="h-5 w-5 text-tennis-green-primary" />
-            Create Club Session
-          </CardTitle>
+    <div className="space-y-6">
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 gap-4">
+        <Card className="border-0 shadow-md bg-gradient-to-br from-blue-50 to-blue-100">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-blue-500/10 rounded-full flex items-center justify-center">
+                <Users className="h-5 w-5 text-blue-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-blue-900">{club.member_count}</div>
+                <div className="text-sm text-blue-700">Members</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card className="border-0 shadow-md bg-gradient-to-br from-green-50 to-green-100">
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-green-500/10 rounded-full flex items-center justify-center">
+                <MapPin className="h-5 w-5 text-green-600" />
+              </div>
+              <div>
+                <div className="text-2xl font-bold text-green-900">{club.court_count || 1}</div>
+                <div className="text-sm text-green-700">Courts</div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      {/* Quick Actions */}
+      <Card className="shadow-lg border-0">
+        <CardHeader className="pb-3">
+          <CardTitle className="text-lg text-tennis-green-dark">Quick Actions</CardTitle>
         </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-2 gap-3">
-            {sessionTypes.map((session) => {
-              const IconComponent = session.icon;
-              return (
-                <Button
-                  key={session.type}
-                  variant="outline"
-                  onClick={() => handleCreateSession(session.type)}
-                  className="h-auto p-4 flex flex-col items-center gap-2 hover:shadow-md transition-all"
-                >
-                  <div className={`w-8 h-8 rounded-full ${session.color} flex items-center justify-center`}>
-                    <IconComponent className="h-4 w-4 text-white" />
+        <CardContent className="space-y-3">
+          {isMember ? (
+            <>
+              <Link to="/sessions/create" className="block">
+                <Button className="w-full justify-between bg-tennis-green-primary hover:bg-tennis-green-medium h-12">
+                  <div className="flex items-center gap-3">
+                    <Gamepad2 className="h-5 w-5" />
+                    <span>Create Session</span>
                   </div>
-                  <div className="text-center">
-                    <div className="font-medium text-sm">{session.label}</div>
-                    <div className="text-xs text-muted-foreground">{session.description}</div>
-                  </div>
+                  <ChevronRight className="h-4 w-4" />
                 </Button>
-              );
-            })}
-          </div>
+              </Link>
+
+              <Button 
+                variant="outline" 
+                className="w-full justify-between h-12 hover:bg-tennis-green-bg"
+                onClick={() => {/* Navigate to court booking */}}
+              >
+                <div className="flex items-center gap-3">
+                  <Calendar className="h-5 w-5 text-tennis-green-primary" />
+                  <span>Book Court</span>
+                </div>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+
+              <Button 
+                variant="outline" 
+                className="w-full justify-between h-12 hover:bg-tennis-green-bg"
+                onClick={() => {/* Navigate to invite members */}}
+              >
+                <div className="flex items-center gap-3">
+                  <UserPlus className="h-5 w-5 text-tennis-green-primary" />
+                  <span>Invite Member</span>
+                </div>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <div className="text-center py-6">
+              <Users className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+              <p className="text-gray-600 mb-4">Join this club to access features</p>
+              <Button className="bg-tennis-green-primary hover:bg-tennis-green-medium">
+                <UserPlus className="h-4 w-4 mr-2" />
+                Join Club
+              </Button>
+            </div>
+          )}
         </CardContent>
       </Card>
 
-      {/* Session Management Widget - Core functionality */}
-      <SessionManagement clubId={club.id} />
-      
-      {/* Live Activity & Member Status */}
-      <LiveClubActivityFeed clubId={club.id} />
-      
-      <WhoIsLookingToPlay clubId={club.id} />
+      {/* Recent Activity */}
+      <Card className="shadow-lg border-0">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg text-tennis-green-dark">
+              <Activity className="h-5 w-5 text-tennis-green-primary" />
+              Recent Activity
+            </CardTitle>
+            {clubActivities.length > 3 && (
+              <Button variant="ghost" size="sm" className="text-tennis-green-primary">
+                View All
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {clubActivities.length === 0 ? (
+            <div className="text-center py-6">
+              <Activity className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+              <p className="text-gray-600">No recent activity</p>
+              <p className="text-sm text-gray-500">Club activity will appear here</p>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              {clubActivities.slice(0, 5).map((activity) => (
+                <div key={activity.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                  <Avatar className="h-8 w-8">
+                    <AvatarImage src={activity.profiles?.avatar_url || undefined} />
+                    <AvatarFallback className="bg-tennis-green-primary text-white text-xs">
+                      {activity.profiles?.full_name?.substring(0, 2).toUpperCase() || 'U'}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium text-gray-900 truncate">
+                      {activity.profiles?.full_name || 'Unknown User'}
+                    </p>
+                    <p className="text-xs text-gray-600">
+                      {activity.activity_type.replace('_', ' ')}
+                    </p>
+                  </div>
+                  <div className="text-xs text-gray-500">
+                    {formatDistanceToNow(new Date(activity.created_at), { addSuffix: true })}
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
 
-      {/* Social Play Dialog - Only one we keep as dialog */}
-      <CreateSocialPlayDialog
-        open={showSocialPlayDialog}
-        onOpenChange={setShowSocialPlayDialog}
-        onEventCreated={handleSessionCreated}
-        clubId={club.id}
-      />
+      {/* Member Preview */}
+      <Card className="shadow-lg border-0">
+        <CardHeader className="pb-3">
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2 text-lg text-tennis-green-dark">
+              <Users className="h-5 w-5 text-tennis-green-primary" />
+              Members ({club.member_count})
+            </CardTitle>
+            {clubMembers.length > 4 && (
+              <Button variant="ghost" size="sm" className="text-tennis-green-primary">
+                View All
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {clubMembers.length === 0 ? (
+            <div className="text-center py-6">
+              <Users className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+              <p className="text-gray-600">No members found</p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              {clubMembers.slice(0, 4).map((membership) => {
+                const isOwner = membership.user_id === club.owner_id;
+                const memberUser = membership.profiles || { 
+                  full_name: 'Unknown User', 
+                  avatar_url: null 
+                };
+
+                return (
+                  <div key={membership.id} className="flex items-center gap-2 p-3 bg-gray-50 rounded-lg">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={memberUser.avatar_url || undefined} />
+                      <AvatarFallback className="bg-tennis-green-primary text-white text-sm">
+                        {memberUser.full_name?.substring(0, 2).toUpperCase() || 'U'}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-1 mb-1">
+                        {getRoleIcon(membership.role, isOwner)}
+                        <p className="font-medium text-sm text-gray-900 truncate">
+                          {memberUser.full_name}
+                        </p>
+                      </div>
+                      {getRoleBadge(membership.role, isOwner)}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Today's Schedule Preview */}
+      <Card className="shadow-lg border-0">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center gap-2 text-lg text-tennis-green-dark">
+            <Clock className="h-5 w-5 text-tennis-green-primary" />
+            Today's Schedule
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="text-center py-6">
+            <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-400" />
+            <p className="text-gray-600">No sessions scheduled</p>
+            <p className="text-sm text-gray-500">Book a court or create a session</p>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
