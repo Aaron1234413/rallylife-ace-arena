@@ -90,10 +90,7 @@ export function ClubEconomics({ club, isOwner, canManage }: ClubEconomicsProps) 
         </TabsList>
 
         <TabsContent value="overview">
-          <div className="space-y-6">
-            <EconomicsAnalytics club={club} tokenPoolData={tokenPoolData} />
-            <TokenPoolManagement club={club} tokenPoolData={tokenPoolData} canManage={canManage} />
-          </div>
+          <TokenPoolManagement club={club} tokenPoolData={tokenPoolData} canManage={canManage} />
         </TabsContent>
 
         <TabsContent value="subscription">

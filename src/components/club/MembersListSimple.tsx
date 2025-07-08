@@ -318,58 +318,6 @@ export function MembersListSimple({ club, canManageMembers }: MembersListSimpleP
         </CardContent>
       </Card>
 
-      {/* Enhanced Member Features */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="text-tennis-green-dark">Enhanced Member Features</CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-3">
-          <div className="grid gap-3 sm:grid-cols-2">
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <p className="font-medium text-green-800">✓ Enhanced Search & Filters</p>
-              </div>
-              <p className="text-sm text-green-700">Search members by name and filter by role</p>
-            </div>
-            
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <p className="font-medium text-green-800">✓ Member Detail Views</p>
-              </div>
-              <p className="text-sm text-green-700">Click any member to view their profile</p>
-            </div>
-            
-            <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-              <div className="flex items-center gap-2 mb-2">
-                <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                <p className="font-medium text-green-800">✓ Role Management</p>
-              </div>
-              <p className="text-sm text-green-700">Enhanced role badges and permissions</p>
-            </div>
-            
-            {canManageMembers && (
-              <div className="p-3 bg-green-50 border border-green-200 rounded-lg">
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="w-2 h-2 bg-green-500 rounded-full"></div>
-                  <p className="font-medium text-green-800">✓ Admin Controls</p>
-                </div>
-                <p className="text-sm text-green-700">Promote, demote, and manage members</p>
-              </div>
-            )}
-          </div>
-          
-          <div className="pt-3 border-t border-tennis-green-bg">
-            <p className="text-sm text-tennis-green-medium mb-2 font-medium">Coming in Phase 3:</p>
-            <div className="flex flex-wrap gap-2">
-              <Badge variant="outline">Member Status Tracking</Badge>
-              <Badge variant="outline">Activity History</Badge>
-              <Badge variant="outline">Playing Preferences</Badge>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 }

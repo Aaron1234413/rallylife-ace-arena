@@ -224,27 +224,6 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
               </div>
             </div>
 
-            {/* Quick Stats */}
-            <div className="grid grid-cols-3 gap-4 pt-4 border-t border-tennis-green-bg/50">
-              <div className="text-center">
-                <div className="text-lg font-bold text-tennis-green-dark">
-                  {timeSlots.length * courts.length - existingBookings.length}
-                </div>
-                <div className="text-xs text-tennis-green-medium">Available Slots</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-tennis-green-dark">
-                  {existingBookings.filter(b => b.bookedBy === 'You').length}
-                </div>
-                <div className="text-xs text-tennis-green-medium">Your Bookings</div>
-              </div>
-              <div className="text-center">
-                <div className="text-lg font-bold text-tennis-green-dark">
-                  ${courts.reduce((sum, court) => sum + court.hourlyRate, 0) / courts.length}
-                </div>
-                <div className="text-xs text-tennis-green-medium">Avg. Rate/Hour</div>
-              </div>
-            </div>
           </CardContent>
         </Card>
       </div>

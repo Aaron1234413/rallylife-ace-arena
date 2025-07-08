@@ -33,23 +33,33 @@ interface ClubMobileDashboardProps {
 }
 
 export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps) {
-  const { clubMembers, clubActivities, fetchClubMembers, fetchClubActivities } = useClubs();
+  const { clubMembers, fetchClubMembers } = useClubs();
   const [loading, setLoading] = useState(true);
+
+  // Mock activity data for now
+  const clubActivities = [
+    {
+      id: '1',
+      activity_type: 'member_joined',
+      created_at: new Date().toISOString(),
+      profiles: {
+        full_name: 'John Doe',
+        avatar_url: null
+      }
+    }
+  ];
 
   useEffect(() => {
     const loadData = async () => {
       if (club.id) {
         setLoading(true);
-        await Promise.all([
-          fetchClubMembers(club.id),
-          fetchClubActivities(club.id)
-        ]);
+        await fetchClubMembers(club.id);
         setLoading(false);
       }
     };
 
     loadData();
-  }, [club.id, fetchClubMembers, fetchClubActivities]);
+  }, [club.id, fetchClubMembers]);
 
   const getRoleIcon = (role: string, isOwner: boolean) => {
     if (isOwner) return <Crown className="h-3 w-3 text-amber-500" />;
