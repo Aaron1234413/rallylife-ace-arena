@@ -5,7 +5,8 @@ import {
   Users, 
   GraduationCap,
   Calendar,
-  MapPin
+  MapPin,
+  BarChart3
 } from 'lucide-react';
 
 interface SimplifiedClubNavProps {
@@ -55,6 +56,12 @@ export function SimplifiedClubNav({
       label: 'Courts',
       icon: MapPin,
       show: isMember
+    },
+    {
+      value: 'analytics',
+      label: 'Analytics',
+      icon: BarChart3,
+      show: canManageMembers || canEditClub
     }
   ];
 

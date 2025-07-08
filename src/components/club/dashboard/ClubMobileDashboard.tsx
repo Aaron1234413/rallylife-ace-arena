@@ -168,6 +168,47 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
           </div>
         </CardContent>
       </Card>
+
+      {/* Phase 5 Complete! */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-tennis-green-dark flex items-center gap-2">
+            <Activity className="h-5 w-5 text-emerald-500" />
+            Phase 5 Features Complete! 
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-2">
+            <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <Activity className="h-5 w-5 text-emerald-600" />
+              <div className="flex-1">
+                <p className="font-medium text-emerald-800">Club Analytics</p>
+                <p className="text-sm text-emerald-700">Token usage and member insights</p>
+              </div>
+            </div>
+            
+            <div className="flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-lg">
+              <UserCheck className="h-5 w-5 text-emerald-600" />
+              <div className="flex-1">
+                <p className="font-medium text-emerald-800">Management Tools</p>
+                <p className="text-sm text-emerald-700">Advanced club administration</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4 bg-gradient-to-r from-emerald-500/5 to-emerald-500/10 rounded-lg border">
+            <p className="text-sm font-medium text-tennis-green-dark mb-2">
+              📊 Phase 5 Complete:
+            </p>
+            <ul className="text-sm text-tennis-green-medium space-y-1">
+              <li>• Comprehensive token pool analytics</li>
+              <li>• Member activity and usage tracking</li>
+              <li>• Service redemption insights</li>
+              <li>• Financial performance metrics</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }
