@@ -144,7 +144,7 @@ export function useClubs() {
     name: string;
     description?: string;
     location?: string;
-    is_public: boolean;
+    is_public?: boolean;
     court_count?: number;
     coach_slots?: number;
     operating_hours?: any;
@@ -156,7 +156,7 @@ export function useClubs() {
     console.log('Current user:', user.id);
 
     try {
-      // Create the club first
+      // Create the club first - Default to private
       console.log('Inserting club...');
       const { data: club, error: clubError } = await supabase
         .from('clubs')
@@ -164,7 +164,8 @@ export function useClubs() {
           name: clubData.name,
           description: clubData.description,
           location: clubData.location,
-          is_public: clubData.is_public,
+          is_public: clubData.is_public || false, // Default to private
+          is_private: true, // Always private by default
           owner_id: user.id,
           court_count: clubData.court_count || 1,
           coach_slots: clubData.coach_slots || 1,
@@ -177,7 +178,7 @@ export function useClubs() {
             saturday: { open: '08:00', close: '20:00' },
             sunday: { open: '08:00', close: '20:00' }
           },
-          subscription_tier: clubData.subscription_tier || 'community',
+          subscription_tier: 'community', // Always default to community
         })
         .select()
         .single();
@@ -499,6 +500,70 @@ export function useClubs() {
     }
   };
 
+  // Shareable link functionality
+  const createShareableLink = async (clubId: string, maxUses?: number, expiresDays: number = 30) => {
+    try {
+      const { data, error } = await supabase.rpc('create_shareable_club_link', {
+        club_id_param: clubId,
+        max_uses_param: maxUses,
+        expires_days: expiresDays
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result?.success) {
+        toast.success('Shareable link created!');
+        return result;
+      } else {
+        toast.error(result?.error || 'Failed to create shareable link');
+        throw new Error(result?.error || 'Failed to create shareable link');
+      }
+    } catch (error) {
+      console.error('Error creating shareable link:', error);
+      toast.error('Failed to create shareable link');
+      throw error;
+    }
+  };
+
+  const joinViaLink = async (linkSlug: string) => {
+    try {
+      const { data, error } = await supabase.rpc('join_club_via_link', {
+        link_slug_param: linkSlug
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result?.success) {
+        toast.success(result.message);
+        await refreshData();
+        return result;
+      } else {
+        toast.error(result?.error || 'Failed to join club');
+        throw new Error(result?.error || 'Failed to join club');
+      }
+    } catch (error) {
+      console.error('Error joining via link:', error);
+      toast.error('Failed to join club');
+      throw error;
+    }
+  };
+
+  const getShareableLinks = async (clubId: string) => {
+    try {
+      const { data, error } = await supabase.rpc('get_club_shareable_links', {
+        club_id_param: clubId
+      });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching shareable links:', error);
+      return [];
+    }
+  };
+
   const updateClub = async (clubId: string, updates: Partial<Club>) => {
     if (!user) throw new Error('User not authenticated');
 
@@ -553,5 +618,8 @@ export function useClubs() {
     updateMemberRole,
     acceptInvitation,
     updateClub,
+    createShareableLink,
+    joinViaLink,
+    getShareableLinks,
   };
 }

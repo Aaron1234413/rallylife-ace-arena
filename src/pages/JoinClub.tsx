@@ -5,17 +5,20 @@ import { Button } from '@/components/ui/button';
 import { LoadingSpinner } from '@/components/ui/loading-spinner';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { useClubs } from '@/hooks/useClubs';
 import { toast } from '@/hooks/use-toast';
 import { Users, CheckCircle, AlertCircle } from 'lucide-react';
 
 export default function JoinClubPage() {
-  const { inviteCode } = useParams();
+  const { inviteCode, linkSlug } = useParams();
   const { user } = useAuth();
+  const { joinViaLink } = useClubs();
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState(false);
   const [clubInfo, setClubInfo] = useState<any>(null);
   const [error, setError] = useState('');
+  const [isLinkJoin, setIsLinkJoin] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -23,14 +26,19 @@ export default function JoinClubPage() {
       return;
     }
 
-    if (!inviteCode) {
+    if (!inviteCode && !linkSlug) {
       setError('Invalid invitation link');
       setLoading(false);
       return;
     }
 
-    fetchClubInfo();
-  }, [user, inviteCode]);
+    if (linkSlug) {
+      setIsLinkJoin(true);
+      fetchClubInfoFromLink();
+    } else {
+      fetchClubInfo();
+    }
+  }, [user, inviteCode, linkSlug]);
 
   const fetchClubInfo = async () => {
     try {
@@ -65,27 +73,68 @@ export default function JoinClubPage() {
     }
   };
 
+  const fetchClubInfoFromLink = async () => {
+    try {
+      const { data: invitation, error: inviteError } = await supabase
+        .from('club_invitations')
+        .select(`
+          *,
+          club:club_id (
+            id,
+            name,
+            description,
+            logo_url,
+            member_count
+          )
+        `)
+        .eq('link_slug', linkSlug)
+        .eq('is_shareable_link', true)
+        .eq('is_active', true)
+        .gt('expires_at', new Date().toISOString())
+        .single();
+
+      if (inviteError || !invitation) {
+        setError('Invalid or expired invitation link');
+        return;
+      }
+
+      setClubInfo(invitation);
+    } catch (error) {
+      console.error('Error fetching club info:', error);
+      setError('Failed to load invitation details');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleJoinClub = async () => {
-    if (!inviteCode) return;
+    if (!inviteCode && !linkSlug) return;
 
     setJoining(true);
     try {
-      const { data, error } = await supabase.rpc('join_club_via_invitation', {
-        invitation_code_param: inviteCode
-      });
+      let result: any;
 
-      if (error) throw error;
+      if (isLinkJoin && linkSlug) {
+        // Use the hook for link-based joining
+        result = await joinViaLink(linkSlug);
+      } else if (inviteCode) {
+        // Use direct RPC for invitation code joining
+        const { data, error } = await supabase.rpc('join_club_via_invitation', {
+          invitation_code_param: inviteCode
+        });
 
-      const result = data as { success: boolean; message?: string; club_id?: string; error?: string };
+        if (error) throw error;
+        result = data as { success: boolean; message?: string; club_id?: string; error?: string };
+      }
 
-      if (result.success) {
+      if (result?.success) {
         toast({
           title: "Welcome to the club!",
           description: result.message || "Successfully joined the club!"
         });
         navigate(`/club/${result.club_id}`);
       } else {
-        setError(result.error || 'Failed to join club');
+        setError(result?.error || 'Failed to join club');
       }
     } catch (error) {
       console.error('Error joining club:', error);

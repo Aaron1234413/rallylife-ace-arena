@@ -1151,6 +1151,8 @@ export type Database = {
           invitee_email: string
           inviter_id: string
           is_active: boolean | null
+          is_shareable_link: boolean | null
+          link_slug: string | null
           max_uses: number | null
           message: string | null
           status: string
@@ -1167,6 +1169,8 @@ export type Database = {
           invitee_email: string
           inviter_id: string
           is_active?: boolean | null
+          is_shareable_link?: boolean | null
+          link_slug?: string | null
           max_uses?: number | null
           message?: string | null
           status?: string
@@ -1183,6 +1187,8 @@ export type Database = {
           invitee_email?: string
           inviter_id?: string
           is_active?: boolean | null
+          is_shareable_link?: boolean | null
+          link_slug?: string | null
           max_uses?: number | null
           message?: string | null
           status?: string
@@ -5898,6 +5904,14 @@ export type Database = {
         }
         Returns: string
       }
+      create_shareable_club_link: {
+        Args: {
+          club_id_param: string
+          max_uses_param?: number
+          expires_days?: number
+        }
+        Returns: Json
+      }
       decline_match_invitation: {
         Args: { invitation_id: string }
         Returns: Json
@@ -6222,6 +6236,18 @@ export type Database = {
         Args: { user_id: string; days_back?: number }
         Returns: Json
       }
+      get_club_shareable_links: {
+        Args: { club_id_param: string }
+        Returns: {
+          id: string
+          link_slug: string
+          uses_count: number
+          max_uses: number
+          expires_at: string
+          is_active: boolean
+          created_at: string
+        }[]
+      }
       get_coach_leaderboard: {
         Args: {
           leaderboard_type?: string
@@ -6465,6 +6491,10 @@ export type Database = {
       }
       join_club_via_invitation: {
         Args: { invitation_code_param: string }
+        Returns: Json
+      }
+      join_club_via_link: {
+        Args: { link_slug_param: string }
         Returns: Json
       }
       join_open_session: {
@@ -6823,12 +6853,19 @@ export type Database = {
         Returns: string
       }
       set_play_availability: {
-        Args: {
-          club_id_param: string
-          available_until_param?: string
-          message_param?: string
-          session_type_param?: string
-        }
+        Args:
+          | {
+              club_id_param: string
+              available_until_param?: string
+              message_param?: string
+              session_type_param?: string
+            }
+          | {
+              club_id_param: string
+              message_param?: string
+              session_type_param?: string
+              available_until_param?: string
+            }
         Returns: Json
       }
       spend_coach_tokens: {
