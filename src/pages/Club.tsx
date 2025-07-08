@@ -22,24 +22,10 @@ import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
-import { ClubDashboard } from '@/components/club/ClubDashboard';
-import { MembersList } from '@/components/club/MembersList';
-import { ClubSettings } from '@/components/club/ClubSettings';
-import { ClubCourtBooking } from '@/components/club/courts/ClubCourtBooking';
-import { MyClubBookings } from '@/components/club/courts/MyClubBookings';
-import { ClubCoaches } from '@/components/club/ClubCoaches';
-import { ClubCoachBooking } from '@/components/club/ClubCoachBooking';
-import { CoachClubServices } from '@/components/coach/CoachClubServices';
-import { ClubSessionCalendar } from '@/components/club/sessions/ClubSessionCalendar';
-import { CreateClubSession } from '@/components/club/sessions/CreateClubSession';
-import { ClubAnalyticsDashboard } from '@/components/club/analytics/ClubAnalyticsDashboard';
-import { ClubManagementDashboard } from '@/components/club/management/ClubManagementDashboard';
-import { PlayAvailabilityWidget } from '@/components/club/PlayAvailabilityWidget';
-import { CreateOpenSessionDialog } from '@/components/club/sessions/CreateOpenSessionDialog';
-import { OpenSessionsList } from '@/components/club/sessions/OpenSessionsList';
-import { useClubAnalytics } from '@/hooks/useClubAnalytics';
 import { ClubMobileDashboard } from '@/components/club/dashboard/ClubMobileDashboard';
 import { SimplifiedClubNav } from '@/components/club/navigation/SimplifiedClubNav';
+import { MembersListSimple } from '@/components/club/MembersListSimple';
+import { CoachesListSimple } from '@/components/club/CoachesListSimple';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -53,9 +39,7 @@ export default function Club() {
     fetchClubMembers 
   } = useClubs();
   const [refreshing, setRefreshing] = useState(false);
-  const [showCreateSession, setShowCreateSession] = useState(false);
   const [activeTab, setActiveTab] = useState('play');
-  const { analytics } = useClubAnalytics(clubId || '');
 
   // Find the club in either clubs or myClubs
   const club = [...clubs, ...myClubs].find(c => c.id === clubId);
@@ -210,102 +194,18 @@ export default function Club() {
 
 
           <TabsContent value="members">
-            <MembersList 
+            <MembersListSimple 
               club={club} 
               canManageMembers={canManageMembers}
             />
           </TabsContent>
 
           <TabsContent value="coaches">
-            <ClubCoaches club={club} canManage={canManageMembers} />
+            <CoachesListSimple club={club} canManage={canManageMembers} />
           </TabsContent>
 
-          <TabsContent value="coaching">
-            <ClubCoachBooking club={club} canBook={isMember} />
-          </TabsContent>
-
-          <TabsContent value="courts">
-            <ClubCourtBooking club={club} canBook={isMember} />
-          </TabsContent>
-
-          <TabsContent value="sessions">
-            {isMember ? (
-              <ClubSessionCalendar clubId={club.id} />
-            ) : (
-              <div className="text-center p-8 bg-white rounded-lg shadow-lg">
-                <h3 className="font-medium mb-2">Member Access Required</h3>
-                <p className="text-sm text-muted-foreground">
-                  You must be a club member to view sessions.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="create-session">
-            {isMember ? (
-              <CreateClubSession 
-                clubId={club.id}
-                isOpen={true}
-                onClose={() => {}}
-                onSuccess={() => {}}
-              />
-            ) : (
-              <div className="text-center p-8 bg-white rounded-lg shadow-lg">
-                <h3 className="font-medium mb-2">Member Access Required</h3>
-                <p className="text-sm text-muted-foreground">
-                  You must be a club member to create sessions.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          <TabsContent value="my-bookings">
-            {isMember ? (
-              <MyClubBookings club={club} />
-            ) : (
-              <div className="text-center p-8 bg-white rounded-lg shadow-lg">
-                <h3 className="font-medium mb-2">Member Access Required</h3>
-                <p className="text-sm text-muted-foreground">
-                  You must be a club member to view your bookings.
-                </p>
-              </div>
-            )}
-          </TabsContent>
-
-          {isCoach && (
-            <TabsContent value="my-services">
-              <CoachClubServices club={club} canManage={isCoach} />
-            </TabsContent>
-          )}
-
-          {(isOwner || canManageMembers) && analytics && (
-            <TabsContent value="analytics">
-              <ClubAnalyticsDashboard analytics={analytics} />
-            </TabsContent>
-          )}
-
-          {(isOwner || canManageMembers) && (
-            <TabsContent value="management">
-              <ClubManagementDashboard clubId={club.id} />
-            </TabsContent>
-          )}
-
-          {canEditClub && (
-            <TabsContent value="settings">
-              <ClubSettings club={club} onSettingsUpdate={handleRefresh} />
-            </TabsContent>
-          )}
         </Tabs>
 
-        {/* Create Session Dialog */}
-        <CreateOpenSessionDialog
-          clubId={club.id}
-          isOpen={showCreateSession}
-          onClose={() => setShowCreateSession(false)}
-          onSuccess={() => {
-            // Could switch to open-sessions tab or show success message
-          }}
-        />
       </div>
     </div>
   );

@@ -27,7 +27,7 @@ export function SimplifiedClubNav({
   const tabs = [
     {
       value: 'play',
-      label: 'Play',
+      label: 'Dashboard',
       icon: Home,
       show: true
     },
@@ -42,12 +42,6 @@ export function SimplifiedClubNav({
       label: 'Coaches',
       icon: GraduationCap,
       show: true
-    },
-    {
-      value: 'courts',
-      label: 'Courts',
-      icon: Calendar,
-      show: isMember
     }
   ];
 
