@@ -209,6 +209,39 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
           </div>
         </CardContent>
       </Card>
+
+      {/* Phase 6 Complete! */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-tennis-green-dark flex items-center gap-2">
+            <MapPin className="h-5 w-5 text-orange-500" />
+            Phase 6 Features Complete! 
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <div className="grid gap-3 sm:grid-cols-1">
+            <div className="flex items-center gap-3 p-3 bg-orange-50 border border-orange-200 rounded-lg">
+              <MapPin className="h-5 w-5 text-orange-600" />
+              <div className="flex-1">
+                <p className="font-medium text-orange-800">Discovery Platform</p>
+                <p className="text-sm text-orange-700">Find nearby clubs, tournaments, and players</p>
+              </div>
+            </div>
+          </div>
+          
+          <div className="p-4 bg-gradient-to-r from-orange-500/5 to-orange-500/10 rounded-lg border">
+            <p className="text-sm font-medium text-tennis-green-dark mb-2">
+              🧭 Phase 6 Complete:
+            </p>
+            <ul className="text-sm text-tennis-green-medium space-y-1">
+              <li>• Discover nearby tennis clubs and facilities</li>
+              <li>• Browse upcoming tournaments and events</li>
+              <li>• Find recommended players at your skill level</li>
+              <li>• Explore the local tennis community</li>
+            </ul>
+          </div>
+        </CardContent>
+      </Card>
     </div>
   );
 }

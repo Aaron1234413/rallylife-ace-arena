@@ -30,6 +30,7 @@ import { SessionManagement } from '@/components/club/dashboard/SessionManagement
 import { CourtBooking } from '@/components/club/dashboard/CourtBooking';
 import { ClubAnalyticsDashboard } from '@/components/club/analytics/ClubAnalyticsDashboard';
 import { useClubAnalytics } from '@/hooks/useClubAnalytics';
+import { ClubDiscovery } from '@/components/club/discovery/ClubDiscovery';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -231,6 +232,10 @@ export default function Club() {
                 <p className="text-tennis-green-medium">Analytics data not available</p>
               </div>
             )}
+          </TabsContent>
+
+          <TabsContent value="discovery">
+            <ClubDiscovery currentClubId={club.id} />
           </TabsContent>
 
         </Tabs>

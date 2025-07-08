@@ -6,7 +6,8 @@ import {
   GraduationCap,
   Calendar,
   MapPin,
-  BarChart3
+  BarChart3,
+  Compass
 } from 'lucide-react';
 
 interface SimplifiedClubNavProps {
@@ -62,6 +63,12 @@ export function SimplifiedClubNav({
       label: 'Analytics',
       icon: BarChart3,
       show: canManageMembers || canEditClub
+    },
+    {
+      value: 'discovery',
+      label: 'Discovery',
+      icon: Compass,
+      show: true
     }
   ];
 
