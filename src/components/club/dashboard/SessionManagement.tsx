@@ -3,6 +3,17 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from '@/components/ui/alert-dialog';
 import { 
   Calendar, 
   Users, 
@@ -12,7 +23,8 @@ import {
   MapPin,
   Trophy,
   Coins,
-  Loader2
+  Loader2,
+  Trash2
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
@@ -69,6 +81,7 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
   });
 
   const [joiningStates, setJoiningStates] = useState<Record<string, boolean>>({});
+  const [deletingStates, setDeletingStates] = useState<Record<string, boolean>>({});
 
   // Sessions are now managed by useUnifiedSessions hook with real-time updates
 
@@ -83,6 +96,18 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
 
   const handleViewSessionDetails = (session: UnifiedSession) => {
     setSelectedSession(session);
+  };
+
+  const handleDeleteSession = async (sessionId: string) => {
+    setDeletingStates(prev => ({ ...prev, [sessionId]: true }));
+    try {
+      const success = await cancelSession(sessionId);
+      if (success) {
+        // Sessions will auto-refresh via real-time updates
+      }
+    } finally {
+      setDeletingStates(prev => ({ ...prev, [sessionId]: false }));
+    }
   };
 
   const handleRemoveParticipant = async (participantId: string) => {
@@ -176,11 +201,63 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
                           </h3>
                           <p className="text-sm text-tennis-green-medium">
                             Created by {session.creator?.full_name || 'Unknown'}
+                            {session.creator_id === user?.id && (
+                              <span className="ml-2 text-xs bg-tennis-green-primary/10 text-tennis-green-primary px-2 py-1 rounded">
+                                You created this
+                              </span>
+                            )}
                           </p>
                         </div>
-                        <Badge className={getSessionTypeColor(session.session_type)}>
-                          {session.session_type.replace('_', ' ')}
-                        </Badge>
+                        <div className="flex items-center gap-2">
+                          <Badge className={getSessionTypeColor(session.session_type)}>
+                            {session.session_type.replace('_', ' ')}
+                          </Badge>
+                          {session.creator_id === user?.id && (
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <Button 
+                                  variant="ghost" 
+                                  size="sm"
+                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                                  disabled={deletingStates[session.id]}
+                                >
+                                  {deletingStates[session.id] ? (
+                                    <Loader2 className="h-4 w-4 animate-spin" />
+                                  ) : (
+                                    <Trash2 className="h-4 w-4" />
+                                  )}
+                                </Button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Delete Session</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Are you sure you want to delete this session? This action cannot be undone.
+                                    {session.participant_count && session.participant_count > 0 && (
+                                      <span className="block mt-2 text-orange-600 font-medium">
+                                        Warning: This session has {session.participant_count} participant(s) who will be notified of the cancellation.
+                                      </span>
+                                    )}
+                                    {session.stakes_amount > 0 && (
+                                      <span className="block mt-2 text-blue-600 font-medium">
+                                        Stakes will be refunded to participants.
+                                      </span>
+                                    )}
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleDeleteSession(session.id)}
+                                    className="bg-red-600 hover:bg-red-700"
+                                  >
+                                    Delete Session
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+                          )}
+                        </div>
                       </div>
 
                       <div className="flex items-center gap-4 text-sm text-tennis-green-medium flex-wrap">
