@@ -1,6 +1,6 @@
 
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
 import { ArrowLeft, Users } from 'lucide-react';
@@ -8,14 +8,27 @@ import { Button } from '@/components/ui/button';
 
 const StartSocialPlay = () => {
   const navigate = useNavigate();
+  const location = useLocation();
+
+  // Detect club context from current route
+  const isInClubContext = location.pathname.startsWith('/club/');
+  const clubId = isInClubContext ? location.pathname.split('/')[2] : null;
 
   const handleBackToDashboard = () => {
-    navigate('/dashboard');
+    if (clubId) {
+      navigate(`/club/${clubId}`);
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   const handleSessionCreated = () => {
-    // Navigate back to dashboard after successful session creation and join
-    navigate('/dashboard');
+    // Navigate back to appropriate location after successful session creation
+    if (clubId) {
+      navigate(`/club/${clubId}`);
+    } else {
+      navigate('/dashboard');
+    }
   };
 
   return (
@@ -40,10 +53,12 @@ const StartSocialPlay = () => {
             <div className="mx-auto w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mb-4">
               <Users className="h-8 w-8 text-blue-600" />
             </div>
-            <CardTitle className="text-2xl">Start Social Play Session</CardTitle>
+            <CardTitle className="text-2xl">Start Social Play Session{clubId ? ' (Club)' : ''}</CardTitle>
             <p className="text-muted-foreground mt-2">
-              Invite friends to join you for a fun tennis session. Choose your game type, 
-              competitive level, and get playing!
+              {clubId 
+                ? 'Invite club members for a fun tennis session. Choose your game type and get playing!'
+                : 'Invite friends to join you for a fun tennis session. Choose your game type, competitive level, and get playing!'
+              }
             </p>
           </CardHeader>
           
@@ -53,10 +68,12 @@ const StartSocialPlay = () => {
               open={true}
               onOpenChange={(open) => {
                 if (!open) {
-                  // If dialog is closed without creating a session, go back to dashboard
+                  // If dialog is closed without creating a session, go back to appropriate location
                   handleBackToDashboard();
                 }
               }}
+              onEventCreated={handleSessionCreated}
+              clubId={clubId}
             />
           </CardContent>
         </Card>

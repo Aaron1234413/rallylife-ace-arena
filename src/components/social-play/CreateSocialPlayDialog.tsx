@@ -37,6 +37,7 @@ interface CreateSocialPlayDialogProps {
   open?: boolean;
   onOpenChange?: (open: boolean) => void;
   onEventCreated?: () => void;
+  clubId?: string | null;
 }
 
 export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
@@ -44,6 +45,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   open,
   onOpenChange,
   onEventCreated,
+  clubId,
 }) => {
   const [internalOpen, setInternalOpen] = useState(false);
   const { createEvent, isCreatingEvent } = useSocialPlayEvents();
@@ -174,7 +176,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
       <DialogHeader>
         <DialogTitle className="flex items-center gap-2">
           <Users className="h-5 w-5" />
-          Create Social Tennis Event
+          Create Social Tennis Event{clubId ? ' (Club)' : ''}
         </DialogTitle>
       </DialogHeader>
       

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -14,7 +14,9 @@ import {
   Coins,
   Loader2
 } from 'lucide-react';
-import { useOpenSessions } from '@/hooks/useOpenSessions';
+import { useNavigate } from 'react-router-dom';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { format } from 'date-fns';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
 import { toast } from 'sonner';
@@ -23,58 +25,100 @@ interface SessionManagementProps {
   clubId: string;
 }
 
+interface UnifiedSession {
+  id: string;
+  creator_id: string;
+  session_type: string;
+  format?: string;
+  max_players: number;
+  stakes_amount: number;
+  location: string;
+  notes?: string;
+  is_private: boolean;
+  invitation_code?: string;
+  club_id?: string;
+  session_source?: string;
+  created_at: string;
+  updated_at: string;
+  creator?: {
+    full_name: string;
+  };
+}
+
 export function SessionManagement({ clubId }: SessionManagementProps) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  
-  // Use real session data
-  const { 
-    sessions, 
-    loading, 
-    creating,
-    joinSession, 
-    leaveSession,
-    hasUserJoinedSession 
-  } = useOpenSessions(clubId);
-
+  const [sessions, setSessions] = useState<UnifiedSession[]>([]);
+  const [loading, setLoading] = useState(true);
   const [joiningStates, setJoiningStates] = useState<Record<string, boolean>>({});
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  // Fetch club sessions
+  useEffect(() => {
+    const fetchSessions = async () => {
+      try {
+        setLoading(true);
+        const { data, error } = await supabase
+          .from('sessions')
+          .select(`
+            *,
+            profiles:creator_id (
+              full_name
+            )
+          `)
+          .eq('club_id', clubId)
+          .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        setSessions(data || []);
+      } catch (error) {
+        console.error('Error fetching club sessions:', error);
+        toast.error('Failed to load club sessions');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    if (clubId) {
+      fetchSessions();
+    }
+  }, [clubId]);
 
   const handleJoinSession = async (sessionId: string) => {
     setJoiningStates(prev => ({ ...prev, [sessionId]: true }));
     try {
-      const success = await joinSession(sessionId);
-      if (success) {
-        toast.success('Successfully joined session!');
-      }
+      // For now, just show a success message
+      // TODO: Implement actual join logic with session_participants table
+      toast.success('Join session functionality coming soon!');
     } catch (error) {
       console.error('Failed to join session:', error);
+      toast.error('Failed to join session');
     } finally {
       setJoiningStates(prev => ({ ...prev, [sessionId]: false }));
     }
   };
 
-  const handleCreateSession = () => {
-    setShowCreateDialog(false);
-    toast.success('Session creation flow integrated with club!');
+  const handleCreateSession = (sessionType: string) => {
+    navigate(`/sessions/create?type=${sessionType}`);
   };
 
   const getSessionTypeColor = (type: string) => {
     switch (type) {
-      case 'tournament': return 'bg-red-100 text-red-800';
-      case 'lesson': return 'bg-blue-100 text-blue-800';
-      case 'practice': return 'bg-green-100 text-green-800';
-      case 'casual': return 'bg-purple-100 text-purple-800';
-      case 'clinic': return 'bg-orange-100 text-orange-800';
+      case 'match': return 'bg-blue-100 text-blue-800';
+      case 'training': return 'bg-green-100 text-green-800';
+      case 'social_play': return 'bg-purple-100 text-purple-800';
+      case 'wellbeing': return 'bg-pink-100 text-pink-800';
       default: return 'bg-gray-100 text-gray-800';
     }
   };
 
   const getSessionIcon = (type: string) => {
     switch (type) {
-      case 'tournament': return Trophy;
-      case 'lesson': return Users;
-      case 'practice': return Play;
-      case 'casual': return Users;
-      case 'clinic': return Trophy;
+      case 'match': return Trophy;
+      case 'training': return Play;
+      case 'social_play': return Users;
+      case 'wellbeing': return Users;
       default: return Calendar;
     }
   };
@@ -89,7 +133,7 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
               Club Sessions
             </CardTitle>
             <Button
-              onClick={() => setShowCreateDialog(true)}
+              onClick={() => handleCreateSession('match')}
               className="flex items-center gap-2"
             >
               <Plus className="h-4 w-4" />
@@ -123,49 +167,41 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
                       <div className="flex items-start justify-between">
                         <div>
                           <h3 className="font-semibold text-tennis-green-dark">
-                            {session.title}
+                            {session.session_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} Session
                           </h3>
                           <p className="text-sm text-tennis-green-medium">
                             Created by {session.creator?.full_name || 'Unknown'}
                           </p>
                         </div>
                         <Badge className={getSessionTypeColor(session.session_type)}>
-                          {session.session_type}
+                          {session.session_type.replace('_', ' ')}
                         </Badge>
                       </div>
 
                       <div className="flex items-center gap-4 text-sm text-tennis-green-medium flex-wrap">
                         <div className="flex items-center gap-1">
-                          <Calendar className="h-4 w-4" />
-                          {format(new Date(session.scheduled_date), 'MMM dd, yyyy')}
+                          <MapPin className="h-4 w-4" />
+                          {session.location}
                         </div>
-                        <div className="flex items-center gap-1">
-                          <Clock className="h-4 w-4" />
-                          {session.start_time} - {session.end_time}
-                        </div>
-                        {session.court?.name && (
+                        {session.format && (
                           <div className="flex items-center gap-1">
-                            <MapPin className="h-4 w-4" />
-                            {session.court.name}
+                            <Users className="h-4 w-4" />
+                            {session.format}
                           </div>
                         )}
                       </div>
 
-                      {/* Cost Display */}
-                      {(session.cost_per_person_tokens > 0 || session.cost_per_person_money > 0) && (
+                      {/* Stakes Display */}
+                      {session.stakes_amount > 0 && (
                         <div className="flex items-center gap-2 text-sm text-yellow-600">
                           <Coins className="h-4 w-4" />
-                          <span>
-                            {session.cost_per_person_tokens > 0 && `${session.cost_per_person_tokens} tokens`}
-                            {session.cost_per_person_tokens > 0 && session.cost_per_person_money > 0 && ' + '}
-                            {session.cost_per_person_money > 0 && `$${session.cost_per_person_money}`}
-                          </span>
+                          <span>{session.stakes_amount} tokens per player</span>
                         </div>
                       )}
 
-                      {session.description && (
+                      {session.notes && (
                         <p className="text-sm text-tennis-green-medium italic">
-                          {session.description}
+                          {session.notes}
                         </p>
                       )}
 
@@ -173,13 +209,10 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
                         <div className="flex items-center gap-2">
                           <Users className="h-4 w-4 text-tennis-green-medium" />
                           <span className="text-sm text-tennis-green-medium">
-                            {session.current_participants}/{session.max_participants} participants
+                            0/{session.max_players} participants
                           </span>
-                          <Badge 
-                            variant={session.status === 'open' ? 'default' : 'secondary'}
-                            className="text-xs"
-                          >
-                            {session.status}
+                          <Badge variant="default" className="text-xs">
+                            Open
                           </Badge>
                         </div>
                         
@@ -187,7 +220,7 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
                           variant="outline" 
                           size="sm"
                           onClick={() => handleJoinSession(session.id)}
-                          disabled={isJoining || session.status !== 'open' || session.current_participants >= session.max_participants}
+                          disabled={isJoining}
                         >
                           {isJoining ? (
                             <>
@@ -214,7 +247,7 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
                 Be the first to create a session for your club!
               </p>
               <Button
-                onClick={() => setShowCreateDialog(true)}
+                onClick={() => handleCreateSession('match')}
                 className="flex items-center gap-2"
               >
                 <Plus className="h-4 w-4" />
@@ -241,11 +274,7 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
         </CardContent>
       </Card>
 
-      <CreateSocialPlayDialog
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        onEventCreated={handleCreateSession}
-      />
+      {/* Dialog removed - now using direct navigation to session creation */}
     </>
   );
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams, useLocation } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -36,10 +36,15 @@ import { toast } from 'sonner';
 const CreateSession = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
+  const routerLocation = useLocation();
   const [searchParams] = useSearchParams();
   const { tokenData } = usePlayerTokens();
   const { hpData } = usePlayerHP();
   const { currentLocation } = useUserLocation();
+
+  // Detect club context from current route
+  const isInClubContext = routerLocation.pathname.startsWith('/club/');
+  const clubId = isInClubContext ? routerLocation.pathname.split('/')[2] : null;
 
   // Form state
   const [sessionType, setSessionType] = useState(searchParams.get('type') || 'match');
@@ -170,7 +175,10 @@ const CreateSession = () => {
         // Add coordinates if user has current location
         latitude: currentLocation?.lat || null,
         longitude: currentLocation?.lng || null,
-        location_coordinates_set: !!currentLocation
+        location_coordinates_set: !!currentLocation,
+        // Add club context if creating from within a club
+        club_id: clubId,
+        session_source: clubId ? 'member' : null
       };
 
       const { data: session, error: sessionError } = await supabase
@@ -198,8 +206,12 @@ const CreateSession = () => {
 
       toast.success('Session created successfully!');
       
-      // Navigate back to dashboard
-      navigate('/dashboard');
+      // Navigate back to appropriate location
+      if (clubId) {
+        navigate(`/club/${clubId}`);
+      } else {
+        navigate('/dashboard');
+      }
       
     } catch (error) {
       console.error('Error creating session:', error);
@@ -229,17 +241,20 @@ const CreateSession = () => {
         <div className="flex items-center gap-4">
           <Button 
             variant="ghost" 
-            onClick={() => navigate('/dashboard')}
+            onClick={() => clubId ? navigate(`/club/${clubId}`) : navigate('/dashboard')}
             className="p-2"
           >
             <ArrowLeft className="h-5 w-5" />
           </Button>
           <div>
             <h1 className="text-2xl sm:text-3xl font-bold text-tennis-green-dark">
-              Create Session
+              Create Session{clubId ? ' (Club)' : ''}
             </h1>
             <p className="text-gray-600 mt-1">
-              Set up a new tennis session for others to join
+              {clubId 
+                ? 'Set up a new tennis session for your club members' 
+                : 'Set up a new tennis session for others to join'
+              }
             </p>
           </div>
         </div>
