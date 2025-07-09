@@ -391,8 +391,8 @@ const Sessions = () => {
           open={showCreateDialog}
           onOpenChange={setShowCreateDialog}
           onSuccess={() => {
-            // Refresh sessions after creation
-            window.location.reload();
+            // No need to reload - real-time subscriptions will update automatically
+            toast.success('Session created! It should appear in your sessions shortly.');
           }}
         />
       </div>
