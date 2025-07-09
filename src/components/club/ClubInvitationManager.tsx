@@ -69,9 +69,22 @@ export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
     const link = `${window.location.origin}/join/${code}`;
     navigator.clipboard.writeText(link);
     toast({
-      title: "Link Copied",
-      description: "Invitation link copied to clipboard"
+      title: "Link Copied", 
+      description: "Share this link to invite members to your club"
     });
+  };
+
+  const shareLink = (code: string) => {
+    const fullUrl = `${window.location.origin}/join/${code}`;
+    if (navigator.share) {
+      navigator.share({
+        title: `Join our Tennis Club`,
+        text: `You're invited to join our tennis club!`,
+        url: fullUrl,
+      });
+    } else {
+      copyInviteLink(code);
+    }
   };
 
   const deactivateInvitation = async (invitationId: string) => {
@@ -149,19 +162,28 @@ export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
                 >
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-2">
-                      <code className="text-sm bg-tennis-green-bg px-2 py-1 rounded">
-                        {invitation.invitation_code}
-                      </code>
                       {invitation.is_active ? (
                         <Badge className="bg-green-100 text-green-800">Active</Badge>
                       ) : (
                         <Badge variant="secondary">Inactive</Badge>
                       )}
                     </div>
+                    
+                    {/* Full shareable link display */}
+                    <div className="bg-tennis-green-bg/20 p-3 rounded-lg mb-2">
+                      <div className="flex items-center gap-2 mb-1">
+                        <Share2 className="h-4 w-4 text-tennis-green-primary" />
+                        <span className="text-sm font-medium text-tennis-green-dark">Share this link:</span>
+                      </div>
+                      <code className="text-sm text-tennis-green-primary break-all">
+                        {`${window.location.origin}/join/${invitation.invitation_code}`}
+                      </code>
+                    </div>
+                    
                     <div className="flex items-center gap-4 text-sm text-tennis-green-medium">
                       <span className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        {invitation.max_uses ? `${invitation.uses_count}/${invitation.max_uses} uses` : `${invitation.uses_count} uses (unlimited)`}
+                        {invitation.uses_count} members joined
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
@@ -169,19 +191,31 @@ export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
                       </span>
                     </div>
                   </div>
-                  <div className="flex gap-2">
+                  <div className="flex gap-2 flex-col sm:flex-row">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => copyInviteLink(invitation.invitation_code)}
+                      className="flex items-center gap-2"
                     >
                       <Copy className="h-4 w-4" />
+                      Copy Link
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => shareLink(invitation.invitation_code)}
+                      className="flex items-center gap-2"
+                    >
+                      <Share2 className="h-4 w-4" />
+                      Share
                     </Button>
                     {invitation.is_active && (
                       <Button
                         variant="outline"
                         size="sm"
                         onClick={() => deactivateInvitation(invitation.id)}
+                        className="text-red-600 hover:text-red-700"
                       >
                         Deactivate
                       </Button>

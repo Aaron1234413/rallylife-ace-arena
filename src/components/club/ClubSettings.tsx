@@ -135,9 +135,16 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
       // Trigger usage tracking update after successful save
       await updateUsageTracking();
       onSettingsUpdate?.();
+      
+      // Show success feedback
+      toast.success('Club settings saved successfully!', {
+        description: 'Your changes have been applied and are now visible across the platform.'
+      });
     } catch (error) {
       console.error('Error updating club:', error);
-      // Error is already handled by updateClub function
+      toast.error('Failed to save settings', {
+        description: 'Please try again or contact support if the problem persists.'
+      });
     } finally {
       setIsUpdating(false);
     }
