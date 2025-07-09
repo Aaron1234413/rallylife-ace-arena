@@ -148,8 +148,34 @@ async function handleCheckoutCompleted(session: Stripe.Checkout.Session, supabas
     });
   }
 
-  // Handle hybrid payments
-  if (metadata.service_type && metadata.tokens_used) {
+  // Handle hybrid payments and store purchases
+  if (metadata.service_type === 'store_item_purchase') {
+    logStep("Store item purchase completed", { 
+      sessionId: session.id,
+      itemId: metadata.item_id,
+      tokensUsed: metadata.tokens_used,
+      cashAmount: metadata.cash_amount
+    });
+    
+    // Award store item effect via database function if needed
+    // This could trigger the item effect application
+  }
+  
+  // Handle merchandise orders
+  if (metadata.service_type === 'merchandise_order') {
+    logStep("Merchandise order payment completed", {
+      sessionId: session.id,
+      itemId: metadata.item_id,
+      tokensUsed: metadata.tokens_used,
+      cashAmount: metadata.cash_amount
+    });
+    
+    // Update order status or create order record here
+    // For now, we'll just log the successful payment
+  }
+  
+  // Handle other hybrid payments
+  if (metadata.service_type && metadata.tokens_used && metadata.service_type !== 'store_item_purchase' && metadata.service_type !== 'merchandise_order') {
     logStep("Hybrid payment cash portion completed", { 
       sessionId: session.id,
       serviceType: metadata.service_type,

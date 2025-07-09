@@ -12,5 +12,26 @@ verify_jwt = true
 [functions.process-merchandise-order]
 verify_jwt = true
 
+[functions.create-payment]
+verify_jwt = true
+
+[functions.create-checkout]
+verify_jwt = true
+
+[functions.customer-portal]
+verify_jwt = true
+
+[functions.club-customer-portal]
+verify_jwt = true
+
 [functions.stripe-webhook]
 verify_jwt = false
+
+[functions.initialize-monthly-pools]
+verify_jwt = false
+
+[functions.create-club-subscription]
+verify_jwt = true
+
+[functions.create-player-subscription]
+verify_jwt = true

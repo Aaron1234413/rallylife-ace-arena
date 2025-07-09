@@ -137,11 +137,17 @@ const Store = () => {
     try {
       setLoading(true);
       
-      if (plan.target_type === 'player') {
-        await createPlayerSub('premium' as any); // Use existing subscription system
-        return true;
-      } else if (plan.target_type === 'coach') {
-        await createCoachSub('pro' as any); // Use existing subscription system  
+      // Use the create-checkout function for subscription purchases
+      const { data, error } = await supabase.functions.invoke('create-checkout', {
+        body: {
+          priceId: billing === 'yearly' ? plan.stripe_price_id_yearly : plan.stripe_price_id_monthly
+        }
+      });
+
+      if (error) throw error;
+
+      if (data?.url) {
+        window.open(data.url, '_blank');
         return true;
       }
       

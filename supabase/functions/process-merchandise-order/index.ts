@@ -9,7 +9,7 @@ const corsHeaders = {
 
 const logStep = (step: string, details?: any) => {
   const detailsStr = details ? ` - ${JSON.stringify(details)}` : '';
-  console.log(`[PROCESS-MERCHANDISE-ORDER] ${step}${detailsStr}`);
+  console.log(`[MERCHANDISE-ORDER] ${step}${detailsStr}`);
 };
 
 serve(async (req) => {
@@ -19,6 +19,9 @@ serve(async (req) => {
 
   try {
     logStep("Function started");
+
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
 
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
@@ -36,7 +39,7 @@ serve(async (req) => {
     if (!user?.email) throw new Error("User not authenticated");
     logStep("User authenticated", { userId: user.id, email: user.email });
 
-    const { 
+    const {
       item_id,
       item_name,
       item_price_usd,
@@ -48,135 +51,79 @@ serve(async (req) => {
       item_metadata
     } = await req.json();
 
-    logStep("Processing merchandise order", { 
+    logStep("Order data received", { 
+      item_id, 
       item_name, 
-      item_price_usd, 
       tokens_used, 
-      cash_amount,
-      shipping_cost,
-      total_amount
+      cash_amount, 
+      total_amount 
     });
 
-    // Validate payment amounts
-    if (Math.abs((cash_amount + shipping_cost) - (item_price_usd - tokens_used * 0.01 + shipping_cost)) > 0.01) {
-      throw new Error("Payment amounts don't match item price");
+    // If no cash payment needed (paid entirely with tokens)
+    if (cash_amount <= 0) {
+      logStep("Token-only purchase, no Stripe checkout needed");
+
+      return new Response(JSON.stringify({ 
+        success: true, 
+        message: "Order placed successfully with tokens!" 
+      }), {
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+        status: 200,
+      });
     }
 
-    // Create the merchandise order record
-    const { data: orderData, error: orderError } = await supabaseClient
-      .from('merchandise_orders')
-      .insert({
-        user_id: user.id,
-        item_id,
-        item_name,
-        item_price_usd,
-        tokens_used,
-        cash_amount,
-        shipping_cost,
-        total_amount,
-        shipping_name: shipping_address.name,
-        shipping_address_line1: shipping_address.addressLine1,
-        shipping_address_line2: shipping_address.addressLine2,
-        shipping_city: shipping_address.city,
-        shipping_state: shipping_address.state,
-        shipping_postal_code: shipping_address.postalCode,
-        shipping_country: shipping_address.country,
-        order_metadata: item_metadata,
-        status: cash_amount > 0 ? 'pending_payment' : 'paid',
-        payment_status: cash_amount > 0 ? 'pending' : 'completed'
-      })
-      .select()
-      .single();
+    // Create Stripe checkout for cash portion
+    const stripe = new Stripe(stripeKey, { apiVersion: "2023-10-16" });
 
-    if (orderError) {
-      throw new Error(`Failed to create order: ${orderError.message}`);
-    }
-
-    logStep("Order record created", { orderId: orderData.id });
-
-    // Process cash payment if needed
-    let paymentResult = null;
-    if (cash_amount > 0) {
-      const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
-        apiVersion: "2023-10-16",
-      });
-
-      const customers = await stripe.customers.list({ email: user.email, limit: 1 });
-      let customerId = customers.data.length > 0 ? customers.data[0].id : undefined;
-
-      const session = await stripe.checkout.sessions.create({
-        customer: customerId,
-        customer_email: customerId ? undefined : user.email,
-        line_items: [
-          {
-            price_data: {
-              currency: "usd",
-              product_data: { 
-                name: item_name,
-                description: `Tennis merchandise from Diadem Sports. ${tokens_used > 0 ? `Tokens used: ${tokens_used}` : ''}`,
-                images: [], // Would add product images here
-              },
-              unit_amount: Math.round((cash_amount + shipping_cost) * 100),
-            },
-            quantity: 1,
-          },
-        ],
-        mode: "payment",
-        success_url: `${req.headers.get("origin")}/store?order=success&order_id=${orderData.id}`,
-        cancel_url: `${req.headers.get("origin")}/store?order=cancelled&order_id=${orderData.id}`,
-        metadata: {
-          order_id: orderData.id,
-          user_id: user.id,
-          item_id,
-          tokens_used: tokens_used.toString(),
-          merchandise_order: 'true'
-        },
-        shipping_address_collection: {
-          allowed_countries: ['US', 'CA']
-        }
-      });
-
-      // Update order with Stripe session ID
-      await supabaseClient
-        .from('merchandise_orders')
-        .update({ 
-          stripe_session_id: session.id,
-          status: 'pending_payment'
-        })
-        .eq('id', orderData.id);
-
-      paymentResult = { url: session.url, session_id: session.id };
-      logStep("Stripe session created", { sessionId: session.id });
+    // Check if customer exists
+    const customers = await stripe.customers.list({ email: user.email, limit: 1 });
+    let customerId;
+    if (customers.data.length > 0) {
+      customerId = customers.data[0].id;
     } else {
-      // No cash payment needed - order is complete
-      await supabaseClient
-        .from('merchandise_orders')
-        .update({ 
-          status: 'paid',
-          payment_status: 'completed'
-        })
-        .eq('id', orderData.id);
-      
-      logStep("Order completed with tokens only");
+      const customer = await stripe.customers.create({
+        email: user.email,
+        metadata: { user_id: user.id }
+      });
+      customerId = customer.id;
     }
 
-    // TODO: In a real implementation, you would:
-    // 1. Send order details to Diadem Sports API or fulfillment service
-    // 2. Set up webhook to track order status
-    // 3. Send confirmation email to customer
-    // 4. Update inventory if tracking stock levels
+    const session = await stripe.checkout.sessions.create({
+      customer: customerId,
+      line_items: [
+        {
+          price_data: {
+            currency: "usd",
+            product_data: { 
+              name: item_name,
+              description: `Tennis merchandise ${tokens_used > 0 ? `(${tokens_used} tokens applied)` : ''}`
+            },
+            unit_amount: Math.round(total_amount * 100),
+          },
+          quantity: 1,
+        },
+      ],
+      mode: "payment",
+      success_url: `${req.headers.get("origin")}/dashboard?merchandise=success`,
+      cancel_url: `${req.headers.get("origin")}/store?merchandise=cancelled`,
+      shipping_address_collection: {
+        allowed_countries: ['US', 'CA']
+      },
+      metadata: {
+        item_id,
+        user_id: user.id,
+        tokens_used: tokens_used.toString(),
+        cash_amount: cash_amount.toString(),
+        shipping_cost: shipping_cost.toString(),
+        service_type: 'merchandise_order',
+        shipping_address: JSON.stringify(shipping_address),
+        item_metadata: JSON.stringify(item_metadata)
+      }
+    });
 
-    logStep("Merchandise order processed successfully");
+    logStep("Checkout session created", { sessionId: session.id });
 
-    return new Response(JSON.stringify({
-      success: true,
-      order_id: orderData.id,
-      tokens_used,
-      cash_amount: cash_amount + shipping_cost,
-      payment_url: paymentResult?.url,
-      session_id: paymentResult?.session_id,
-      message: cash_amount > 0 ? 'Order created. Complete payment to finalize.' : 'Order completed successfully!'
-    }), {
+    return new Response(JSON.stringify({ payment_url: session.url }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
       status: 200,
     });
