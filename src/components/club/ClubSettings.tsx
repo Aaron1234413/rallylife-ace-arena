@@ -17,7 +17,7 @@ import {
   AlertTriangle,
   Crown
 } from 'lucide-react';
-import { Club } from '@/hooks/useClubs';
+import { Club, useClubs } from '@/hooks/useClubs';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubSubscription } from '@/hooks/useClubSubscription';
@@ -34,6 +34,7 @@ interface ClubSettingsProps {
 
 export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
   const { user } = useAuth();
+  const { updateClub } = useClubs();
   const { subscription, usage, updateUsageTracking } = useClubSubscription(club.id);
   const [formData, setFormData] = useState({
     name: club.name,
@@ -59,20 +60,59 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
   
   const isOwner = user?.id === club.owner_id;
 
+  // Get tier limits for validation
+  const getTierLimits = (tier: string) => {
+    const limits = {
+      community: { courts: 1, coaches: 1, members: 50 },
+      core: { courts: 3, coaches: 3, members: 100 },
+      plus: { courts: 10, coaches: 8, members: 300 },
+      pro: { courts: 25, coaches: 15, members: 1000 }
+    };
+    return limits[tier as keyof typeof limits] || limits.community;
+  };
+
+  const validateSettings = () => {
+    const currentTier = subscription?.tier_id || 'community';
+    const limits = getTierLimits(currentTier);
+    
+    if (formData.court_count > limits.courts) {
+      toast.error(`Your ${currentTier} plan allows up to ${limits.courts} courts. Upgrade to add more.`);
+      return false;
+    }
+    
+    if (formData.coach_slots > limits.coaches) {
+      toast.error(`Your ${currentTier} plan allows up to ${limits.coaches} coaches. Upgrade to add more.`);
+      return false;
+    }
+    
+    if (!formData.name.trim()) {
+      toast.error('Club name is required');
+      return false;
+    }
+    
+    return true;
+  };
+
   const handleSave = async () => {
+    if (!validateSettings()) return;
+    
     setIsUpdating(true);
     try {
-      // Mock update functionality
-      await new Promise(resolve => setTimeout(resolve, 1000));
+      await updateClub(club.id, {
+        name: formData.name.trim(),
+        description: formData.description,
+        location: formData.location,
+        is_private: formData.is_private,
+        logo_url: formData.logo_url,
+        court_count: formData.court_count,
+        coach_slots: formData.coach_slots,
+        operating_hours: formData.operating_hours
+      });
       
-      toast.success('Club settings updated successfully!');
-      onSettingsUpdate();
-      
-      // In real implementation, would call the actual update function
-      console.log('Updating club with data:', formData);
+      onSettingsUpdate?.();
     } catch (error) {
       console.error('Error updating club:', error);
-      toast.error('Failed to update club settings');
+      // Error is already handled by updateClub function
     } finally {
       setIsUpdating(false);
     }
@@ -91,25 +131,95 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
     formData.description !== (club.description || '') ||
     formData.location !== (club.location || '') ||
     formData.is_private !== (club.is_private ?? true) ||
-    formData.logo_url !== (club.logo_url || '');
+    formData.logo_url !== (club.logo_url || '') ||
+    formData.court_count !== (club.court_count || 1) ||
+    formData.coach_slots !== (club.coach_slots || 1) ||
+    JSON.stringify(formData.operating_hours) !== JSON.stringify(club.operating_hours || {});
+
+  // Get current tier limits for display
+  const currentTier = subscription?.tier_id || 'community';
+  const limits = getTierLimits(currentTier);
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div>
-        <h2 className="text-lg font-semibold text-tennis-green-dark flex items-center gap-2">
-          <Settings className="h-5 w-5" />
-          Club Settings
-        </h2>
+    <div className="space-y-4 sm:space-y-6">
+      {/* Mobile-First Header with Status */}
+      <div className="space-y-3">
+        <div className="flex items-center justify-between">
+          <h2 className="text-lg sm:text-xl font-semibold text-tennis-green-dark flex items-center gap-2">
+            <Settings className="h-5 w-5" />
+            Club Settings
+          </h2>
+          {hasChanges && (
+            <Badge variant="outline" className="text-orange-600 border-orange-300">
+              Unsaved Changes
+            </Badge>
+          )}
+        </div>
+        
+        <div className="flex items-center gap-3 text-sm">
+          <Badge className="bg-tennis-green-primary text-white capitalize">
+            {currentTier} Plan
+          </Badge>
+          <span className="text-tennis-green-medium">
+            {limits.courts} courts • {limits.coaches} coaches • {limits.members} members
+          </span>
+        </div>
+        
         <p className="text-sm text-tennis-green-medium">
           Manage your club&apos;s information and preferences
         </p>
       </div>
 
+      {/* Mobile-First: Save Actions at Top */}
+      {hasChanges && (
+        <Card className="border-orange-200 bg-orange-50/50">
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={handleSave}
+                disabled={isUpdating || !formData.name.trim()}
+                className="flex items-center gap-2 flex-1 sm:flex-initial"
+              >
+                <Save className="h-4 w-4" />
+                {isUpdating ? 'Saving...' : 'Save Changes'}
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setFormData({
+                    name: club.name,
+                    description: club.description || '',
+                    location: club.location || '',
+                    is_private: club.is_private ?? true,
+                    logo_url: club.logo_url || '',
+                    court_count: club.court_count || 1,
+                    coach_slots: club.coach_slots || 1,
+                    operating_hours: club.operating_hours || {
+                      monday: { open: '06:00', close: '22:00' },
+                      tuesday: { open: '06:00', close: '22:00' },
+                      wednesday: { open: '06:00', close: '22:00' },
+                      thursday: { open: '06:00', close: '22:00' },
+                      friday: { open: '06:00', close: '22:00' },
+                      saturday: { open: '08:00', close: '20:00' },
+                      sunday: { open: '08:00', close: '20:00' }
+                    }
+                  });
+                }}
+                disabled={isUpdating}
+                className="flex-1 sm:flex-initial"
+              >
+                Cancel
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Basic Information */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Basic Information</CardTitle>
+      <Card className="shadow-lg border-0">
+        <CardHeader className="pb-4">
+          <CardTitle className="text-tennis-green-dark">Basic Information</CardTitle>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="space-y-2">
@@ -171,46 +281,55 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
         onPrivacyChange={(isPrivate) => setFormData(prev => ({ ...prev, is_private: isPrivate }))}
       />
 
-      {/* Actions */}
-      <div className="flex gap-3">
-        <Button
-          onClick={handleSave}
-          disabled={isUpdating || !hasChanges || !formData.name.trim()}
-          className="flex items-center gap-2"
-        >
-          <Save className="h-4 w-4" />
-          {isUpdating ? 'Saving...' : 'Save Changes'}
-        </Button>
-        
-        {hasChanges && (
-          <Button
-            variant="outline"
-            onClick={() => {
-              setFormData({
-                name: club.name,
-                description: club.description || '',
-                location: club.location || '',
-                is_private: club.is_private ?? true,
-                logo_url: club.logo_url || '',
-                court_count: club.court_count || 1,
-                coach_slots: club.coach_slots || 1,
-                operating_hours: club.operating_hours || {
-                  monday: { open: '06:00', close: '22:00' },
-                  tuesday: { open: '06:00', close: '22:00' },
-                  wednesday: { open: '06:00', close: '22:00' },
-                  thursday: { open: '06:00', close: '22:00' },
-                  friday: { open: '06:00', close: '22:00' },
-                  saturday: { open: '08:00', close: '20:00' },
-                  sunday: { open: '08:00', close: '20:00' }
-                }
-              });
-            }}
-            disabled={isUpdating}
-          >
-            Cancel
-          </Button>
-        )}
-      </div>
+      {/* Mobile-First: Save Actions at Bottom Too */}
+      {hasChanges && (
+        <Card className="border-tennis-green-primary/30 bg-tennis-green-bg/30">
+          <CardContent className="p-4">
+            <div className="flex flex-col sm:flex-row gap-3">
+              <Button
+                onClick={handleSave}
+                disabled={isUpdating || !formData.name.trim()}
+                className="flex items-center gap-2 flex-1 sm:flex-initial"
+              >
+                <Save className="h-4 w-4" />
+                {isUpdating ? 'Saving...' : 'Save Changes'}
+              </Button>
+              
+              <Button
+                variant="outline"
+                onClick={() => {
+                  setFormData({
+                    name: club.name,
+                    description: club.description || '',
+                    location: club.location || '',
+                    is_private: club.is_private ?? true,
+                    logo_url: club.logo_url || '',
+                    court_count: club.court_count || 1,
+                    coach_slots: club.coach_slots || 1,
+                    operating_hours: club.operating_hours || {
+                      monday: { open: '06:00', close: '22:00' },
+                      tuesday: { open: '06:00', close: '22:00' },
+                      wednesday: { open: '06:00', close: '22:00' },
+                      thursday: { open: '06:00', close: '22:00' },
+                      friday: { open: '06:00', close: '22:00' },
+                      saturday: { open: '08:00', close: '20:00' },
+                      sunday: { open: '08:00', close: '20:00' }
+                    }
+                  });
+                }}
+                disabled={isUpdating}
+                className="flex-1 sm:flex-initial"
+              >
+                Cancel
+              </Button>
+            </div>
+            
+            <p className="text-xs text-tennis-green-medium mt-3 text-center">
+              Changes will be saved to your club profile and visible to all members
+            </p>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Subscription Management for Owners */}
       {isOwner && (
@@ -253,28 +372,58 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <Label htmlFor="court_count">Number of Courts</Label>
-                  <Input
-                    id="court_count"
-                    type="number"
-                    min="1"
-                    value={formData.court_count}
-                    onChange={(e) => setFormData(prev => ({ ...prev, court_count: parseInt(e.target.value) || 1 }))}
-                    disabled={isUpdating}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="coach_slots">Coach Slots</Label>
-                  <Input
-                    id="coach_slots"
-                    type="number"
-                    min="1"
-                    value={formData.coach_slots}
-                    onChange={(e) => setFormData(prev => ({ ...prev, coach_slots: parseInt(e.target.value) || 1 }))}
-                    disabled={isUpdating}
-                  />
-                </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="court_count">Number of Courts</Label>
+              <span className="text-xs text-tennis-green-medium">Max: {limits.courts}</span>
+            </div>
+            <Input
+              id="court_count"
+              type="number"
+              min="1"
+              max={limits.courts}
+              value={formData.court_count}
+              onChange={(e) => {
+                const value = parseInt(e.target.value) || 1;
+                if (value <= limits.courts) {
+                  setFormData(prev => ({ ...prev, court_count: value }));
+                } else {
+                  toast.error(`Your ${currentTier} plan allows up to ${limits.courts} courts`);
+                }
+              }}
+              disabled={isUpdating}
+              className={formData.court_count > limits.courts ? 'border-red-300' : ''}
+            />
+            {formData.court_count > limits.courts && (
+              <p className="text-xs text-red-600">Exceeds plan limit</p>
+            )}
+          </div>
+          <div className="space-y-2">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="coach_slots">Coach Slots</Label>
+              <span className="text-xs text-tennis-green-medium">Max: {limits.coaches}</span>
+            </div>
+            <Input
+              id="coach_slots"
+              type="number"
+              min="1"
+              max={limits.coaches}
+              value={formData.coach_slots}
+              onChange={(e) => {
+                const value = parseInt(e.target.value) || 1;
+                if (value <= limits.coaches) {
+                  setFormData(prev => ({ ...prev, coach_slots: value }));
+                } else {
+                  toast.error(`Your ${currentTier} plan allows up to ${limits.coaches} coaches`);
+                }
+              }}
+              disabled={isUpdating}
+              className={formData.coach_slots > limits.coaches ? 'border-red-300' : ''}
+            />
+            {formData.coach_slots > limits.coaches && (
+              <p className="text-xs text-red-600">Exceeds plan limit</p>
+            )}
+          </div>
               </div>
             </CardContent>
           </Card>

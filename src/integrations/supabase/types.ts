@@ -987,6 +987,69 @@ export type Database = {
           },
         ]
       }
+      club_court_bookings: {
+        Row: {
+          booking_date: string
+          club_id: string
+          court_id: string
+          created_at: string
+          end_time: string
+          id: string
+          notes: string | null
+          payment_method: string
+          start_time: string
+          status: string
+          tokens_used: number
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          booking_date: string
+          club_id: string
+          court_id: string
+          created_at?: string
+          end_time: string
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          start_time: string
+          status?: string
+          tokens_used?: number
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          booking_date?: string
+          club_id?: string
+          court_id?: string
+          created_at?: string
+          end_time?: string
+          id?: string
+          notes?: string | null
+          payment_method?: string
+          start_time?: string
+          status?: string
+          tokens_used?: number
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_court_bookings_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_court_bookings_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "club_courts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       club_courts: {
         Row: {
           club_id: string
@@ -5731,6 +5794,10 @@ export type Database = {
         Args: { level: number }
         Returns: number
       }
+      cancel_court_booking: {
+        Args: { booking_id: string }
+        Returns: Json
+      }
       check_academy_milestones: {
         Args: { user_id: string }
         Returns: undefined
@@ -5876,13 +5943,22 @@ export type Database = {
         Returns: Json
       }
       create_court_booking: {
-        Args: {
-          p_court_id: string
-          p_start_datetime: string
-          p_end_datetime: string
-          p_payment_method?: string
-          p_notes?: string
-        }
+        Args:
+          | {
+              p_club_id: string
+              p_court_id: string
+              p_booking_date: string
+              p_start_time: string
+              p_end_time: string
+              p_tokens_to_use?: number
+            }
+          | {
+              p_court_id: string
+              p_start_datetime: string
+              p_end_datetime: string
+              p_payment_method?: string
+              p_notes?: string
+            }
         Returns: Json
       }
       create_direct_conversation: {
