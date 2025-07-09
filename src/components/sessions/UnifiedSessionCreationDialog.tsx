@@ -23,16 +23,24 @@ interface UnifiedSessionCreationDialogProps {
   clubId?: string;
   trigger?: React.ReactNode;
   onSessionCreated?: () => void;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  onSuccess?: () => void;
 }
 
 export function UnifiedSessionCreationDialog({ 
   clubId, 
   trigger,
-  onSessionCreated 
+  onSessionCreated,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
+  onSuccess
 }: UnifiedSessionCreationDialogProps) {
-  const [open, setOpen] = useState(false);
+  const [internalOpen, setInternalOpen] = useState(false);
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen;
+  const setOpen = controlledOnOpenChange !== undefined ? controlledOnOpenChange : setInternalOpen;
   const [loading, setLoading] = useState(false);
-  const { createSession } = useSessionManager(clubId);
+  const { createSession } = useSessionManager({ clubId });
 
   const [formData, setFormData] = useState<SessionCreationData>({
     title: '',
@@ -82,6 +90,7 @@ export function UnifiedSessionCreationDialog({
       });
 
       onSessionCreated?.();
+      onSuccess?.();
     } catch (error) {
       console.error('Error creating session:', error);
       toast.error('Failed to create session. Please try again.');
@@ -99,9 +108,11 @@ export function UnifiedSessionCreationDialog({
 
   return (
     <Dialog open={open} onOpenChange={setOpen}>
-      <DialogTrigger asChild>
-        {trigger || defaultTrigger}
-      </DialogTrigger>
+      {trigger && (
+        <DialogTrigger asChild>
+          {trigger || defaultTrigger}
+        </DialogTrigger>
+      )}
       
       <DialogContent className="max-w-2xl">
         <DialogHeader>

@@ -64,11 +64,11 @@ export function useClubSessions(clubId: string) {
     description: session.description || session.notes,
     court_id: undefined, // Could be added to sessions table if needed
     coach_id: undefined, // Could be added to sessions table if needed
-    start_datetime: session.start_datetime || session.created_at,
-    end_datetime: session.end_datetime || new Date(new Date(session.created_at).getTime() + 60 * 60 * 1000).toISOString(),
+    start_datetime: session.start_datetime || session.start_time,
+    end_datetime: session.end_datetime || session.end_time,
     status: 'confirmed' as const,
     payment_status: 'paid' as const,
-    cost_tokens: session.cost_tokens || session.stakes_amount,
+    cost_tokens: session.cost_tokens || session.stakes_amount || 0,
     cost_money: session.cost_money || 0,
     payment_method: session.payment_method || 'tokens' as const,
     participants: session.participants?.map(p => p.user_id) || [session.creator_id],

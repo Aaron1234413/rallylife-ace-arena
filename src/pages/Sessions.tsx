@@ -103,20 +103,16 @@ const Sessions = () => {
     filterUserParticipation: activeTab === 'my-sessions'
   };
   
-  const { sessions, loading, error } = useSessionManager(sessionOptions);
-  const { 
-    joinSession, 
-    leaveSession, 
-    startSession, 
-    completeSession, 
-    cancelSession,
-    actionStates,
-    isActionLoading,
-    getSessionParticipants 
-  } = useEnhancedSessionActions({
-    enableOptimisticUpdates: true,
-    onSuccessRedirect: activeTab === 'available' ? '/sessions?tab=my-sessions' : undefined
-  });
+  const { sessions, loading, error, joinSession, leaveSession, startSession, completeSession, cancelSession } = useSessionManager(sessionOptions);
+  const { getSessionActions, executeAction, loading: actionLoading } = useEnhancedSessionActions();
+  
+  // Mock action states for compatibility
+  const actionStates = {};
+  const isActionLoading = (sessionId: string, action: string) => actionLoading === sessionId;
+  const getSessionParticipants = async (sessionId: string) => {
+    const session = sessions.find(s => s.id === sessionId);
+    return session?.participants || [];
+  };
 
   // Helper function to calculate session duration
   const calculateSessionDuration = (session: any) => {
@@ -475,6 +471,7 @@ const Sessions = () => {
           open={showCreateDialog}
           onOpenChange={setShowCreateDialog}
           onSuccess={() => {
+            setShowCreateDialog(false);
             // No need to reload - real-time subscriptions will update automatically
             toast.success('Session created! It should appear in your sessions shortly.');
           }}
@@ -561,21 +558,11 @@ const SessionsList: React.FC<SessionsListProps> = ({
         <EnhancedSessionCard
           key={session.id}
           session={session}
-          onJoin={onJoinSession}
-          onLeave={onLeaveSession}
-          onStart={onStartSession}
-          onComplete={onCompleteSession}
-          onCancel={onCancelSession}
-          onViewDetails={(session) => {
-            // Handle view details
-            console.log('View details for session:', session);
+          userRole="member"
+          onActionComplete={() => {
+            // Handle action completion
+            console.log('Action completed for session:', session.id);
           }}
-          isJoining={isActionLoading(session.id, 'joining')}
-          isLeaving={isActionLoading(session.id, 'leaving')}
-          isStarting={isActionLoading(session.id, 'starting')}
-          isCompleting={isActionLoading(session.id, 'completing')}
-          isCancelling={isActionLoading(session.id, 'cancelling')}
-          showActions={true}
         />
       ))}
     </div>
