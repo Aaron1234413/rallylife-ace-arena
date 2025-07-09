@@ -21,8 +21,11 @@ import { Club, useClubs } from '@/hooks/useClubs';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
 import { useClubSubscription } from '@/hooks/useClubSubscription';
+import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
+import { useTierEnforcement } from '@/hooks/useTierEnforcement';
 import { SubscriptionStatus } from './SubscriptionStatus';
 import { TierUpgradeModal } from './TierUpgradeModal';
+import { UsageLimitWarning } from './UsageLimitWarning';
 import { OperatingHoursEditor, OperatingHours } from './OperatingHoursEditor';
 import { LocationInput } from '@/components/ui/location-input';
 import { ClubInvitationManager } from './ClubInvitationManager';
@@ -35,7 +38,9 @@ interface ClubSettingsProps {
 export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
   const { user } = useAuth();
   const { updateClub } = useClubs();
-  const { subscription, usage, updateUsageTracking } = useClubSubscription(club.id);
+  const { subscription, usage, updateUsageTracking, upgradeSubscription, openCustomerPortal } = useClubSubscription(club.id);
+  const { tiers } = useSubscriptionTiers();
+  const { tierLimits, usageStatus, checkCanAddCoach, getUpgradeRecommendation } = useTierEnforcement(subscription, usage);
   const [formData, setFormData] = useState({
     name: club.name,
     description: club.description || '',
@@ -60,29 +65,44 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
   
   const isOwner = user?.id === club.owner_id;
 
-  // Get tier limits for validation
-  const getTierLimits = (tier: string) => {
-    const limits = {
-      community: { courts: 1, coaches: 1, members: 50 },
-      core: { courts: 3, coaches: 3, members: 100 },
-      plus: { courts: 10, coaches: 8, members: 300 },
-      pro: { courts: 25, coaches: 15, members: 1000 }
-    };
-    return limits[tier as keyof typeof limits] || limits.community;
+  // Get current tier info
+  const currentTier = tiers.find(tier => tier.id === subscription?.tier_id) || { 
+    id: 'community', 
+    name: 'Community',
+    member_limit: 50,
+    coach_limit: 1,
+    features: []
+  };
+  
+  // Get real tier limits from subscription tiers
+  const getTierCourts = (tierId: string) => {
+    switch(tierId) {
+      case 'community': return 1;
+      case 'core': return 3;
+      case 'plus': return 10;
+      case 'pro': return 25;
+      default: return 1;
+    }
   };
 
   const validateSettings = () => {
-    const currentTier = subscription?.tier_id || 'community';
-    const limits = getTierLimits(currentTier);
+    const maxCourts = getTierCourts(subscription?.tier_id || 'community');
+    const coachCheck = checkCanAddCoach();
     
-    if (formData.court_count > limits.courts) {
-      toast.error(`Your ${currentTier} plan allows up to ${limits.courts} courts. Upgrade to add more.`);
+    // Validate court count against tier limits
+    if (formData.court_count > maxCourts) {
+      toast.error(`Your ${currentTier.name} plan allows up to ${maxCourts} courts. Upgrade to add more.`);
+      setShowUpgradeModal(true);
       return false;
     }
     
-    if (formData.coach_slots > limits.coaches) {
-      toast.error(`Your ${currentTier} plan allows up to ${limits.coaches} coaches. Upgrade to add more.`);
-      return false;
+    // Validate coach slots against tier limits  
+    if (formData.coach_slots > tierLimits.coachLimit) {
+      if (!coachCheck.allowed) {
+        toast.error(coachCheck.reason || `Your ${currentTier.name} plan allows up to ${tierLimits.coachLimit} coaches. Upgrade to add more.`);
+        setShowUpgradeModal(true);
+        return false;
+      }
     }
     
     if (!formData.name.trim()) {
@@ -109,6 +129,8 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
         operating_hours: formData.operating_hours
       });
       
+      // Trigger usage tracking update after successful save
+      await updateUsageTracking();
       onSettingsUpdate?.();
     } catch (error) {
       console.error('Error updating club:', error);
@@ -136,9 +158,9 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
     formData.coach_slots !== (club.coach_slots || 1) ||
     JSON.stringify(formData.operating_hours) !== JSON.stringify(club.operating_hours || {});
 
-  // Get current tier limits for display
-  const currentTier = subscription?.tier_id || 'community';
-  const limits = getTierLimits(currentTier);
+  // Get upgrade recommendation
+  const upgradeRecommendation = getUpgradeRecommendation();
+  const maxCourts = getTierCourts(subscription?.tier_id || 'community');
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -156,12 +178,12 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
           )}
         </div>
         
-        <div className="flex items-center gap-3 text-sm">
-          <Badge className="bg-tennis-green-primary text-white capitalize">
-            {currentTier} Plan
+        <div className="flex flex-col sm:flex-row sm:items-center gap-2 sm:gap-3 text-sm">
+          <Badge className="bg-tennis-green-primary text-white capitalize self-start">
+            {currentTier.name} Plan
           </Badge>
           <span className="text-tennis-green-medium">
-            {limits.courts} courts • {limits.coaches} coaches • {limits.members} members
+            {maxCourts} courts • {tierLimits.coachLimit} coaches • {tierLimits.memberLimit} members
           </span>
         </div>
         
@@ -169,6 +191,16 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
           Manage your club&apos;s information and preferences
         </p>
       </div>
+
+      {/* Usage Limit Warning - Show if approaching/at limits */}
+      {upgradeRecommendation.shouldUpgrade && (
+        <UsageLimitWarning
+          subscription={subscription}
+          usage={usage}
+          onUpgrade={() => setShowUpgradeModal(true)}
+          compact={true}
+        />
+      )}
 
       {/* Mobile-First: Save Actions at Top */}
       {hasChanges && (
@@ -375,53 +407,101 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="court_count">Number of Courts</Label>
-              <span className="text-xs text-tennis-green-medium">Max: {limits.courts}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-tennis-green-medium">Max: {maxCourts}</span>
+                {formData.court_count >= maxCourts && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="text-xs h-6 px-2"
+                  >
+                    <Crown className="h-3 w-3 mr-1" />
+                    Upgrade
+                  </Button>
+                )}
+              </div>
             </div>
             <Input
               id="court_count"
               type="number"
               min="1"
-              max={limits.courts}
+              max={maxCourts}
               value={formData.court_count}
               onChange={(e) => {
                 const value = parseInt(e.target.value) || 1;
-                if (value <= limits.courts) {
+                if (value <= maxCourts) {
                   setFormData(prev => ({ ...prev, court_count: value }));
                 } else {
-                  toast.error(`Your ${currentTier} plan allows up to ${limits.courts} courts`);
+                  toast.error(`Your ${currentTier.name} plan allows up to ${maxCourts} courts`);
+                  setShowUpgradeModal(true);
                 }
               }}
               disabled={isUpdating}
-              className={formData.court_count > limits.courts ? 'border-red-300' : ''}
+              className={formData.court_count > maxCourts ? 'border-red-300' : ''}
             />
-            {formData.court_count > limits.courts && (
-              <p className="text-xs text-red-600">Exceeds plan limit</p>
+            {formData.court_count > maxCourts && (
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-red-600">Exceeds plan limit</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="text-xs h-6"
+                >
+                  Upgrade Plan
+                </Button>
+              </div>
             )}
           </div>
           <div className="space-y-2">
             <div className="flex items-center justify-between">
               <Label htmlFor="coach_slots">Coach Slots</Label>
-              <span className="text-xs text-tennis-green-medium">Max: {limits.coaches}</span>
+              <div className="flex items-center gap-2">
+                <span className="text-xs text-tennis-green-medium">Max: {tierLimits.coachLimit}</span>
+                {formData.coach_slots >= tierLimits.coachLimit && (
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowUpgradeModal(true)}
+                    className="text-xs h-6 px-2"
+                  >
+                    <Crown className="h-3 w-3 mr-1" />
+                    Upgrade
+                  </Button>
+                )}
+              </div>
             </div>
             <Input
               id="coach_slots"
               type="number"
               min="1"
-              max={limits.coaches}
+              max={tierLimits.coachLimit}
               value={formData.coach_slots}
               onChange={(e) => {
                 const value = parseInt(e.target.value) || 1;
-                if (value <= limits.coaches) {
+                if (value <= tierLimits.coachLimit) {
                   setFormData(prev => ({ ...prev, coach_slots: value }));
                 } else {
-                  toast.error(`Your ${currentTier} plan allows up to ${limits.coaches} coaches`);
+                  toast.error(`Your ${currentTier.name} plan allows up to ${tierLimits.coachLimit} coaches`);
+                  setShowUpgradeModal(true);
                 }
               }}
               disabled={isUpdating}
-              className={formData.coach_slots > limits.coaches ? 'border-red-300' : ''}
+              className={formData.coach_slots > tierLimits.coachLimit ? 'border-red-300' : ''}
             />
-            {formData.coach_slots > limits.coaches && (
-              <p className="text-xs text-red-600">Exceeds plan limit</p>
+            {formData.coach_slots > tierLimits.coachLimit && (
+              <div className="flex items-center justify-between">
+                <p className="text-xs text-red-600">Exceeds plan limit</p>
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => setShowUpgradeModal(true)}
+                  className="text-xs h-6"
+                >
+                  Upgrade Plan
+                </Button>
+              </div>
             )}
           </div>
               </div>
