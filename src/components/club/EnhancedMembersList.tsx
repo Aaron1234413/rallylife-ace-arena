@@ -73,6 +73,7 @@ export function EnhancedMembersList({
                 <EnhancedMemberCard
                   key={member.id}
                   member={member.user!}
+                  clubId={clubId}
                   onMessage={onMessageMember}
                   compact={compact}
                 />
@@ -97,6 +98,7 @@ export function EnhancedMembersList({
                 <EnhancedMemberCard
                   key={member.id}
                   member={member.user!}
+                  clubId={clubId}
                   onMessage={onMessageMember}
                   compact={compact}
                 />
@@ -138,6 +140,7 @@ export function EnhancedMembersList({
                 <EnhancedMemberCard
                   key={member.id}
                   member={member.user!}
+                  clubId={clubId}
                   onMessage={onMessageMember}
                   compact={compact}
                 />

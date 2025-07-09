@@ -7,8 +7,10 @@ import {
   DollarSign,
   Coins,
   Users,
-  Activity
+  Activity,
+  PieChart
 } from 'lucide-react';
+import { EconomicsCharts } from '../analytics/EconomicsCharts';
 
 interface EconomicsAnalyticsProps {
   club: {
@@ -177,6 +179,19 @@ export function EconomicsAnalytics({ club, tokenPoolData }: EconomicsAnalyticsPr
               </div>
             </div>
           </div>
+        </CardContent>
+      </Card>
+
+      {/* Analytics Charts */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <PieChart className="h-5 w-5 text-blue-500" />
+            Analytics Dashboard
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <EconomicsCharts />
         </CardContent>
       </Card>
 

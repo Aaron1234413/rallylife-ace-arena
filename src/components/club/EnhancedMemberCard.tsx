@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { MessageCircle, MapPin } from 'lucide-react';
+import { MemberStatusIndicator } from './realtime/MemberStatusIndicator';
 
 interface Member {
   id: string;
@@ -18,6 +19,7 @@ interface Member {
 
 interface EnhancedMemberCardProps {
   member: Member;
+  clubId?: string;
   onMessage?: (memberId: string) => void;
   showSkillLevel?: boolean;
   compact?: boolean;
@@ -25,6 +27,7 @@ interface EnhancedMemberCardProps {
 
 export function EnhancedMemberCard({ 
   member, 
+  clubId,
   onMessage, 
   showSkillLevel = true,
   compact = false 
@@ -61,6 +64,15 @@ export function EnhancedMemberCard({
                   {getInitials(member.full_name)}
                 </AvatarFallback>
               </Avatar>
+              {clubId && (
+                <div className="absolute -bottom-1 -right-1">
+                  <MemberStatusIndicator 
+                    userId={member.id} 
+                    clubId={clubId}
+                    size="sm"
+                  />
+                </div>
+              )}
               {isLookingToPlay && (
                 <div className="absolute -top-1 -right-1 w-3 h-3 bg-tennis-yellow rounded-full border-2 border-white" />
               )}

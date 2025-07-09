@@ -31,6 +31,8 @@ import { UsageLimitWarning } from './UsageLimitWarning';
 import { OperatingHoursEditor, OperatingHours } from './OperatingHoursEditor';
 import { LocationInput } from '@/components/ui/location-input';
 import { ClubInvitationManager } from './ClubInvitationManager';
+// import { MemberManagementPanel } from '../management/MemberManagementPanel';
+// import { CourtManagementPanel } from '../management/CourtManagementPanel';
 
 interface ClubSettingsProps {
   club: Club;
@@ -67,6 +69,10 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
   const [activeTab, setActiveTab] = useState('basic');
   
   const isOwner = user?.id === club.owner_id;
+  
+  // TODO: Get these from club membership permissions
+  const canManageMembers = isOwner; // Temporary - should come from membership permissions
+  const canEditClub = isOwner; // Temporary - should come from membership permissions
 
   // Get current tier info
   const currentTier = tiers.find(tier => tier.id === subscription?.tier_id) || { 
@@ -350,15 +356,27 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
         </TabsContent>
 
         <TabsContent value="members" className="mt-6">
-          <ClubInvitationManager
-            clubId={club.id}
-            isPrivate={true} // Always private
-            onPrivacyChange={() => {}} // No-op since clubs are always private
-          />
+          <div className="space-y-6">
+            <ClubInvitationManager
+              clubId={club.id}
+              isPrivate={true} // Always private
+              onPrivacyChange={() => {}} // No-op since clubs are always private
+            />
+            {/* <MemberManagementPanel 
+              clubId={club.id}
+              canManage={canManageMembers || canEditClub}
+            /> */}
+          </div>
         </TabsContent>
 
         <TabsContent value="facilities" className="mt-6">
           <div className="space-y-6">
+            {/* Court Management */}
+            {/* <CourtManagementPanel 
+              clubId={club.id}
+              canManage={canManageMembers || canEditClub}
+            /> */}
+            
             {/* Operating Hours */}
             <Card className="shadow-lg border-0">
               <CardHeader>

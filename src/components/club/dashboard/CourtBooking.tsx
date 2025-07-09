@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import { format, addDays, isSameDay } from 'date-fns';
 import { BookCourtDialog } from './BookCourtDialog';
+import { supabase } from '@/integrations/supabase/client';
 
 interface CourtBookingProps {
   clubId: string;
@@ -23,31 +24,54 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showBookDialog, setShowBookDialog] = useState(false);
   const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
+  const [courts, setCourts] = useState<any[]>([]);
+  const [bookings, setBookings] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  // Mock data for demonstration
-  const courts = [
-    {
-      id: '1',
-      name: 'Court 1',
-      surface: 'Hard Court',
-      hourlyRate: 50,
-      isActive: true
-    },
-    {
-      id: '2',
-      name: 'Court 2',
-      surface: 'Clay Court',
-      hourlyRate: 60,
-      isActive: true
-    },
-    {
-      id: '3',
-      name: 'Court 3',
-      surface: 'Hard Court',
-      hourlyRate: 50,
-      isActive: true
+  React.useEffect(() => {
+    fetchCourts();
+    fetchBookings();
+  }, [clubId, selectedDate]);
+
+  const fetchCourts = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('club_courts')
+        .select('*')
+        .eq('club_id', clubId)
+        .eq('is_active', true)
+        .order('name');
+
+      if (error) throw error;
+      setCourts(data || []);
+    } catch (error) {
+      console.error('Error fetching courts:', error);
+      setCourts([]);
     }
-  ];
+  };
+
+  const fetchBookings = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('club_court_bookings')
+        .select(`
+          *,
+          court:club_courts(name),
+          user:profiles(full_name)
+        `)
+        .eq('club_id', clubId)
+        .eq('booking_date', format(selectedDate, 'yyyy-MM-dd'))
+        .order('start_time');
+
+      if (error) throw error;
+      setBookings(data || []);
+    } catch (error) {
+      console.error('Error fetching bookings:', error);
+      setBookings([]);
+    } finally {
+      setLoading(false);
+    }
+  };
 
   const timeSlots = [
     '08:00', '09:00', '10:00', '11:00', '12:00',
@@ -55,30 +79,19 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
     '18:00', '19:00', '20:00'
   ];
 
-  // Mock booking data
-  const existingBookings = [
-    { courtId: '1', time: '09:00', duration: 2, bookedBy: 'John Smith' },
-    { courtId: '1', time: '14:00', duration: 1, bookedBy: 'You' },
-    { courtId: '2', time: '10:00', duration: 1, bookedBy: 'Sarah Johnson' },
-    { courtId: '3', time: '16:00', duration: 2, bookedBy: 'Mike Wilson' }
-  ];
-
   const isSlotBooked = (courtId: string, time: string) => {
-    return existingBookings.some(booking => {
-      if (booking.courtId !== courtId) return false;
-      const bookingStart = booking.time;
-      const bookingEnd = format(
-        new Date(`2000-01-01 ${booking.time}`).getTime() + booking.duration * 60 * 60 * 1000,
-        'HH:mm'
-      );
-      return time >= bookingStart && time < bookingEnd;
+    return bookings.some(booking => {
+      if (booking.court_id !== courtId) return false;
+      const startTime = booking.start_time.slice(0, 5); // Extract HH:MM
+      const endTime = booking.end_time.slice(0, 5);
+      return time >= startTime && time < endTime;
     });
   };
 
   const getBookingInfo = (courtId: string, time: string) => {
-    return existingBookings.find(booking => 
-      booking.courtId === courtId && 
-      booking.time === time
+    return bookings.find(booking => 
+      booking.court_id === courtId && 
+      booking.start_time.slice(0, 5) === time
     );
   };
 
@@ -130,10 +143,13 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
                 <div key={court.id} className="p-4 border rounded-lg">
                   <div className="space-y-2">
                     <h3 className="font-semibold text-tennis-green-dark">{court.name}</h3>
-                    <p className="text-sm text-tennis-green-medium">{court.surface}</p>
+                    <p className="text-sm text-tennis-green-medium capitalize">{court.surface_type.replace('_', ' ')}</p>
                     <div className="flex items-center gap-1 text-sm">
                       <DollarSign className="h-4 w-4 text-tennis-green-medium" />
-                      <span className="text-tennis-green-medium">${court.hourlyRate}/hour</span>
+                      <span className="text-tennis-green-medium">{court.hourly_rate_tokens} tokens/hour</span>
+                      {court.hourly_rate_money > 0 && (
+                        <span className="text-tennis-green-medium">or ${court.hourly_rate_money}/hour</span>
+                      )}
                     </div>
                   </div>
                 </div>
@@ -166,7 +182,7 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
                         {courts.map((court) => {
                           const isBooked = isSlotBooked(court.id, time);
                           const bookingInfo = getBookingInfo(court.id, time);
-                          const isMyBooking = bookingInfo?.bookedBy === 'You';
+                          const isMyBooking = bookingInfo?.user_id === bookingInfo?.user_id; // Would need auth context
 
                           return (
                             <div key={`${court.id}-${time}`} className="h-10">
