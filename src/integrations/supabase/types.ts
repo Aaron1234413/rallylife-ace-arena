@@ -4627,35 +4627,50 @@ export type Database = {
       }
       session_participants: {
         Row: {
+          attendance_status: string | null
           created_at: string
           id: string
           joined_at: string
           left_at: string | null
+          money_paid: number | null
+          notes: string | null
+          payment_status: string | null
           session_id: string
           stakes_contributed: number
           status: string
+          tokens_paid: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          attendance_status?: string | null
           created_at?: string
           id?: string
           joined_at?: string
           left_at?: string | null
+          money_paid?: number | null
+          notes?: string | null
+          payment_status?: string | null
           session_id: string
           stakes_contributed?: number
           status?: string
+          tokens_paid?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          attendance_status?: string | null
           created_at?: string
           id?: string
           joined_at?: string
           left_at?: string | null
+          money_paid?: number | null
+          notes?: string | null
+          payment_status?: string | null
           session_id?: string
           stakes_contributed?: number
           status?: string
+          tokens_paid?: number | null
           updated_at?: string
           user_id?: string
         }
