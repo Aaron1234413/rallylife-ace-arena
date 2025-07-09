@@ -14,13 +14,16 @@ import {
   Trophy,
   Calculator
 } from 'lucide-react';
-import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
+import { useSessionManager } from '@/hooks/useSessionManager';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 
 export const SessionsTestPanel = () => {
   const { user } = useAuth();
-  const { sessions, loading, joinSession, leaveSession, startSession, completeSession } = useRealTimeSessions('available', user?.id);
+  const { sessions, loading, joinSession, leaveSession, startSession, completeSession } = useSessionManager({
+    sessionType: 'social_play',
+    includeNonClubSessions: true
+  });
   const [testResults, setTestResults] = useState<Record<string, boolean>>({});
   const [testing, setTesting] = useState(false);
 
