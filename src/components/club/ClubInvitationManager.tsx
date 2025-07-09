@@ -7,7 +7,7 @@ import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Copy, Link2, Users, Clock, CheckCircle } from 'lucide-react';
+import { Copy, Link2, Users, Clock, CheckCircle, Share2 } from 'lucide-react';
 
 interface ClubInvitationManagerProps {
   clubId: string;
@@ -25,10 +25,9 @@ interface Invitation {
   created_at: string;
 }
 
-export function ClubInvitationManager({ clubId, isPrivate, onPrivacyChange }: ClubInvitationManagerProps) {
+export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(false);
-  const [maxUses, setMaxUses] = useState(10);
 
   const generateInviteLink = async () => {
     setLoading(true);
@@ -38,10 +37,11 @@ export function ClubInvitationManager({ clubId, isPrivate, onPrivacyChange }: Cl
         .insert({
           club_id: clubId,
           inviter_id: (await supabase.auth.getUser()).data.user?.id,
-          invitee_email: 'multiple@users.com', // For shareable links
-          max_uses: maxUses,
-          expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
-          message: 'Join our tennis club!'
+          invitee_email: 'unlimited@shareable.link', // For unlimited shareable links
+          max_uses: null, // Unlimited uses
+          expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year
+          message: 'Join our tennis club!',
+          is_shareable_link: true
         })
         .select()
         .single();
@@ -50,8 +50,8 @@ export function ClubInvitationManager({ clubId, isPrivate, onPrivacyChange }: Cl
 
       setInvitations(prev => [data, ...prev]);
       toast({
-        title: "Invitation Link Created",
-        description: "Your shareable invite link is ready!"
+        title: "Shareable Link Created",
+        description: "Your unlimited club invite link is ready!"
       });
     } catch (error) {
       console.error('Error creating invitation:', error);
@@ -98,68 +98,38 @@ export function ClubInvitationManager({ clubId, isPrivate, onPrivacyChange }: Cl
 
   return (
     <div className="space-y-6">
-      {/* Privacy Settings */}
-      <Card>
+      {/* Club Invitation Management */}
+      <Card className="shadow-lg border-0">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Users className="h-5 w-5" />
-            Club Privacy
+            <Share2 className="h-5 w-5" />
+            Member Invitations
           </CardTitle>
           <CardDescription>
-            Control who can join your club
+            Create shareable links for new members to join your private club. All clubs are private by default.
           </CardDescription>
         </CardHeader>
-        <CardContent>
-          <div className="flex items-center justify-between">
-            <div className="space-y-1">
-              <Label className="text-base font-medium">Private Club</Label>
-              <p className="text-sm text-tennis-green-medium">
-                {isPrivate 
-                  ? "Only invited members can join" 
-                  : "Anyone can discover and join your club"
-                }
-              </p>
+        <CardContent className="space-y-4">
+          <div className="p-3 bg-tennis-green-bg/50 rounded-lg border border-tennis-green-primary/20">
+            <div className="flex items-center gap-2 mb-2">
+              <Users className="h-4 w-4 text-tennis-green-primary" />
+              <span className="text-sm font-medium text-tennis-green-dark">Private Club</span>
             </div>
-            <Switch
-              checked={isPrivate}
-              onCheckedChange={onPrivacyChange}
-            />
+            <p className="text-xs text-tennis-green-medium">
+              Only invited members can join your club through shareable links
+            </p>
           </div>
+          
+          <Button 
+            onClick={generateInviteLink} 
+            disabled={loading}
+            className="w-full sm:w-auto"
+          >
+            <Link2 className="h-4 w-4 mr-2" />
+            {loading ? 'Creating Link...' : 'Create Shareable Invite Link'}
+          </Button>
         </CardContent>
       </Card>
-
-      {/* Invitation Generator */}
-      {isPrivate && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
-              <Link2 className="h-5 w-5" />
-              Generate Invite Links
-            </CardTitle>
-            <CardDescription>
-              Create shareable links for new members to join
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex gap-4 items-end">
-              <div className="flex-1">
-                <Label htmlFor="max-uses">Maximum Uses</Label>
-                <Input
-                  id="max-uses"
-                  type="number"
-                  min="1"
-                  max="100"
-                  value={maxUses}
-                  onChange={(e) => setMaxUses(parseInt(e.target.value) || 1)}
-                />
-              </div>
-              <Button onClick={generateInviteLink} disabled={loading}>
-                Generate Link
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Active Invitations */}
       {invitations.length > 0 && (
@@ -191,7 +161,7 @@ export function ClubInvitationManager({ clubId, isPrivate, onPrivacyChange }: Cl
                     <div className="flex items-center gap-4 text-sm text-tennis-green-medium">
                       <span className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
-                        {invitation.uses_count}/{invitation.max_uses} uses
+                        {invitation.max_uses ? `${invitation.uses_count}/${invitation.max_uses} uses` : `${invitation.uses_count} uses (unlimited)`}
                       </span>
                       <span className="flex items-center gap-1">
                         <Clock className="h-4 w-4" />
