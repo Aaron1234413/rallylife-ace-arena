@@ -11,19 +11,31 @@ interface Session {
   stakes_amount: number;
   location?: string;
   notes?: string;
-  status: 'waiting' | 'active' | 'completed' | 'cancelled';
+  status: 'waiting' | 'active' | 'completed' | 'cancelled' | 'full';
   is_private: boolean;
   invitation_code?: string;
   created_at: string;
   updated_at: string;
+  
+  // Phase 1 enhanced fields
+  current_participants: number;
+  started_at?: string;
+  completed_at?: string;
+  winner_id?: string;
+  session_result?: any;
+  
+  // Computed fields
   participant_count?: number;
   creator_name?: string;
   user_joined?: boolean;
+  is_creator?: boolean;
+  can_start?: boolean;
   participants?: Array<{
     id: string;
     user_id: string;
     status: string;
     joined_at: string;
+    role: string;
     user: {
       full_name: string;
     }
@@ -103,9 +115,11 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
         
         return {
           ...session,
-          participant_count: activeParticipants.length,
+          participant_count: session.current_participants || activeParticipants.length,
           creator_name: session.creator?.full_name || 'Unknown',
           user_joined: activeParticipants.some((p: any) => p.user_id === userId),
+          is_creator: session.creator_id === userId,
+          can_start: session.creator_id === userId && session.status === 'waiting' && session.current_participants >= 2,
           participants: activeParticipants
         };
       }) || [];
@@ -299,19 +313,19 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
     }
   };
 
-  const completeSession = async (sessionId: string, winnerId?: string, sessionDurationMinutes?: number) => {
+  const completeSession = async (sessionId: string, winnerId?: string, sessionResult?: any) => {
     try {
       console.log('🎾 Starting session completion:', {
         sessionId,
         winnerId,
-        sessionDurationMinutes,
+        sessionResult,
         userId
       });
       
       const { data, error } = await supabase.rpc('complete_session', {
         session_id_param: sessionId,
         winner_id_param: winnerId || null,
-        session_duration_minutes: sessionDurationMinutes || null
+        session_result_param: sessionResult || {}
       });
 
       if (error) {
@@ -322,80 +336,35 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
       const result = data as { 
         success: boolean; 
         error?: string; 
-        session_type: string;
-        session_duration_minutes?: number;
-        xp_granted?: number;
-        hp_cost?: number;
-        hp_cap_applied?: boolean;
-        total_stakes?: number;
-        distribution_type?: string;
-        organizer_share?: number;
-        participant_share?: number;
-        hp_granted?: number;
-        participant_count?: number;
-        total_stakes_refunded?: number;
-        debug?: string;
+        session_id: string;
+        winner_id?: string;
+        total_stakes: number;
+        winner_reward: number;
+        participants_count: number;
       };
 
       console.log('✅ Complete session result:', result);
-      console.log('🔍 Debug info from database:', result.debug);
 
       if (result.success) {
-        if (result.session_type === 'wellbeing') {
-          const hpMessage = `+${result.hp_granted} HP restored`;
-          const participantMessage = result.participant_count > 1 ? ` for ${result.participant_count} participants` : '';
-          const refundMessage = result.total_stakes_refunded > 0 ? ` • ${result.total_stakes_refunded} tokens refunded` : '';
-          
-          toast.success(`Wellbeing session completed! ${hpMessage}${participantMessage}${refundMessage}`);
-        } else {
-          // Format duration for display
-          const duration = result.session_duration_minutes || 0;
-          const hours = Math.floor(duration / 60);
-          const minutes = duration % 60;
-          const durationText = hours > 0 ? `${hours}h${minutes > 0 ? ` ${minutes}m` : ''}` : `${minutes}m`;
-          
-          // Create completion message with XP/HP details
-          const sessionTypeText = result.session_type === 'social_play' ? 'Social play' : 
-                                  result.session_type === 'match' ? 'Match' : 
-                                  result.session_type.charAt(0).toUpperCase() + result.session_type.slice(1);
-          
-          const xpText = result.xp_granted ? `+${result.xp_granted} XP` : '';
-          const hpText = result.hp_cost ? `-${result.hp_cost} HP` : '';
-          const capText = result.hp_cap_applied ? ' (capped)' : '';
-          
-          let message = `${durationText} ${sessionTypeText.toLowerCase()} complete!`;
-          if (xpText && hpText) {
-            message += ` ${xpText}, ${hpText}${capText}`;
-          } else if (xpText) {
-            message += ` ${xpText}`;
-          } else if (hpText) {
-            message += ` ${hpText}${capText}`;
-          }
-          
-          // Add stakes info if relevant
-          if (result.total_stakes && result.total_stakes > 0) {
-            message += ` • Stakes distributed`;
-          }
-          
-          toast.success(message);
+        let message = 'Session completed successfully!';
+        
+        if (result.winner_id && result.winner_reward > 0) {
+          message += ` Winner received ${result.winner_reward} tokens.`;
         }
+        
+        if (result.total_stakes > 0) {
+          message += ` Total stakes: ${result.total_stakes} tokens.`;
+        }
+        
+        toast.success(message);
+        
         // Force refresh sessions after successful completion
         console.log('🔄 Session completed successfully, refreshing sessions...');
         await fetchSessions();
         console.log('✅ Sessions refreshed after completion');
         
-        // Verify the session was actually completed
-        const { data: completedCheck } = await supabase
-          .from('sessions')
-          .select('id, status')
-          .eq('id', sessionId)
-          .single();
-        
-        console.log('🔍 Session status after completion:', completedCheck);
-        
       } else {
         console.error('❌ Session completion failed:', result.error);
-        console.error('🔍 Debug info:', result.debug);
         toast.error(result.error || 'Failed to complete session');
       }
     } catch (error) {

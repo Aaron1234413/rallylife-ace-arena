@@ -40,19 +40,31 @@ interface Session {
   stakes_amount: number;
   location?: string;
   notes?: string;
-  status: 'waiting' | 'active' | 'completed' | 'cancelled';
+  status: 'waiting' | 'active' | 'completed' | 'cancelled' | 'full';
   is_private: boolean;
   invitation_code?: string;
   created_at: string;
   updated_at: string;
+  
+  // Phase 1 enhanced fields
+  current_participants: number;
+  started_at?: string;
+  completed_at?: string;
+  winner_id?: string;
+  session_result?: any;
+  
+  // Computed fields
   participant_count?: number;
   creator_name?: string;
   user_joined?: boolean;
+  is_creator?: boolean;
+  can_start?: boolean;
   participants?: Array<{
     id: string;
     user_id: string;
     status: string;
     joined_at: string;
+    role: string;
     user: {
       full_name: string;
     }
