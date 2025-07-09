@@ -28,8 +28,11 @@ import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
-import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
+import { useEnhancedSessionActions } from '@/hooks/useEnhancedSessionActions';
+import { useSessionManager } from '@/hooks/useSessionManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { UnifiedSessionCreationDialog } from '@/components/sessions/UnifiedSessionCreationDialog';
+import { EnhancedSessionCard } from '@/components/sessions/EnhancedSessionCard';
 
 interface Session {
   id: string;
@@ -76,6 +79,7 @@ const Sessions = () => {
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('available');
   const [showFilters, setShowFilters] = useState(false);
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   
   // Filters
   const [locationFilter, setLocationFilter] = useState('');
@@ -89,8 +93,26 @@ const Sessions = () => {
     stakesFilter !== 'all'
   ].filter(Boolean).length;
 
-  // Use real-time hook
-  const { sessions, loading, joinSession, leaveSession, kickParticipant, startSession, completeSession } = useRealTimeSessions(activeTab, user?.id);
+  // Use enhanced session management
+  const sessionOptions = {
+    sessionType: 'all' as const,
+    filterUserSessions: activeTab === 'my-sessions',
+    filterUserParticipation: activeTab === 'my-sessions'
+  };
+  
+  const { sessions, loading, error } = useSessionManager(sessionOptions);
+  const { 
+    joinSession, 
+    leaveSession, 
+    startSession, 
+    completeSession, 
+    cancelSession,
+    actionStates,
+    isActionLoading 
+  } = useEnhancedSessionActions({
+    enableOptimisticUpdates: true,
+    onSuccessRedirect: activeTab === 'available' ? '/sessions?tab=my-sessions' : undefined
+  });
 
   const handleJoinSession = async (sessionId: string) => {
     await joinSession(sessionId);
@@ -100,16 +122,16 @@ const Sessions = () => {
     await leaveSession(sessionId);
   };
 
-  const handleKickParticipant = async (sessionId: string, participantId: string) => {
-    await kickParticipant(sessionId, participantId);
-  };
-
   const handleStartSession = async (sessionId: string) => {
     await startSession(sessionId);
   };
 
-  const handleCompleteSession = async (sessionId: string, winnerId?: string) => {
-    await completeSession(sessionId, winnerId);
+  const handleCompleteSession = async (sessionId: string) => {
+    await completeSession(sessionId);
+  };
+
+  const handleCancelSession = async (sessionId: string) => {
+    await cancelSession(sessionId);
   };
 
   const getSessionIcon = (type: string) => {
@@ -169,7 +191,7 @@ const Sessions = () => {
           </div>
           
           <Button 
-            onClick={() => navigate('/sessions/create')}
+            onClick={() => setShowCreateDialog(true)}
             className="bg-tennis-green-dark hover:bg-tennis-green text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
@@ -323,9 +345,11 @@ const Sessions = () => {
               loading={loading}
               onJoinSession={handleJoinSession}
               onLeaveSession={handleLeaveSession}
-              onKickParticipant={handleKickParticipant}
               onStartSession={handleStartSession}
               onCompleteSession={handleCompleteSession}
+              onCancelSession={handleCancelSession}
+              actionStates={actionStates}
+              isActionLoading={isActionLoading}
               showJoinButton={true}
             />
           </TabsContent>
@@ -336,9 +360,11 @@ const Sessions = () => {
               loading={loading}
               onJoinSession={handleJoinSession}
               onLeaveSession={handleLeaveSession}
-              onKickParticipant={handleKickParticipant}
               onStartSession={handleStartSession}
               onCompleteSession={handleCompleteSession}
+              onCancelSession={handleCancelSession}
+              actionStates={actionStates}
+              isActionLoading={isActionLoading}
               showJoinButton={false}
             />
           </TabsContent>
@@ -349,14 +375,26 @@ const Sessions = () => {
               loading={loading}
               onJoinSession={handleJoinSession}
               onLeaveSession={handleLeaveSession}
-              onKickParticipant={handleKickParticipant}
               onStartSession={handleStartSession}
               onCompleteSession={handleCompleteSession}
+              onCancelSession={handleCancelSession}
+              actionStates={actionStates}
+              isActionLoading={isActionLoading}
               showJoinButton={false}
             />
           </TabsContent>
         </Tabs>
         </div>
+
+        {/* Unified Session Creation Dialog */}
+        <UnifiedSessionCreationDialog
+          open={showCreateDialog}
+          onOpenChange={setShowCreateDialog}
+          onSuccess={() => {
+            // Refresh sessions after creation
+            window.location.reload();
+          }}
+        />
       </div>
     </div>
   );
@@ -364,13 +402,15 @@ const Sessions = () => {
 
 // Sessions List Component
 interface SessionsListProps {
-  sessions: Session[];
+  sessions: any[];
   loading: boolean;
   onJoinSession: (sessionId: string) => void;
   onLeaveSession: (sessionId: string) => void;
-  onKickParticipant: (sessionId: string, participantId: string) => void;
   onStartSession: (sessionId: string) => void;
-  onCompleteSession: (sessionId: string, winnerId?: string) => void;
+  onCompleteSession: (sessionId: string) => void;
+  onCancelSession: (sessionId: string) => void;
+  actionStates: Record<string, any>;
+  isActionLoading: (sessionId: string, action: string) => boolean;
   showJoinButton: boolean;
 }
 
@@ -379,9 +419,11 @@ const SessionsList: React.FC<SessionsListProps> = ({
   loading, 
   onJoinSession,
   onLeaveSession,
-  onKickParticipant,
   onStartSession,
   onCompleteSession,
+  onCancelSession,
+  actionStates,
+  isActionLoading,
   showJoinButton 
 }) => {
   if (loading) {
@@ -419,15 +461,24 @@ const SessionsList: React.FC<SessionsListProps> = ({
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {sessions.map((session) => (
-        <SessionCard 
-          key={session.id} 
-          session={session} 
-          onJoinSession={onJoinSession}
-          onLeaveSession={onLeaveSession}
-          onKickParticipant={onKickParticipant}
-          onStartSession={onStartSession}
-          onCompleteSession={onCompleteSession}
-          showJoinButton={showJoinButton}
+        <EnhancedSessionCard
+          key={session.id}
+          session={session}
+          onJoin={onJoinSession}
+          onLeave={onLeaveSession}
+          onStart={onStartSession}
+          onComplete={onCompleteSession}
+          onCancel={onCancelSession}
+          onViewDetails={(session) => {
+            // Handle view details
+            console.log('View details for session:', session);
+          }}
+          isJoining={isActionLoading(session.id, 'joining')}
+          isLeaving={isActionLoading(session.id, 'leaving')}
+          isStarting={isActionLoading(session.id, 'starting')}
+          isCompleting={isActionLoading(session.id, 'completing')}
+          isCancelling={isActionLoading(session.id, 'cancelling')}
+          showActions={true}
         />
       ))}
     </div>
