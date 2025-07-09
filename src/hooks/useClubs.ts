@@ -444,7 +444,7 @@ export function useClubs() {
     }
   };
 
-  const updateMemberRole = async (clubId: string, userId: string, newRole: string) => {
+  const updateMemberRoleOld = async (clubId: string, userId: string, newRole: string) => {
     if (!user) throw new Error('User not authenticated');
 
     try {
@@ -587,6 +587,176 @@ export function useClubs() {
     }
   };
 
+  // New Phase 1 Functions - Member Management
+  const updateMemberRole = async (clubId: string, userId: string, newRole: string, newPermissions?: any) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      const { data, error } = await (supabase as any).rpc('update_member_role', {
+        club_id_param: clubId,
+        user_id_param: userId,
+        new_role: newRole,
+        new_permissions: newPermissions
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result?.success) {
+        toast.success(result.message);
+        await fetchClubMembers(clubId);
+        return result;
+      } else {
+        toast.error(result?.error || 'Failed to update member role');
+        throw new Error(result?.error || 'Failed to update member role');
+      }
+    } catch (error) {
+      console.error('Error updating member role:', error);
+      toast.error('Failed to update member role');
+      throw error;
+    }
+  };
+
+  const removeClubMember = async (clubId: string, userId: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      const { data, error } = await (supabase as any).rpc('remove_club_member', {
+        club_id_param: clubId,
+        user_id_param: userId
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result?.success) {
+        toast.success(result.message);
+        await fetchClubMembers(clubId);
+        return result;
+      } else {
+        toast.error(result?.error || 'Failed to remove member');
+        throw new Error(result?.error || 'Failed to remove member');
+      }
+    } catch (error) {
+      console.error('Error removing member:', error);
+      toast.error('Failed to remove member');
+      throw error;
+    }
+  };
+
+  const transferClubOwnership = async (clubId: string, newOwnerId: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      const { data, error } = await (supabase as any).rpc('transfer_club_ownership', {
+        club_id_param: clubId,
+        new_owner_id: newOwnerId
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result?.success) {
+        toast.success(result.message);
+        await refreshData();
+        await fetchClubMembers(clubId);
+        return result;
+      } else {
+        toast.error(result?.error || 'Failed to transfer ownership');
+        throw new Error(result?.error || 'Failed to transfer ownership');
+      }
+    } catch (error) {
+      console.error('Error transferring ownership:', error);
+      toast.error('Failed to transfer ownership');
+      throw error;
+    }
+  };
+
+  // Analytics Functions
+  const updateClubAnalytics = async (clubId: string, date?: string) => {
+    try {
+      const { data, error } = await (supabase as any).rpc('update_club_analytics', {
+        club_id_param: clubId,
+        analytics_date: date
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result?.success) {
+        return result;
+      } else {
+        console.error('Analytics update failed:', result?.error);
+        return null;
+      }
+    } catch (error) {
+      console.error('Error updating club analytics:', error);
+      return null;
+    }
+  };
+
+  const getClubAnalytics = async (clubId: string, startDate?: string, endDate?: string) => {
+    try {
+      // Use direct query for analytics since table might not be in types yet
+      const { data, error } = await supabase
+        .from('club_analytics' as any)
+        .select('*')
+        .eq('club_id', clubId)
+        .order('date', { ascending: false })
+        .limit(30);
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching club analytics:', error);
+      return [];
+    }
+  };
+
+  // Member Status Functions
+  const updateMemberStatus = async (clubId: string, status: string = 'online', activityData: any = {}) => {
+    try {
+      const { data, error } = await (supabase as any).rpc('update_member_status', {
+        club_id_param: clubId,
+        status_param: status,
+        activity_data_param: activityData
+      });
+
+      if (error) throw error;
+
+      const result = data as any;
+      if (result?.success) {
+        return result;
+      }
+      return null;
+    } catch (error) {
+      console.error('Error updating member status:', error);
+      return null;
+    }
+  };
+
+  const getClubMemberStatus = async (clubId: string) => {
+    try {
+      const { data, error } = await supabase
+        .from('member_status' as any)
+        .select(`
+          *,
+          profiles:user_id (
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq('club_id', clubId)
+        .order('last_seen', { ascending: false });
+
+      if (error) throw error;
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching member status:', error);
+      return [];
+    }
+  };
+
   useEffect(() => {
     if (user) {
       console.log('🏆 [CLUBS] Loading clubs data for user:', user.id);
@@ -621,5 +791,12 @@ export function useClubs() {
     createShareableLink,
     joinViaLink,
     getShareableLinks,
+    // New Phase 1 Functions
+    removeClubMember,
+    transferClubOwnership,
+    updateClubAnalytics,
+    getClubAnalytics,
+    updateMemberStatus,
+    getClubMemberStatus,
   };
 }
