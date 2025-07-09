@@ -33,6 +33,7 @@ import { useSessionManager } from '@/hooks/useSessionManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { UnifiedSessionCreationDialog } from '@/components/sessions/UnifiedSessionCreationDialog';
 import { EnhancedSessionCard } from '@/components/sessions/EnhancedSessionCard';
+import { SessionCompletionModal, SessionCompletionData } from '@/components/sessions/SessionCompletionModal';
 
 interface Session {
   id: string;
@@ -80,6 +81,8 @@ const Sessions = () => {
   const [activeTab, setActiveTab] = useState('available');
   const [showFilters, setShowFilters] = useState(false);
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showCompletionModal, setShowCompletionModal] = useState(false);
+  const [completingSession, setCompletingSession] = useState<any>(null);
   
   // Filters
   const [locationFilter, setLocationFilter] = useState('');
@@ -108,11 +111,49 @@ const Sessions = () => {
     completeSession, 
     cancelSession,
     actionStates,
-    isActionLoading 
+    isActionLoading,
+    getSessionParticipants 
   } = useEnhancedSessionActions({
     enableOptimisticUpdates: true,
     onSuccessRedirect: activeTab === 'available' ? '/sessions?tab=my-sessions' : undefined
   });
+
+  // Helper function to calculate session duration
+  const calculateSessionDuration = (session: any) => {
+    if (session.start_datetime) {
+      const start = new Date(session.start_datetime);
+      const now = new Date();
+      return Math.floor((now.getTime() - start.getTime()) / (1000 * 60));
+    }
+    // Default duration for sessions without start time
+    return 60;
+  };
+
+  // Enhanced completion function that uses the existing completeSession with enhanced data
+  const completeSessionWithData = async (sessionId: string, completionData: SessionCompletionData) => {
+    try {
+      // For now, call the basic complete session function
+      // TODO: Create backend RPC function to handle completion data properly
+      const success = await completeSession(sessionId);
+      
+      if (success) {
+        // Log completion data for future backend integration
+        console.log('Session completion data:', {
+          sessionId,
+          completionData
+        });
+        toast.success('Session completed successfully! 🏆');
+        return true;
+      } else {
+        toast.error('Failed to complete session');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error completing session:', error);
+      toast.error('Failed to complete session');
+      return false;
+    }
+  };
 
   const handleJoinSession = async (sessionId: string) => {
     await joinSession(sessionId);
@@ -127,7 +168,36 @@ const Sessions = () => {
   };
 
   const handleCompleteSession = async (sessionId: string) => {
-    await completeSession(sessionId);
+    // Find the session and get participants
+    const session = sessions.find(s => s.id === sessionId);
+    if (session) {
+      try {
+        const participants = await getSessionParticipants(sessionId);
+        setCompletingSession({
+          ...session,
+          participants: participants
+        });
+        setShowCompletionModal(true);
+      } catch (error) {
+        console.error('Error fetching session participants:', error);
+        toast.error('Failed to load session details');
+      }
+    }
+  };
+
+  const handleCompleteSessionWithData = async (completionData: SessionCompletionData) => {
+    if (!completingSession) return;
+    
+    try {
+      // Call enhanced completion with data
+      const success = await completeSessionWithData(completingSession.id, completionData);
+      if (success) {
+        setShowCompletionModal(false);
+        setCompletingSession(null);
+      }
+    } catch (error) {
+      console.error('Error completing session:', error);
+    }
   };
 
   const handleCancelSession = async (sessionId: string) => {
@@ -395,6 +465,19 @@ const Sessions = () => {
             toast.success('Session created! It should appear in your sessions shortly.');
           }}
         />
+
+        {/* Session Completion Modal */}
+        {completingSession && (
+          <SessionCompletionModal
+            open={showCompletionModal}
+            onOpenChange={setShowCompletionModal}
+            session={completingSession}
+            participants={completingSession.participants || []}
+            durationMinutes={calculateSessionDuration(completingSession)}
+            onComplete={handleCompleteSessionWithData}
+            isLoading={isActionLoading(completingSession.id, 'completing')}
+          />
+        )}
       </div>
     </div>
   );

@@ -34,7 +34,7 @@ interface SessionCompletionModalProps {
   participants: Array<{
     id: string;
     user_id: string;
-    profile?: {
+    user?: {
       full_name?: string;
       avatar_url?: string;
     };
@@ -205,7 +205,7 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
                           <SelectContent>
                             {participants.map((participant) => (
                               <SelectItem key={participant.user_id} value={participant.user_id}>
-                                {participant.profile?.full_name || `Player ${participant.user_id.slice(0, 8)}`}
+                                {participant.user?.full_name || `Player ${participant.user_id.slice(0, 8)}`}
                               </SelectItem>
                             ))}
                           </SelectContent>
