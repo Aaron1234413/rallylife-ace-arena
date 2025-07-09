@@ -9,7 +9,7 @@ import { AppLayout } from "@/components/layout/AppLayout";
 import { MatchSessionProvider } from "@/contexts/MatchSessionContext";
 import { TrainingSessionProvider } from "@/contexts/TrainingSessionContext";
 import { SocialPlaySessionProvider } from "@/contexts/SocialPlaySessionContext";
-import { NewUserGuide } from "@/components/onboarding/NewUserGuide";
+
 import { useAuth } from "@/hooks/useAuth";
 import { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
 import { PWAInstaller } from "@/components/mobile/PWAInstaller";
@@ -18,7 +18,7 @@ import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
 import Landing from "@/pages/Landing";
 import NotFound from "@/pages/NotFound";
-import Onboarding from "@/pages/Onboarding";
+
 import Search from "@/pages/Search";
 import Store from "@/pages/Store";
 import Profile from "@/pages/Profile";
@@ -62,7 +62,7 @@ function AppWithGuide() {
           <Route path="/auth/forgot-password" element={<Auth />} />
           <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
           <Route path="/coach-dashboard" element={<ProtectedRoute><CoachDashboard /></ProtectedRoute>} />
-          <Route path="/onboarding" element={<ProtectedRoute><Onboarding /></ProtectedRoute>} />
+          
           <Route path="/play" element={<ProtectedRoute><Play /></ProtectedRoute>} />
           <Route path="/sessions" element={<ProtectedRoute><Sessions /></ProtectedRoute>} />
           <Route path="/sessions/create" element={<ProtectedRoute><CreateSession /></ProtectedRoute>} />
@@ -93,12 +93,6 @@ function AppWithGuide() {
       <MobileBottomNav />
       <PWAInstaller />
 
-      {/* New User Guide - Fixed Overlay */}
-      {user && (
-        <NewUserGuide 
-          currentRoute={location.pathname}
-        />
-      )}
     </>
   );
 }

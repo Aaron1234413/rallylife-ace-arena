@@ -9,40 +9,40 @@ import { Alert, AlertDescription } from '@/components/ui/alert';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useAuth } from '@/hooks/useAuth';
 import { Loader2, Mail, Lock, User, UserCheck, Users } from 'lucide-react';
-import { SkillLevelSelector } from '@/components/onboarding/SkillLevelSelector';
 
 export function SignupForm() {
-  const [step, setStep] = useState(1);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
   const [role, setRole] = useState<'player' | 'coach'>('player');
-  const [utrRating, setUtrRating] = useState(4.0);
-  const [ustaRating, setUstaRating] = useState(3.0);
+  const [utrRating, setUtrRating] = useState<number | undefined>(undefined);
+  const [ustaRating, setUstaRating] = useState<number | undefined>(undefined);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const { signUp } = useAuth();
   const navigate = useNavigate();
 
-  const handleBasicSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
+    setLoading(true);
+    setSuccess(false);
 
     if (password.length < 6) {
       setError('Password must be at least 6 characters long');
+      setLoading(false);
       return;
     }
 
-    setStep(2);
-  };
-
-  const handleSkillLevelSubmit = async () => {
-    setLoading(true);
-    setError('');
-    setSuccess(false);
-
-    const { error } = await signUp(email, password, fullName, role, utrRating, ustaRating);
+    const { error } = await signUp(
+      email, 
+      password, 
+      fullName, 
+      role, 
+      utrRating || 4.0, 
+      ustaRating || 3.0
+    );
     
     if (error) {
       if (error.message.includes('already registered')) {
@@ -60,28 +60,6 @@ export function SignupForm() {
     setLoading(false);
   };
 
-  const handleSkipSkillLevel = async () => {
-    setLoading(true);
-    setError('');
-    setSuccess(false);
-
-    const { error } = await signUp(email, password, fullName, role, 4.0, 3.0);
-    
-    if (error) {
-      if (error.message.includes('already registered')) {
-        setError('An account with this email already exists. Please sign in instead.');
-      } else {
-        setError(error.message);
-      }
-    } else {
-      setSuccess(true);
-      const redirectPath = role === 'player' ? '/payment-gate' : '/dashboard';
-      setTimeout(() => navigate(redirectPath), 2000);
-    }
-    
-    setLoading(false);
-  };
-
   if (success) {
     return (
       <Card className="border-0 shadow-none bg-transparent">
@@ -89,40 +67,9 @@ export function SignupForm() {
           <Alert className="border-tennis-green-light bg-tennis-green-bg/20">
             <UserCheck className="h-4 w-4 text-tennis-green-dark" />
             <AlertDescription className="text-tennis-green-dark font-medium">
-              Account created successfully! Welcome to Rako. Redirecting you to the dashboard...
+              Account created successfully! Welcome to Rako. Redirecting you...
             </AlertDescription>
           </Alert>
-        </CardContent>
-      </Card>
-    );
-  }
-
-  if (step === 2) {
-    return (
-      <Card className="border-0 shadow-none bg-transparent">
-        <CardContent className="pt-6">
-          {error && (
-            <Alert variant="destructive" className="border-red-200 bg-red-50 mb-4">
-              <AlertDescription className="text-red-700">{error}</AlertDescription>
-            </Alert>
-          )}
-          <SkillLevelSelector
-            utrRating={utrRating}
-            ustaRating={ustaRating}
-            onUtrChange={setUtrRating}
-            onUstaChange={setUstaRating}
-            onSkip={handleSkipSkillLevel}
-            onContinue={handleSkillLevelSubmit}
-          />
-          <div className="text-center mt-4">
-            <Button 
-              variant="ghost" 
-              onClick={() => setStep(1)}
-              className="text-tennis-green-medium hover:text-tennis-green-dark"
-            >
-              ← Back to account details
-            </Button>
-          </div>
         </CardContent>
       </Card>
     );
@@ -135,7 +82,7 @@ export function SignupForm() {
         <CardDescription className="text-gray-600">Create your account to get started</CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">
-        <form onSubmit={handleBasicSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit} className="space-y-4">
           {error && (
             <Alert variant="destructive" className="border-red-200 bg-red-50">
               <AlertDescription className="text-red-700">{error}</AlertDescription>
@@ -216,11 +163,59 @@ export function SignupForm() {
             </RadioGroup>
           </div>
           
+          {/* Optional Skill Level Fields */}
+          <div className="space-y-4 pt-4 border-t border-gray-200">
+            <div className="text-center">
+              <Label className="text-sm font-medium text-gray-600">Tennis Ratings (Optional)</Label>
+              <p className="text-xs text-gray-500 mt-1">You can set these now or skip and add them later</p>
+            </div>
+            
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="utrRating" className="text-sm">UTR Rating</Label>
+                <Input
+                  id="utrRating"
+                  type="number"
+                  min="1.0"
+                  max="16.5"
+                  step="0.1"
+                  value={utrRating || ''}
+                  onChange={(e) => setUtrRating(e.target.value ? parseFloat(e.target.value) : undefined)}
+                  placeholder="4.0"
+                  className="text-center text-sm"
+                />
+              </div>
+              
+              <div className="space-y-2">
+                <Label htmlFor="ustaRating" className="text-sm">USTA Rating</Label>
+                <Input
+                  id="ustaRating"
+                  type="number"
+                  min="1.0"
+                  max="7.0"
+                  step="0.5"
+                  value={ustaRating || ''}
+                  onChange={(e) => setUstaRating(e.target.value ? parseFloat(e.target.value) : undefined)}
+                  placeholder="3.0"
+                  className="text-center text-sm"
+                />
+              </div>
+            </div>
+          </div>
+          
           <Button 
             type="submit" 
+            disabled={loading}
             className="w-full h-12 bg-tennis-green-dark hover:bg-tennis-green-medium transition-colors font-medium"
           >
-            Next: Set Your Skill Level
+            {loading ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                Creating Account...
+              </>
+            ) : (
+              'Create Account'
+            )}
           </Button>
           
           <div className="text-center pt-2">
