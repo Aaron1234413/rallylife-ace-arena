@@ -78,7 +78,13 @@ export interface SessionManagerActions {
   joinSession: (sessionId: string) => Promise<boolean>;
   leaveSession: (sessionId: string) => Promise<boolean>;
   startSession: (sessionId: string) => Promise<boolean>;
-  completeSession: (sessionId: string) => Promise<boolean>;
+  completeSession: (sessionId: string, completionData?: {
+    winnerId?: string;
+    sessionDuration?: number;
+    completionNotes?: string;
+    sessionRating?: number;
+    matchScore?: string;
+  }) => Promise<boolean>;
   cancelSession: (sessionId: string) => Promise<boolean>;
   
   // Participant management
@@ -325,25 +331,41 @@ export function useSessionManager(options: UseSessionManagerOptions = {}): Sessi
     }
   };
 
-  // Complete a session
-  const completeSession = async (sessionId: string): Promise<boolean> => {
+  // Complete a session with detailed completion data
+  const completeSession = async (
+    sessionId: string, 
+    completionData?: {
+      winnerId?: string;
+      sessionDuration?: number;
+      completionNotes?: string;
+      sessionRating?: number;
+      matchScore?: string;
+    }
+  ): Promise<boolean> => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
-        .from('sessions')
-        .update({ 
-          updated_at: new Date().toISOString()
-          // Add completion status/timestamp if needed
-        })
-        .eq('id', sessionId)
-        .eq('creator_id', user.id);
+      const { data, error } = await supabase.rpc('complete_session', {
+        session_id_param: sessionId,
+        winner_id_param: completionData?.winnerId || null,
+        session_duration_minutes: completionData?.sessionDuration || null,
+        completion_notes: completionData?.completionNotes || null,
+        session_rating: completionData?.sessionRating || null,
+        match_score: completionData?.matchScore || null
+      });
 
       if (error) throw error;
 
-      toast.success('Session completed!');
-      await fetchSessions();
-      return true;
+      const result = data as { success: boolean; error?: string; [key: string]: any };
+      
+      if (result.success) {
+        toast.success('Session completed successfully!');
+        await fetchSessions(); // Refresh to update session status
+        return true;
+      } else {
+        toast.error(result.error || 'Failed to complete session');
+        return false;
+      }
     } catch (error) {
       console.error('Error completing session:', error);
       toast.error('Failed to complete session');

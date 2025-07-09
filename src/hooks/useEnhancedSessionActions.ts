@@ -200,7 +200,16 @@ export function useEnhancedSessionActions(options: EnhancedSessionActionsOptions
   }, [baseStartSession, updateActionState, applyOptimisticUpdate, navigate]);
 
   // Enhanced complete session
-  const completeSession = useCallback(async (sessionId: string) => {
+  const completeSession = useCallback(async (
+    sessionId: string, 
+    completionData?: {
+      winnerId?: string;
+      sessionDuration?: number;
+      completionNotes?: string;
+      sessionRating?: number;
+      matchScore?: string;
+    }
+  ) => {
     const loadingToast = toast.loading('Completing session...');
     updateActionState(sessionId, 'completing', true);
     
@@ -208,7 +217,7 @@ export function useEnhancedSessionActions(options: EnhancedSessionActionsOptions
     applyOptimisticUpdate(sessionId, { status: 'completed' });
 
     try {
-      const success = await baseCompleteSession(sessionId);
+      const success = await baseCompleteSession(sessionId, completionData);
       
       if (success) {
         toast.dismiss(loadingToast);

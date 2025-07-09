@@ -129,19 +129,23 @@ const Sessions = () => {
     return 60;
   };
 
-  // Enhanced completion function that uses the existing completeSession with enhanced data
+  // Enhanced completion function that calls backend with completion data
   const completeSessionWithData = async (sessionId: string, completionData: SessionCompletionData) => {
     try {
-      // For now, call the basic complete session function
-      // TODO: Create backend RPC function to handle completion data properly
-      const success = await completeSession(sessionId);
+      // Calculate session duration if we have the session data
+      const session = sessions.find(s => s.id === sessionId);
+      const sessionDuration = session ? calculateSessionDuration(session) : 60;
+      
+      // Call the backend with all completion data
+      const success = await completeSession(sessionId, {
+        winnerId: completionData.winnerId,
+        sessionDuration,
+        completionNotes: completionData.notes,
+        sessionRating: completionData.rating,
+        matchScore: completionData.score
+      });
       
       if (success) {
-        // Log completion data for future backend integration
-        console.log('Session completion data:', {
-          sessionId,
-          completionData
-        });
         toast.success('Session completed successfully! 🏆');
         return true;
       } else {
