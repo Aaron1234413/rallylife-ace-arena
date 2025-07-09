@@ -345,6 +345,15 @@ export function useSessionManager(options: UseSessionManagerOptions = {}): Sessi
     if (!user) return false;
 
     try {
+      console.log('🎾 Phase 2: Calling supabase.rpc("complete_session") with params:', {
+        session_id_param: sessionId,
+        winner_id_param: completionData?.winnerId || null,
+        session_duration_minutes: completionData?.sessionDuration || null,
+        completion_notes: completionData?.completionNotes || null,
+        session_rating: completionData?.sessionRating || null,
+        match_score: completionData?.matchScore || null
+      });
+      
       const { data, error } = await supabase.rpc('complete_session', {
         session_id_param: sessionId,
         winner_id_param: completionData?.winnerId || null,
@@ -353,6 +362,8 @@ export function useSessionManager(options: UseSessionManagerOptions = {}): Sessi
         session_rating: completionData?.sessionRating || null,
         match_score: completionData?.matchScore || null
       });
+
+      console.log('🎾 Phase 2: Backend RPC response:', { data, error });
 
       if (error) throw error;
 

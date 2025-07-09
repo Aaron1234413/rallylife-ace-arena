@@ -131,10 +131,18 @@ const Sessions = () => {
 
   // Enhanced completion function that calls backend with completion data
   const completeSessionWithData = async (sessionId: string, completionData: SessionCompletionData) => {
+    console.log('🎾 Phase 2: Starting session completion with data:', {
+      sessionId,
+      completionData,
+      sessionType: sessions.find(s => s.id === sessionId)?.session_type
+    });
+    
     try {
       // Calculate session duration if we have the session data
       const session = sessions.find(s => s.id === sessionId);
       const sessionDuration = session ? calculateSessionDuration(session) : 60;
+      
+      console.log('🎾 Phase 2: Calculated session duration:', sessionDuration, 'minutes');
       
       // Call the backend with all completion data
       const success = await completeSession(sessionId, {
@@ -145,6 +153,8 @@ const Sessions = () => {
         matchScore: completionData.score
       });
       
+      console.log('🎾 Phase 2: Backend completion result:', success);
+      
       if (success) {
         toast.success('Session completed successfully! 🏆');
         return true;
@@ -153,7 +163,7 @@ const Sessions = () => {
         return false;
       }
     } catch (error) {
-      console.error('Error completing session:', error);
+      console.error('🎾 Phase 2: Error completing session:', error);
       toast.error('Failed to complete session');
       return false;
     }
