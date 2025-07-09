@@ -1,4 +1,4 @@
-import { useUnifiedSessions } from './useUnifiedSessions';
+import { useSessionManager, SessionData } from './useSessionManager';
 
 interface SocialPlaySession {
   id: string;
@@ -18,37 +18,36 @@ interface SocialPlaySession {
 }
 
 export function useSocialPlaySessions() {
-  // Use unified sessions hook for social play sessions
+  // Use unified session manager for social play sessions
   const {
-    sessions: unifiedSessions,
+    sessions,
     loading: isLoading,
     joinSession,
     leaveSession,
     startSession,
     cancelSession
-  } = useUnifiedSessions({
+  } = useSessionManager({
+    sessionType: 'social_play',
     includeNonClubSessions: true
   });
 
-  // Filter and convert to social play format
-  const socialPlaySessions = unifiedSessions
-    .filter(session => session.session_type === 'social_play')
-    .map(session => ({
-      id: session.id,
-      created_by: session.creator_id,
-      session_type: session.format as 'singles' | 'doubles',
-      competitive_level: 'medium' as const,
-      status: 'pending' as const,
-      start_time: null,
-      end_time: null,
-      paused_duration: 0,
-      location: session.location,
-      notes: session.notes,
-      mood: null,
-      final_score: null,
-      created_at: session.created_at,
-      updated_at: session.updated_at
-    } as SocialPlaySession));
+  // Convert unified sessions to social play format for backward compatibility
+  const socialPlaySessions: SocialPlaySession[] = sessions.map(session => ({
+    id: session.id,
+    created_by: session.creator_id,
+    session_type: (session.format || 'singles') as 'singles' | 'doubles',
+    competitive_level: 'medium' as const,
+    status: 'pending' as const, // Could be enhanced with real status from session
+    start_time: null,
+    end_time: null,
+    paused_duration: 0,
+    location: session.location,
+    notes: session.notes,
+    mood: null,
+    final_score: null,
+    created_at: session.created_at,
+    updated_at: session.updated_at
+  }));
 
   const activeSession = socialPlaySessions.find(s => s.status === 'active') || null;
 

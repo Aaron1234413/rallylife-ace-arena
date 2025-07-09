@@ -44,30 +44,48 @@ export function useClubSessions(clubId: string) {
     if (!user || !clubId) return;
 
     try {
-      // In a real implementation, this would query actual session tables
-      // For now, using mock data structure
-      const mockSessions: ClubSession[] = [
-        {
-          id: '1',
-          club_id: clubId,
-          user_id: user.id,
-          session_type: 'court_booking',
-          title: 'Court 1 Booking',
-          court_id: 'court-1',
-          start_datetime: new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString(),
-          end_datetime: new Date(Date.now() + 25 * 60 * 60 * 1000).toISOString(),
-          status: 'confirmed',
-          payment_status: 'paid',
-          cost_tokens: 50,
-          cost_money: 0,
-          payment_method: 'tokens',
-          participants: [user.id],
-          created_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        }
-      ];
+      setLoading(true);
+      
+      // Query real club sessions from the unified sessions table
+      const { data: sessionsData, error } = await supabase
+        .from('sessions')
+        .select(`
+          *,
+          creator:profiles!sessions_creator_id_fkey (
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq('club_id', clubId)
+        .in('session_type', ['club_booking', 'club_event'])
+        .order('created_at', { ascending: false });
 
-      setSessions(mockSessions);
+      if (error) throw error;
+
+      // Convert unified sessions to club session format
+      const clubSessions: ClubSession[] = (sessionsData || []).map(session => ({
+        id: session.id,
+        club_id: session.club_id!,
+        user_id: session.creator_id,
+        session_type: session.session_type as 'court_booking' | 'coaching' | 'group_training' | 'tournament',
+        title: session.notes || `${session.session_type} Session`,
+        description: session.notes,
+        court_id: undefined, // Could be added to sessions table if needed
+        coach_id: undefined, // Could be added to sessions table if needed
+        start_datetime: session.created_at, // Could use actual start_datetime field
+        end_datetime: new Date(new Date(session.created_at).getTime() + 60 * 60 * 1000).toISOString(), // 1 hour later
+        status: 'confirmed' as const,
+        payment_status: 'paid' as const,
+        cost_tokens: session.stakes_amount,
+        cost_money: 0,
+        payment_method: 'tokens' as const,
+        participants: [session.creator_id], // Could fetch actual participants
+        max_participants: session.max_players,
+        created_at: session.created_at,
+        updated_at: session.updated_at
+      }));
+
+      setSessions(clubSessions);
     } catch (error) {
       console.error('Error fetching club sessions:', error);
       toast.error('Failed to load sessions');

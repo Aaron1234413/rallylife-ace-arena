@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { useSafeRealTimeSessions } from './useSafeRealTimeSessions';
+import { useSessionManager } from './useSessionManager';
 import { useSocialPlaySessions } from './useSocialPlaySessions';
 import { useAuth } from './useAuth';
 
@@ -22,15 +22,12 @@ export function useUnifiedSocialPlay(options: UseUnifiedSocialPlayOptions = {}) 
   
   const { user } = useAuth();
   
-  // Use safe unified sessions hook
-  const unifiedSessions = useSafeRealTimeSessions(
-    'my-sessions', 
-    user?.id, 
-    {
-      enabled: useUnified && !!user?.id,
-      onError: (error) => onError?.(error, 'unified')
-    }
-  );
+  // Use unified session manager
+  const unifiedSessions = useSessionManager({
+    sessionType: 'social_play',
+    includeNonClubSessions: true,
+    filterUserParticipation: useUnified && !!user?.id
+  });
   
   // Use legacy social play sessions as fallback
   const legacySessions = useSocialPlaySessions();
@@ -45,38 +42,36 @@ export function useUnifiedSocialPlay(options: UseUnifiedSocialPlayOptions = {}) 
   
   // Map unified sessions to legacy format for compatibility
   const mappedUnifiedSessions = useMemo(() => {
-    return unifiedSessions.sessions
-      .filter(session => session.session_type === 'social_play')
-      .map(session => ({
-        id: session.id,
-        created_by: session.creator_id,
-        session_type: session.format || 'singles' as 'singles' | 'doubles',
-        competitive_level: 'medium' as 'low' | 'medium' | 'high',
-        status: session.status as 'pending' | 'active' | 'paused' | 'completed' | 'cancelled',
-        start_time: null,
-        end_time: null,
-        paused_duration: 0,
-        location: session.location || null,
-        notes: session.notes || null,
-        mood: null,
-        final_score: null,
-        created_at: session.created_at,
-        updated_at: session.updated_at,
-        participants: session.participants?.map(p => ({
-          id: p.id,
-          session_id: session.id,
-          user_id: p.user_id,
-          session_creator_id: session.creator_id,
-          status: p.status as 'joined' | 'left',
-          role: 'participant',
-          joined_at: p.joined_at,
-          user: {
-            id: p.user_id,
-            full_name: p.user.full_name,
-            avatar_url: null
-          }
-        })) || []
-      }));
+    return unifiedSessions.sessions.map(session => ({
+      id: session.id,
+      created_by: session.creator_id,
+      session_type: session.format || 'singles' as 'singles' | 'doubles',
+      competitive_level: 'medium' as 'low' | 'medium' | 'high',
+      status: 'pending' as 'pending' | 'active' | 'paused' | 'completed' | 'cancelled',
+      start_time: null,
+      end_time: null,
+      paused_duration: 0,
+      location: session.location || null,
+      notes: session.notes || null,
+      mood: null,
+      final_score: null,
+      created_at: session.created_at,
+      updated_at: session.updated_at,
+      participants: session.participants?.map(p => ({
+        id: p.id,
+        session_id: session.id,
+        user_id: p.user_id,
+        session_creator_id: session.creator_id,
+        status: p.status as 'joined' | 'left',
+        role: 'participant',
+        joined_at: p.joined_at,
+        user: {
+          id: p.user_id,
+          full_name: p.user?.full_name || 'Unknown User',
+          avatar_url: p.user?.avatar_url || null
+        }
+      })) || []
+    }));
   }, [unifiedSessions.sessions]);
   
   // Create unified interface
@@ -137,7 +132,7 @@ export function useUnifiedSocialPlay(options: UseUnifiedSocialPlayOptions = {}) 
         leaveSession: unifiedSessions.leaveSession,
         startSession: unifiedSessions.startSession,
         completeSession: unifiedSessions.completeSession,
-        refresh: unifiedSessions.refresh
+        refresh: unifiedSessions.refreshSessions
       };
     }
   }, [

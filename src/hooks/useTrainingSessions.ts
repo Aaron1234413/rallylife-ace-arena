@@ -1,11 +1,11 @@
 import { useSessionManager } from './useSessionManager';
 
 /**
- * Hook for managing match sessions
+ * Hook for managing training sessions
  */
-export function useMatchSessions() {
+export function useTrainingSessions() {
   return useSessionManager({
-    sessionType: 'match',
+    sessionType: 'training',
     includeNonClubSessions: true
   });
 }
