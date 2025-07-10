@@ -198,6 +198,10 @@ export function useSafeRealTimeSessions(
     };
   }, [fetchSessions]);
 
+  // Create a stable reference to fetchSessions for subscriptions
+  const fetchSessionsRef = useRef(fetchSessions);
+  fetchSessionsRef.current = fetchSessions;
+
   // Set up real-time subscriptions with safety checks
   useEffect(() => {
     if (!enabled || !effectiveUserId || isSubscribedRef.current) return;
@@ -225,7 +229,7 @@ export function useSafeRealTimeSessions(
             table: 'sessions'
           },
           () => {
-            fetchSessions();
+            fetchSessionsRef.current();
           }
         )
         .subscribe();
@@ -241,7 +245,7 @@ export function useSafeRealTimeSessions(
             table: 'session_participants'
           },
           () => {
-            fetchSessions();
+            fetchSessionsRef.current();
           }
         )
         .subscribe();
