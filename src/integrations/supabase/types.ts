@@ -6041,11 +6041,17 @@ export type Database = {
         Returns: Json
       }
       complete_session_with_hp: {
-        Args: {
-          session_id_param: string
-          winner_id_param?: string
-          winning_team_param?: Json
-        }
+        Args:
+          | {
+              session_id_param: string
+              winner_id_param?: string
+              winning_team_param?: Json
+            }
+          | {
+              session_id_param: string
+              winner_id_param?: string
+              winning_team_param?: string
+            }
         Returns: Json
       }
       complete_social_play_session: {
@@ -6076,6 +6082,23 @@ export type Database = {
       }
       complete_training_assignment: {
         Args: { assignment_id: string; player_feedback?: string }
+        Returns: Json
+      }
+      complete_training_with_rewards: {
+        Args: {
+          session_id_param: string
+          user_id_param: string
+          duration_minutes: number
+          hp_change: number
+          xp_gain: number
+          session_type?: string
+          intensity?: string
+          is_lesson?: boolean
+          coach_id?: string
+          coach_level?: number
+          session_notes?: string
+          mood?: string
+        }
         Returns: Json
       }
       create_appointment_request: {
@@ -6206,6 +6229,14 @@ export type Database = {
       enablelongtransactions: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      end_session_with_hp_calculation: {
+        Args: {
+          session_id_param: string
+          winner_id_param?: string
+          winning_team_param?: Json
+        }
+        Returns: Json
       }
       equals: {
         Args: { geom1: unknown; geom2: unknown }
@@ -6769,6 +6800,10 @@ export type Database = {
         Args: { session_id_param: string; user_id_param: string }
         Returns: Json
       }
+      join_session_with_hp_check: {
+        Args: { session_id_param: string; user_id_param: string }
+        Returns: Json
+      }
       json: {
         Args: { "": unknown }
         Returns: Json
@@ -7090,6 +7125,10 @@ export type Database = {
           notes_param?: string
           is_favorite_param?: boolean
         }
+        Returns: Json
+      }
+      select_doubles_winners: {
+        Args: { session_id_param: string; winning_team_members: Json }
         Returns: Json
       }
       send_challenge: {
