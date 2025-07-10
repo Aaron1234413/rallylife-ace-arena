@@ -196,7 +196,7 @@ export function useSafeRealTimeSessions(
         clearTimeout(retryTimeoutRef.current);
       }
     };
-  }, [fetchSessions]);
+  }, [activeTab, effectiveUserId, enabled]);
 
   // Create a stable reference to fetchSessions for subscriptions
   const fetchSessionsRef = useRef(fetchSessions);
@@ -259,7 +259,7 @@ export function useSafeRealTimeSessions(
     return () => {
       clearChannels();
     };
-  }, [effectiveUserId, enabled, clearChannels]);
+  }, [effectiveUserId, enabled]);
 
   const joinSession = useCallback(async (sessionId: string) => {
     if (!effectiveUserId) {
