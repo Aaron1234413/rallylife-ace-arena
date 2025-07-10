@@ -39,6 +39,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { PlayerStatsWidget } from '@/components/play/PlayerStatsWidget';
 import { EnhancedSessionCard } from '@/components/play/EnhancedSessionCard';
 import { RecommendedSection } from '@/components/play/RecommendedSection';
+import { SessionCreationDialog } from '@/components/sessions/SessionCreationDialog';
 
 const Play = () => {
   const { user } = useAuth();
@@ -48,6 +49,9 @@ const Play = () => {
   
   // Get initial tab from URL params or default to "for-you"
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'for-you');
+  
+  // Session creation dialog state
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
   
   // Add unified sessions hook for delete functionality
   const { cancelSession } = useUnifiedSessions({
@@ -253,12 +257,10 @@ const Play = () => {
                   </Badge>
                 )}
               </Button>
-              <Link to="/create-session">
-                <Button size="sm">
-                  <Plus className="h-4 w-4" />
-                  {!isMobile && "Create"}
-                </Button>
-              </Link>
+              <Button size="sm" onClick={() => setShowCreateDialog(true)}>
+                <Plus className="h-4 w-4" />
+                {!isMobile && "Create"}
+              </Button>
             </div>
           </div>
           
@@ -384,12 +386,10 @@ const Play = () => {
                         <h3 className="text-lg font-semibold">No Sessions Available</h3>
                         <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
                       </div>
-                      <Link to="/create-session">
-                        <Button>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Create Session
-                        </Button>
-                      </Link>
+                      <Button onClick={() => setShowCreateDialog(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Session
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -488,12 +488,10 @@ const Play = () => {
                       <h3 className="text-lg font-semibold">No Active Sessions</h3>
                       <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
                     </div>
-                    <Link to="/create-session">
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Session
-                      </Button>
-                    </Link>
+                    <Button onClick={() => setShowCreateDialog(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Session
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -534,12 +532,10 @@ const Play = () => {
                       <h3 className="text-lg font-semibold">No Sessions Yet</h3>
                       <p className="text-muted-foreground">You haven't joined or created any sessions.</p>
                     </div>
-                    <Link to="/create-session">
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Your First Session
-                      </Button>
-                    </Link>
+                    <Button onClick={() => setShowCreateDialog(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Your First Session
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -560,6 +556,16 @@ const Play = () => {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Session Creation Dialog */}
+      <SessionCreationDialog
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onSuccess={() => {
+          setShowCreateDialog(false);
+          toast.success('Session created! It should appear in your sessions shortly.');
+        }}
+      />
     </div>
   );
 };

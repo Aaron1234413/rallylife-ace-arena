@@ -31,7 +31,7 @@ import { useNavigate } from 'react-router-dom';
 import { useEnhancedSessionActions } from '@/hooks/useEnhancedSessionActions';
 import { useSessionManager } from '@/hooks/useSessionManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { UnifiedSessionCreationDialog } from '@/components/sessions/UnifiedSessionCreationDialog';
+import { SessionCreationDialog } from '@/components/sessions/SessionCreationDialog';
 import { EnhancedSessionCard } from '@/components/sessions/EnhancedSessionCard';
 import { SessionCompletionModal, SessionCompletionData } from '@/components/sessions/SessionCompletionModal';
 
@@ -466,8 +466,8 @@ const Sessions = () => {
         </Tabs>
         </div>
 
-        {/* Unified Session Creation Dialog */}
-        <UnifiedSessionCreationDialog
+        {/* Session Creation Dialog */}
+        <SessionCreationDialog
           open={showCreateDialog}
           onOpenChange={setShowCreateDialog}
           onSuccess={() => {
