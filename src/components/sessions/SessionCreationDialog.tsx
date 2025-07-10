@@ -14,12 +14,15 @@ import {
   Coins,
   ArrowLeft,
   ArrowRight,
-  Check
+  Check,
+  Building
 } from 'lucide-react';
 import { useSessionManager } from '@/hooks/useSessionManager';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { HPReductionPreview } from '@/components/hp/HPReductionPreview';
+import { InsufficientBalanceWarning } from '@/components/tokens/InsufficientBalanceWarning';
+import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { toast } from 'sonner';
 
 type SessionType = 'challenge' | 'social' | 'training';
@@ -78,6 +81,7 @@ export function SessionCreationDialog({
   const { createSession } = useSessionManager({ clubId });
   const { hpData } = usePlayerHP();
   const { xpData } = usePlayerXP();
+  const { tokenData, regularTokens } = usePlayerTokens();
 
   const resetForm = () => {
     setCurrentStep(1);
@@ -346,9 +350,12 @@ function Step3TokenConfiguration({
 }) {
   const [stakesAmount, setStakesAmount] = useState(10);
   const [fixedCost, setFixedCost] = useState(1);
+  const { regularTokens } = usePlayerTokens();
 
   const isTraining = sessionType.id === 'training';
   const minAmount = isTraining ? 1 : 0;
+  const requiredTokens = isTraining ? fixedCost : stakesAmount;
+  const hasInsufficientBalance = requiredTokens > 0 && regularTokens < requiredTokens;
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -433,21 +440,46 @@ function Step3TokenConfiguration({
                   : 'Stakes required for challenge matches (winner takes all)'}
               </p>
               
-              {stakesAmount > 0 && (
-                <div className="mt-3 p-3 bg-muted rounded-lg text-sm">
-                  <p className="font-medium mb-1">Token Distribution:</p>
-                  <div className="space-y-1">
-                    <div className="flex justify-between">
-                      <span>Total Stakes:</span>
-                      <span>{stakesAmount * (sessionData.playerCount || 2)} tokens</span>
+              {(stakesAmount > 0 || fixedCost > 0) && (
+                <div className="mt-3 space-y-3">
+                  {/* Token Distribution Breakdown */}
+                  <div className="p-3 bg-muted rounded-lg text-sm">
+                    <p className="font-medium mb-2 flex items-center gap-2">
+                      <Coins className="h-4 w-4" />
+                      Token Distribution Preview:
+                    </p>
+                    <div className="space-y-1">
+                      <div className="flex justify-between">
+                        <span>Total {isTraining ? 'Fixed Cost' : 'Stakes'}:</span>
+                        <span className="font-medium">
+                          {isTraining ? fixedCost : stakesAmount * (sessionData.playerCount || 2)} tokens
+                        </span>
+                      </div>
+                      <div className="flex justify-between text-red-600">
+                        <span>Platform Fee (10%):</span>
+                        <span>-{Math.floor((isTraining ? fixedCost : stakesAmount * (sessionData.playerCount || 2)) * 0.1)} tokens</span>
+                      </div>
+                      <div className="flex justify-between font-medium text-green-600">
+                        <span>{isTraining ? 'Training Pool' : 'Winner Gets'}:</span>
+                        <span>
+                          {(isTraining ? fixedCost : stakesAmount * (sessionData.playerCount || 2)) - 
+                           Math.floor((isTraining ? fixedCost : stakesAmount * (sessionData.playerCount || 2)) * 0.1)} tokens
+                        </span>
+                      </div>
                     </div>
-                    <div className="flex justify-between text-muted-foreground">
-                      <span>Platform Fee (10%):</span>
-                      <span>-{Math.floor(stakesAmount * (sessionData.playerCount || 2) * 0.1)} tokens</span>
-                    </div>
-                    <div className="flex justify-between font-medium text-green-600">
-                      <span>Winner Gets:</span>
-                      <span>{stakesAmount * (sessionData.playerCount || 2) - Math.floor(stakesAmount * (sessionData.playerCount || 2) * 0.1)} tokens</span>
+                  </div>
+
+                  {/* Platform Fee Explanation */}
+                  <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg text-sm">
+                    <div className="flex items-start gap-2">
+                      <Building className="h-4 w-4 text-blue-600 mt-0.5" />
+                      <div>
+                        <p className="font-medium text-blue-800 mb-1">Platform Fee Information</p>
+                        <p className="text-blue-600 text-xs">
+                          A 10% platform fee supports server costs, development, and platform improvements. 
+                          This fee is automatically deducted from session stakes.
+                        </p>
+                      </div>
                     </div>
                   </div>
                 </div>
@@ -456,6 +488,15 @@ function Step3TokenConfiguration({
           )}
         </CardContent>
       </Card>
+
+      {/* Insufficient Balance Warning */}
+      {hasInsufficientBalance && (
+        <InsufficientBalanceWarning
+          currentBalance={regularTokens}
+          requiredAmount={requiredTokens}
+          tokenType="regular"
+        />
+      )}
 
       {/* HP Impact Preview */}
       <HPReductionPreview
@@ -470,8 +511,8 @@ function Step3TokenConfiguration({
           <ArrowLeft className="w-4 h-4 mr-2" />
           Back
         </Button>
-        <Button type="submit" disabled={loading}>
-          {loading ? 'Creating...' : 'Create Session'}
+        <Button type="submit" disabled={loading || hasInsufficientBalance}>
+          {loading ? 'Creating...' : hasInsufficientBalance ? 'Insufficient Tokens' : 'Create Session'}
           <Check className="w-4 h-4 ml-2" />
         </Button>
       </div>

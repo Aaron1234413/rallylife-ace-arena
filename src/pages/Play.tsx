@@ -39,6 +39,8 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { PlayerStatsWidget } from '@/components/play/PlayerStatsWidget';
 import { EnhancedSessionCard } from '@/components/play/EnhancedSessionCard';
 import { RecommendedSection } from '@/components/play/RecommendedSection';
+import { TokenBalance } from '@/components/tokens/TokenBalance';
+import { TokenTransactionHistory } from '@/components/tokens/TokenTransactionHistory';
 
 const Play = () => {
   const { user } = useAuth();
@@ -60,6 +62,7 @@ const Play = () => {
   // Token balance for checking stakes
   const { 
     regularTokens, 
+    transactions,
     loading: tokensLoading,
     refreshTokens 
   } = usePlayerTokens();
@@ -569,6 +572,20 @@ const Play = () => {
             )}
           </TabsContent>
         </Tabs>
+
+        {/* Token Economy Section */}
+        <div className="mt-8 grid gap-6 lg:grid-cols-3">
+          <TokenBalance 
+            onPurchaseClick={() => console.log('Purchase tokens')}
+            onHistoryClick={() => console.log('View history')}
+          />
+          <div className="lg:col-span-2">
+            <TokenTransactionHistory 
+              transactions={transactions}
+              loading={tokensLoading}
+            />
+          </div>
+        </div>
       </div>
     </div>
   );
