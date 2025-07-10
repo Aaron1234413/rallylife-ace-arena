@@ -176,7 +176,7 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     }
   };
 
-  // Join a session
+  // Join a session with HP validation
   const joinSession = async (sessionId: string): Promise<boolean> => {
     if (!user) return false;
 
@@ -184,17 +184,27 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     
     try {
       const { data, error } = await supabase
-        .rpc('join_session', {
+        .rpc('join_session_with_hp_check', {
           session_id_param: sessionId,
           user_id_param: user.id
         });
 
       if (error) throw error;
 
-      const result = data as { success: boolean; error?: string; tokens_paid?: number };
+      const result = data as { 
+        success: boolean; 
+        error?: string; 
+        tokens_paid?: number;
+        hp_cost?: number;
+        hp_after?: number;
+      };
       
       if (result.success) {
-        toast.success(`Successfully joined session! ${result.tokens_paid ? `${result.tokens_paid} tokens charged.` : ''}`);
+        const messages = [];
+        if (result.tokens_paid) messages.push(`${result.tokens_paid} tokens charged`);
+        if (result.hp_cost) messages.push(`${result.hp_cost} HP consumed`);
+        
+        toast.success(`Successfully joined session!${messages.length ? ` ${messages.join(', ')}.` : ''}`);
         await fetchSessions(); // Refresh to update participant counts
         return true;
       } else {
