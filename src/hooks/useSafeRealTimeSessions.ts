@@ -54,11 +54,11 @@ export function useSafeRealTimeSessions(
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
   
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
   const channelsRef = useRef<any[]>([]);
   const isSubscribedRef = useRef(false);
+  const retryCountRef = useRef(0);
 
   // Use the authenticated user's ID if no userId provided
   const effectiveUserId = userId || user?.id;
@@ -162,7 +162,7 @@ export function useSafeRealTimeSessions(
       }) || [];
 
       setSessions(processedSessions);
-      setRetryCount(0); // Reset retry count on success
+      retryCountRef.current = 0; // Reset retry count on success
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error fetching sessions:', error);
@@ -170,18 +170,18 @@ export function useSafeRealTimeSessions(
       onError?.(error instanceof Error ? error : new Error(errorMessage));
       
       // Retry logic
-      if (retryCount < retryAttempts) {
-        setRetryCount(prev => prev + 1);
+      if (retryCountRef.current < retryAttempts) {
+        retryCountRef.current += 1;
         retryTimeoutRef.current = setTimeout(() => {
           fetchSessions();
-        }, retryDelay * Math.pow(2, retryCount)); // Exponential backoff
+        }, retryDelay * Math.pow(2, retryCountRef.current)); // Exponential backoff
       } else {
         toast.error('Failed to load sessions after multiple attempts');
       }
     } finally {
       setLoading(false);
     }
-  }, [activeTab, effectiveUserId, enabled, retryCount, retryAttempts, retryDelay, onError]);
+  }, [activeTab, effectiveUserId, enabled, retryAttempts, retryDelay, onError]);
 
   // Initial fetch
   useEffect(() => {
@@ -518,7 +518,7 @@ export function useSafeRealTimeSessions(
     sessions,
     loading,
     error,
-    retryCount,
+    retryCount: retryCountRef.current,
     joinSession,
     leaveSession,
     kickParticipant,

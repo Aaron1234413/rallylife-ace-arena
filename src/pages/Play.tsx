@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -570,4 +571,10 @@ const Play = () => {
   );
 };
 
-export default Play;
+export default function WrappedPlay() {
+  return (
+    <ErrorBoundary fallbackTitle="Play Page Error">
+      <Play />
+    </ErrorBoundary>
+  );
+}
