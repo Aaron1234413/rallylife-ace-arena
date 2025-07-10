@@ -20,7 +20,8 @@ import {
   Loader2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { Link, useSearchParams } from 'react-router-dom';
+import { useSearchParams } from 'react-router-dom';
+import { UnifiedSessionCreationDialog } from '@/components/sessions/UnifiedSessionCreationDialog';
 import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
 import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
@@ -58,6 +59,9 @@ const Play = () => {
   
   // State for delete operations
   const [deletingStates, setDeletingStates] = useState<Record<string, boolean>>({});
+  
+  // State for session creation dialog
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
   
   // Token balance for checking stakes
   const { 
@@ -260,12 +264,13 @@ const Play = () => {
                   </Badge>
                 )}
               </Button>
-              <Link to="/sessions/create">
-                <Button size="sm">
-                  <Plus className="h-4 w-4" />
-                  {!isMobile && "Create"}
-                </Button>
-              </Link>
+              <Button 
+                size="sm"
+                onClick={() => setCreateDialogOpen(true)}
+              >
+                <Plus className="h-4 w-4" />
+                {!isMobile && "Create"}
+              </Button>
             </div>
           </div>
           
@@ -393,12 +398,10 @@ const Play = () => {
                         <h3 className="text-lg font-semibold">No Sessions Available</h3>
                         <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
                       </div>
-                      <Link to="/sessions/create">
-                        <Button>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Create Session
-                        </Button>
-                      </Link>
+                      <Button onClick={() => setCreateDialogOpen(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Session
+                      </Button>
                     </div>
                   </CardContent>
                 </Card>
@@ -501,12 +504,10 @@ const Play = () => {
                       <h3 className="text-lg font-semibold">No Active Sessions</h3>
                       <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
                     </div>
-                    <Link to="/sessions/create">
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Session
-                      </Button>
-                    </Link>
+                    <Button onClick={() => setCreateDialogOpen(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Session
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
@@ -549,12 +550,10 @@ const Play = () => {
                        <h3 className="text-lg font-semibold">No Sessions Yet</h3>
                        <p className="text-muted-foreground">You haven't joined or created any sessions.</p>
                      </div>
-                      <Link to="/sessions/create">
-                        <Button>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Create Your First Session
-                        </Button>
-                      </Link>
+                       <Button onClick={() => setCreateDialogOpen(true)}>
+                         <Plus className="h-4 w-4 mr-2" />
+                         Create Your First Session
+                       </Button>
                    </div>
                  </CardContent>
                </Card>
@@ -591,6 +590,16 @@ const Play = () => {
           </div>
         </div>
       </div>
+
+      {/* Session Creation Dialog */}
+      <UnifiedSessionCreationDialog
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSessionCreated={() => {
+          // The useSafeRealTimeSessions will automatically refresh
+          // due to real-time subscriptions
+        }}
+      />
     </div>
   );
 };
