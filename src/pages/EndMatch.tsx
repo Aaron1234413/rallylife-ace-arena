@@ -329,7 +329,7 @@ const EndMatch = () => {
               <LoadingSpinner size="lg" className="mx-auto" />
             </div>
             <p className="mb-4">No active match session found.</p>
-            <AnimatedButton onClick={() => navigate('/start-match')}>
+            <AnimatedButton onClick={() => navigate('/sessions/create?type=match')}>
               Start New Match
             </AnimatedButton>
           </CardContent>
