@@ -58,19 +58,23 @@ export function useSafeRealTimeSessions(
   
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
   const channelsRef = useRef<any[]>([]);
+  const isSubscribedRef = useRef(false);
 
   // Use the authenticated user's ID if no userId provided
   const effectiveUserId = userId || user?.id;
 
   const clearChannels = useCallback(() => {
-    channelsRef.current.forEach(channel => {
-      try {
-        supabase.removeChannel(channel);
-      } catch (err) {
-        console.warn('Error removing channel:', err);
-      }
-    });
-    channelsRef.current = [];
+    if (channelsRef.current.length > 0) {
+      channelsRef.current.forEach(channel => {
+        try {
+          supabase.removeChannel(channel);
+        } catch (err) {
+          console.warn('Error removing channel:', err);
+        }
+      });
+      channelsRef.current = [];
+    }
+    isSubscribedRef.current = false;
   }, []);
 
   const fetchSessions = useCallback(async () => {
@@ -196,7 +200,7 @@ export function useSafeRealTimeSessions(
 
   // Set up real-time subscriptions with safety checks
   useEffect(() => {
-    if (!enabled || !effectiveUserId) return;
+    if (!enabled || !effectiveUserId || isSubscribedRef.current) return;
 
     let sessionsChannel: any = null;
     let participantsChannel: any = null;
@@ -243,6 +247,7 @@ export function useSafeRealTimeSessions(
         .subscribe();
 
       channelsRef.current = [sessionsChannel, participantsChannel];
+      isSubscribedRef.current = true;
     } catch (error) {
       console.error('Error setting up real-time subscriptions:', error);
     }
@@ -250,7 +255,7 @@ export function useSafeRealTimeSessions(
     return () => {
       clearChannels();
     };
-  }, [effectiveUserId, activeTab, enabled, clearChannels]);
+  }, [effectiveUserId, enabled, clearChannels]);
 
   const joinSession = useCallback(async (sessionId: string) => {
     if (!effectiveUserId) {
