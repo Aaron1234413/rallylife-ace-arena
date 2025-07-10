@@ -41,6 +41,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { XPDisplay } from '@/components/xp/XPDisplay';
 
 // Mock data for demonstration with enhanced gamification
 const mockPlayerStats = {
@@ -191,7 +192,7 @@ const PlayMockup = () => {
       </Sheet>
       
       <Link to="/sessions/create">
-        <Button size="sm" className="bg-primary hover:bg-primary/90">
+        <Button size="sm" className="bg-tennis-green-primary hover:bg-tennis-green-accent text-white">
           <Plus className="h-4 w-4 mr-2" />
           Create
         </Button>
@@ -212,10 +213,10 @@ const PlayMockup = () => {
 
     const getTypeColor = (type: string) => {
       switch (type) {
-        case 'match': return 'bg-red-50 text-red-700 border-red-200';
-        case 'social': return 'bg-green-50 text-green-700 border-green-200';
-        case 'training': return 'bg-blue-50 text-blue-700 border-blue-200';
-        default: return 'bg-gray-50 text-gray-700 border-gray-200';
+        case 'match': return 'bg-tennis-neutral-50 text-tennis-green-dark border-tennis-green-primary/30';
+        case 'social': return 'bg-tennis-green-subtle text-tennis-green-dark border-tennis-green-accent/30';
+        case 'training': return 'bg-tennis-green-bg text-tennis-green-dark border-tennis-green-medium/30';
+        default: return 'bg-tennis-neutral-100 text-tennis-green-dark border-tennis-neutral-300';
       }
     };
 
@@ -234,8 +235,8 @@ const PlayMockup = () => {
     return (
       <Card className={`group hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border-l-4 ${
         isRecommended 
-          ? 'border-l-blue-500 bg-gradient-to-br from-blue-50/50 to-purple-50/50 ring-2 ring-blue-200' 
-          : 'border-l-primary hover:border-l-primary/80'
+          ? 'border-l-tennis-green-accent bg-gradient-to-br from-tennis-green-subtle to-tennis-green-bg ring-2 ring-tennis-green-primary/20' 
+          : 'border-l-tennis-green-primary hover:border-l-tennis-green-accent'
       }`}>
         <CardContent className="p-4">
           <div className="space-y-4">
@@ -243,12 +244,12 @@ const PlayMockup = () => {
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2 flex-1">
                 <div className="relative">
-                  <TypeIcon className={`h-5 w-5 ${isRecommended ? 'text-blue-600' : 'text-primary'} transition-colors`} />
+                  <TypeIcon className={`h-5 w-5 ${isRecommended ? 'text-tennis-green-accent' : 'text-tennis-green-primary'} transition-colors`} />
                   {isRecommended && (
-                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-tennis-green-accent rounded-full animate-pulse" />
                   )}
                 </div>
-                <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-tennis-green-primary transition-colors">
                   {session.title}
                 </h3>
               </div>
@@ -257,7 +258,7 @@ const PlayMockup = () => {
                   {session.session_type}
                 </Badge>
                 {isRecommended && (
-                  <Badge className="text-xs bg-blue-600 text-white">
+                  <Badge className="text-xs bg-tennis-green-accent text-white">
                     {Math.round(session.recommendation_score * 100)}% match
                   </Badge>
                 )}
@@ -271,22 +272,22 @@ const PlayMockup = () => {
                 <span className="line-clamp-1 font-medium">{session.location}</span>
               </div>
               {session.distance_km && (
-                <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
+                <Badge variant="outline" className="text-xs bg-tennis-green-subtle text-tennis-green-dark border-tennis-green-primary/30">
                   {session.distance_km.toFixed(1)}km
                 </Badge>
               )}
             </div>
 
             {/* Enhanced participants section */}
-            <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
+            <div className="flex items-center justify-between p-2 bg-tennis-green-bg/50 rounded-lg">
               <div className="flex items-center gap-3">
                 <div className="flex items-center gap-1 text-xs font-medium">
-                  <Users className="h-3 w-3 text-blue-600" />
+                  <Users className="h-3 w-3 text-tennis-green-primary" />
                   <span>{session.participant_count}/{session.max_players}</span>
                 </div>
                 <div className="w-8 h-1 bg-muted rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-blue-500 transition-all duration-300"
+                    className="h-full bg-tennis-green-primary transition-all duration-300"
                     style={{ width: `${(session.participant_count / session.max_players) * 100}%` }}
                   />
                 </div>
@@ -297,19 +298,19 @@ const PlayMockup = () => {
             </div>
 
             {/* Gamified rewards preview */}
-            <div className="flex items-center justify-between p-2 bg-gradient-to-r from-amber-50 to-emerald-50 rounded-lg border border-amber-200/50">
+            <div className="flex items-center justify-between p-2 bg-gradient-to-r from-tennis-green-subtle to-tennis-green-bg rounded-lg border border-tennis-green-primary/20">
               <div className="flex items-center gap-3">
                 {session.stakes_amount > 0 && (
-                  <div className="flex items-center gap-1 text-xs font-semibold text-amber-700">
+                  <div className="flex items-center gap-1 text-xs font-semibold text-tennis-yellow-dark">
                     <Coins className="h-3 w-3" />
                     <span>{session.stakes_amount} stake</span>
                   </div>
                 )}
-                <div className="flex items-center gap-1 text-xs font-semibold text-green-700">
+                <div className="flex items-center gap-1 text-xs font-semibold text-tennis-green-accent">
                   <Zap className="h-3 w-3" />
                   <span>+{reward.xp} XP</span>
                 </div>
-                <div className="flex items-center gap-1 text-xs font-semibold text-blue-700">
+                <div className="flex items-center gap-1 text-xs font-semibold text-tennis-green-primary">
                   <Target className="h-3 w-3" />
                   <span>+{reward.tokens} tokens</span>
                 </div>
@@ -318,7 +319,7 @@ const PlayMockup = () => {
 
             {/* Notes with better styling */}
             {session.notes && (
-              <div className="p-2 bg-muted/20 rounded-lg border-l-2 border-l-primary/30">
+              <div className="p-2 bg-tennis-green-bg/30 rounded-lg border-l-2 border-l-tennis-green-primary/30">
                 <p className="text-xs text-muted-foreground italic line-clamp-2">
                   "{session.notes}"
                 </p>
@@ -330,8 +331,8 @@ const PlayMockup = () => {
               size="sm" 
               className={`w-full font-semibold transition-all duration-300 group-hover:shadow-lg ${
                 isRecommended 
-                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg' 
-                  : 'bg-primary hover:bg-primary/90'
+                  ? 'bg-gradient-to-r from-tennis-green-accent to-tennis-green-primary hover:from-tennis-green-primary hover:to-tennis-green-accent text-white shadow-lg' 
+                  : 'bg-tennis-green-primary hover:bg-tennis-green-accent text-white'
               }`}
             >
               {isRecommended ? (
@@ -356,7 +357,7 @@ const PlayMockup = () => {
   const ForYouContent = () => (
     <div className="space-y-6">
       <div className="text-center py-4">
-        <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+        <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-tennis-green-primary to-tennis-green-accent bg-clip-text text-transparent">
           ✨ Recommended for You
         </h3>
         <p className="text-sm text-muted-foreground">
@@ -395,7 +396,7 @@ const PlayMockup = () => {
   const NearbyContent = () => (
     <div className="space-y-6">
       <div className="text-center py-4">
-        <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+        <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-tennis-green-accent to-tennis-green-primary bg-clip-text text-transparent">
           📍 Sessions Near You
         </h3>
         <p className="text-sm text-muted-foreground">
@@ -416,7 +417,7 @@ const PlayMockup = () => {
   const AllSessionsContent = () => (
     <div className="space-y-6">
       <div className="text-center py-4">
-        <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-transparent">
+        <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-tennis-green-dark to-tennis-green-primary bg-clip-text text-transparent">
           🎾 All Available Sessions
         </h3>
         <p className="text-sm text-muted-foreground">
@@ -460,46 +461,49 @@ const PlayMockup = () => {
         </div>
       </div>
 
-      {/* Player Stats Widget - Gamified */}
+      {/* Player Stats Widget - Using Design System */}
       <div className="mb-6">
-        <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+        <Card className="border-2 border-tennis-green-primary/20 bg-gradient-to-r from-tennis-green-subtle to-tennis-green-bg-alt">
           <CardContent className="p-4">
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {/* Level & XP */}
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Award className="h-5 w-5 text-primary" />
-                  <span className="font-bold text-lg">Lv.{mockPlayerStats.level}</span>
+              {/* Level & XP - Enhanced with XP Display component styling */}
+              <div className="flex flex-col items-center p-3 rounded-lg bg-card/50 border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <Award className="h-5 w-5 text-tennis-green-primary" />
+                  <span className="font-bold text-lg text-tennis-green-dark">Lv.{mockPlayerStats.level}</span>
                 </div>
-                <Progress value={(mockPlayerStats.xp / mockPlayerStats.xpToNext) * 100} className="h-2 mb-1" />
-                <p className="text-xs text-muted-foreground">
-                  {mockPlayerStats.xp}/{mockPlayerStats.xpToNext} XP
-                </p>
+                <XPDisplay
+                  currentLevel={mockPlayerStats.level}
+                  currentXP={mockPlayerStats.xp}
+                  xpToNextLevel={mockPlayerStats.xpToNext - mockPlayerStats.xp}
+                  size="small"
+                  showLevel={false}
+                />
               </div>
 
               {/* Tokens */}
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Coins className="h-5 w-5 text-amber-500" />
-                  <span className="font-bold text-lg">{mockPlayerStats.tokens}</span>
+              <div className="flex flex-col items-center p-3 rounded-lg bg-card/50 border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <Coins className="h-5 w-5 text-tennis-yellow" />
+                  <span className="font-bold text-lg text-tennis-green-dark">{mockPlayerStats.tokens}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Tokens</p>
               </div>
 
               {/* Streak */}
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <Flame className="h-5 w-5 text-orange-500" />
-                  <span className="font-bold text-lg">{mockPlayerStats.streak}</span>
+              <div className="flex flex-col items-center p-3 rounded-lg bg-card/50 border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <Flame className="h-5 w-5 text-tennis-yellow-dark" />
+                  <span className="font-bold text-lg text-tennis-green-dark">{mockPlayerStats.streak}</span>
                 </div>
                 <p className="text-xs text-muted-foreground">Day Streak</p>
               </div>
 
               {/* Win Rate */}
-              <div className="text-center">
-                <div className="flex items-center justify-center gap-2 mb-2">
-                  <TrendingUp className="h-5 w-5 text-green-500" />
-                  <span className="font-bold text-lg">
+              <div className="flex flex-col items-center p-3 rounded-lg bg-card/50 border border-border/50">
+                <div className="flex items-center gap-2 mb-2">
+                  <TrendingUp className="h-5 w-5 text-tennis-green-accent" />
+                  <span className="font-bold text-lg text-tennis-green-dark">
                     {Math.round((mockPlayerStats.wins / mockPlayerStats.totalMatches) * 100)}%
                   </span>
                 </div>
@@ -552,7 +556,7 @@ const PlayMockup = () => {
             Be the first to create a session in your area!
           </p>
           <Link to="/sessions/create">
-            <Button className="bg-primary hover:bg-primary/90">
+            <Button className="bg-tennis-green-primary hover:bg-tennis-green-accent text-white">
               Create First Session
             </Button>
           </Link>
