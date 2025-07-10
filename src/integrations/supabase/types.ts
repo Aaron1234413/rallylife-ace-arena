@@ -4653,6 +4653,44 @@ export type Database = {
         }
         Relationships: []
       }
+      session_hp_reductions: {
+        Row: {
+          created_at: string | null
+          hp_reduced: number
+          id: string
+          session_duration_minutes: number
+          session_id: string | null
+          user_id: string
+          user_level: number
+        }
+        Insert: {
+          created_at?: string | null
+          hp_reduced: number
+          id?: string
+          session_duration_minutes: number
+          session_id?: string | null
+          user_id: string
+          user_level: number
+        }
+        Update: {
+          created_at?: string | null
+          hp_reduced?: number
+          id?: string
+          session_duration_minutes?: number
+          session_id?: string | null
+          user_id?: string
+          user_level?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "session_hp_reductions_session_id_fkey"
+            columns: ["session_id"]
+            isOneToOne: false
+            referencedRelation: "sessions"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       session_notifications: {
         Row: {
           created_at: string
@@ -4812,14 +4850,18 @@ export type Database = {
           longitude: number | null
           max_players: number
           notes: string | null
+          platform_fee_percentage: number | null
+          session_ended_at: string | null
           session_result: Json | null
           session_source: string | null
+          session_started_at: string | null
           session_type: string
           stakes_amount: number
           started_at: string | null
           status: string
           updated_at: string
           winner_id: string | null
+          winning_team: Json | null
         }
         Insert: {
           club_id?: string | null
@@ -4837,14 +4879,18 @@ export type Database = {
           longitude?: number | null
           max_players: number
           notes?: string | null
+          platform_fee_percentage?: number | null
+          session_ended_at?: string | null
           session_result?: Json | null
           session_source?: string | null
+          session_started_at?: string | null
           session_type: string
           stakes_amount?: number
           started_at?: string | null
           status?: string
           updated_at?: string
           winner_id?: string | null
+          winning_team?: Json | null
         }
         Update: {
           club_id?: string | null
@@ -4862,14 +4908,18 @@ export type Database = {
           longitude?: number | null
           max_players?: number
           notes?: string | null
+          platform_fee_percentage?: number | null
+          session_ended_at?: string | null
           session_result?: Json | null
           session_source?: string | null
+          session_started_at?: string | null
           session_type?: string
           stakes_amount?: number
           started_at?: string | null
           status?: string
           updated_at?: string
           winner_id?: string | null
+          winning_team?: Json | null
         }
         Relationships: [
           {
@@ -5878,6 +5928,14 @@ export type Database = {
         Args: { user_id: string }
         Returns: number
       }
+      calculate_hp_reduction: {
+        Args: {
+          user_level: number
+          duration_minutes: number
+          session_type: string
+        }
+        Returns: number
+      }
       calculate_level_from_cxp: {
         Args: { total_cxp: number }
         Returns: number
@@ -5980,6 +6038,14 @@ export type Database = {
               winner_id_param?: string
               session_result_param?: Json
             }
+        Returns: Json
+      }
+      complete_session_with_hp: {
+        Args: {
+          session_id_param: string
+          winner_id_param?: string
+          winning_team_param?: Json
+        }
         Returns: Json
       }
       complete_social_play_session: {
@@ -8155,6 +8221,10 @@ export type Database = {
         Args:
           | { session_id_param: string }
           | { session_id_param: string; starter_id_param: string }
+        Returns: Json
+      }
+      start_session_with_tracking: {
+        Args: { session_id_param: string; starter_id_param: string }
         Returns: Json
       }
       stop_looking_to_play: {
