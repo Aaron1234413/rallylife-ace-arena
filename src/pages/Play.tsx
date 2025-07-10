@@ -23,6 +23,7 @@ import { Input } from '@/components/ui/input';
 import { useSearchParams } from 'react-router-dom';
 import { UnifiedSessionCreationDialog } from '@/components/sessions/UnifiedSessionCreationDialog';
 import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
+import { toast } from 'sonner';
 import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
 import { useAuth } from '@/hooks/useAuth';
@@ -34,7 +35,6 @@ import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useMatchHistory } from '@/hooks/useMatchHistory';
 import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
-import { toast } from 'sonner';
 import { MobileSessionCard } from '@/components/play/MobileSessionCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PlayerStatsWidget } from '@/components/play/PlayerStatsWidget';
@@ -596,8 +596,8 @@ const Play = () => {
         open={createDialogOpen}
         onOpenChange={setCreateDialogOpen}
         onSessionCreated={() => {
-          // The useSafeRealTimeSessions will automatically refresh
-          // due to real-time subscriptions
+          // Data will refresh automatically via real-time subscriptions
+          toast.success('Session created successfully!');
         }}
       />
     </div>
