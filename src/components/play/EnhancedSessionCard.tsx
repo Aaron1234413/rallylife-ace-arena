@@ -39,6 +39,7 @@ interface EnhancedSessionCardProps {
   isJoining: boolean;
   userBalance: number;
   userHP?: number;
+  userLevel?: number;
   showDistance?: boolean;
 }
 
@@ -48,6 +49,7 @@ export function EnhancedSessionCard({
   isJoining, 
   userBalance,
   userHP = 100,
+  userLevel = 1,
   showDistance = false 
 }: EnhancedSessionCardProps) {
   const getTypeIcon = (type: string) => {
@@ -75,10 +77,16 @@ export function EnhancedSessionCard({
   const spotsFilled = (session.participant_count || 0) / session.max_players;
   const isAlmostFull = spotsFilled >= 0.75;
   
-  // HP reduction calculations
+  // HP reduction calculations using same formula as backend
   const isChallenge = session.session_type === 'challenge';
   const estimatedDuration = 60; // Default 60 minutes for estimation
-  const hpReduction = isChallenge ? 5 + Math.floor(estimatedDuration / 10) : 0;
+  const calculateHPReduction = (level: number, duration: number, type: string) => {
+    if (type === 'social' || type === 'training') return 0;
+    const baseReduction = Math.floor(duration / 10);
+    const levelModifier = (100 - level) / 100;
+    return Math.max(1, Math.floor(baseReduction * levelModifier));
+  };
+  const hpReduction = calculateHPReduction(userLevel, estimatedDuration, session.session_type);
   const hasInsufficientHP = isChallenge && userHP < hpReduction;
 
   return (

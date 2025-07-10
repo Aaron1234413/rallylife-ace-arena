@@ -27,6 +27,7 @@ interface EnhancedSessionCardProps {
   clubId?: string;
   onActionComplete?: () => void;
   userHP?: number;
+  userLevel?: number;
 }
 
 export function EnhancedSessionCard({ 
@@ -34,15 +35,22 @@ export function EnhancedSessionCard({
   userRole, 
   clubId,
   onActionComplete,
-  userHP = 100
+  userHP = 100,
+  userLevel = 1
 }: EnhancedSessionCardProps) {
   const { getSessionActions, executeAction, loading } = useEnhancedSessionActions();
   const actions = getSessionActions(session, userRole);
 
-  // HP reduction calculations
+  // HP reduction calculations using same formula as backend
   const isChallenge = session.session_type === 'challenge';
   const estimatedDuration = 60; // Default 60 minutes for estimation
-  const hpReduction = isChallenge ? 5 + Math.floor(estimatedDuration / 10) : 0;
+  const calculateHPReduction = (level: number, duration: number, type: string) => {
+    if (type === 'social' || type === 'training') return 0;
+    const baseReduction = Math.floor(duration / 10);
+    const levelModifier = (100 - level) / 100;
+    return Math.max(1, Math.floor(baseReduction * levelModifier));
+  };
+  const hpReduction = calculateHPReduction(userLevel, estimatedDuration, session.session_type || 'challenge');
   const hasInsufficientHP = isChallenge && userHP < hpReduction;
 
   const handleActionClick = async (action: any) => {

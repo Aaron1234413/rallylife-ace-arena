@@ -25,6 +25,7 @@ import {
   X
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -80,6 +81,7 @@ interface Session {
 
 const Sessions = () => {
   const { user } = useAuth();
+  const { xpData } = usePlayerXP();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('available');
   const [showFilters, setShowFilters] = useState(false);
@@ -433,6 +435,7 @@ const Sessions = () => {
             <SessionsList 
               sessions={filteredSessions} 
               loading={loading}
+              userLevel={xpData?.current_level || 1}
               onJoinSession={handleJoinSession}
               onLeaveSession={handleLeaveSession}
               onStartSession={handleStartSession}
@@ -448,6 +451,7 @@ const Sessions = () => {
             <SessionsList 
               sessions={filteredSessions} 
               loading={loading}
+              userLevel={xpData?.current_level || 1}
               onJoinSession={handleJoinSession}
               onLeaveSession={handleLeaveSession}
               onStartSession={handleStartSession}
@@ -480,6 +484,7 @@ const Sessions = () => {
             <SessionsList 
               sessions={filteredSessions.filter(s => s.status === 'completed')} 
               loading={loading}
+              userLevel={xpData?.current_level || 1}
               onJoinSession={handleJoinSession}
               onLeaveSession={handleLeaveSession}
               onStartSession={handleStartSession}
@@ -525,6 +530,7 @@ const Sessions = () => {
 interface SessionsListProps {
   sessions: any[];
   loading: boolean;
+  userLevel: number;
   onJoinSession: (sessionId: string) => void;
   onLeaveSession: (sessionId: string) => void;
   onStartSession: (sessionId: string) => void;
@@ -538,6 +544,7 @@ interface SessionsListProps {
 const SessionsList: React.FC<SessionsListProps> = ({ 
   sessions, 
   loading, 
+  userLevel,
   onJoinSession,
   onLeaveSession,
   onStartSession,
@@ -586,6 +593,7 @@ const SessionsList: React.FC<SessionsListProps> = ({
           key={session.id}
           session={session}
           userRole="member"
+          userLevel={userLevel}
           onActionComplete={() => {
             // Handle action completion
             console.log('Action completed for session:', session.id);

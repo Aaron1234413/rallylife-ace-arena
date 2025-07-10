@@ -68,7 +68,7 @@ const Play = () => {
   const { xpData, loading: xpLoading } = usePlayerXP();
   
   // Player HP data
-  const { hpData, loading: hpLoading } = usePlayerHP();
+  const { hpData, activities: hpActivities, loading: hpLoading } = usePlayerHP();
   
   // Match history data  
   const { matchHistory, loading: matchLoading } = useMatchHistory();
@@ -284,10 +284,12 @@ const Play = () => {
             currentXP={xpData?.current_xp || 0}
             xpToNext={xpData?.xp_to_next_level || 100}
             tokens={regularTokens}
-            hp={80} // TODO: Get from player HP hook
-            maxHP={100}
-            matchesWon={2} // TODO: Get from match history
-            totalMatches={5}
+            hp={hpData?.current_hp || 100}
+            maxHP={hpData?.max_hp || 100}
+            matchesWon={Array.isArray(matchHistory) ? matchHistory.filter(m => m.result === 'won').length : 0}
+            totalMatches={Array.isArray(matchHistory) ? matchHistory.length : 0}
+            recentHPActivities={hpActivities?.slice(0, 5) || []}
+            loading={hpLoading || xpLoading}
           />
         </div>
 
@@ -403,6 +405,7 @@ const Play = () => {
                       isJoining={isJoining(session.id)}
                       userBalance={regularTokens}
                       userHP={hpData?.current_hp || 100}
+                      userLevel={xpData?.current_level || 1}
                       showDistance={hasLocation}
                     />
                   ))}
@@ -461,6 +464,7 @@ const Play = () => {
                       isJoining={isJoining(session.id)}
                       userBalance={regularTokens}
                       userHP={hpData?.current_hp || 100}
+                      userLevel={xpData?.current_level || 1}
                       showDistance={true}
                     />
                   );
@@ -508,57 +512,59 @@ const Play = () => {
                     onJoin={handleJoinSession}
                     isJoining={isJoining(session.id)}
                     userBalance={regularTokens}
-                    userHP={hpData?.current_hp || 100}
-                    showDistance={hasLocation}
-                  />
-                ))}
-              </div>
-            )}
-          </TabsContent>
+                     userHP={hpData?.current_hp || 100}
+                     userLevel={xpData?.current_level || 1}
+                     showDistance={hasLocation}
+                   />
+                 ))}
+               </div>
+             )}
+           </TabsContent>
 
-          {/* Mine Tab */}
-          <TabsContent value="mine" className="space-y-4">
-            {mySessionsLoading ? (
-              <div className="space-y-4">
-                {[1, 2].map((i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardContent className="p-4">
-                      <div className="h-20 bg-muted rounded"></div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : mySessions.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <div className="space-y-4">
-                    <Trophy className="h-12 w-12 text-muted-foreground mx-auto" />
-                    <div>
-                      <h3 className="text-lg font-semibold">No Sessions Yet</h3>
-                      <p className="text-muted-foreground">You haven't joined or created any sessions.</p>
-                    </div>
-                    <Link to="/create-session">
-                      <Button>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Your First Session
-                      </Button>
-                    </Link>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {mySessions.map((session) => (
-                  <EnhancedSessionCard
-                    key={session.id}
-                    session={session}
-                    onJoin={handleJoinSession}
-                    isJoining={isJoining(session.id)}
-                    userBalance={regularTokens}
-                    userHP={hpData?.current_hp || 100}
-                    showDistance={hasLocation}
-                  />
-                ))}
+           {/* Mine Tab */}
+           <TabsContent value="mine" className="space-y-4">
+             {mySessionsLoading ? (
+               <div className="space-y-4">
+                 {[1, 2].map((i) => (
+                   <Card key={i} className="animate-pulse">
+                     <CardContent className="p-4">
+                       <div className="h-20 bg-muted rounded"></div>
+                     </CardContent>
+                   </Card>
+                 ))}
+               </div>
+             ) : mySessions.length === 0 ? (
+               <Card>
+                 <CardContent className="p-8 text-center">
+                   <div className="space-y-4">
+                     <Trophy className="h-12 w-12 text-muted-foreground mx-auto" />
+                     <div>
+                       <h3 className="text-lg font-semibold">No Sessions Yet</h3>
+                       <p className="text-muted-foreground">You haven't joined or created any sessions.</p>
+                     </div>
+                     <Link to="/create-session">
+                       <Button>
+                         <Plus className="h-4 w-4 mr-2" />
+                         Create Your First Session
+                       </Button>
+                     </Link>
+                   </div>
+                 </CardContent>
+               </Card>
+             ) : (
+               <div className="space-y-4">
+                 {mySessions.map((session) => (
+                   <EnhancedSessionCard
+                     key={session.id}
+                     session={session}
+                     onJoin={handleJoinSession}
+                     isJoining={isJoining(session.id)}
+                     userBalance={regularTokens}
+                     userHP={hpData?.current_hp || 100}
+                     userLevel={xpData?.current_level || 1}
+                     showDistance={hasLocation}
+                   />
+                 ))}
               </div>
             )}
           </TabsContent>

@@ -17,6 +17,9 @@ import {
   Check
 } from 'lucide-react';
 import { useSessionManager } from '@/hooks/useSessionManager';
+import { usePlayerHP } from '@/hooks/usePlayerHP';
+import { usePlayerXP } from '@/hooks/usePlayerXP';
+import { HPReductionPreview } from '@/components/hp/HPReductionPreview';
 import { toast } from 'sonner';
 
 type SessionType = 'challenge' | 'social' | 'training';
@@ -73,6 +76,8 @@ export function SessionCreationDialog({
   const [sessionData, setSessionData] = useState<Partial<SessionData>>({});
   const [loading, setLoading] = useState(false);
   const { createSession } = useSessionManager({ clubId });
+  const { hpData } = usePlayerHP();
+  const { xpData } = usePlayerXP();
 
   const resetForm = () => {
     setCurrentStep(1);
@@ -163,6 +168,8 @@ export function SessionCreationDialog({
           <Step3TokenConfiguration
             sessionType={selectedType}
             sessionData={sessionData}
+            userLevel={xpData?.current_level || 1}
+            currentHP={hpData?.current_hp || 100}
             onSubmit={handleTokensSubmit}
             onBack={() => setCurrentStep(2)}
             loading={loading}
@@ -323,12 +330,16 @@ function Step2BasicDetails({
 function Step3TokenConfiguration({
   sessionType,
   sessionData,
+  userLevel,
+  currentHP,
   onSubmit,
   onBack,
   loading
 }: {
   sessionType: typeof SESSION_TYPES[0];
   sessionData: Partial<SessionData>;
+  userLevel: number;
+  currentHP: number;
   onSubmit: (data: { stakesAmount?: number; fixedCost?: number }) => Promise<void>;
   onBack: () => void;
   loading: boolean;
@@ -445,6 +456,14 @@ function Step3TokenConfiguration({
           )}
         </CardContent>
       </Card>
+
+      {/* HP Impact Preview */}
+      <HPReductionPreview
+        sessionType={sessionType.id as 'challenge' | 'social' | 'training'}
+        userLevel={userLevel}
+        currentHP={currentHP}
+        estimatedDuration={60}
+      />
 
       <div className="flex justify-between">
         <Button type="button" variant="outline" onClick={onBack} disabled={loading}>
