@@ -46,12 +46,14 @@ interface SessionCompletionModalProps {
 
 export interface SessionCompletionData {
   winnerId?: string;
+  winningTeam?: string;
   score?: string;
   playerScore?: number;
   opponentScore?: number;
   rating: number;
   notes: string;
   completionType: 'normal' | 'forfeit' | 'cancelled';
+  durationMinutes: number;
 }
 
 export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
@@ -64,6 +66,7 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
   isLoading = false
 }) => {
   const [winnerId, setWinnerId] = useState<string>('');
+  const [winningTeam, setWinningTeam] = useState<string>('');
   const [playerScore, setPlayerScore] = useState<number>(0);
   const [opponentScore, setOpponentScore] = useState<number>(0);
   const [rating, setRating] = useState<number>(5);
@@ -74,25 +77,35 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
   const isCompetitive = session.session_type === 'match';
   const isSocial = session.session_type === 'social_play';
   const isTraining = session.session_type === 'training';
+  const isChallenge = session.session_type === 'challenge';
   const hasStakes = session.stakes_amount && session.stakes_amount > 0;
+  const isDoubles = session.format === 'doubles';
 
-  // Calculate expected rewards
-  const expectedRewards = useMemo(() => {
+  // Calculate HP reduction and rewards
+  const expectedImpact = useMemo(() => {
+    // HP reduction calculation based on session type and duration
+    let hpReduction = 0;
+    if (isChallenge) {
+      // Challenge sessions: 5 HP base + 1 HP per 10 minutes
+      hpReduction = 5 + Math.floor(durationMinutes / 10);
+    }
+    // Social play and training sessions have 0 HP reduction
+    
+    // Base rewards (will be handled by the database function)
     const baseXP = Math.floor(durationMinutes * 0.5);
-    const baseHP = Math.floor(durationMinutes * 0.3);
     const baseTokens = Math.floor(durationMinutes * 0.2);
 
     // Competitive multipliers
     const competitiveMultiplier = isCompetitive ? 1.5 : 1;
-    const stakesMultiplier = hasStakes ? 1.3 : 1;
     
     return {
+      hpReduction,
       xp: Math.floor(baseXP * competitiveMultiplier),
-      hp: Math.floor(baseHP * stakesMultiplier),
       tokens: Math.floor(baseTokens * competitiveMultiplier),
-      stakesPool: session.stakes_amount || 0
+      stakesPool: session.stakes_amount || 0,
+      platformFee: (session as any).platform_fee_percentage || 10
     };
-  }, [durationMinutes, isCompetitive, hasStakes, session.stakes_amount]);
+  }, [durationMinutes, isCompetitive, isChallenge, session.stakes_amount]);
 
   const formatDuration = (minutes: number) => {
     if (minutes < 60) return `${minutes} minutes`;
@@ -106,8 +119,10 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
       rating,
       notes,
       completionType,
+      durationMinutes,
       ...(isCompetitive && { 
         winnerId,
+        winningTeam: isDoubles ? winningTeam : undefined,
         playerScore,
         opponentScore,
         score: `${playerScore}-${opponentScore}`
@@ -196,21 +211,36 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
 
                   {completionType === 'normal' && (
                     <>
-                      <div>
-                        <Label className="text-sm text-muted-foreground">Winner</Label>
-                        <Select value={winnerId} onValueChange={setWinnerId}>
-                          <SelectTrigger>
-                            <SelectValue placeholder="Select winner" />
-                          </SelectTrigger>
-                          <SelectContent>
-                            {participants.map((participant) => (
-                              <SelectItem key={participant.user_id} value={participant.user_id}>
-                                {participant.user?.full_name || `Player ${participant.user_id.slice(0, 8)}`}
-                              </SelectItem>
-                            ))}
-                          </SelectContent>
-                        </Select>
-                      </div>
+                      {isDoubles ? (
+                        <div>
+                          <Label className="text-sm text-muted-foreground">Winning Team</Label>
+                          <Select value={winningTeam} onValueChange={setWinningTeam}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select winning team" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="team_1">Team 1</SelectItem>
+                              <SelectItem value="team_2">Team 2</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      ) : (
+                        <div>
+                          <Label className="text-sm text-muted-foreground">Winner</Label>
+                          <Select value={winnerId} onValueChange={setWinnerId}>
+                            <SelectTrigger>
+                              <SelectValue placeholder="Select winner" />
+                            </SelectTrigger>
+                            <SelectContent>
+                              {participants.map((participant) => (
+                                <SelectItem key={participant.user_id} value={participant.user_id}>
+                                  {participant.user?.full_name || `Player ${participant.user_id.slice(0, 8)}`}
+                                </SelectItem>
+                              ))}
+                            </SelectContent>
+                          </Select>
+                        </div>
+                      )}
 
                       <div className="grid grid-cols-2 gap-3">
                         <div>
@@ -280,18 +310,18 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
 
           <Separator />
 
-          {/* Rewards Preview */}
+          {/* HP & Rewards Impact */}
           <div className="bg-gradient-to-r from-green-50 to-blue-50 rounded-lg p-4">
             <div className="flex items-center gap-2 mb-3">
               <TrendingUp className="h-4 w-4 text-green-600" />
-              <h4 className="font-medium text-green-800">Expected Rewards</h4>
+              <h4 className="font-medium text-green-800">Session Impact</h4>
             </div>
             
             <div className="grid grid-cols-3 gap-4 text-sm">
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 text-blue-600 font-medium">
                   <Zap className="h-4 w-4" />
-                  +{expectedRewards.xp}
+                  +{expectedImpact.xp}
                 </div>
                 <div className="text-muted-foreground">XP</div>
               </div>
@@ -299,7 +329,7 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 text-red-600 font-medium">
                   <span className="h-4 w-4 rounded-full bg-red-600 flex items-center justify-center text-white text-xs">♥</span>
-                  +{expectedRewards.hp}
+                  {expectedImpact.hpReduction > 0 ? `-${expectedImpact.hpReduction}` : '0'}
                 </div>
                 <div className="text-muted-foreground">HP</div>
               </div>
@@ -307,20 +337,35 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
               <div className="text-center">
                 <div className="flex items-center justify-center gap-1 text-yellow-600 font-medium">
                   <Coins className="h-4 w-4" />
-                  +{expectedRewards.tokens}
+                  +{expectedImpact.tokens}
                 </div>
                 <div className="text-muted-foreground">Tokens</div>
               </div>
             </div>
 
+            {expectedImpact.hpReduction > 0 && (
+              <div className="mt-3 pt-3 border-t border-orange-200">
+                <div className="text-center">
+                  <div className="text-orange-700 font-medium text-sm">
+                    ⚠️ Challenge Session - HP will be reduced
+                  </div>
+                  <div className="text-xs text-muted-foreground">
+                    {expectedImpact.hpReduction} HP will be consumed from all participants
+                  </div>
+                </div>
+              </div>
+            )}
+
             {hasStakes && (
               <div className="mt-3 pt-3 border-t border-green-200">
                 <div className="text-center">
                   <div className="text-yellow-700 font-medium">
-                    Stakes Pool: {expectedRewards.stakesPool} tokens
+                    Stakes Pool: {expectedImpact.stakesPool} tokens
                   </div>
                   <div className="text-xs text-muted-foreground">
-                    {isCompetitive ? 'Winner takes all' : '60/40 split between organizer/participants'}
+                    {isCompetitive 
+                      ? `Winner takes 90% (${expectedImpact.platformFee}% platform fee)` 
+                      : 'Tokens distributed among participants'}
                   </div>
                 </div>
               </div>
@@ -339,7 +384,7 @@ export const SessionCompletionModal: React.FC<SessionCompletionModalProps> = ({
             </Button>
             <Button 
               onClick={handleComplete}
-              disabled={isLoading || (isCompetitive && completionType === 'normal' && !winnerId)}
+              disabled={isLoading || (isCompetitive && completionType === 'normal' && (!winnerId && !winningTeam))}
               className="flex-1"
             >
               {isLoading ? 'Completing...' : 'Complete Session'}

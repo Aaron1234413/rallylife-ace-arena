@@ -22,6 +22,12 @@ export interface UnifiedSession {
   created_at: string;
   updated_at: string;
   
+  // New Phase 1 fields
+  session_started_at?: string;
+  session_ended_at?: string;
+  winning_team?: string | null;
+  platform_fee_percentage?: number;
+  
   // Computed fields
   participant_count?: number;
   user_has_joined?: boolean;
@@ -45,6 +51,9 @@ export interface SessionParticipant {
   tokens_paid: number;
   money_paid: number;
   notes?: string;
+  
+  // New Phase 1 fields
+  stakes_contributed?: number;
   
   // Related data
   user?: {
@@ -116,9 +125,11 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
 
           return {
             ...session,
+            // Cast winning_team from Json to string | null
+            winning_team: typeof session.winning_team === 'string' ? session.winning_team : null,
             participant_count: participantCount,
             user_has_joined: userParticipation
-          };
+          } as UnifiedSession;
         })
       );
 
@@ -245,28 +256,78 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     }
   };
 
-  // Start a session (update status)
+  // Start a session with HP reduction tracking
   const startSession = async (sessionId: string): Promise<boolean> => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
-        .from('sessions')
-        .update({ 
-          updated_at: new Date().toISOString()
-          // Add status field if needed in future
-        })
-        .eq('id', sessionId)
-        .eq('creator_id', user.id);
+      const { data, error } = await supabase
+        .rpc('start_session_with_tracking', {
+          session_id_param: sessionId,
+          starter_id_param: user.id
+        });
 
       if (error) throw error;
 
-      toast.success('Session started!');
-      await fetchSessions();
-      return true;
+      const result = data as { success: boolean; error?: string; hp_reductions?: any[] };
+      
+      if (result.success) {
+        const hpReductionsCount = result.hp_reductions?.length || 0;
+        toast.success(`Session started! ${hpReductionsCount > 0 ? `HP reduced for ${hpReductionsCount} participants.` : ''}`);
+        await fetchSessions();
+        return true;
+      } else {
+        toast.error(result.error || 'Failed to start session');
+        return false;
+      }
     } catch (error) {
       console.error('Error starting session:', error);
       toast.error('Failed to start session');
+      return false;
+    }
+  };
+
+  // Complete a session with HP and token distribution
+  const completeSession = async (
+    sessionId: string, 
+    durationMinutes: number, 
+    winnerId?: string,
+    winningTeam?: string
+  ): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      const { data, error } = await supabase
+        .rpc('complete_session_with_hp', {
+          session_id_param: sessionId,
+          winner_id_param: winnerId || null,
+          winning_team_param: winningTeam || null
+        });
+
+      if (error) throw error;
+
+      const result = data as { 
+        success: boolean; 
+        error?: string; 
+        rewards?: any;
+        total_hp_consumed?: number;
+        tokens_distributed?: number;
+      };
+      
+      if (result.success) {
+        const { total_hp_consumed, tokens_distributed } = result;
+        toast.success(
+          `Session completed! ${total_hp_consumed ? `${total_hp_consumed} HP consumed.` : ''} ${tokens_distributed ? `${tokens_distributed} tokens distributed.` : ''}`
+        );
+        await fetchSessions();
+        return true;
+      } else {
+        toast.error(result.error || 'Failed to complete session');
+        return false;
+      }
+    } catch (error) {
+      console.error('Error completing session:', error);
+      toast.error('Failed to complete session');
       return false;
     }
   };
@@ -344,6 +405,7 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     leaveSession,
     getSessionParticipants,
     startSession,
+    completeSession,
     cancelSession,
     refreshSessions: fetchSessions
   };
