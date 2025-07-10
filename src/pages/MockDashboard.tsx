@@ -80,10 +80,10 @@ export function MockDashboard() {
         {/* Enhanced Stats with Gaming UI */}
         <div className={`grid ${isMobile ? 'grid-cols-1 gap-4' : 'grid-cols-3 gap-6'} mb-8`}>
           {/* HP Card - Gaming Style */}
-          <Card className="border-0 shadow-2xl hover:shadow-[0_0_40px_rgba(239,68,68,0.5)] transition-all duration-500 hover:scale-105 bg-gradient-to-br from-red-500/10 to-red-900/20 backdrop-blur-sm border border-red-500/30">
+          <Card className="border-0 shadow-2xl hover:shadow-[0_0_40px_rgba(239,68,68,0.5)] transition-all duration-500 hover:scale-105 bg-gradient-to-br from-red-50 to-red-100 backdrop-blur-sm border border-red-200">
             <CardContent className={`${isMobile ? 'p-4' : 'p-6'} text-center relative overflow-hidden`}>
               {/* Animated background glow */}
-              <div className="absolute inset-0 bg-gradient-to-br from-red-500/20 to-transparent rounded-lg animate-pulse"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-red-500/10 to-transparent rounded-lg animate-pulse"></div>
               
               <div className="relative z-10">
                 <div className="flex items-center justify-center mb-3">
@@ -91,19 +91,19 @@ export function MockDashboard() {
                     <Heart className="h-8 w-8 text-white" />
                   </div>
                 </div>
-                <div className="text-4xl font-bold bg-gradient-to-r from-red-400 to-red-600 bg-clip-text text-transparent mb-2">
+                <div className="text-4xl font-bold text-red-700 mb-2">
                   {playerStats.hp.current}
                 </div>
-                <div className="text-sm font-medium text-red-300 mb-3">Health Points</div>
+                <div className="text-sm font-medium text-red-800 mb-3">Health Points</div>
                 <Progress 
                   value={(playerStats.hp.current / playerStats.hp.max) * 100} 
-                  className="h-4 bg-red-900/30 border border-red-500/30"
+                  className="h-4 bg-red-200"
                 />
-                <div className="text-xs text-red-300 mt-2 font-medium flex items-center justify-center gap-1">
+                <div className="text-xs text-red-700 mt-2 font-medium flex items-center justify-center gap-1">
                   {playerStats.hp.current > 80 ? (
-                    <>💪 <span className="text-green-400">Peak Performance!</span></>
+                    <>💪 <span className="text-green-700 font-bold">Peak Performance!</span></>
                   ) : (
-                    <>⚡ <span className="text-yellow-400">Ready to restore</span></>
+                    <>⚡ <span className="text-orange-700 font-bold">Ready to restore</span></>
                   )}
                 </div>
               </div>
@@ -111,7 +111,7 @@ export function MockDashboard() {
           </Card>
 
           {/* XP Card - Level Up Style */}
-          <Card className="border-0 shadow-2xl hover:shadow-[0_0_40px_rgba(59,130,246,0.5)] transition-all duration-500 hover:scale-105 bg-gradient-to-br from-blue-500/10 to-purple-900/20 backdrop-blur-sm border border-blue-500/30 relative">
+          <Card className="border-0 shadow-2xl hover:shadow-[0_0_40px_rgba(59,130,246,0.5)] transition-all duration-500 hover:scale-105 bg-gradient-to-br from-blue-50 to-indigo-100 backdrop-blur-sm border border-blue-200 relative">
             <CardContent className={`${isMobile ? 'p-4' : 'p-6'} text-center relative overflow-hidden`}>
               {/* Level crown badge */}
               {!isMobile && (
@@ -124,7 +124,7 @@ export function MockDashboard() {
               )}
               
               {/* Animated sparkles */}
-              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/20 to-purple-500/20 rounded-lg"></div>
+              <div className="absolute inset-0 bg-gradient-to-br from-blue-500/10 to-purple-500/10 rounded-lg"></div>
               
               <div className="relative z-10">
                 <div className="flex items-center justify-center mb-3">
@@ -133,23 +133,23 @@ export function MockDashboard() {
                     <div className="absolute -top-1 -right-1 w-3 h-3 bg-yellow-400 rounded-full animate-ping"></div>
                   </div>
                 </div>
-                <div className="text-4xl font-bold bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2">
+                <div className="text-4xl font-bold text-blue-700 mb-2">
                   Level {playerStats.xp.level}
                 </div>
-                <div className="text-sm font-medium text-blue-300 mb-3">Experience</div>
+                <div className="text-sm font-medium text-blue-800 mb-3">Experience</div>
                 <Progress 
                   value={(playerStats.xp.current / playerStats.xp.max) * 100} 
-                  className="h-4 bg-blue-900/30 border border-blue-500/30"
+                  className="h-4 bg-blue-200"
                 />
-                <div className="text-xs text-blue-300 mt-2 font-medium">
-                  <span className="text-yellow-400">{playerStats.xp.max - playerStats.xp.current} XP</span> to next level
+                <div className="text-xs text-blue-700 mt-2 font-medium">
+                  <span className="text-orange-600 font-bold">{playerStats.xp.max - playerStats.xp.current} XP</span> to next level
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Tokens Card - Treasure Style */}
-          <Card className="border-0 shadow-2xl hover:shadow-[0_0_40px_rgba(251,191,36,0.5)] transition-all duration-500 hover:scale-105 bg-gradient-to-br from-yellow-500/10 to-orange-900/20 backdrop-blur-sm border border-yellow-500/30">
+          <Card className="border-0 shadow-2xl hover:shadow-[0_0_40px_rgba(251,191,36,0.5)] transition-all duration-500 hover:scale-105 bg-gradient-to-br from-yellow-50 to-amber-100 backdrop-blur-sm border border-yellow-200">
             <CardContent className={`${isMobile ? 'p-4' : 'p-6'} text-center relative overflow-hidden`}>
               {/* Treasure glow effect */}
               <div className="absolute inset-0 bg-gradient-to-br from-yellow-400/20 to-orange-500/20 rounded-lg animate-pulse"></div>
@@ -161,16 +161,16 @@ export function MockDashboard() {
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/30 to-transparent rounded-full animate-ping"></div>
                   </div>
                 </div>
-                <div className="text-4xl font-bold bg-gradient-to-r from-yellow-400 to-orange-500 bg-clip-text text-transparent mb-2">
+                <div className="text-4xl font-bold text-amber-700 mb-2">
                   {playerStats.tokens.regular}
                 </div>
-                <div className="text-sm font-medium text-yellow-300 mb-3">Tokens</div>
-                <div className="flex items-center justify-center gap-2 bg-purple-500/20 rounded-full px-3 py-1 border border-purple-400/30">
-                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
-                  <span className="text-xs text-purple-300 font-bold">
+                <div className="text-sm font-medium text-amber-800 mb-3">Tokens</div>
+                <div className="flex items-center justify-center gap-2 bg-purple-100 rounded-full px-3 py-1 border border-purple-300">
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse"></div>
+                  <span className="text-xs text-purple-700 font-bold">
                     {playerStats.tokens.premium} Premium
                   </span>
-                  <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
+                  <div className="w-2 h-2 bg-purple-500 rounded-full animate-pulse" style={{ animationDelay: '0.5s' }}></div>
                 </div>
               </div>
             </CardContent>
