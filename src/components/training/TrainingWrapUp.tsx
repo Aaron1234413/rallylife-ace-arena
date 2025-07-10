@@ -10,14 +10,11 @@ import { useTrainingSession } from '@/contexts/TrainingSessionContext';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { useSearchUsers } from '@/hooks/useSearchUsers';
-import { useAuth } from '@/hooks/useAuth';
-import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { EmojiPicker } from './EmojiPicker';
 
 export function TrainingWrapUp() {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const { sessionData, clearSession, completeTrainingSession } = useTrainingSession();
   const { hpData } = usePlayerHP();
   const { xpData } = usePlayerXP();
@@ -140,7 +137,7 @@ export function TrainingWrapUp() {
 
   const hpImpact = calculateHPImpact();
   const xpGain = calculateXPGain();
-  const isLesson = Boolean(sessionData.sessionType === 'lesson' || sessionData.coachName);
+  const isLesson = sessionData.sessionType === 'lesson' || sessionData.coachName;
 
   const getCompletionMessage = () => {
     const messages = [
@@ -164,7 +161,7 @@ export function TrainingWrapUp() {
     setIsSubmitting(true);
     
     try {
-      // Complete training session with HP and XP rewards
+      // Complete training session using unified session system
       if (!sessionData.sessionId) {
         throw new Error('No active session found');
       }
@@ -173,49 +170,12 @@ export function TrainingWrapUp() {
         sessionId: sessionData.sessionId,
         duration: adjustedDuration,
         sessionNotes,
-        mood,
-        isLesson,
-        coachId,
-        coachLevel
+        mood
       });
 
-      // Complete the session in the unified system
       await completeTrainingSession(sessionData.sessionId, adjustedDuration);
-
-      // Apply HP and XP rewards through RPC
-      const { data, error } = await supabase.rpc('complete_training_with_rewards', {
-        session_id_param: sessionData.sessionId,
-        user_id_param: user?.id,
-        duration_minutes: adjustedDuration,
-        hp_change: hpImpact,
-        xp_gain: xpGain,
-        session_type: sessionData.sessionType || 'general',
-        intensity: sessionData.intensity || 'medium',
-        is_lesson: isLesson,
-        coach_id: coachId,
-        coach_level: coachLevel,
-        session_notes: sessionNotes,
-        mood: mood
-      });
-
-      if (error) {
-        console.error('Error applying training rewards:', error);
-        // Still proceed with completion, just log the error
-      }
-
-      const rewardsData = data as { hp_restored?: number; xp_gained?: number };
-      
       clearSession();
-      
-      const messages = [];
-      if (rewardsData?.xp_gained) messages.push(`+${rewardsData.xp_gained} XP`);
-      if (rewardsData?.hp_restored && rewardsData.hp_restored > 0) {
-        messages.push(`+${rewardsData.hp_restored} HP restored`);
-      } else if (hpImpact < 0) {
-        messages.push(`${hpImpact} HP consumed`);
-      }
-      
-      toast.success(`${isLesson ? 'Lesson' : 'Training session'} completed!${messages.length ? ` ${messages.join(', ')}.` : ''}`);
+      toast.success(`${isLesson ? 'Lesson' : 'Training session'} completed successfully!`);
       navigate('/sessions');
       
     } catch (error) {

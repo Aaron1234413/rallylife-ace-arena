@@ -10,10 +10,7 @@ import {
   Star,
   Gamepad2,
   Coins,
-  Calendar,
-  Heart,
-  AlertTriangle,
-  Zap
+  Calendar
 } from 'lucide-react';
 
 interface Session {
@@ -38,8 +35,6 @@ interface EnhancedSessionCardProps {
   onJoin: (sessionId: string) => void;
   isJoining: boolean;
   userBalance: number;
-  userHP?: number;
-  userLevel?: number;
   showDistance?: boolean;
 }
 
@@ -48,15 +43,12 @@ export function EnhancedSessionCard({
   onJoin, 
   isJoining, 
   userBalance,
-  userHP = 100,
-  userLevel = 1,
   showDistance = false 
 }: EnhancedSessionCardProps) {
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'match': return Trophy;
-      case 'challenge': return Zap;
-      case 'social_play': return Users;
+      case 'social': return Users;
       case 'training': return Star;
       default: return Gamepad2;
     }
@@ -65,8 +57,7 @@ export function EnhancedSessionCard({
   const getTypeColor = (type: string) => {
     switch (type) {
       case 'match': return 'bg-red-100 text-red-700 border-red-200';
-      case 'challenge': return 'bg-orange-100 text-orange-700 border-orange-200';
-      case 'social_play': return 'bg-green-100 text-green-700 border-green-200';
+      case 'social': return 'bg-green-100 text-green-700 border-green-200';
       case 'training': return 'bg-blue-100 text-blue-700 border-blue-200';
       default: return 'bg-muted text-muted-foreground';
     }
@@ -76,21 +67,9 @@ export function EnhancedSessionCard({
   const hasInsufficientTokens = session.stakes_amount > 0 && userBalance < session.stakes_amount;
   const spotsFilled = (session.participant_count || 0) / session.max_players;
   const isAlmostFull = spotsFilled >= 0.75;
-  
-  // HP reduction calculations using same formula as backend
-  const isChallenge = session.session_type === 'challenge';
-  const estimatedDuration = 60; // Default 60 minutes for estimation
-  const calculateHPReduction = (level: number, duration: number, type: string) => {
-    if (type === 'social' || type === 'training') return 0;
-    const baseReduction = Math.floor(duration / 10);
-    const levelModifier = (100 - level) / 100;
-    return Math.max(1, Math.floor(baseReduction * levelModifier));
-  };
-  const hpReduction = calculateHPReduction(userLevel, estimatedDuration, session.session_type);
-  const hasInsufficientHP = isChallenge && userHP < hpReduction;
 
   return (
-    <Card className={`hover:shadow-md transition-shadow duration-200 border-l-4 ${isChallenge ? 'border-l-orange-500' : 'border-l-primary'}`}>
+    <Card className="hover:shadow-md transition-shadow duration-200 border-l-4 border-l-primary">
       <CardContent className="p-4">
         <div className="space-y-3">
           {/* Header */}
@@ -152,20 +131,6 @@ export function EnhancedSessionCard({
             )}
           </div>
 
-          {/* HP Impact Warning */}
-          {isChallenge && (
-            <div className="flex items-center gap-2 p-2 bg-orange-50 border border-orange-200 rounded-md">
-              <AlertTriangle className="h-4 w-4 text-orange-600" />
-              <div className="flex-1">
-                <div className="text-sm font-medium text-orange-800">Challenge Session</div>
-                <div className="text-xs text-orange-600">
-                  Will consume ~{hpReduction} HP • Current HP: {userHP}
-                </div>
-              </div>
-              <Heart className={`h-4 w-4 ${hasInsufficientHP ? 'text-red-500' : 'text-orange-600'}`} />
-            </div>
-          )}
-
           {/* Stakes */}
           {session.stakes_amount > 0 && (
             <div className={`flex items-center gap-2 text-sm ${hasInsufficientTokens ? 'text-destructive' : 'text-yellow-600'}`}>
@@ -189,10 +154,6 @@ export function EnhancedSessionCard({
             {session.user_joined ? (
               <Button variant="secondary" size="sm" disabled className="w-full">
                 Already Joined
-              </Button>
-            ) : hasInsufficientHP ? (
-              <Button variant="outline" size="sm" disabled className="w-full text-red-600 border-red-300">
-                Insufficient HP ({userHP}/{hpReduction} needed)
               </Button>
             ) : hasInsufficientTokens ? (
               <Button variant="outline" size="sm" disabled className="w-full text-destructive border-destructive">

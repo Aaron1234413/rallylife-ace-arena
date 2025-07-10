@@ -20,10 +20,8 @@ import {
   Loader2
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
-import { useSearchParams } from 'react-router-dom';
-import { UnifiedSessionCreationDialog } from '@/components/sessions/UnifiedSessionCreationDialog';
+import { Link, useSearchParams } from 'react-router-dom';
 import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
-import { toast } from 'sonner';
 import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
 import { useAuth } from '@/hooks/useAuth';
@@ -35,13 +33,12 @@ import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useMatchHistory } from '@/hooks/useMatchHistory';
 import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
+import { toast } from 'sonner';
 import { MobileSessionCard } from '@/components/play/MobileSessionCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PlayerStatsWidget } from '@/components/play/PlayerStatsWidget';
 import { EnhancedSessionCard } from '@/components/play/EnhancedSessionCard';
 import { RecommendedSection } from '@/components/play/RecommendedSection';
-import { TokenBalance } from '@/components/tokens/TokenBalance';
-import { TokenTransactionHistory } from '@/components/tokens/TokenTransactionHistory';
 
 const Play = () => {
   const { user } = useAuth();
@@ -60,13 +57,9 @@ const Play = () => {
   // State for delete operations
   const [deletingStates, setDeletingStates] = useState<Record<string, boolean>>({});
   
-  // State for session creation dialog
-  const [createDialogOpen, setCreateDialogOpen] = useState(false);
-  
   // Token balance for checking stakes
   const { 
     regularTokens, 
-    transactions,
     loading: tokensLoading,
     refreshTokens 
   } = usePlayerTokens();
@@ -75,7 +68,7 @@ const Play = () => {
   const { xpData, loading: xpLoading } = usePlayerXP();
   
   // Player HP data
-  const { hpData, activities: hpActivities, loading: hpLoading } = usePlayerHP();
+  const { hpData, loading: hpLoading } = usePlayerHP();
   
   // Match history data  
   const { matchHistory, loading: matchLoading } = useMatchHistory();
@@ -122,17 +115,18 @@ const Play = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Get real session data - use single hook instance to prevent duplicate subscriptions
+  // Get real session data
   const { 
-    sessions: allSessions, 
-    loading: sessionsLoading, 
+    sessions: availableSessions, 
+    loading: availableLoading, 
     joinSession,
     error: sessionError 
-  } = useSafeRealTimeSessions(activeTab === 'mine' ? 'my-sessions' : 'available', user?.id);
+  } = useSafeRealTimeSessions('available', user?.id);
   
-  // Split sessions based on activeTab for proper display
-  const availableSessions = activeTab === 'mine' ? [] : allSessions;
-  const mySessions = activeTab === 'mine' ? allSessions : [];
+  const { 
+    sessions: mySessions, 
+    loading: mySessionsLoading 
+  } = useSafeRealTimeSessions('my-sessions', user?.id);
 
   // Enhanced session filtering and sorting
   const filteredAndSortedSessions = useMemo(() => {
@@ -259,13 +253,12 @@ const Play = () => {
                   </Badge>
                 )}
               </Button>
-              <Button 
-                size="sm"
-                onClick={() => setCreateDialogOpen(true)}
-              >
-                <Plus className="h-4 w-4" />
-                {!isMobile && "Create"}
-              </Button>
+              <Link to="/create-session">
+                <Button size="sm">
+                  <Plus className="h-4 w-4" />
+                  {!isMobile && "Create"}
+                </Button>
+              </Link>
             </div>
           </div>
           
@@ -291,12 +284,10 @@ const Play = () => {
             currentXP={xpData?.current_xp || 0}
             xpToNext={xpData?.xp_to_next_level || 100}
             tokens={regularTokens}
-            hp={hpData?.current_hp || 100}
-            maxHP={hpData?.max_hp || 100}
-            matchesWon={Array.isArray(matchHistory) ? matchHistory.filter(m => m.result === 'won').length : 0}
-            totalMatches={Array.isArray(matchHistory) ? matchHistory.length : 0}
-            recentHPActivities={hpActivities?.slice(0, 5) || []}
-            loading={hpLoading || xpLoading}
+            hp={80} // TODO: Get from player HP hook
+            maxHP={100}
+            matchesWon={2} // TODO: Get from match history
+            totalMatches={5}
           />
         </div>
 
@@ -374,7 +365,7 @@ const Play = () => {
             {/* Recent Sessions */}
             <div>
               <h2 className="text-lg font-semibold mb-3">Recent Sessions</h2>
-              {sessionsLoading ? (
+              {availableLoading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
                     <Card key={i} className="animate-pulse">
@@ -393,10 +384,12 @@ const Play = () => {
                         <h3 className="text-lg font-semibold">No Sessions Available</h3>
                         <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
                       </div>
-                      <Button onClick={() => setCreateDialogOpen(true)}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Session
-                      </Button>
+                      <Link to="/create-session">
+                        <Button>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create Session
+                        </Button>
+                      </Link>
                     </div>
                   </CardContent>
                 </Card>
@@ -409,8 +402,6 @@ const Play = () => {
                       onJoin={handleJoinSession}
                       isJoining={isJoining(session.id)}
                       userBalance={regularTokens}
-                      userHP={hpData?.current_hp || 100}
-                      userLevel={xpData?.current_level || 1}
                       showDistance={hasLocation}
                     />
                   ))}
@@ -468,8 +459,6 @@ const Play = () => {
                       onJoin={handleJoinSession}
                       isJoining={isJoining(session.id)}
                       userBalance={regularTokens}
-                      userHP={hpData?.current_hp || 100}
-                      userLevel={xpData?.current_level || 1}
                       showDistance={true}
                     />
                   );
@@ -480,7 +469,7 @@ const Play = () => {
 
           {/* All Sessions Tab */}
           <TabsContent value="all" className="space-y-4">
-            {sessionsLoading ? (
+            {availableLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
                   <Card key={i} className="animate-pulse">
@@ -499,10 +488,12 @@ const Play = () => {
                       <h3 className="text-lg font-semibold">No Active Sessions</h3>
                       <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
                     </div>
-                    <Button onClick={() => setCreateDialogOpen(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Session
-                    </Button>
+                    <Link to="/create-session">
+                      <Button>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Session
+                      </Button>
+                    </Link>
                   </div>
                 </CardContent>
               </Card>
@@ -515,86 +506,60 @@ const Play = () => {
                     onJoin={handleJoinSession}
                     isJoining={isJoining(session.id)}
                     userBalance={regularTokens}
-                     userHP={hpData?.current_hp || 100}
-                     userLevel={xpData?.current_level || 1}
-                     showDistance={hasLocation}
-                   />
-                 ))}
-               </div>
-             )}
-           </TabsContent>
+                    showDistance={hasLocation}
+                  />
+                ))}
+              </div>
+            )}
+          </TabsContent>
 
-           {/* Mine Tab */}
-           <TabsContent value="mine" className="space-y-4">
-             {sessionsLoading ? (
-               <div className="space-y-4">
-                 {[1, 2].map((i) => (
-                   <Card key={i} className="animate-pulse">
-                     <CardContent className="p-4">
-                       <div className="h-20 bg-muted rounded"></div>
-                     </CardContent>
-                   </Card>
-                 ))}
-               </div>
-             ) : mySessions.length === 0 ? (
-               <Card>
-                 <CardContent className="p-8 text-center">
-                   <div className="space-y-4">
-                     <Trophy className="h-12 w-12 text-muted-foreground mx-auto" />
-                     <div>
-                       <h3 className="text-lg font-semibold">No Sessions Yet</h3>
-                       <p className="text-muted-foreground">You haven't joined or created any sessions.</p>
-                     </div>
-                       <Button onClick={() => setCreateDialogOpen(true)}>
-                         <Plus className="h-4 w-4 mr-2" />
-                         Create Your First Session
-                       </Button>
-                   </div>
-                 </CardContent>
-               </Card>
-             ) : (
-               <div className="space-y-4">
-                 {mySessions.map((session) => (
-                   <EnhancedSessionCard
-                     key={session.id}
-                     session={session}
-                     onJoin={handleJoinSession}
-                     isJoining={isJoining(session.id)}
-                     userBalance={regularTokens}
-                     userHP={hpData?.current_hp || 100}
-                     userLevel={xpData?.current_level || 1}
-                     showDistance={hasLocation}
-                   />
-                 ))}
+          {/* Mine Tab */}
+          <TabsContent value="mine" className="space-y-4">
+            {mySessionsLoading ? (
+              <div className="space-y-4">
+                {[1, 2].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-4">
+                      <div className="h-20 bg-muted rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : mySessions.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="space-y-4">
+                    <Trophy className="h-12 w-12 text-muted-foreground mx-auto" />
+                    <div>
+                      <h3 className="text-lg font-semibold">No Sessions Yet</h3>
+                      <p className="text-muted-foreground">You haven't joined or created any sessions.</p>
+                    </div>
+                    <Link to="/create-session">
+                      <Button>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Your First Session
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-4">
+                {mySessions.map((session) => (
+                  <EnhancedSessionCard
+                    key={session.id}
+                    session={session}
+                    onJoin={handleJoinSession}
+                    isJoining={isJoining(session.id)}
+                    userBalance={regularTokens}
+                    showDistance={hasLocation}
+                  />
+                ))}
               </div>
             )}
           </TabsContent>
         </Tabs>
-
-        {/* Token Economy Section */}
-        <div className="mt-8 grid gap-6 lg:grid-cols-3">
-          <TokenBalance 
-            onPurchaseClick={() => console.log('Purchase tokens')}
-            onHistoryClick={() => console.log('View history')}
-          />
-          <div className="lg:col-span-2">
-            <TokenTransactionHistory 
-              transactions={transactions}
-              loading={tokensLoading}
-            />
-          </div>
-        </div>
       </div>
-
-      {/* Session Creation Dialog */}
-      <UnifiedSessionCreationDialog
-        open={createDialogOpen}
-        onOpenChange={setCreateDialogOpen}
-        onSessionCreated={() => {
-          // Data will refresh automatically via real-time subscriptions
-          toast.success('Session created successfully!');
-        }}
-      />
     </div>
   );
 };

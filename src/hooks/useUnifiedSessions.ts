@@ -22,19 +22,11 @@ export interface UnifiedSession {
   created_at: string;
   updated_at: string;
   
-  // Session lifecycle fields
-  session_started_at?: string;
-  session_ended_at?: string;
-  winning_team?: string | null;
-  platform_fee_percentage?: number;
-  
-  // Real-time computed fields
+  // Computed fields
   participant_count?: number;
   user_has_joined?: boolean;
-  duration_minutes?: number;
-  status?: 'upcoming' | 'active' | 'completed' | 'cancelled';
   
-  // Related data with HP/level info
+  // Related data
   creator?: {
     full_name: string;
     avatar_url?: string;
@@ -54,16 +46,10 @@ export interface SessionParticipant {
   money_paid: number;
   notes?: string;
   
-  // Enhanced participant data
-  stakes_contributed?: number;
-  
-  // Related data with HP/level info
+  // Related data
   user?: {
     full_name: string;
     avatar_url?: string;
-    current_hp?: number;
-    current_level?: number;
-    total_xp?: number;
   };
 }
 
@@ -120,7 +106,7 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
 
       if (error) throw error;
 
-      // Get participant counts, user participation, and calculate durations
+      // Get participant counts and user participation status
       const sessionsWithCounts = await Promise.all(
         (sessionsData || []).map(async (session) => {
           const [participantCount, userParticipation] = await Promise.all([
@@ -128,29 +114,11 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
             getUserParticipationStatus(session.id)
           ]);
 
-          // Calculate duration if session has started
-          let durationMinutes = 0;
-          if (session.session_started_at) {
-            const startTime = new Date(session.session_started_at);
-            const endTime = session.session_ended_at ? new Date(session.session_ended_at) : new Date();
-            durationMinutes = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60));
-          }
-
-          // Determine session status
-          let status: 'upcoming' | 'active' | 'completed' | 'cancelled' = 'upcoming';
-          if (session.session_started_at) {
-            status = session.session_ended_at ? 'completed' : 'active';
-          }
-
           return {
             ...session,
-            // Cast winning_team from Json to string | null
-            winning_team: typeof session.winning_team === 'string' ? session.winning_team : null,
             participant_count: participantCount,
-            user_has_joined: userParticipation,
-            duration_minutes: durationMinutes,
-            status
-          } as UnifiedSession;
+            user_has_joined: userParticipation
+          };
         })
       );
 
@@ -197,7 +165,7 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     }
   };
 
-  // Join a session with HP validation
+  // Join a session
   const joinSession = async (sessionId: string): Promise<boolean> => {
     if (!user) return false;
 
@@ -205,27 +173,17 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     
     try {
       const { data, error } = await supabase
-        .rpc('join_session_with_hp_check', {
+        .rpc('join_session', {
           session_id_param: sessionId,
           user_id_param: user.id
         });
 
       if (error) throw error;
 
-      const result = data as { 
-        success: boolean; 
-        error?: string; 
-        tokens_paid?: number;
-        hp_cost?: number;
-        hp_after?: number;
-      };
+      const result = data as { success: boolean; error?: string; tokens_paid?: number };
       
       if (result.success) {
-        const messages = [];
-        if (result.tokens_paid) messages.push(`${result.tokens_paid} tokens charged`);
-        if (result.hp_cost) messages.push(`${result.hp_cost} HP consumed`);
-        
-        toast.success(`Successfully joined session!${messages.length ? ` ${messages.join(', ')}.` : ''}`);
+        toast.success(`Successfully joined session! ${result.tokens_paid ? `${result.tokens_paid} tokens charged.` : ''}`);
         await fetchSessions(); // Refresh to update participant counts
         return true;
       } else {
@@ -264,7 +222,7 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     }
   };
 
-  // Get session participants with HP/level data
+  // Get session participants
   const getSessionParticipants = async (sessionId: string): Promise<SessionParticipant[]> => {
     try {
       const { data, error } = await supabase
@@ -280,115 +238,35 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
         .order('joined_at', { ascending: true });
 
       if (error) throw error;
-
-      // Get HP and XP data for each participant
-      const participantsWithStats = await Promise.all(
-        (data || []).map(async (participant) => {
-          const [hpData, xpData] = await Promise.all([
-            supabase
-              .from('player_hp')
-              .select('current_hp')
-              .eq('player_id', participant.user_id)
-              .single(),
-            supabase
-              .from('player_xp')
-              .select('current_level, total_xp_earned')
-              .eq('player_id', participant.user_id)
-              .single()
-          ]);
-
-          return {
-            ...participant,
-            role: 'player', // Default role since it's not in the database yet
-            user: {
-              ...participant.user,
-              current_hp: hpData.data?.current_hp || 100,
-              current_level: xpData.data?.current_level || 1,
-              total_xp: xpData.data?.total_xp_earned || 0
-            }
-          };
-        })
-      );
-
-      return participantsWithStats as SessionParticipant[];
+      return (data as any) || [];
     } catch (error) {
       console.error('Error fetching session participants:', error);
       return [];
     }
   };
 
-  // Start a session with HP reduction tracking
+  // Start a session (update status)
   const startSession = async (sessionId: string): Promise<boolean> => {
     if (!user) return false;
 
     try {
-      const { data, error } = await supabase
-        .rpc('start_session_with_tracking', {
-          session_id_param: sessionId,
-          starter_id_param: user.id
-        });
+      const { error } = await supabase
+        .from('sessions')
+        .update({ 
+          updated_at: new Date().toISOString()
+          // Add status field if needed in future
+        })
+        .eq('id', sessionId)
+        .eq('creator_id', user.id);
 
       if (error) throw error;
 
-      const result = data as { success: boolean; error?: string; hp_reductions?: any[] };
-      
-      if (result.success) {
-        const hpReductionsCount = result.hp_reductions?.length || 0;
-        toast.success(`Session started! ${hpReductionsCount > 0 ? `HP reduced for ${hpReductionsCount} participants.` : ''}`);
-        await fetchSessions();
-        return true;
-      } else {
-        toast.error(result.error || 'Failed to start session');
-        return false;
-      }
+      toast.success('Session started!');
+      await fetchSessions();
+      return true;
     } catch (error) {
       console.error('Error starting session:', error);
       toast.error('Failed to start session');
-      return false;
-    }
-  };
-
-  // Complete a session with HP and token distribution
-  const completeSession = async (
-    sessionId: string, 
-    durationMinutes: number, 
-    winnerId?: string,
-    winningTeam?: string
-  ): Promise<boolean> => {
-    if (!user) return false;
-
-    try {
-      const { data, error } = await supabase
-        .rpc('complete_session_with_hp', {
-          session_id_param: sessionId,
-          winner_id_param: winnerId || null,
-          winning_team_param: winningTeam || null
-        });
-
-      if (error) throw error;
-
-      const result = data as { 
-        success: boolean; 
-        error?: string; 
-        rewards?: any;
-        total_hp_consumed?: number;
-        tokens_distributed?: number;
-      };
-      
-      if (result.success) {
-        const { total_hp_consumed, tokens_distributed } = result;
-        toast.success(
-          `Session completed! ${total_hp_consumed ? `${total_hp_consumed} HP consumed.` : ''} ${tokens_distributed ? `${tokens_distributed} tokens distributed.` : ''}`
-        );
-        await fetchSessions();
-        return true;
-      } else {
-        toast.error(result.error || 'Failed to complete session');
-        return false;
-      }
-    } catch (error) {
-      console.error('Error completing session:', error);
-      toast.error('Failed to complete session');
       return false;
     }
   };
@@ -466,7 +344,6 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     leaveSession,
     getSessionParticipants,
     startSession,
-    completeSession,
     cancelSession,
     refreshSessions: fetchSessions
   };

@@ -24,7 +24,6 @@ import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { toast } from 'sonner';
 import { LocationInput } from '@/components/ui/location-input';
 import { useAuth } from '@/hooks/useAuth';
-import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { supabase } from '@/integrations/supabase/client';
 
 export interface SelectedPlayer {
@@ -54,7 +53,6 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   const { createEvent, isCreatingEvent } = useSocialPlayEvents();
   const { createSocialPlayInvitation } = useUnifiedInvitations();
   const { user } = useAuth();
-  const { hpData } = usePlayerHP();
 
   // Form state
   const [title, setTitle] = useState('');
@@ -63,7 +61,6 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   const [scheduledDate, setScheduledDate] = useState<Date>();
   const [scheduledTime, setScheduledTime] = useState('');
   const [description, setDescription] = useState('');
-  const [stakesAmount, setStakesAmount] = useState(0);
 
   // Player selection state
   const [selectedOpponent, setSelectedOpponent] = useState<SelectedPlayer | null>(null);
@@ -77,19 +74,8 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   const isFormValid = () => {
     const basicFieldsValid = title.trim() && location.trim() && scheduledDate && scheduledTime;
     
-    // Check HP requirements for joining own session
-    const hpCost = calculateHPCost(stakesAmount);
-    const hasEnoughHP = !hpData || hpData.current_hp >= hpCost;
-    
-    return basicFieldsValid && hasEnoughHP;
-  };
-
-  const calculateHPCost = (stakes: number) => {
-    if (stakes >= 100) return 25;
-    if (stakes >= 50) return 15;
-    if (stakes >= 20) return 10;
-    if (stakes > 0) return 5;
-    return 3; // Free sessions
+    // For simplified version, just require basic fields
+    return basicFieldsValid;
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -111,7 +97,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
         session_type: 'social_play',
         format: sessionType,
         max_players: sessionType === 'singles' ? 2 : 4,
-        stakes_amount: stakesAmount,
+        stakes_amount: 0, // Social play is typically free
         location: location.trim(),
         notes: description.trim() || null,
         is_private: false,
@@ -130,20 +116,16 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
 
       if (sessionError) throw sessionError;
 
-      // Auto-join session with HP check
+      // Automatically join the session as creator
       if (session && user) {
-        const { data: joinResult, error: joinError } = await supabase
-          .rpc('join_session_with_hp_check', {
+        const { error: joinError } = await supabase
+          .rpc('join_session', {
             session_id_param: session.id,
             user_id_param: user.id
           });
 
-        const result = joinResult as { success: boolean; error?: string; hp_cost?: number };
-        
-        if (joinError || !result?.success) {
-          console.error('Failed to auto-join session:', joinError || result?.error);
-          toast.error(result?.error || 'Failed to join your own session');
-          return;
+        if (joinError) {
+          console.error('Failed to auto-join session:', joinError);
         }
       }
 
@@ -155,7 +137,6 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
       setScheduledDate(undefined);
       setScheduledTime('');
       setDescription('');
-      setStakesAmount(0);
       setSelectedOpponent(null);
       setSelectedPartner(null);
       setSelectedOpponents([]);
@@ -307,52 +288,6 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
               />
             </div>
 
-            {/* Stakes Selection */}
-            <div className="space-y-3">
-              <Label className="text-base font-medium">Stakes (Optional)</Label>
-              <div className="space-y-2">
-                <Input
-                  type="number"
-                  placeholder="Enter token amount"
-                  value={stakesAmount || ''}
-                  onChange={(e) => setStakesAmount(Number(e.target.value) || 0)}
-                  min="0"
-                  max="500"
-                />
-                <div className="flex gap-2">
-                  {[0, 10, 25, 50, 100].map((amount) => (
-                    <Button
-                      key={amount}
-                      type="button"
-                      variant={stakesAmount === amount ? "default" : "outline"}
-                      size="sm"
-                      onClick={() => setStakesAmount(amount)}
-                    >
-                      {amount === 0 ? 'Free' : `${amount} tokens`}
-                    </Button>
-                  ))}
-                </div>
-                
-                {/* HP Cost Preview */}
-                {hpData && (
-                  <div className="flex items-center gap-2 p-2 bg-muted rounded-md">
-                    <div className="text-sm">
-                      <span className="text-muted-foreground">HP Cost: </span>
-                      <span className={`font-medium ${hpData.current_hp >= calculateHPCost(stakesAmount) ? 'text-green-600' : 'text-red-600'}`}>
-                        {calculateHPCost(stakesAmount)} HP
-                      </span>
-                      <span className="text-muted-foreground ml-2">
-                        (You have {hpData.current_hp} HP)
-                      </span>
-                    </div>
-                    {hpData.current_hp < calculateHPCost(stakesAmount) && (
-                      <span className="text-red-600 text-xs">Insufficient HP!</span>
-                    )}
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Submit Button */}
             <div className="flex gap-3 pt-4">
               <Button
@@ -360,13 +295,8 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
                 disabled={!isFormValid() || isCreatingEvent}
                 className="flex-1"
               >
-                {isCreatingEvent ? 'Creating Event...' : 'Create Event & Join Session'}
+                {isCreatingEvent ? 'Creating Event...' : 'Create Event & Send Invitations'}
               </Button>
-              {!isFormValid() && hpData && hpData.current_hp < calculateHPCost(stakesAmount) && (
-                <p className="text-sm text-red-600 mt-2">
-                  You need {calculateHPCost(stakesAmount)} HP to create and join this session.
-                </p>
-              )}
             </div>
           </form>
         </div>

@@ -1,125 +1,115 @@
-import React, { useState } from 'react';
+
+import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { Input } from '@/components/ui/input';
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { 
-  Coins, 
-  TrendingUp, 
-  TrendingDown, 
-  Trophy, 
-  Users, 
-  GraduationCap,
-  Building,
-  Filter,
-  Search,
-  Calendar
+  History,
+  ArrowUp,
+  ArrowDown,
+  RefreshCw,
+  Calendar,
+  Trophy,
+  Gift,
+  Heart,
+  Shirt,
+  MapPin,
+  Swords,
+  Star,
+  Gem
 } from 'lucide-react';
-import { TokenTransaction } from '@/hooks/usePlayerTokens';
+
+interface TokenTransaction {
+  id: string;
+  transaction_type: string;
+  token_type: string;
+  amount: number;
+  balance_before: number;
+  balance_after: number;
+  source: string;
+  description: string;
+  created_at: string;
+}
 
 interface TokenTransactionHistoryProps {
   transactions: TokenTransaction[];
-  loading?: boolean;
+  loading: boolean;
   className?: string;
 }
 
-export function TokenTransactionHistory({
-  transactions,
-  loading = false,
-  className
-}: TokenTransactionHistoryProps) {
-  const [filter, setFilter] = useState('all');
-  const [searchTerm, setSearchTerm] = useState('');
-
-  const getTransactionIcon = (transaction: TokenTransaction) => {
-    if (transaction.source.includes('session') || transaction.source.includes('challenge')) {
-      return Trophy;
-    }
-    if (transaction.source.includes('training')) {
-      return GraduationCap;
-    }
-    if (transaction.source.includes('social')) {
-      return Users;
-    }
-    if (transaction.source.includes('platform')) {
-      return Building;
-    }
-    return transaction.transaction_type === 'earn' ? TrendingUp : TrendingDown;
+const getSourceIcon = (source: string) => {
+  const iconMap: { [key: string]: React.ComponentType<any> } = {
+    daily_login: Calendar,
+    match_win: Trophy,
+    achievement: Star,
+    tournament: Trophy,
+    premium_bonus: Gem,
+    bonus_gift: Gift,
+    health_pack_small: Heart,
+    health_pack_large: Heart,
+    avatar_hat: Shirt,
+    court_booking: MapPin,
+    challenge_entry: Swords,
+    premium_avatar: Gem,
+    conversion: RefreshCw
   };
+  
+  return iconMap[source] || Gift;
+};
 
-  const getTransactionColor = (transaction: TokenTransaction) => {
-    if (transaction.transaction_type === 'earn') {
+const getTransactionColor = (type: string) => {
+  switch (type) {
+    case 'earn':
       return 'text-green-600';
-    }
-    if (transaction.source.includes('platform')) {
+    case 'spend':
+      return 'text-red-600';
+    case 'convert':
       return 'text-blue-600';
-    }
-    return 'text-red-600';
-  };
+    default:
+      return 'text-gray-600';
+  }
+};
 
-  const getSourceBadgeColor = (source: string) => {
-    if (source.includes('challenge') || source.includes('session')) {
-      return 'bg-orange-100 text-orange-800 border-orange-200';
-    }
-    if (source.includes('training')) {
-      return 'bg-green-100 text-green-800 border-green-200';
-    }
-    if (source.includes('social')) {
-      return 'bg-blue-100 text-blue-800 border-blue-200';
-    }
-    if (source.includes('platform')) {
-      return 'bg-purple-100 text-purple-800 border-purple-200';
-    }
-    return 'bg-gray-100 text-gray-800 border-gray-200';
-  };
+const getTransactionIcon = (type: string) => {
+  switch (type) {
+    case 'earn':
+      return ArrowUp;
+    case 'spend':
+      return ArrowDown;
+    case 'convert':
+      return RefreshCw;
+    default:
+      return ArrowUp;
+  }
+};
 
-  const filteredTransactions = transactions.filter(transaction => {
-    const matchesFilter = filter === 'all' || 
-      (filter === 'earned' && transaction.transaction_type === 'earn') ||
-      (filter === 'spent' && transaction.transaction_type === 'spend') ||
-      (filter === 'sessions' && (transaction.source.includes('session') || transaction.source.includes('challenge'))) ||
-      (filter === 'platform' && transaction.source.includes('platform'));
-
-    const matchesSearch = !searchTerm || 
-      transaction.description?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      transaction.source.toLowerCase().includes(searchTerm.toLowerCase());
-
-    return matchesFilter && matchesSearch;
-  });
-
-  const totalEarned = transactions
-    .filter(t => t.transaction_type === 'earn')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const totalSpent = transactions
-    .filter(t => t.transaction_type === 'spend')
-    .reduce((sum, t) => sum + t.amount, 0);
-
-  const sessionEarnings = transactions
-    .filter(t => t.transaction_type === 'earn' && (t.source.includes('session') || t.source.includes('challenge')))
-    .reduce((sum, t) => sum + t.amount, 0);
-
+export function TokenTransactionHistory({ transactions, loading, className }: TokenTransactionHistoryProps) {
   if (loading) {
     return (
       <Card className={className}>
         <CardHeader>
-          <CardTitle>Transaction History</CardTitle>
+          <CardTitle className="flex items-center gap-2">
+            <History className="h-5 w-5" />
+            Transaction History
+          </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            {[1, 2, 3].map((i) => (
-              <div key={i} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg animate-pulse">
-                <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-muted rounded-full"></div>
-                  <div className="space-y-1">
-                    <div className="w-32 h-4 bg-muted rounded"></div>
-                    <div className="w-20 h-3 bg-muted rounded"></div>
-                  </div>
-                </div>
-                <div className="w-16 h-6 bg-muted rounded"></div>
-              </div>
-            ))}
-          </div>
+          <p className="text-center text-muted-foreground">Loading transactions...</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (!transactions.length) {
+    return (
+      <Card className={className}>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <History className="h-5 w-5" />
+            Transaction History
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <p className="text-center text-muted-foreground">No transactions yet</p>
         </CardContent>
       </Card>
     );
@@ -129,126 +119,50 @@ export function TokenTransactionHistory({
     <Card className={className}>
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
-          <Coins className="h-5 w-5 text-tennis-yellow" />
-          Token Transaction History
+          <History className="h-5 w-5" />
+          Transaction History
         </CardTitle>
-        
-        {/* Summary Stats */}
-        <div className="grid grid-cols-3 gap-4 mt-4">
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <TrendingUp className="h-4 w-4 text-green-600" />
-              <span className="text-sm font-medium text-green-600">Earned</span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <Coins className="h-4 w-4 text-tennis-yellow" />
-              <span className="font-bold">{totalEarned}</span>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <TrendingDown className="h-4 w-4 text-red-600" />
-              <span className="text-sm font-medium text-red-600">Spent</span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <Coins className="h-4 w-4 text-tennis-yellow" />
-              <span className="font-bold">{totalSpent}</span>
-            </div>
-          </div>
-          <div className="text-center">
-            <div className="flex items-center justify-center gap-1 mb-1">
-              <Trophy className="h-4 w-4 text-orange-600" />
-              <span className="text-sm font-medium text-orange-600">Sessions</span>
-            </div>
-            <div className="flex items-center justify-center gap-1">
-              <Coins className="h-4 w-4 text-tennis-yellow" />
-              <span className="font-bold">{sessionEarnings}</span>
-            </div>
-          </div>
-        </div>
       </CardHeader>
-
-      <CardContent className="space-y-4">
-        {/* Filters */}
-        <div className="flex gap-2 flex-wrap">
-          <div className="flex-1 min-w-48">
-            <div className="relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Search transactions..."
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                className="pl-9"
-              />
-            </div>
-          </div>
-          <Select value={filter} onValueChange={setFilter}>
-            <SelectTrigger className="w-40">
-              <Filter className="h-4 w-4 mr-2" />
-              <SelectValue />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">All Transactions</SelectItem>
-              <SelectItem value="earned">Earned</SelectItem>
-              <SelectItem value="spent">Spent</SelectItem>
-              <SelectItem value="sessions">Sessions</SelectItem>
-              <SelectItem value="platform">Platform</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-
-        {/* Transactions List */}
-        <div className="space-y-2">
-          {filteredTransactions.length === 0 ? (
-            <div className="text-center py-8 text-muted-foreground">
-              <Coins className="h-8 w-8 mx-auto mb-2 opacity-50" />
-              <p>No transactions found</p>
-              <p className="text-sm">Try adjusting your filters or search terms</p>
-            </div>
-          ) : (
-            filteredTransactions.map((transaction) => {
-              const Icon = getTransactionIcon(transaction);
-              const colorClass = getTransactionColor(transaction);
-              const badgeColor = getSourceBadgeColor(transaction.source);
-              
-              return (
-                <div key={transaction.id} className="flex items-center justify-between p-3 bg-muted/30 rounded-lg hover:bg-muted/50 transition-colors">
-                  <div className="flex items-center gap-3">
-                    <div className={`p-2 rounded-full bg-background border ${colorClass}`}>
-                      <Icon className="h-4 w-4" />
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="font-medium">{transaction.description || 'Token Transaction'}</span>
-                        <Badge variant="outline" className={`${badgeColor} text-xs`}>
-                          {transaction.source}
-                        </Badge>
-                      </div>
-                      <div className="flex items-center gap-4 text-xs text-muted-foreground">
-                        <div className="flex items-center gap-1">
-                          <Calendar className="h-3 w-3" />
-                          {new Date(transaction.created_at).toLocaleDateString()}
-                        </div>
-                        <span>Balance: {transaction.balance_before} → {transaction.balance_after}</span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className={`flex items-center gap-1 font-bold ${colorClass}`}>
-                    {transaction.transaction_type === 'earn' ? '+' : '-'}
-                    <Coins className="h-4 w-4" />
-                    {transaction.amount}
-                  </div>
+      <CardContent>
+        <div className="space-y-3 max-h-96 overflow-y-auto">
+          {transactions.map((transaction) => {
+            const SourceIcon = getSourceIcon(transaction.source);
+            const TransactionIcon = getTransactionIcon(transaction.transaction_type);
+            const colorClass = getTransactionColor(transaction.transaction_type);
+            const isRegular = transaction.token_type === 'regular';
+            
+            return (
+              <div key={transaction.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
+                <div className="flex items-center gap-2">
+                  <SourceIcon className="h-4 w-4 text-gray-600" />
+                  <TransactionIcon className={`h-4 w-4 ${colorClass}`} />
                 </div>
-              );
-            })
-          )}
+                
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <p className="font-medium text-sm truncate">
+                      {transaction.description}
+                    </p>
+                    <Badge variant="outline" className="text-xs">
+                      {transaction.transaction_type}
+                    </Badge>
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    {new Date(transaction.created_at).toLocaleDateString()} at{' '}
+                    {new Date(transaction.created_at).toLocaleTimeString()}
+                  </p>
+                </div>
+                
+                <div className="flex items-center gap-1">
+                  <span className="text-xs">{isRegular ? '🪙' : '💎'}</span>
+                  <span className={`font-semibold text-sm ${colorClass}`}>
+                    {transaction.transaction_type === 'earn' ? '+' : '-'}{transaction.amount}
+                  </span>
+                </div>
+              </div>
+            );
+          })}
         </div>
-
-        {filteredTransactions.length > 0 && (
-          <div className="text-center text-xs text-muted-foreground">
-            Showing {filteredTransactions.length} of {transactions.length} transactions
-          </div>
-        )}
       </CardContent>
     </Card>
   );

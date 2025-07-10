@@ -25,19 +25,15 @@ import {
   X
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
-import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
 import { useEnhancedSessionActions } from '@/hooks/useEnhancedSessionActions';
 import { useSessionManager } from '@/hooks/useSessionManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
-import { SessionCreationDialog } from '@/components/sessions/SessionCreationDialog';
+import { UnifiedSessionCreationDialog } from '@/components/sessions/UnifiedSessionCreationDialog';
 import { EnhancedSessionCard } from '@/components/sessions/EnhancedSessionCard';
 import { SessionCompletionModal, SessionCompletionData } from '@/components/sessions/SessionCompletionModal';
-import { SessionActiveView } from '@/components/sessions/SessionActiveView';
-import { ActiveSessionsList } from '@/components/sessions/ActiveSessionsList';
-import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
 
 interface Session {
   id: string;
@@ -81,7 +77,6 @@ interface Session {
 
 const Sessions = () => {
   const { user } = useAuth();
-  const { xpData } = usePlayerXP();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('available');
   const [showFilters, setShowFilters] = useState(false);
@@ -179,8 +174,7 @@ const Sessions = () => {
   };
 
   const handleStartSession = async (sessionId: string) => {
-    const result = await startSession(sessionId);
-    return !!result; // Convert to boolean
+    await startSession(sessionId);
   };
 
   const handleCompleteSession = async (sessionId: string) => {
@@ -417,12 +411,6 @@ const Sessions = () => {
                   <span className="truncate">My Sessions</span>
                 </TabsTrigger>
                 <TabsTrigger 
-                  value="active" 
-                  className="flex-1 min-w-[120px] h-10 sm:h-12 px-4 sm:px-6 text-sm sm:text-base font-medium transition-all duration-200 data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-tennis-green-light/20 text-tennis-green-dark rounded-lg mx-1"
-                >
-                  <span className="truncate">Active</span>
-                </TabsTrigger>
-                <TabsTrigger 
                   value="completed" 
                   className="flex-1 min-w-[120px] h-10 sm:h-12 px-4 sm:px-6 text-sm sm:text-base font-medium transition-all duration-200 data-[state=active]:bg-tennis-green-primary data-[state=active]:text-white data-[state=active]:shadow-md hover:bg-tennis-green-light/20 text-tennis-green-dark rounded-lg mx-1"
                 >
@@ -435,7 +423,6 @@ const Sessions = () => {
             <SessionsList 
               sessions={filteredSessions} 
               loading={loading}
-              userLevel={xpData?.current_level || 1}
               onJoinSession={handleJoinSession}
               onLeaveSession={handleLeaveSession}
               onStartSession={handleStartSession}
@@ -451,7 +438,6 @@ const Sessions = () => {
             <SessionsList 
               sessions={filteredSessions} 
               loading={loading}
-              userLevel={xpData?.current_level || 1}
               onJoinSession={handleJoinSession}
               onLeaveSession={handleLeaveSession}
               onStartSession={handleStartSession}
@@ -463,28 +449,10 @@ const Sessions = () => {
             />
           </TabsContent>
 
-          <TabsContent value="active" className="mt-6">
-            <ActiveSessionsList 
-              sessions={filteredSessions.filter(s => s.status === 'active')} 
-              loading={loading}
-              onStartSession={handleStartSession}
-              onCompleteSession={async (sessionId, durationMinutes, winnerId, winningTeam) => {
-                // Handle completion using unified sessions hook
-                const result = await completeSession(sessionId, { 
-                  winnerId, 
-                  winningTeam, 
-                  sessionDuration: durationMinutes 
-                });
-                return !!result; // Convert to boolean
-              }}
-            />
-          </TabsContent>
-
           <TabsContent value="completed" className="mt-6">
             <SessionsList 
-              sessions={filteredSessions.filter(s => s.status === 'completed')} 
+              sessions={filteredSessions} 
               loading={loading}
-              userLevel={xpData?.current_level || 1}
               onJoinSession={handleJoinSession}
               onLeaveSession={handleLeaveSession}
               onStartSession={handleStartSession}
@@ -499,7 +467,7 @@ const Sessions = () => {
         </div>
 
         {/* Unified Session Creation Dialog */}
-        <SessionCreationDialog
+        <UnifiedSessionCreationDialog
           open={showCreateDialog}
           onOpenChange={setShowCreateDialog}
           onSuccess={() => {
@@ -530,7 +498,6 @@ const Sessions = () => {
 interface SessionsListProps {
   sessions: any[];
   loading: boolean;
-  userLevel: number;
   onJoinSession: (sessionId: string) => void;
   onLeaveSession: (sessionId: string) => void;
   onStartSession: (sessionId: string) => void;
@@ -544,7 +511,6 @@ interface SessionsListProps {
 const SessionsList: React.FC<SessionsListProps> = ({ 
   sessions, 
   loading, 
-  userLevel,
   onJoinSession,
   onLeaveSession,
   onStartSession,
@@ -593,7 +559,6 @@ const SessionsList: React.FC<SessionsListProps> = ({
           key={session.id}
           session={session}
           userRole="member"
-          userLevel={userLevel}
           onActionComplete={() => {
             // Handle action completion
             console.log('Action completed for session:', session.id);

@@ -189,15 +189,6 @@ const Index = () => {
     }
   }, [user?.id, profile?.role, dataInitialized]);
 
-  // Redirect coaches to their dedicated dashboard
-  useEffect(() => {
-    if (profile?.role === 'coach' && location.pathname === '/dashboard') {
-      console.log('🏠 [INDEX] Redirecting coach to coach dashboard');
-      navigate('/coach-dashboard', { replace: true });
-      return;
-    }
-  }, [profile?.role, location.pathname, navigate]);
-
   // Enhanced XP earning function that checks for avatar unlocks and achievements
   const handleAddXP = async (amount: number, activityType: string, description?: string) => {
     try {
@@ -334,17 +325,6 @@ const Index = () => {
   }
 
   console.log('🏠 [INDEX] Rendering main dashboard for role:', profile.role);
-
-  // Don't render anything for coaches being redirected
-  if (profile?.role === 'coach' && location.pathname === '/dashboard') {
-    return (
-      <div className="min-h-screen bg-tennis-green-bg flex items-center justify-center">
-        <div className="text-center">
-          <p className="text-tennis-green-dark">Redirecting to coach dashboard...</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-tennis-green-bg via-tennis-green-bg to-blue-50 relative overflow-hidden">
@@ -489,7 +469,7 @@ const Index = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                   {/* Start a Match - Primary Action */}
                   <Button 
-                    onClick={() => navigate('/play')}
+                    onClick={() => navigate('/sessions/create?type=match')}
                     className="h-20 sm:h-24 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-tennis-green-primary to-tennis-green-medium hover:from-tennis-green-medium hover:to-tennis-green-dark text-white shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-110 relative overflow-hidden group"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 group-hover:animate-pulse"></div>

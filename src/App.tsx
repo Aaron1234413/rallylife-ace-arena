@@ -38,7 +38,7 @@ import CoachDashboard from "@/pages/CoachDashboard";
 import { MockDashboard } from "@/pages/MockDashboard";
 import PlayMockup from "@/pages/PlayMockup";
 import Sessions from "@/pages/Sessions";
-
+import CreateSession from "@/pages/CreateSession";
 import Club from "@/pages/Club";
 import Clubs from "@/pages/Clubs";
 import JoinClub from "@/pages/JoinClub";
@@ -69,7 +69,7 @@ function AppWithGuide() {
           <Route path="/play" element={<ProtectedRoute><Play /></ProtectedRoute>} />
           <Route path="/play-mockup" element={<ProtectedRoute><PlayMockup /></ProtectedRoute>} />
           <Route path="/sessions" element={<ProtectedRoute><Sessions /></ProtectedRoute>} />
-          
+          <Route path="/sessions/create" element={<ProtectedRoute><CreateSession /></ProtectedRoute>} />
           <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
           <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
@@ -86,7 +86,7 @@ function AppWithGuide() {
           <Route path="/payment-gate" element={<ProtectedRoute><PaymentGate /></ProtectedRoute>} />
           <Route path="/clubs" element={<ProtectedRoute><Clubs /></ProtectedRoute>} />
           <Route path="/club/:clubId" element={<ProtectedRoute><Club /></ProtectedRoute>} />
-          
+          <Route path="/club/:clubId/sessions/create" element={<ProtectedRoute><CreateSession /></ProtectedRoute>} />
           <Route path="/join/:inviteCode" element={<ProtectedRoute><JoinClub /></ProtectedRoute>} />
           <Route path="/join-club/:linkSlug" element={<ProtectedRoute><JoinClub /></ProtectedRoute>} />
           <Route path="*" element={<NotFound />} />

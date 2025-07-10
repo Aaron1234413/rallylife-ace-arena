@@ -33,7 +33,6 @@ import { format } from 'date-fns';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
 import { SessionParticipantsList } from '../sessions/SessionParticipantsList';
 import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
-import { UnifiedSessionCreationDialog } from '@/components/sessions/UnifiedSessionCreationDialog';
 import { toast } from 'sonner';
 
 interface SessionManagementProps {
@@ -132,8 +131,8 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
     if (sessionType === 'social_play') {
       setShowSocialPlayDialog(true);
     } else {
-      // Use the unified dialog system instead of navigation
-      setShowCreateDialog(true);
+      // Navigate to the unified CreateSession page with club context
+      navigate(`/club/${clubId}/sessions/create?type=${sessionType}`);
     }
   };
 
@@ -347,17 +346,6 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
 
         </CardContent>
       </Card>
-
-      {/* Unified Session Creation Dialog */}
-      <UnifiedSessionCreationDialog
-        clubId={clubId}
-        open={showCreateDialog}
-        onOpenChange={setShowCreateDialog}
-        onSessionCreated={() => {
-          // Sessions will auto-refresh via real-time subscriptions
-          setShowCreateDialog(false);
-        }}
-      />
 
       {/* Social Play Dialog - Only one we keep as dialog */}
       <CreateSocialPlayDialog

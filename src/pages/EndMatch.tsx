@@ -329,8 +329,8 @@ const EndMatch = () => {
               <LoadingSpinner size="lg" className="mx-auto" />
             </div>
             <p className="mb-4">No active match session found.</p>
-            <AnimatedButton onClick={() => navigate('/play')}>
-              Go to Play Page
+            <AnimatedButton onClick={() => navigate('/start-match')}>
+              Start New Match
             </AnimatedButton>
           </CardContent>
         </CardWithAnimation>

@@ -11,11 +11,10 @@ import { CoachSelector } from '@/components/training/CoachSelector';
 import { SkillsChipSelector } from '@/components/training/SkillsChipSelector';
 import { IntensitySelector } from '@/components/training/IntensitySelector';
 import { DurationEstimator } from '@/components/training/DurationEstimator';
-import { toast } from 'sonner';
 
 export default function StartTraining() {
   const navigate = useNavigate();
-  const { updateSessionData, createTrainingSession, startTrainingSession } = useTrainingSession();
+  const { updateSessionData } = useTrainingSession();
   
   const [sessionType, setSessionType] = useState<string>('');
   const [coachName, setCoachName] = useState<string>('');
@@ -23,7 +22,7 @@ export default function StartTraining() {
   const [intensity, setIntensity] = useState<string>('');
   const [estimatedDuration, setEstimatedDuration] = useState<number>(0);
 
-  const handleStartSession = async () => {
+  const handleStartSession = () => {
     const sessionData = {
       sessionType,
       coachName: coachName || undefined,
@@ -33,26 +32,10 @@ export default function StartTraining() {
       startTime: new Date().toISOString(),
     };
 
-    try {
-      // Create session in unified system first
-      const unifiedSessionId = await createTrainingSession(sessionData);
-      
-      // Update session data with the unified session ID
-      updateSessionData({
-        ...sessionData,
-        sessionId: unifiedSessionId
-      });
-
-      // Start the training session
-      await startTrainingSession(unifiedSessionId);
-      
-      console.log('Training session started with unified ID:', unifiedSessionId);
-      
-      navigate('/dashboard');
-    } catch (error) {
-      console.error('Error starting training session:', error);
-      toast.error('Failed to start training session');
-    }
+    updateSessionData(sessionData);
+    console.log('Starting training session with data:', sessionData);
+    
+    navigate('/dashboard');
   };
 
   const canStart = sessionType && intensity && estimatedDuration > 0;
