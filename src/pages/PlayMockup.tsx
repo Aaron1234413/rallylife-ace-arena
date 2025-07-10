@@ -30,7 +30,8 @@ import {
   ChevronRight,
   Flame,
   X,
-  SlidersHorizontal
+  SlidersHorizontal,
+  Calendar
 } from 'lucide-react';
 
 // Stub data and interfaces
@@ -406,12 +407,155 @@ const SessionCard = ({ session, onJoin, onDelete }: {
   );
 };
 
-// Main Component
+// Enhanced Unified Session Card Component
+const UnifiedSessionCard = ({ session, onJoin, onDelete, variant = 'full' }: { 
+  session: Session; 
+  onJoin: (id: string) => void;
+  onDelete?: (id: string) => void;
+  variant?: 'compact' | 'full';
+}) => {
+  const getTypeColor = (type: string) => {
+    switch (type) {
+      case 'match': return 'border-l-red-500 bg-red-50 dark:bg-red-900/20';
+      case 'social': return 'border-l-green-500 bg-green-50 dark:bg-green-900/20';
+      case 'training': return 'border-l-blue-500 bg-blue-50 dark:bg-blue-900/20';
+      default: return 'border-l-gray-500 bg-gray-50 dark:bg-gray-900/20';
+    }
+  };
+
+  const getTypeIcon = (type: string) => {
+    switch (type) {
+      case 'match': return Trophy;
+      case 'social': return Users;
+      case 'training': return Star;
+      default: return Gamepad2;
+    }
+  };
+
+  const TypeIcon = getTypeIcon(session.session_type);
+
+  if (variant === 'compact') {
+    return (
+      <Card className={`min-w-[280px] h-40 ${getTypeColor(session.session_type)} border-l-4 hover:shadow-lg transition-all duration-300`}>
+        <CardContent className="p-4 h-full flex flex-col justify-between">
+          <div>
+            <div className="flex items-center gap-2 mb-2">
+              <TypeIcon className="h-4 w-4 text-primary" />
+              <h4 className="font-semibold text-sm">{session.title}</h4>
+            </div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground mb-2">
+              <MapPin className="h-3 w-3" />
+              <span>{session.location}</span>
+            </div>
+            <div className="flex items-center gap-2 mb-2">
+              <Badge variant="secondary" className="text-xs">
+                {session.recommendation_score ? `${Math.round(session.recommendation_score * 100)}% match` : 'Good fit'}
+              </Badge>
+              {session.stakes_amount > 0 && (
+                <div className="flex items-center gap-1 text-yellow-600">
+                  <Coins className="h-3 w-3" />
+                  <span className="text-xs">{session.stakes_amount}</span>
+                </div>
+              )}
+            </div>
+          </div>
+          <Button size="sm" onClick={() => onJoin(session.id)} className="w-full">
+            Join Session
+          </Button>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <Card className={`${getTypeColor(session.session_type)} border-l-4 hover:shadow-lg transition-all duration-300`}>
+      <CardHeader className="pb-3">
+        <div className="flex items-start justify-between">
+          <div className="flex items-center gap-2">
+            <TypeIcon className="h-4 w-4 text-primary" />
+            <CardTitle className="text-lg">{session.title}</CardTitle>
+          </div>
+          <Badge variant="secondary">
+            {session.session_type}
+          </Badge>
+        </div>
+        <div className="flex items-center gap-4 text-sm text-muted-foreground">
+          <div className="flex items-center gap-1">
+            <MapPin className="h-3 w-3" />
+            <span>{session.location}</span>
+          </div>
+          <div className="flex items-center gap-1">
+            <Clock className="h-3 w-3" />
+            <span>Just created</span>
+          </div>
+        </div>
+      </CardHeader>
+      
+      <CardContent className="pt-0">
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <Badge variant="outline">{session.status}</Badge>
+              {session.stakes_amount > 0 && (
+                <div className="flex items-center gap-1 text-yellow-600">
+                  <Coins className="h-3 w-3" />
+                  <span className="text-sm font-medium">{session.stakes_amount} tokens</span>
+                </div>
+              )}
+            </div>
+            <div className="text-sm font-medium">
+              {session.participant_count}/{session.max_players} players
+            </div>
+          </div>
+          
+          <div className="flex items-center justify-between pt-2">
+            <span className="text-sm text-muted-foreground">
+              Created by {session.creator_name}
+            </span>
+            
+            <Button 
+              size="sm" 
+              onClick={() => onJoin(session.id)}
+              disabled={session.user_joined}
+              className="bg-primary hover:bg-primary/90"
+            >
+              {session.user_joined ? '✓ Joined' : 'Join Session'}
+            </Button>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
+
+// Quick Actions Component
+const QuickActions = () => (
+  <div className="grid grid-cols-2 md:grid-cols-4 gap-3 mb-6">
+    <Button variant="outline" className="h-16 flex-col gap-1">
+      <Zap className="h-5 w-5" />
+      <span className="text-xs">Quick Match</span>
+    </Button>
+    <Button variant="outline" className="h-16 flex-col gap-1">
+      <Users className="h-5 w-5" />
+      <span className="text-xs">Find Players</span>
+    </Button>
+    <Button variant="outline" className="h-16 flex-col gap-1">
+      <Calendar className="h-5 w-5" />
+      <span className="text-xs">Book Court</span>
+    </Button>
+    <Button variant="outline" className="h-16 flex-col gap-1">
+      <Trophy className="h-5 w-5" />
+      <span className="text-xs">Tournament</span>
+    </Button>
+  </div>
+);
+
+// Main Component with Improved Structure
 const PlayMockup = () => {
   // Mock state
   const [searchQuery, setSearchQuery] = useState('');
   const [showFilters, setShowFilters] = useState(false);
-  const [activeTab, setActiveTab] = useState('active');
+  const [activeTab, setActiveTab] = useState('recommended');
   const [sessionTypeFilter, setSessionTypeFilter] = useState('all');
   const [stakesFilter, setStakesFilter] = useState('all');
   const [sortBy, setSortBy] = useState('distance');
@@ -421,10 +565,8 @@ const PlayMockup = () => {
   const user = useAuth().user;
   const { recommendations } = useLocationBasedRecommendations(radiusKm);
   const { nearbyPlayers, hasLocation } = useLocationBasedSessions(radiusKm);
-  const { sessions } = useSafeRealTimeSessions(activeTab, user.id);
-  const { regularTokens, xp, hp } = usePlayerTokens();
-  const { isJoining, startJoining, stopJoining } = useJoinSessionState();
-  const { cancelSession } = useUnifiedSessions();
+  const { sessions } = useSafeRealTimeSessions('active', user.id);
+  const { regularTokens } = usePlayerTokens();
 
   // Active filters count
   const activeFiltersCount = [
@@ -433,11 +575,9 @@ const PlayMockup = () => {
     sortBy !== 'distance'
   ].filter(Boolean).length;
 
-  // Handlers (placeholders)
+  // Handlers
   const handleJoinSession = (sessionId: string) => {
-    // Gamified animation would trigger here
     console.log('Joining session:', sessionId);
-    // Show confetti burst animation
   };
 
   const handleDeleteSession = (sessionId: string) => {
@@ -450,43 +590,40 @@ const PlayMockup = () => {
     <div className="min-h-screen bg-gradient-to-br from-background via-background/95 to-primary/5">
       <div className="max-w-7xl mx-auto">
         
-        {/* STICKY HEADER */}
-        <div className="sticky top-0 z-50 bg-background/80 backdrop-blur-lg border-b p-4 space-y-4">
-          {/* XP Progress & Token Counter */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="md:col-span-2">
-              <XPProgressBar current={user.xp} toNext={user.xpToNext} level={user.level} />
-            </div>
-            <div className="flex justify-end">
+        {/* SIMPLIFIED STICKY HEADER */}
+        <div className="sticky top-0 z-50 bg-background/90 backdrop-blur-lg border-b">
+          <div className="p-4">
+            {/* Gamification Header */}
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-3">
+                <XPProgressBar current={user.xp} toNext={user.xpToNext} level={user.level} />
+              </div>
               <TokenCounter tokens={regularTokens} />
             </div>
-          </div>
-          
-          {/* Search & Controls */}
-          <div className="flex flex-col sm:flex-row gap-3">
-            <div className="flex-1 relative">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
-              <Input
-                placeholder="Search sessions or players…"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-background/50"
-              />
-            </div>
-            <div className="flex gap-2">
+            
+            {/* Search & Action Bar */}
+            <div className="flex gap-3">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+                <Input
+                  placeholder="Search sessions or players…"
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
               <Button 
                 variant={showFilters ? "default" : "outline"} 
                 size="sm"
                 onClick={toggleFilterDrawer}
-                className="animate-pulse-on-change"
               >
-                <Filter className="h-4 w-4 mr-2" />
-                Filters
+                <SlidersHorizontal className="h-4 w-4 mr-2" />
                 {activeFiltersCount > 0 && (
-                  <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs animate-bounce">
+                  <Badge variant="secondary" className="mr-2 h-5 w-5 p-0 text-xs">
                     {activeFiltersCount}
                   </Badge>
                 )}
+                Filters
               </Button>
               <Button size="sm" className="bg-gradient-to-r from-primary to-accent">
                 <Plus className="h-4 w-4 mr-2" />
@@ -496,191 +633,171 @@ const PlayMockup = () => {
           </div>
         </div>
 
-        <div className="p-4 space-y-6">
-          
-          {/* FILTER DRAWER */}
-          {showFilters && (
-            <Card className="border-primary/20 bg-gradient-to-r from-primary/5 to-accent/5">
-              <CardHeader>
-                <div className="flex items-center justify-between">
-                  <CardTitle className="text-lg">Filters</CardTitle>
-                  <Button variant="ghost" size="sm" onClick={toggleFilterDrawer}>
-                    <X className="h-4 w-4" />
-                  </Button>
-                </div>
-              </CardHeader>
-              <CardContent className="grid grid-cols-1 md:grid-cols-4 gap-4">
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Type</label>
-                  <Select value={sessionTypeFilter} onValueChange={setSessionTypeFilter}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="match">Match</SelectItem>
-                      <SelectItem value="social">Social</SelectItem>
-                      <SelectItem value="training">Training</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Stakes</label>
-                  <Select value={stakesFilter} onValueChange={setStakesFilter}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">All</SelectItem>
-                      <SelectItem value="free">Free</SelectItem>
-                      <SelectItem value="low">Low</SelectItem>
-                      <SelectItem value="medium">Medium</SelectItem>
-                      <SelectItem value="high">High</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Sort by</label>
-                  <Select value={sortBy} onValueChange={setSortBy}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="distance">Distance</SelectItem>
-                      <SelectItem value="participants">Participants</SelectItem>
-                      <SelectItem value="stakes">Stakes</SelectItem>
-                      <SelectItem value="newest">Newest</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                
-                <div>
-                  <label className="text-sm font-medium mb-2 block">Radius: {radiusKm}km</label>
-                  <Slider
-                    value={[radiusKm]}
-                    onValueChange={([value]) => setRadiusKm(value)}
-                    max={100}
-                    min={1}
-                    step={1}
-                    className="w-full"
-                  />
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* RECOMMENDED CAROUSEL */}
-          <Card className="border-primary/30 bg-gradient-to-r from-primary/10 to-accent/10">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-primary animate-pulse" />
-                Recommended for You
-                <Badge variant="outline" className="ml-auto">
-                  {recommendations.length} matches
-                </Badge>
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="flex gap-4 overflow-x-auto pb-2">
-                {recommendations.map((session) => (
-                  <CompactSessionCard 
-                    key={session.id} 
-                    session={session} 
-                    onJoin={handleJoinSession}
-                  />
-                ))}
+        {/* FILTER DRAWER */}
+        {showFilters && (
+          <div className="border-b bg-muted/30 p-4">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Filters</h3>
+              <Button variant="ghost" size="sm" onClick={toggleFilterDrawer}>
+                <X className="h-4 w-4" />
+              </Button>
+            </div>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <label className="text-sm font-medium mb-2 block">Type</label>
+                <Select value={sessionTypeFilter} onValueChange={setSessionTypeFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    <SelectItem value="match">Competitive</SelectItem>
+                    <SelectItem value="social">Social</SelectItem>
+                    <SelectItem value="training">Training</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
-            </CardContent>
-          </Card>
+              
+              <div>
+                <label className="text-sm font-medium mb-2 block">Stakes</label>
+                <Select value={stakesFilter} onValueChange={setStakesFilter}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Any Stakes</SelectItem>
+                    <SelectItem value="free">Free Play</SelectItem>
+                    <SelectItem value="low">Low Stakes</SelectItem>
+                    <SelectItem value="medium">Medium Stakes</SelectItem>
+                    <SelectItem value="high">High Stakes</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium mb-2 block">Sort</label>
+                <Select value={sortBy} onValueChange={setSortBy}>
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="distance">Nearest First</SelectItem>
+                    <SelectItem value="participants">Most Players</SelectItem>
+                    <SelectItem value="stakes">Highest Stakes</SelectItem>
+                    <SelectItem value="newest">Recently Created</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              
+              <div>
+                <label className="text-sm font-medium mb-2 block">Range: {radiusKm}km</label>
+                <Slider
+                  value={[radiusKm]}
+                  onValueChange={([value]) => setRadiusKm(value)}
+                  max={100}
+                  min={1}
+                  step={5}
+                  className="w-full"
+                />
+              </div>
+            </div>
+          </div>
+        )}
 
-          {/* NEARBY PLAYERS SECTION */}
-          {hasLocation && (
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Users className="h-5 w-5 text-primary" />
-                  Nearby Players
-                  <Badge variant="outline" className="ml-auto">
-                    {nearbyPlayers.length} found
-                  </Badge>
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  {nearbyPlayers.map((player) => (
-                    <PlayerCard key={player.id} player={player} />
-                  ))}
-                </div>
-              </CardContent>
-            </Card>
-          )}
+        <div className="p-4 space-y-6">
+          {/* QUICK ACTIONS */}
+          <QuickActions />
 
-          {/* SESSIONS TABS */}
+          {/* SMART CONTENT TABS */}
           <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-            <TabsList className="grid w-full grid-cols-3 bg-gradient-to-r from-primary/10 to-accent/10">
-              <TabsTrigger value="active" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Active
-                <Badge variant="secondary" className="ml-2">
-                  {sessions.length}
-                </Badge>
+            <TabsList className="grid w-full grid-cols-3">
+              <TabsTrigger value="recommended">
+                <Sparkles className="h-4 w-4 mr-2" />
+                For You
               </TabsTrigger>
-              <TabsTrigger value="upcoming" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                Upcoming
+              <TabsTrigger value="nearby">
+                <MapPin className="h-4 w-4 mr-2" />
+                Nearby
               </TabsTrigger>
-              <TabsTrigger value="my-sessions" className="data-[state=active]:bg-primary data-[state=active]:text-primary-foreground">
-                My Sessions
-                <Badge variant="secondary" className="ml-2">
-                  {sessions.length}
-                </Badge>
+              <TabsTrigger value="all">
+                <Users className="h-4 w-4 mr-2" />
+                All Sessions
               </TabsTrigger>
             </TabsList>
             
-            <TabsContent value="active" className="space-y-4 mt-6">
-              <div className="flex items-center justify-between">
-                <h2 className="text-2xl font-bold bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                  Active Sessions
-                </h2>
-                <Badge variant="outline" className="animate-pulse">
-                  {sessions.length} available
-                </Badge>
+            {/* RECOMMENDED TAB */}
+            <TabsContent value="recommended" className="space-y-6 mt-6">
+              {/* Personalized Recommendations */}
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold">Perfect Matches</h2>
+                  <Badge variant="outline">{recommendations.length} found</Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {recommendations.map((session) => (
+                    <UnifiedSessionCard 
+                      key={session.id} 
+                      session={session} 
+                      onJoin={handleJoinSession}
+                      variant="full"
+                    />
+                  ))}
+                </div>
               </div>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {sessions.map((session) => (
-                  <SessionCard 
-                    key={session.id} 
-                    session={session} 
-                    onJoin={handleJoinSession}
-                    onDelete={handleDeleteSession}
-                  />
-                ))}
+
+              {/* Nearby Players */}
+              {hasLocation && nearbyPlayers.length > 0 && (
+                <div>
+                  <div className="flex items-center justify-between mb-4">
+                    <h2 className="text-xl font-bold">Players Near You</h2>
+                    <Badge variant="outline">{nearbyPlayers.length} nearby</Badge>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {nearbyPlayers.slice(0, 4).map((player) => (
+                      <PlayerCard key={player.id} player={player} />
+                    ))}
+                  </div>
+                </div>
+              )}
+            </TabsContent>
+            
+            {/* NEARBY TAB */}
+            <TabsContent value="nearby" className="space-y-6 mt-6">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold">Nearby Sessions</h2>
+                  <Badge variant="outline">{sessions.length} within {radiusKm}km</Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {sessions.map((session) => (
+                    <UnifiedSessionCard 
+                      key={session.id} 
+                      session={session} 
+                      onJoin={handleJoinSession}
+                      variant="full"
+                    />
+                  ))}
+                </div>
               </div>
             </TabsContent>
             
-            <TabsContent value="upcoming" className="space-y-4 mt-6">
-              <div className="text-center py-12">
-                <Clock className="h-12 w-12 text-muted-foreground mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-muted-foreground mb-2">
-                  No Upcoming Sessions
-                </h3>
-                <p className="text-muted-foreground mb-4">
-                  Schedule a session for later!
-                </p>
-              </div>
-            </TabsContent>
-            
-            <TabsContent value="my-sessions" className="space-y-4 mt-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                {sessions.map((session) => (
-                  <SessionCard 
-                    key={session.id} 
-                    session={session} 
-                    onJoin={handleJoinSession}
-                    onDelete={handleDeleteSession}
-                  />
-                ))}
+            {/* ALL SESSIONS TAB */}
+            <TabsContent value="all" className="space-y-6 mt-6">
+              <div>
+                <div className="flex items-center justify-between mb-4">
+                  <h2 className="text-xl font-bold">All Available Sessions</h2>
+                  <Badge variant="outline">{sessions.length + recommendations.length} total</Badge>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {[...recommendations, ...sessions].map((session) => (
+                    <UnifiedSessionCard 
+                      key={session.id} 
+                      session={session} 
+                      onJoin={handleJoinSession}
+                      variant="full"
+                    />
+                  ))}
+                </div>
               </div>
             </TabsContent>
           </Tabs>
