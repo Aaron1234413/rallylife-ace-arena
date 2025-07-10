@@ -4,6 +4,7 @@ import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import { 
   Search, 
   Filter, 
@@ -16,7 +17,13 @@ import {
   Coins,
   Gamepad2,
   X,
-  ChevronDown
+  ChevronDown,
+  Zap,
+  Target,
+  Award,
+  TrendingUp,
+  Timer,
+  Flame
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import {
@@ -35,7 +42,17 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 
-// Mock data for demonstration
+// Mock data for demonstration with enhanced gamification
+const mockPlayerStats = {
+  level: 12,
+  xp: 2850,
+  xpToNext: 3000,
+  tokens: 1240,
+  streak: 7,
+  wins: 34,
+  totalMatches: 52
+};
+
 const mockSessions = [
   {
     id: '1',
@@ -182,8 +199,8 @@ const PlayMockup = () => {
     </div>
   );
 
-  // Unified session card component
-  const SessionCard = ({ session }: { session: any }) => {
+  // Enhanced session card with gamification
+  const SessionCard = ({ session, isRecommended = false }: { session: any, isRecommended?: boolean }) => {
     const getTypeIcon = (type: string) => {
       switch (type) {
         case 'match': return Trophy;
@@ -202,65 +219,132 @@ const PlayMockup = () => {
       }
     };
 
+    const getRewardPreview = (stakes: number, type: string) => {
+      const baseXP = type === 'match' ? 50 : type === 'training' ? 30 : 20;
+      const stakesBonus = Math.floor(stakes * 0.1);
+      return {
+        xp: baseXP + stakesBonus,
+        tokens: Math.floor(stakes * 1.5) || 10
+      };
+    };
+
     const TypeIcon = getTypeIcon(session.session_type);
+    const reward = getRewardPreview(session.stakes_amount, session.session_type);
 
     return (
-      <Card className="hover:shadow-md transition-all duration-200 border-l-4 border-l-primary">
+      <Card className={`group hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border-l-4 ${
+        isRecommended 
+          ? 'border-l-blue-500 bg-gradient-to-br from-blue-50/50 to-purple-50/50 ring-2 ring-blue-200' 
+          : 'border-l-primary hover:border-l-primary/80'
+      }`}>
         <CardContent className="p-4">
-          <div className="space-y-3">
-            {/* Header */}
+          <div className="space-y-4">
+            {/* Header with enhanced badges */}
             <div className="flex items-start justify-between">
               <div className="flex items-center gap-2 flex-1">
-                <TypeIcon className="h-4 w-4 text-primary flex-shrink-0" />
-                <h3 className="font-semibold text-sm line-clamp-1">{session.title}</h3>
+                <div className="relative">
+                  <TypeIcon className={`h-5 w-5 ${isRecommended ? 'text-blue-600' : 'text-primary'} transition-colors`} />
+                  {isRecommended && (
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-blue-500 rounded-full animate-pulse" />
+                  )}
+                </div>
+                <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                  {session.title}
+                </h3>
               </div>
-              <Badge variant="outline" className={`text-xs ${getTypeColor(session.session_type)} flex-shrink-0 ml-2`}>
-                {session.session_type}
-              </Badge>
+              <div className="flex flex-col gap-1">
+                <Badge variant="outline" className={`text-xs ${getTypeColor(session.session_type)} transition-colors`}>
+                  {session.session_type}
+                </Badge>
+                {isRecommended && (
+                  <Badge className="text-xs bg-blue-600 text-white">
+                    {Math.round(session.recommendation_score * 100)}% match
+                  </Badge>
+                )}
+              </div>
             </div>
 
-            {/* Location and Distance */}
-            <div className="flex items-center justify-between text-xs text-muted-foreground">
-              <div className="flex items-center gap-1">
+            {/* Location with enhanced styling */}
+            <div className="flex items-center justify-between text-xs">
+              <div className="flex items-center gap-1 text-muted-foreground">
                 <MapPin className="h-3 w-3" />
-                <span className="line-clamp-1">{session.location}</span>
+                <span className="line-clamp-1 font-medium">{session.location}</span>
               </div>
               {session.distance_km && (
-                <Badge variant="outline" className="text-xs">
+                <Badge variant="outline" className="text-xs bg-emerald-50 text-emerald-700 border-emerald-200">
                   {session.distance_km.toFixed(1)}km
                 </Badge>
               )}
             </div>
 
-            {/* Participants and Stakes */}
-            <div className="flex items-center justify-between">
+            {/* Enhanced participants section */}
+            <div className="flex items-center justify-between p-2 bg-muted/30 rounded-lg">
               <div className="flex items-center gap-3">
-                <div className="flex items-center gap-1 text-xs">
-                  <Users className="h-3 w-3" />
+                <div className="flex items-center gap-1 text-xs font-medium">
+                  <Users className="h-3 w-3 text-blue-600" />
                   <span>{session.participant_count}/{session.max_players}</span>
                 </div>
-                {session.stakes_amount > 0 && (
-                  <div className="flex items-center gap-1 text-xs text-amber-600">
-                    <Coins className="h-3 w-3" />
-                    <span>{session.stakes_amount}</span>
-                  </div>
-                )}
+                <div className="w-8 h-1 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-blue-500 transition-all duration-300"
+                    style={{ width: `${(session.participant_count / session.max_players) * 100}%` }}
+                  />
+                </div>
               </div>
-              <div className="text-xs text-muted-foreground">
+              <div className="text-xs text-muted-foreground font-medium">
                 by {session.creator_name}
               </div>
             </div>
 
-            {/* Notes */}
+            {/* Gamified rewards preview */}
+            <div className="flex items-center justify-between p-2 bg-gradient-to-r from-amber-50 to-emerald-50 rounded-lg border border-amber-200/50">
+              <div className="flex items-center gap-3">
+                {session.stakes_amount > 0 && (
+                  <div className="flex items-center gap-1 text-xs font-semibold text-amber-700">
+                    <Coins className="h-3 w-3" />
+                    <span>{session.stakes_amount} stake</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1 text-xs font-semibold text-green-700">
+                  <Zap className="h-3 w-3" />
+                  <span>+{reward.xp} XP</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs font-semibold text-blue-700">
+                  <Target className="h-3 w-3" />
+                  <span>+{reward.tokens} tokens</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes with better styling */}
             {session.notes && (
-              <p className="text-xs text-muted-foreground line-clamp-2 italic">
-                "{session.notes}"
-              </p>
+              <div className="p-2 bg-muted/20 rounded-lg border-l-2 border-l-primary/30">
+                <p className="text-xs text-muted-foreground italic line-clamp-2">
+                  "{session.notes}"
+                </p>
+              </div>
             )}
 
-            {/* Action Button */}
-            <Button size="sm" className="w-full bg-primary hover:bg-primary/90">
-              Join Session
+            {/* Enhanced action button */}
+            <Button 
+              size="sm" 
+              className={`w-full font-semibold transition-all duration-300 group-hover:shadow-lg ${
+                isRecommended 
+                  ? 'bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700 text-white shadow-lg' 
+                  : 'bg-primary hover:bg-primary/90'
+              }`}
+            >
+              {isRecommended ? (
+                <div className="flex items-center gap-2">
+                  <Star className="h-4 w-4" />
+                  Join Recommended Match
+                </div>
+              ) : (
+                <div className="flex items-center gap-2">
+                  <Trophy className="h-4 w-4" />
+                  Join Session
+                </div>
+              )}
             </Button>
           </div>
         </CardContent>
@@ -268,66 +352,58 @@ const PlayMockup = () => {
     );
   };
 
-  // Smart content sections
+  // Smart content sections with enhanced gamification
   const ForYouContent = () => (
-    <div className="space-y-4">
-      <div className="text-center py-2">
-        <h3 className="text-lg font-semibold mb-1">Recommended for You</h3>
-        <p className="text-sm text-muted-foreground">Sessions matched to your preferences and location</p>
+    <div className="space-y-6">
+      <div className="text-center py-4">
+        <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          ✨ Recommended for You
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          AI-powered matches based on your skill level, location, and preferences
+        </p>
       </div>
       
       {/* Top recommendations with enhanced cards */}
-      <div className="space-y-3">
+      <div className="space-y-4">
         {mockSessions
           .sort((a, b) => b.recommendation_score - a.recommendation_score)
           .slice(0, 2)
           .map((session) => (
-            <Card key={session.id} className="border-l-4 border-l-blue-500 bg-blue-50/30">
-              <CardContent className="p-4">
-                <div className="flex items-center justify-between mb-2">
-                  <div className="flex items-center gap-2">
-                    <Star className="h-4 w-4 text-blue-600" />
-                    <span className="font-medium text-sm">{session.title}</span>
-                  </div>
-                  <Badge variant="secondary" className="text-xs">
-                    {Math.round(session.recommendation_score * 100)}% match
-                  </Badge>
-                </div>
-                <div className="space-y-2 text-xs text-muted-foreground">
-                  <div className="flex items-center gap-2">
-                    <MapPin className="h-3 w-3" />
-                    <span>{session.location} • {session.distance_km}km away</span>
-                  </div>
-                  <p className="italic">Perfect match for your skill level and preferred session type</p>
-                </div>
-                <Button size="sm" className="w-full mt-3 bg-blue-600 hover:bg-blue-700">
-                  Join Now - Recommended
-                </Button>
-              </CardContent>
-            </Card>
+            <SessionCard key={session.id} session={session} isRecommended={true} />
           ))}
       </div>
 
+      {/* Section divider */}
+      <div className="flex items-center gap-4 py-2">
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+        <span className="text-sm font-medium text-muted-foreground bg-background px-4">
+          Other Sessions
+        </span>
+        <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+      </div>
+
       {/* Regular sessions */}
-      <div className="space-y-3">
-        <h4 className="font-medium text-sm text-muted-foreground">Other Sessions</h4>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-          {mockSessions.slice(2).map((session) => (
-            <SessionCard key={session.id} session={session} />
-          ))}
-        </div>
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+        {mockSessions.slice(2).map((session) => (
+          <SessionCard key={session.id} session={session} />
+        ))}
       </div>
     </div>
   );
 
   const NearbyContent = () => (
-    <div className="space-y-4">
-      <div className="text-center py-2">
-        <h3 className="text-lg font-semibold mb-1">Sessions Near You</h3>
-        <p className="text-sm text-muted-foreground">Sorted by distance within 25km</p>
+    <div className="space-y-6">
+      <div className="text-center py-4">
+        <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-emerald-600 to-blue-600 bg-clip-text text-transparent">
+          📍 Sessions Near You
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Sorted by distance • All within 25km radius
+        </p>
       </div>
       
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {mockSessions
           .sort((a, b) => a.distance_km - b.distance_km)
           .map((session) => (
@@ -338,13 +414,17 @@ const PlayMockup = () => {
   );
 
   const AllSessionsContent = () => (
-    <div className="space-y-4">
-      <div className="text-center py-2">
-        <h3 className="text-lg font-semibold mb-1">All Available Sessions</h3>
-        <p className="text-sm text-muted-foreground">Browse all sessions or use filters to narrow down</p>
+    <div className="space-y-6">
+      <div className="text-center py-4">
+        <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-gray-600 to-gray-800 bg-clip-text text-transparent">
+          🎾 All Available Sessions
+        </h3>
+        <p className="text-sm text-muted-foreground">
+          Browse all sessions or use filters to narrow down your search
+        </p>
       </div>
       
-      <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
         {mockSessions.map((session) => (
           <SessionCard key={session.id} session={session} />
         ))}
@@ -378,6 +458,56 @@ const PlayMockup = () => {
             <QuickActions />
           </div>
         </div>
+      </div>
+
+      {/* Player Stats Widget - Gamified */}
+      <div className="mb-6">
+        <Card className="border-2 border-primary/20 bg-gradient-to-r from-primary/5 to-primary/10">
+          <CardContent className="p-4">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              {/* Level & XP */}
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Award className="h-5 w-5 text-primary" />
+                  <span className="font-bold text-lg">Lv.{mockPlayerStats.level}</span>
+                </div>
+                <Progress value={(mockPlayerStats.xp / mockPlayerStats.xpToNext) * 100} className="h-2 mb-1" />
+                <p className="text-xs text-muted-foreground">
+                  {mockPlayerStats.xp}/{mockPlayerStats.xpToNext} XP
+                </p>
+              </div>
+
+              {/* Tokens */}
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Coins className="h-5 w-5 text-amber-500" />
+                  <span className="font-bold text-lg">{mockPlayerStats.tokens}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Tokens</p>
+              </div>
+
+              {/* Streak */}
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <Flame className="h-5 w-5 text-orange-500" />
+                  <span className="font-bold text-lg">{mockPlayerStats.streak}</span>
+                </div>
+                <p className="text-xs text-muted-foreground">Day Streak</p>
+              </div>
+
+              {/* Win Rate */}
+              <div className="text-center">
+                <div className="flex items-center justify-center gap-2 mb-2">
+                  <TrendingUp className="h-5 w-5 text-green-500" />
+                  <span className="font-bold text-lg">
+                    {Math.round((mockPlayerStats.wins / mockPlayerStats.totalMatches) * 100)}%
+                  </span>
+                </div>
+                <p className="text-xs text-muted-foreground">Win Rate</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Main Content */}
