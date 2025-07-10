@@ -1,75 +1,52 @@
 
 import React from 'react';
 import { useAuth } from '@/hooks/useAuth';
-import { useCoachCXP } from '@/hooks/useCoachCXP';
-import { useCoachTokens } from '@/hooks/useCoachTokens';
-import { useCoachCRP } from '@/hooks/useCoachCRP';
-import { useCoachLeaderboards } from '@/hooks/useCoachLeaderboards';
-import { CoachOverviewCards } from '@/components/coach/dashboard/CoachOverviewCards';
-import { ClientManagementPanel } from '@/components/coach/dashboard/ClientManagementPanel';
-import { CoachAnalytics } from '@/components/coach/dashboard/CoachAnalytics';
-import { CoachQuickActions } from '@/components/coach/dashboard/CoachQuickActions';
-import { RecentActivity } from '@/components/coach/dashboard/RecentActivity';
-import { CoachActionPanel } from '@/components/coach/CoachActionPanel';
+import { useCoachProfile } from '@/hooks/useCoachProfile';
+import { useHP } from '@/hooks/useHP';
+import { useXP } from '@/hooks/useXP';
+import { useTokens } from '@/hooks/useTokens';
+import { PlayerStats } from '@/components/coach/PlayerStats';
+import { CoachProfileCard } from '@/components/coach/CoachProfileCard';
+import { UpcomingSessions } from '@/components/coach/UpcomingSessions';
+import { CoachToolsPanel } from '@/components/coach/CoachToolsPanel';
 
 const CoachDashboard = () => {
   const { user } = useAuth();
-  const { cxpData, activities: cxpActivities, loading: cxpLoading } = useCoachCXP();
-  const { tokenData, transactions, loading: tokensLoading } = useCoachTokens();
-  const { crpData, isLoading: crpLoading } = useCoachCRP();
+  const { value: hp } = useHP();
+  const { value: xp } = useXP();
+  const { value: tokens } = useTokens();
+
+  // Extract first name from user data
+  const firstName = user?.user_metadata?.full_name?.split(' ')[0] || 'Coach';
 
   return (
-    <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-4 sm:space-y-6">
-      {/* Header */}
-      <div className="text-center mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold text-tennis-green-dark">
-          Coach Dashboard 🎾
+    <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
+      {/* Welcome Header */}
+      <div className="text-center space-y-4">
+        <h1 className="text-2xl sm:text-3xl font-bold">
+          Welcome back, Coach {firstName}! 🎾
         </h1>
-        <p className="text-tennis-green-medium mt-2">
-          Manage your clients, track progress, and grow your coaching business
+        <p className="text-muted-foreground">
+          Ready to join sessions, coach players, or build your club.
         </p>
+        
+        {/* Player Stats */}
+        <PlayerStats hp={hp} xp={xp} tokens={tokens} />
       </div>
-
-      {/* Overview Cards */}
-      <CoachOverviewCards
-        cxpData={cxpData}
-        tokenData={tokenData}
-        crpData={crpData}
-        cxpLoading={cxpLoading}
-        tokensLoading={tokensLoading}
-        crpLoading={crpLoading}
-      />
-
-      {/* Quick Actions */}
-      <CoachQuickActions />
-      
-      {/* Action Panel for Testing */}
-      <CoachActionPanel />
 
       {/* Main Content Grid */}
-      <div className="grid gap-4 lg:gap-6 lg:grid-cols-3">
-        {/* Client Management - Takes 2 columns on large screens */}
-        <div className="lg:col-span-2">
-          <ClientManagementPanel />
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Left Column */}
+        <div className="space-y-6">
+          <CoachProfileCard />
+          <CoachToolsPanel />
         </div>
 
-        {/* Recent Activity - Takes 1 column on large screens */}
-        <div className="lg:col-span-1">
-          <RecentActivity
-            cxpActivities={cxpActivities}
-            transactions={transactions}
-            cxpLoading={cxpLoading}
-            tokensLoading={tokensLoading}
-          />
+        {/* Right Column */}
+        <div className="space-y-6">
+          <UpcomingSessions />
         </div>
       </div>
-
-      {/* Analytics Section */}
-      <CoachAnalytics
-        cxpData={cxpData}
-        tokenData={tokenData}
-        crpData={crpData}
-      />
     </div>
   );
 };

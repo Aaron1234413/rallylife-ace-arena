@@ -2264,6 +2264,33 @@ export type Database = {
         }
         Relationships: []
       }
+      coach_tips: {
+        Row: {
+          amount: number
+          coach_id: string
+          created_at: string
+          id: string
+          player_id: string
+          session_id: string
+        }
+        Insert: {
+          amount: number
+          coach_id: string
+          created_at?: string
+          id?: string
+          player_id: string
+          session_id: string
+        }
+        Update: {
+          amount?: number
+          coach_id?: string
+          created_at?: string
+          id?: string
+          player_id?: string
+          session_id?: string
+        }
+        Relationships: []
+      }
       coach_token_transactions: {
         Row: {
           amount: number
@@ -4195,8 +4222,10 @@ export type Database = {
       profiles: {
         Row: {
           avatar_url: string | null
+          bio: string | null
           created_at: string
           email: string
+          experience_tags: string[] | null
           full_name: string | null
           id: string
           latitude: number | null
@@ -4214,8 +4243,10 @@ export type Database = {
         }
         Insert: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email: string
+          experience_tags?: string[] | null
           full_name?: string | null
           id: string
           latitude?: number | null
@@ -4233,8 +4264,10 @@ export type Database = {
         }
         Update: {
           avatar_url?: string | null
+          bio?: string | null
           created_at?: string
           email?: string
+          experience_tags?: string[] | null
           full_name?: string | null
           id?: string
           latitude?: number | null
@@ -4586,6 +4619,39 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      session_feedback: {
+        Row: {
+          coach_id: string
+          created_at: string
+          feedback: string
+          id: string
+          player_id: string
+          rating: number | null
+          session_id: string
+          updated_at: string
+        }
+        Insert: {
+          coach_id: string
+          created_at?: string
+          feedback: string
+          id?: string
+          player_id: string
+          rating?: number | null
+          session_id: string
+          updated_at?: string
+        }
+        Update: {
+          coach_id?: string
+          created_at?: string
+          feedback?: string
+          id?: string
+          player_id?: string
+          rating?: number | null
+          session_id?: string
+          updated_at?: string
+        }
+        Relationships: []
       }
       session_notifications: {
         Row: {
@@ -8121,6 +8187,14 @@ export type Database = {
       text: {
         Args: { "": unknown }
         Returns: string
+      }
+      tip_coach: {
+        Args: {
+          session_id_param: string
+          coach_id_param: string
+          tip_amount: number
+        }
+        Returns: Json
       }
       toggle_feed_like: {
         Args: { activity_id_param: string; user_id_param: string }
