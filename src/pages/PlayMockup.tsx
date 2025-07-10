@@ -451,12 +451,14 @@ const PlayMockup = () => {
               </Sheet>
               
               {/* Create Button - Hide text on small screens */}
-              <Link to="/sessions/create">
-                <Button size="sm" className="bg-tennis-green-primary hover:bg-tennis-green-accent text-white px-2 md:px-4">
-                  <Plus className="h-4 w-4" />
-                  <span className="hidden md:inline ml-2">Create</span>
-                </Button>
-              </Link>
+              <Button 
+                size="sm" 
+                className="bg-tennis-green-primary hover:bg-tennis-green-accent text-white px-2 md:px-4"
+                onClick={() => console.log('Create session - dialog needed')}
+              >
+                <Plus className="h-4 w-4" />
+                <span className="hidden md:inline ml-2">Create</span>
+              </Button>
             </div>
           </div>
         </div>
@@ -584,11 +586,12 @@ const PlayMockup = () => {
           <p className="text-muted-foreground mb-4">
             Be the first to create a session in your area!
           </p>
-          <Link to="/sessions/create">
-            <Button className="bg-tennis-green-primary hover:bg-tennis-green-accent text-white">
-              Create First Session
-            </Button>
-          </Link>
+          <Button 
+            className="bg-tennis-green-primary hover:bg-tennis-green-accent text-white"
+            onClick={() => console.log('Create session - dialog needed')}
+          >
+            Create First Session
+          </Button>
         </div>
       </div>
     </div>

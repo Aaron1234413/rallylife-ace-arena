@@ -17,9 +17,9 @@ import {
   Gamepad2,
   UserPlus
 } from 'lucide-react';
-import { Link } from 'react-router-dom';
 import { useClubs } from '@/hooks/useClubs';
 import { formatDistanceToNow } from 'date-fns';
+import { UnifiedSessionCreationDialog } from '@/components/sessions/UnifiedSessionCreationDialog';
 
 interface ClubMobileDashboardProps {
   club: {
@@ -35,6 +35,7 @@ interface ClubMobileDashboardProps {
 export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps) {
   const { clubMembers, fetchClubMembers } = useClubs();
   const [loading, setLoading] = useState(true);
+  const [createDialogOpen, setCreateDialogOpen] = useState(false);
 
   // Mock activity data for now
   const clubActivities = [
@@ -129,15 +130,16 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
         <CardContent className="space-y-3">
           {isMember ? (
             <>
-              <Link to="/sessions/create" className="block">
-                <Button className="w-full justify-between bg-tennis-green-primary hover:bg-tennis-green-medium h-12">
-                  <div className="flex items-center gap-3">
-                    <Gamepad2 className="h-5 w-5" />
-                    <span>Create Session</span>
-                  </div>
-                  <ChevronRight className="h-4 w-4" />
-                </Button>
-              </Link>
+              <Button 
+                className="w-full justify-between bg-tennis-green-primary hover:bg-tennis-green-medium h-12"
+                onClick={() => setCreateDialogOpen(true)}
+              >
+                <div className="flex items-center gap-3">
+                  <Gamepad2 className="h-5 w-5" />
+                  <span>Create Session</span>
+                </div>
+                <ChevronRight className="h-4 w-4" />
+              </Button>
 
               <Button 
                 variant="outline" 
@@ -297,6 +299,16 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
           </div>
         </CardContent>
       </Card>
+
+      {/* Session Creation Dialog */}
+      <UnifiedSessionCreationDialog
+        clubId={club.id}
+        open={createDialogOpen}
+        onOpenChange={setCreateDialogOpen}
+        onSessionCreated={() => {
+          // Sessions will auto-refresh via real-time subscriptions
+        }}
+      />
     </div>
   );
 }

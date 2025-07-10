@@ -489,7 +489,7 @@ const Index = () => {
                 <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
                   {/* Start a Match - Primary Action */}
                   <Button 
-                    onClick={() => navigate('/sessions/create?type=match')}
+                    onClick={() => navigate('/play')}
                     className="h-20 sm:h-24 flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-tennis-green-primary to-tennis-green-medium hover:from-tennis-green-medium hover:to-tennis-green-dark text-white shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-110 relative overflow-hidden group"
                   >
                     <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 group-hover:animate-pulse"></div>
