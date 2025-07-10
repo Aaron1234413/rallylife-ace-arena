@@ -22,17 +22,19 @@ export interface UnifiedSession {
   created_at: string;
   updated_at: string;
   
-  // New Phase 1 fields
+  // Session lifecycle fields
   session_started_at?: string;
   session_ended_at?: string;
   winning_team?: string | null;
   platform_fee_percentage?: number;
   
-  // Computed fields
+  // Real-time computed fields
   participant_count?: number;
   user_has_joined?: boolean;
+  duration_minutes?: number;
+  status?: 'upcoming' | 'active' | 'completed' | 'cancelled';
   
-  // Related data
+  // Related data with HP/level info
   creator?: {
     full_name: string;
     avatar_url?: string;
@@ -52,13 +54,16 @@ export interface SessionParticipant {
   money_paid: number;
   notes?: string;
   
-  // New Phase 1 fields
+  // Enhanced participant data
   stakes_contributed?: number;
   
-  // Related data
+  // Related data with HP/level info
   user?: {
     full_name: string;
     avatar_url?: string;
+    current_hp?: number;
+    current_level?: number;
+    total_xp?: number;
   };
 }
 
@@ -115,7 +120,7 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
 
       if (error) throw error;
 
-      // Get participant counts and user participation status
+      // Get participant counts, user participation, and calculate durations
       const sessionsWithCounts = await Promise.all(
         (sessionsData || []).map(async (session) => {
           const [participantCount, userParticipation] = await Promise.all([
@@ -123,12 +128,28 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
             getUserParticipationStatus(session.id)
           ]);
 
+          // Calculate duration if session has started
+          let durationMinutes = 0;
+          if (session.session_started_at) {
+            const startTime = new Date(session.session_started_at);
+            const endTime = session.session_ended_at ? new Date(session.session_ended_at) : new Date();
+            durationMinutes = Math.floor((endTime.getTime() - startTime.getTime()) / (1000 * 60));
+          }
+
+          // Determine session status
+          let status: 'upcoming' | 'active' | 'completed' | 'cancelled' = 'upcoming';
+          if (session.session_started_at) {
+            status = session.session_ended_at ? 'completed' : 'active';
+          }
+
           return {
             ...session,
             // Cast winning_team from Json to string | null
             winning_team: typeof session.winning_team === 'string' ? session.winning_team : null,
             participant_count: participantCount,
-            user_has_joined: userParticipation
+            user_has_joined: userParticipation,
+            duration_minutes: durationMinutes,
+            status
           } as UnifiedSession;
         })
       );
@@ -243,7 +264,7 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     }
   };
 
-  // Get session participants
+  // Get session participants with HP/level data
   const getSessionParticipants = async (sessionId: string): Promise<SessionParticipant[]> => {
     try {
       const { data, error } = await supabase
@@ -259,7 +280,37 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
         .order('joined_at', { ascending: true });
 
       if (error) throw error;
-      return (data as any) || [];
+
+      // Get HP and XP data for each participant
+      const participantsWithStats = await Promise.all(
+        (data || []).map(async (participant) => {
+          const [hpData, xpData] = await Promise.all([
+            supabase
+              .from('player_hp')
+              .select('current_hp')
+              .eq('player_id', participant.user_id)
+              .single(),
+            supabase
+              .from('player_xp')
+              .select('current_level, total_xp_earned')
+              .eq('player_id', participant.user_id)
+              .single()
+          ]);
+
+          return {
+            ...participant,
+            role: 'player', // Default role since it's not in the database yet
+            user: {
+              ...participant.user,
+              current_hp: hpData.data?.current_hp || 100,
+              current_level: xpData.data?.current_level || 1,
+              total_xp: xpData.data?.total_xp_earned || 0
+            }
+          };
+        })
+      );
+
+      return participantsWithStats as SessionParticipant[];
     } catch (error) {
       console.error('Error fetching session participants:', error);
       return [];
