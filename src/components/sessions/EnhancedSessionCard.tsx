@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { SessionActionButton } from './SessionActionButton';
 import { useEnhancedSessionActions } from '@/hooks/useEnhancedSessionActions';
-import { Clock, MapPin, Users, Calendar } from 'lucide-react';
+import { Clock, MapPin, Users, Calendar, Heart, AlertTriangle, Zap } from 'lucide-react';
 
 interface SessionData {
   id: string;
@@ -26,16 +26,24 @@ interface EnhancedSessionCardProps {
   userRole: string;
   clubId?: string;
   onActionComplete?: () => void;
+  userHP?: number;
 }
 
 export function EnhancedSessionCard({ 
   session, 
   userRole, 
   clubId,
-  onActionComplete 
+  onActionComplete,
+  userHP = 100
 }: EnhancedSessionCardProps) {
   const { getSessionActions, executeAction, loading } = useEnhancedSessionActions();
   const actions = getSessionActions(session, userRole);
+
+  // HP reduction calculations
+  const isChallenge = session.session_type === 'challenge';
+  const estimatedDuration = 60; // Default 60 minutes for estimation
+  const hpReduction = isChallenge ? 5 + Math.floor(estimatedDuration / 10) : 0;
+  const hasInsufficientHP = isChallenge && userHP < hpReduction;
 
   const handleActionClick = async (action: any) => {
     const success = await executeAction(action, session.id, clubId);
@@ -55,14 +63,24 @@ export function EnhancedSessionCard({
   };
 
   return (
-    <Card className="hover:shadow-md transition-shadow duration-200">
+    <Card className={`hover:shadow-md transition-shadow duration-200 ${isChallenge ? 'border-l-4 border-l-orange-500' : ''}`}>
       <CardHeader className="pb-3">
         <div className="flex items-start justify-between">
           <div className="flex-1">
-            <CardTitle className="text-lg font-semibold">{session.title}</CardTitle>
-            <Badge variant="outline" className={getStatusColor(session.status)}>
-              {session.status}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <CardTitle className="text-lg font-semibold">{session.title}</CardTitle>
+              {isChallenge && <Zap className="h-4 w-4 text-orange-500" />}
+            </div>
+            <div className="flex items-center gap-2 mt-1">
+              <Badge variant="outline" className={getStatusColor(session.status)}>
+                {session.status}
+              </Badge>
+              {isChallenge && (
+                <Badge variant="outline" className="bg-orange-100 text-orange-700 border-orange-200">
+                  Challenge
+                </Badge>
+              )}
+            </div>
           </div>
         </div>
       </CardHeader>
@@ -88,6 +106,20 @@ export function EnhancedSessionCard({
             </div>
           )}
         </div>
+
+        {/* HP Impact Warning */}
+        {isChallenge && (
+          <div className="flex items-center gap-2 p-3 bg-orange-50 border border-orange-200 rounded-md">
+            <AlertTriangle className="h-4 w-4 text-orange-600" />
+            <div className="flex-1">
+              <div className="text-sm font-medium text-orange-800">Challenge Session</div>
+              <div className="text-xs text-orange-600">
+                Will consume ~{hpReduction} HP • Current HP: {userHP}
+              </div>
+            </div>
+            <Heart className={`h-4 w-4 ${hasInsufficientHP ? 'text-red-500' : 'text-orange-600'}`} />
+          </div>
+        )}
 
         {actions.length > 0 && (
           <div className="flex gap-2 pt-2 border-t">

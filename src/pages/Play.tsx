@@ -402,6 +402,7 @@ const Play = () => {
                       onJoin={handleJoinSession}
                       isJoining={isJoining(session.id)}
                       userBalance={regularTokens}
+                      userHP={hpData?.current_hp || 100}
                       showDistance={hasLocation}
                     />
                   ))}
@@ -459,6 +460,7 @@ const Play = () => {
                       onJoin={handleJoinSession}
                       isJoining={isJoining(session.id)}
                       userBalance={regularTokens}
+                      userHP={hpData?.current_hp || 100}
                       showDistance={true}
                     />
                   );
@@ -506,6 +508,7 @@ const Play = () => {
                     onJoin={handleJoinSession}
                     isJoining={isJoining(session.id)}
                     userBalance={regularTokens}
+                    userHP={hpData?.current_hp || 100}
                     showDistance={hasLocation}
                   />
                 ))}
@@ -552,6 +555,7 @@ const Play = () => {
                     onJoin={handleJoinSession}
                     isJoining={isJoining(session.id)}
                     userBalance={regularTokens}
+                    userHP={hpData?.current_hp || 100}
                     showDistance={hasLocation}
                   />
                 ))}
