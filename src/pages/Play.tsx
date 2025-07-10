@@ -483,51 +483,69 @@ const Play = () => {
   };
 
   return (
-    <div className="min-h-screen bg-tennis-green-bg">
-      <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
-        {/* Header */}
-        <div className="text-center">
-          <h1 className="text-2xl sm:text-3xl font-bold text-tennis-green-dark mb-2">
-            Find Your Match 🎾
-          </h1>
-          <p className="text-tennis-green-medium">
-            Discover players, join sessions, and compete in your area
-          </p>
+    <div className="min-h-screen bg-background">
+      {/* Sticky Header */}
+      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+        <div className="container mx-auto px-4 py-4">
+          <div className="flex items-center justify-between mb-4">
+            <div>
+              <h1 className="text-2xl font-bold">Play</h1>
+              <p className="text-sm text-muted-foreground">Find players and join games in your area</p>
+            </div>
+            <Link to="/sessions/create">
+              <Button className="bg-primary hover:bg-primary/90">
+                <Plus className="h-4 w-4 mr-2" />
+                Create Session
+              </Button>
+            </Link>
+          </div>
+          
+          {/* Search Bar */}
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Input
+              placeholder="Search sessions, players, or locations..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+            <Button 
+              variant="ghost" 
+              size="sm"
+              onClick={() => setShowFilters(!showFilters)}
+              className="absolute right-2 top-1/2 transform -translate-y-1/2"
+            >
+              <Filter className="h-4 w-4" />
+              {activeFiltersCount > 0 && (
+                <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 text-xs">
+                  {activeFiltersCount}
+                </Badge>
+              )}
+            </Button>
+          </div>
         </div>
+      </div>
 
-        {/* Search and Filters */}
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-4">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-                <Input
-                  placeholder="Search by location, player name, or session type..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  className="pl-10"
-                />
+      <div className="container mx-auto px-4 py-6 space-y-6">
+        {/* Player Stats Widget */}
+        <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between mb-4">
+              <h3 className="text-lg font-semibold">Your Stats</h3>
+              <Badge variant="outline" className="bg-primary/10">Level {Math.floor((regularTokens || 0) / 100) + 1}</Badge>
+            </div>
+            <div className="grid grid-cols-3 gap-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold text-primary">{regularTokens || 0}</div>
+                <div className="text-sm text-muted-foreground">Tokens</div>
               </div>
-              <div className="flex gap-2">
-                <Button 
-                  variant={showFilters ? "default" : "outline"} 
-                  size="sm"
-                  onClick={() => setShowFilters(!showFilters)}
-                >
-                  <SlidersHorizontal className="h-4 w-4 mr-2" />
-                  Filters
-                  {activeFiltersCount > 0 && (
-                    <Badge variant="secondary" className="ml-2 h-5 w-5 p-0 text-xs">
-                      {activeFiltersCount}
-                    </Badge>
-                  )}
-                </Button>
-                <Link to="/sessions/create">
-                  <Button size="sm" className="bg-tennis-green-primary hover:bg-tennis-green-medium">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Session
-                  </Button>
-                </Link>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-secondary">{Math.floor((regularTokens || 0) * 1.5)}</div>
+                <div className="text-sm text-muted-foreground">XP</div>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold text-accent">{Math.max(85, 100 - Math.floor((regularTokens || 0) / 20))}</div>
+                <div className="text-sm text-muted-foreground">Health</div>
               </div>
             </div>
           </CardContent>
@@ -627,28 +645,150 @@ const Play = () => {
 
         {/* Session Tabs */}
         <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-4">
+            <TabsTrigger value="for-you">For You</TabsTrigger>
+            <TabsTrigger value="nearby">
+              Nearby
+              {hasLocation && (
+                <Badge variant="secondary" className="ml-1 text-xs">
+                  {nearbySessions.length}
+                </Badge>
+              )}
+            </TabsTrigger>
             <TabsTrigger value="active">
-              Active Now
-              <Badge variant="secondary" className="ml-2">
+              All
+              <Badge variant="secondary" className="ml-1 text-xs">
                 {activeSessions.length}
               </Badge>
             </TabsTrigger>
-            <TabsTrigger value="upcoming">Upcoming</TabsTrigger>
             <TabsTrigger value="my-sessions">
-              My Sessions
-              <Badge variant="secondary" className="ml-2">
+              Mine
+              <Badge variant="secondary" className="ml-1 text-xs">
                 {mySessions.length}
               </Badge>
             </TabsTrigger>
           </TabsList>
           
+          <TabsContent value="for-you" className="space-y-4">
+            <div className="space-y-4">
+              {/* Recommended Sessions */}
+              {hasLocation && recommendations.length > 0 && (
+                <div className="space-y-3">
+                  <h3 className="text-lg font-semibold">Recommended for You</h3>
+                  {recommendations.slice(0, 3).map((session) => (
+                    <Card key={session.id} className="border-l-4 border-l-primary">
+                      <CardContent className="p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <h4 className="font-medium">{session.title}</h4>
+                          <Badge className="bg-primary/10 text-primary">
+                            {Math.round(session.recommendation_score * 100)}% match
+                          </Badge>
+                        </div>
+                        <p className="text-sm text-muted-foreground mb-3">{session.recommendation_reason}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs text-muted-foreground">{session.distance_km.toFixed(1)}km away</span>
+                          <Button size="sm" onClick={() => joinSession(session.id)}>
+                            Join Session
+                          </Button>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+                </div>
+              )}
+              
+              {/* Popular Sessions */}
+              <div className="space-y-3">
+                <h3 className="text-lg font-semibold">Popular Sessions</h3>
+                <div className={`space-y-4 ${!isMobile && 'md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0'}`}>
+                  {activeSessions.slice(0, 6).map((session) => {
+                    const nearbySession = nearbySessions.find(ns => ns.id === session.id);
+                    const distance = nearbySession?.distance_km;
+                    
+                    return isMobile ? (
+                      <MobileSessionCard
+                        key={session.id}
+                        session={session}
+                        user={user}
+                        onJoinSession={handleJoinSession}
+                        onDeleteSession={handleDeleteSession}
+                        isJoining={isJoining(session.id)}
+                        isDeleting={deletingStates[session.id] || false}
+                        regularTokens={regularTokens}
+                        distance={distance}
+                      />
+                    ) : (
+                      <SessionCard key={session.id} session={session} />
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="nearby" className="space-y-4">
+            <div className="flex items-center justify-between">
+              <h2 className="text-xl font-semibold">
+                Nearby Sessions
+                {hasLocation && (
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
+                    (Within {radiusKm}km)
+                  </span>
+                )}
+              </h2>
+              {hasLocation && (
+                <Badge variant="outline">
+                  {nearbySessions.length} nearby
+                </Badge>
+              )}
+            </div>
+            
+            {!hasLocation ? (
+              <Card className="border-l-4 border-l-yellow-500">
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-3">
+                    <MapPin className="h-5 w-5 text-yellow-600" />
+                    <div>
+                      <h3 className="font-medium text-yellow-800">Location Access Needed</h3>
+                      <p className="text-sm text-yellow-700">
+                        Enable location services to see nearby sessions.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className={`space-y-4 ${!isMobile && 'md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0'}`}>
+                {nearbySessions.map((nearbySession) => {
+                  const session = activeSessions.find(s => s.id === nearbySession.id);
+                  if (!session) return null;
+                  
+                  return isMobile ? (
+                    <MobileSessionCard
+                      key={session.id}
+                      session={session}
+                      user={user}
+                      onJoinSession={handleJoinSession}
+                      onDeleteSession={handleDeleteSession}
+                      isJoining={isJoining(session.id)}
+                      isDeleting={deletingStates[session.id] || false}
+                      regularTokens={regularTokens}
+                      distance={nearbySession.distance_km}
+                    />
+                  ) : (
+                    <SessionCard key={session.id} session={session} />
+                  );
+                })}
+              </div>
+            )}
+          </TabsContent>
+
           <TabsContent value="active" className="space-y-4">
             <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-tennis-green-dark">
-                Active Sessions
+              <h2 className="text-xl font-semibold">
+                All Sessions
                 {hasLocation && sortBy === 'distance' && (
-                  <span className="text-sm font-normal text-gray-600 ml-2">
+                  <span className="text-sm font-normal text-muted-foreground ml-2">
                     (Sorted by distance)
                   </span>
                 )}
