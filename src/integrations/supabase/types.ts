@@ -6078,6 +6078,23 @@ export type Database = {
         Args: { assignment_id: string; player_feedback?: string }
         Returns: Json
       }
+      complete_training_with_rewards: {
+        Args: {
+          session_id_param: string
+          user_id_param: string
+          duration_minutes: number
+          hp_change: number
+          xp_gain: number
+          session_type?: string
+          intensity?: string
+          is_lesson?: boolean
+          coach_id?: string
+          coach_level?: number
+          session_notes?: string
+          mood?: string
+        }
+        Returns: Json
+      }
       create_appointment_request: {
         Args: {
           coach_user_id: string
@@ -6766,6 +6783,10 @@ export type Database = {
         Returns: Json
       }
       join_session: {
+        Args: { session_id_param: string; user_id_param: string }
+        Returns: Json
+      }
+      join_session_with_hp_check: {
         Args: { session_id_param: string; user_id_param: string }
         Returns: Json
       }

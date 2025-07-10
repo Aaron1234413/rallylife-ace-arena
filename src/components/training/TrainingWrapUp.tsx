@@ -140,7 +140,7 @@ export function TrainingWrapUp() {
 
   const hpImpact = calculateHPImpact();
   const xpGain = calculateXPGain();
-  const isLesson = sessionData.sessionType === 'lesson' || sessionData.coachName;
+  const isLesson = Boolean(sessionData.sessionType === 'lesson' || sessionData.coachName);
 
   const getCompletionMessage = () => {
     const messages = [
