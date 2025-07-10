@@ -122,22 +122,17 @@ const Play = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Get real session data - use conditional hook calls to prevent duplicate subscriptions
+  // Get real session data - use single hook instance to prevent duplicate subscriptions
   const { 
-    sessions: availableSessions, 
-    loading: availableLoading, 
+    sessions: allSessions, 
+    loading: sessionsLoading, 
     joinSession,
     error: sessionError 
-  } = useSafeRealTimeSessions('available', user?.id, {
-    enabled: activeTab !== 'mine' // Only enable when not viewing 'mine' tab
-  });
+  } = useSafeRealTimeSessions(activeTab === 'mine' ? 'my-sessions' : 'available', user?.id);
   
-  const { 
-    sessions: mySessions, 
-    loading: mySessionsLoading 
-  } = useSafeRealTimeSessions('my-sessions', user?.id, {
-    enabled: activeTab === 'mine' // Only enable when viewing 'mine' tab
-  });
+  // Split sessions based on activeTab for proper display
+  const availableSessions = activeTab === 'mine' ? [] : allSessions;
+  const mySessions = activeTab === 'mine' ? allSessions : [];
 
   // Enhanced session filtering and sorting
   const filteredAndSortedSessions = useMemo(() => {
@@ -379,7 +374,7 @@ const Play = () => {
             {/* Recent Sessions */}
             <div>
               <h2 className="text-lg font-semibold mb-3">Recent Sessions</h2>
-              {availableLoading ? (
+              {sessionsLoading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
                     <Card key={i} className="animate-pulse">
@@ -485,7 +480,7 @@ const Play = () => {
 
           {/* All Sessions Tab */}
           <TabsContent value="all" className="space-y-4">
-            {availableLoading ? (
+            {sessionsLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
                   <Card key={i} className="animate-pulse">
@@ -531,7 +526,7 @@ const Play = () => {
 
            {/* Mine Tab */}
            <TabsContent value="mine" className="space-y-4">
-             {mySessionsLoading ? (
+             {sessionsLoading ? (
                <div className="space-y-4">
                  {[1, 2].map((i) => (
                    <Card key={i} className="animate-pulse">
