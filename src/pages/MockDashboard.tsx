@@ -35,12 +35,12 @@ export function MockDashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900 relative overflow-hidden">
-      {/* Animated background elements */}
+    <div className="min-h-screen bg-gradient-to-br from-tennis-green-bg via-tennis-green-bg to-blue-50 relative overflow-hidden">
+      {/* Animated background elements - Tennis themed */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-purple-500/20 to-pink-500/20 rounded-full blur-3xl animate-pulse"></div>
-        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-500/20 to-cyan-500/20 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
-        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-gradient-to-br from-tennis-green-primary/10 to-emerald-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
+        <div className="absolute -top-40 -right-40 w-80 h-80 bg-gradient-to-br from-tennis-green-primary/10 to-tennis-green-medium/10 rounded-full blur-3xl animate-pulse"></div>
+        <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-gradient-to-br from-blue-500/10 to-tennis-green-light/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '2s' }}></div>
+        <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 w-60 h-60 bg-gradient-to-br from-tennis-green-subtle/10 to-emerald-500/10 rounded-full blur-3xl animate-pulse" style={{ animationDelay: '4s' }}></div>
       </div>
 
       <div className={`relative z-10 ${isMobile ? 'p-4 pb-24' : 'p-6'} max-w-6xl mx-auto space-y-6`}>
@@ -64,15 +64,15 @@ export function MockDashboard() {
           </div>
           
           <div className="space-y-3">
-            <h1 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-bold bg-gradient-to-r from-cyan-400 via-purple-400 to-pink-400 bg-clip-text text-transparent mb-2 animate-pulse`}>
+            <h1 className={`${isMobile ? 'text-2xl' : 'text-4xl'} font-bold bg-gradient-to-r from-tennis-green-dark to-blue-600 bg-clip-text text-transparent mb-2`}>
               Welcome back, Champion! 
-              <Sparkles className="inline h-8 w-8 ml-2 text-yellow-400 animate-spin" />
+              <Sparkles className="inline h-8 w-8 ml-2 text-tennis-green-primary animate-spin" />
             </h1>
-            <div className="flex items-center justify-center gap-2 text-cyan-300">
-              <TrendingUp className="h-5 w-5 text-green-400" />
+            <div className="flex items-center justify-center gap-2 text-tennis-green-medium">
+              <TrendingUp className="h-5 w-5 text-tennis-green-primary" />
               <span className="font-semibold">+{playerStats.todayXP} XP earned today</span>
-              <span className="text-slate-400">•</span>
-              <span className="text-purple-300">Ready for your next challenge?</span>
+              <span className="text-gray-400">•</span>
+              <span className="text-blue-600">Ready for your next challenge?</span>
             </div>
           </div>
         </div>
@@ -178,20 +178,20 @@ export function MockDashboard() {
         </div>
 
         {/* Gamified Quick Actions */}
-        <Card className="border-0 shadow-2xl bg-gradient-to-br from-slate-800/50 to-slate-900/50 backdrop-blur-sm border border-slate-700/50">
+        <Card className="border-0 shadow-xl bg-gradient-to-br from-white to-tennis-green-bg/30 backdrop-blur-sm">
           <CardContent className={`${isMobile ? 'p-4' : 'p-8'}`}>
             <div className="text-center mb-6">
-              <h2 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold bg-gradient-to-r from-cyan-400 to-purple-400 bg-clip-text text-transparent mb-2 flex items-center justify-center gap-2`}>
-                <Gamepad2 className="h-6 w-6 text-purple-400" />
+              <h2 className={`${isMobile ? 'text-xl' : 'text-2xl'} font-bold bg-gradient-to-r from-tennis-green-dark to-blue-600 bg-clip-text text-transparent mb-2 flex items-center justify-center gap-2`}>
+                <Gamepad2 className="h-6 w-6 text-tennis-green-primary" />
                 Choose Your Adventure
               </h2>
-              <p className="text-slate-300">What challenge will you conquer today?</p>
+              <p className="text-tennis-green-medium">What challenge will you conquer today?</p>
             </div>
             
             <div className={`grid ${isMobile ? 'grid-cols-2 gap-3' : 'grid-cols-4 gap-4'}`}>
               {/* Start a Match - Primary Action */}
               <Button 
-                className={`${isMobile ? 'h-20' : 'h-24'} flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white shadow-lg hover:shadow-[0_0_30px_rgba(16,185,129,0.5)] transition-all duration-500 hover:scale-110 relative overflow-hidden group border border-emerald-400/30`}
+                className={`${isMobile ? 'h-20' : 'h-24'} flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-tennis-green-primary to-tennis-green-medium hover:from-tennis-green-medium hover:to-tennis-green-dark text-white shadow-lg hover:shadow-xl transition-all duration-500 hover:scale-110 relative overflow-hidden group`}
               >
                 <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/20 to-transparent -skew-x-12 group-hover:animate-pulse"></div>
                 <div className="relative z-10 flex flex-col items-center gap-1">
@@ -207,39 +207,42 @@ export function MockDashboard() {
 
               {/* Practice Session */}
               <Button 
-                className={`${isMobile ? 'h-20' : 'h-24'} flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-orange-500/20 to-red-500/20 hover:from-orange-500/30 hover:to-red-500/30 border-2 border-orange-500/40 hover:border-orange-400 transition-all duration-500 hover:scale-110 shadow-lg hover:shadow-[0_0_30px_rgba(249,115,22,0.3)] group backdrop-blur-sm`}
+                variant="outline"
+                className={`${isMobile ? 'h-20' : 'h-24'} flex flex-col items-center justify-center gap-2 hover:bg-gradient-to-br hover:from-orange-50 hover:to-orange-100 border-2 hover:border-orange-300 transition-all duration-500 hover:scale-110 shadow-md hover:shadow-lg group`}
               >
                 <div className="relative z-10 flex flex-col items-center gap-1">
-                  <div className="w-10 h-10 bg-gradient-to-br from-orange-500 to-red-500 rounded-full flex items-center justify-center shadow-lg group-hover:animate-pulse">
-                    <Target className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-white`} />
+                  <div className="w-10 h-10 bg-gradient-to-br from-orange-100 to-orange-200 rounded-full flex items-center justify-center shadow-lg group-hover:from-orange-200 group-hover:to-orange-300 transition-all duration-300">
+                    <Target className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-orange-600`} />
                   </div>
-                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-orange-300`}>Practice</span>
+                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-gray-700`}>Practice</span>
                 </div>
               </Button>
 
               {/* Find Players */}
               <Button 
-                className={`${isMobile ? 'h-20' : 'h-24'} flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-blue-500/20 to-purple-500/20 hover:from-blue-500/30 hover:to-purple-500/30 border-2 border-blue-500/40 hover:border-blue-400 transition-all duration-500 hover:scale-110 shadow-lg hover:shadow-[0_0_30px_rgba(59,130,246,0.3)] group backdrop-blur-sm`}
+                variant="outline"
+                className={`${isMobile ? 'h-20' : 'h-24'} flex flex-col items-center justify-center gap-2 hover:bg-gradient-to-br hover:from-blue-50 hover:to-blue-100 border-2 hover:border-blue-300 transition-all duration-500 hover:scale-110 shadow-md hover:shadow-lg group`}
               >
                 <div className="relative z-10 flex flex-col items-center gap-1">
-                  <div className="w-10 h-10 bg-gradient-to-br from-blue-500 to-purple-500 rounded-full flex items-center justify-center shadow-lg group-hover:animate-pulse">
-                    <Users className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-white`} />
+                  <div className="w-10 h-10 bg-gradient-to-br from-blue-100 to-blue-200 rounded-full flex items-center justify-center shadow-lg group-hover:from-blue-200 group-hover:to-blue-300 transition-all duration-300">
+                    <Users className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-blue-600`} />
                   </div>
-                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-blue-300`}>Find Players</span>
+                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-gray-700`}>Find Players</span>
                 </div>
               </Button>
 
               {/* Create a Club */}
               <Button 
-                className={`${isMobile ? 'h-20' : 'h-24'} flex flex-col items-center justify-center gap-2 bg-gradient-to-br from-purple-500/20 to-pink-500/20 hover:from-purple-500/30 hover:to-pink-500/30 border-2 border-purple-500/40 hover:border-purple-400 transition-all duration-500 hover:scale-110 shadow-lg hover:shadow-[0_0_30px_rgba(147,51,234,0.3)] group relative backdrop-blur-sm`}
+                variant="outline"
+                className={`${isMobile ? 'h-20' : 'h-24'} flex flex-col items-center justify-center gap-2 hover:bg-gradient-to-br hover:from-purple-50 hover:to-purple-100 border-2 hover:border-purple-300 transition-all duration-500 hover:scale-110 shadow-md hover:shadow-lg group relative`}
               >
                 <div className="relative z-10 flex flex-col items-center gap-1">
-                  <div className="w-10 h-10 bg-gradient-to-br from-purple-500 to-pink-500 rounded-full flex items-center justify-center shadow-lg group-hover:animate-pulse">
-                    <Building className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-white`} />
+                  <div className="w-10 h-10 bg-gradient-to-br from-purple-100 to-purple-200 rounded-full flex items-center justify-center shadow-lg group-hover:from-purple-200 group-hover:to-purple-300 transition-all duration-300">
+                    <Building className={`${isMobile ? 'h-5 w-5' : 'h-6 w-6'} text-purple-600`} />
                   </div>
-                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-purple-300`}>Create Club</span>
+                  <span className={`${isMobile ? 'text-xs' : 'text-sm'} font-bold text-gray-700`}>Create Club</span>
                 </div>
-                <Badge className="absolute -top-1 -right-1 bg-gradient-to-r from-green-400 to-emerald-500 text-white text-xs px-1.5 py-0.5 animate-pulse">
+                <Badge className="absolute -top-1 -right-1 bg-green-500 text-white text-xs px-1.5 py-0.5">
                   NEW
                 </Badge>
               </Button>
@@ -248,24 +251,22 @@ export function MockDashboard() {
         </Card>
 
         {/* Achievement Showcase */}
-        <Card className="border-0 shadow-2xl bg-gradient-to-r from-purple-500/20 to-pink-500/20 backdrop-blur-sm border border-purple-500/30">
+        <Card className="border-0 shadow-lg bg-gradient-to-r from-purple-100 to-pink-100">
           <CardContent className={`${isMobile ? 'p-4' : 'p-6'}`}>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-yellow-500 to-orange-500 rounded-full flex items-center justify-center shadow-lg animate-pulse">
-                  <Trophy className="h-6 w-6 text-white" />
-                </div>
+                <Trophy className="h-6 w-6 text-purple-600" />
                 <div>
-                  <div className="font-bold text-purple-100 flex items-center gap-2">
+                  <div className="font-semibold text-purple-900 flex items-center gap-2">
                     Next Achievement
-                    <Award className="h-4 w-4 text-yellow-400" />
+                    <Award className="h-4 w-4 text-yellow-500" />
                   </div>
-                  <div className="text-sm text-purple-300">Win 3 matches in a row</div>
+                  <div className="text-sm text-purple-600">Win 3 matches in a row</div>
                 </div>
               </div>
               <div className="text-right">
-                <div className="text-sm font-bold text-purple-200">Progress: 1/3</div>
-                <Progress value={33} className="w-20 h-3 mt-1 bg-purple-900/30 border border-purple-500/30" />
+                <div className="text-sm text-purple-600">Progress: 1/3</div>
+                <Progress value={33} className="w-20 h-2 mt-1" />
               </div>
             </div>
           </CardContent>
