@@ -189,6 +189,15 @@ const Index = () => {
     }
   }, [user?.id, profile?.role, dataInitialized]);
 
+  // Redirect coaches to their dedicated dashboard
+  useEffect(() => {
+    if (profile?.role === 'coach' && location.pathname === '/dashboard') {
+      console.log('🏠 [INDEX] Redirecting coach to coach dashboard');
+      navigate('/coach-dashboard', { replace: true });
+      return;
+    }
+  }, [profile?.role, location.pathname, navigate]);
+
   // Enhanced XP earning function that checks for avatar unlocks and achievements
   const handleAddXP = async (amount: number, activityType: string, description?: string) => {
     try {
@@ -325,15 +334,6 @@ const Index = () => {
   }
 
   console.log('🏠 [INDEX] Rendering main dashboard for role:', profile.role);
-
-  // Redirect coaches to their dedicated dashboard
-  useEffect(() => {
-    if (profile?.role === 'coach' && location.pathname === '/dashboard') {
-      console.log('🏠 [INDEX] Redirecting coach to coach dashboard');
-      navigate('/coach-dashboard', { replace: true });
-      return;
-    }
-  }, [profile?.role, location.pathname, navigate]);
 
   // Don't render anything for coaches being redirected
   if (profile?.role === 'coach' && location.pathname === '/dashboard') {
