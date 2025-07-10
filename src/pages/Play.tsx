@@ -563,7 +563,7 @@ const Play = () => {
         onOpenChange={setShowCreateDialog}
         onSuccess={() => {
           setShowCreateDialog(false);
-          toast.success('Session created! It should appear in your sessions shortly.');
+          toast.success('Session created successfully!');
         }}
       />
     </div>
