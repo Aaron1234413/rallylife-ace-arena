@@ -250,7 +250,7 @@ export function useSafeRealTimeSessions(
     return () => {
       clearChannels();
     };
-  }, [effectiveUserId, activeTab, enabled, fetchSessions, clearChannels]);
+  }, [effectiveUserId, activeTab, enabled, clearChannels]);
 
   const joinSession = useCallback(async (sessionId: string) => {
     if (!effectiveUserId) {
