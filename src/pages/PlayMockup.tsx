@@ -461,53 +461,72 @@ const PlayMockup = () => {
         </div>
       </div>
 
-      {/* Player Stats Widget - Using Design System */}
+      {/* Player Stats Widget - Improved Layout */}
       <div className="mb-6">
-        <Card className="border-2 border-tennis-green-primary/20 bg-gradient-to-r from-tennis-green-subtle to-tennis-green-bg-alt">
-          <CardContent className="p-4">
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-              {/* Level & XP - Enhanced with XP Display component styling */}
-              <div className="flex flex-col items-center p-3 rounded-lg bg-card/50 border border-border/50">
-                <div className="flex items-center gap-2 mb-2">
-                  <Award className="h-5 w-5 text-tennis-green-primary" />
-                  <span className="font-bold text-lg text-tennis-green-dark">Lv.{mockPlayerStats.level}</span>
+        <Card className="border border-tennis-green-primary/20 bg-gradient-to-r from-tennis-green-subtle to-tennis-green-bg-alt shadow-lg">
+          <CardContent className="p-6">
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
+              {/* Level & XP */}
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-tennis-green-primary/10 flex items-center justify-center">
+                    <Award className="h-6 w-6 text-tennis-green-primary" />
+                  </div>
                 </div>
-                <XPDisplay
-                  currentLevel={mockPlayerStats.level}
-                  currentXP={mockPlayerStats.xp}
-                  xpToNextLevel={mockPlayerStats.xpToNext - mockPlayerStats.xp}
-                  size="small"
-                  showLevel={false}
-                />
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-1 mb-1">
+                    <h3 className="text-xl font-bold text-tennis-green-dark">Lv.{mockPlayerStats.level}</h3>
+                  </div>
+                  <XPDisplay
+                    currentLevel={mockPlayerStats.level}
+                    currentXP={mockPlayerStats.xp}
+                    xpToNextLevel={mockPlayerStats.xpToNext - mockPlayerStats.xp}
+                    size="small"
+                    showLevel={false}
+                    className="w-full"
+                  />
+                </div>
               </div>
 
               {/* Tokens */}
-              <div className="flex flex-col items-center p-3 rounded-lg bg-card/50 border border-border/50">
-                <div className="flex items-center gap-2 mb-2">
-                  <Coins className="h-5 w-5 text-tennis-yellow" />
-                  <span className="font-bold text-lg text-tennis-green-dark">{mockPlayerStats.tokens}</span>
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-tennis-yellow/10 flex items-center justify-center">
+                    <Coins className="h-6 w-6 text-tennis-yellow-dark" />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">Tokens</p>
+                <div className="flex-1 min-w-0">
+                  <div className="text-2xl font-bold text-tennis-green-dark">{mockPlayerStats.tokens}</div>
+                  <div className="text-sm text-muted-foreground">Tokens</div>
+                </div>
               </div>
 
               {/* Streak */}
-              <div className="flex flex-col items-center p-3 rounded-lg bg-card/50 border border-border/50">
-                <div className="flex items-center gap-2 mb-2">
-                  <Flame className="h-5 w-5 text-tennis-yellow-dark" />
-                  <span className="font-bold text-lg text-tennis-green-dark">{mockPlayerStats.streak}</span>
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-tennis-yellow/10 flex items-center justify-center">
+                    <Flame className="h-6 w-6 text-tennis-yellow-dark" />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">Day Streak</p>
+                <div className="flex-1 min-w-0">
+                  <div className="text-2xl font-bold text-tennis-green-dark">{mockPlayerStats.streak}</div>
+                  <div className="text-sm text-muted-foreground">Day Streak</div>
+                </div>
               </div>
 
               {/* Win Rate */}
-              <div className="flex flex-col items-center p-3 rounded-lg bg-card/50 border border-border/50">
-                <div className="flex items-center gap-2 mb-2">
-                  <TrendingUp className="h-5 w-5 text-tennis-green-accent" />
-                  <span className="font-bold text-lg text-tennis-green-dark">
-                    {Math.round((mockPlayerStats.wins / mockPlayerStats.totalMatches) * 100)}%
-                  </span>
+              <div className="flex items-center space-x-4">
+                <div className="flex-shrink-0">
+                  <div className="w-12 h-12 rounded-full bg-tennis-green-accent/10 flex items-center justify-center">
+                    <TrendingUp className="h-6 w-6 text-tennis-green-accent" />
+                  </div>
                 </div>
-                <p className="text-xs text-muted-foreground">Win Rate</p>
+                <div className="flex-1 min-w-0">
+                  <div className="text-2xl font-bold text-tennis-green-dark">
+                    {Math.round((mockPlayerStats.wins / mockPlayerStats.totalMatches) * 100)}%
+                  </div>
+                  <div className="text-sm text-muted-foreground">Win Rate</div>
+                </div>
               </div>
             </div>
           </CardContent>
