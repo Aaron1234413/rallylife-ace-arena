@@ -110,95 +110,8 @@ const PlayMockup = () => {
   const [stakesFilter, setStakesFilter] = useState('all');
   const [distanceFilter, setDistanceFilter] = useState('all');
 
-  // Quick action buttons for the sticky header
-  const QuickActions = () => (
-    <div className="flex items-center gap-2">
-      <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
-        <SheetTrigger asChild>
-          <Button variant="outline" size="sm">
-            <Filter className="h-4 w-4 mr-2" />
-            Filter
-          </Button>
-        </SheetTrigger>
-        <SheetContent side="right" className="w-full sm:w-96">
-          <SheetHeader>
-            <SheetTitle>Filter Sessions</SheetTitle>
-            <SheetDescription>
-              Refine your search to find the perfect match
-            </SheetDescription>
-          </SheetHeader>
-          <div className="space-y-6 mt-6">
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Session Type</label>
-              <Select value={sessionTypeFilter} onValueChange={setSessionTypeFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="All session types" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                  <SelectItem value="all">All Types</SelectItem>
-                  <SelectItem value="match">Matches</SelectItem>
-                  <SelectItem value="social">Social Games</SelectItem>
-                  <SelectItem value="training">Training</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Stakes</label>
-              <Select value={stakesFilter} onValueChange={setStakesFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Any stakes" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                  <SelectItem value="all">Any Stakes</SelectItem>
-                  <SelectItem value="free">Free (0 tokens)</SelectItem>
-                  <SelectItem value="low">Low (1-50 tokens)</SelectItem>
-                  <SelectItem value="medium">Medium (51-200 tokens)</SelectItem>
-                  <SelectItem value="high">High (200+ tokens)</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Distance</label>
-              <Select value={distanceFilter} onValueChange={setDistanceFilter}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Any distance" />
-                </SelectTrigger>
-                <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
-                  <SelectItem value="all">Any Distance</SelectItem>
-                  <SelectItem value="close">Within 2km</SelectItem>
-                  <SelectItem value="medium">Within 10km</SelectItem>
-                  <SelectItem value="far">Within 25km</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
-
-            <div className="pt-4 border-t">
-              <Button 
-                variant="outline" 
-                className="w-full"
-                onClick={() => {
-                  setSessionTypeFilter('all');
-                  setStakesFilter('all');
-                  setDistanceFilter('all');
-                }}
-              >
-                Clear All Filters
-              </Button>
-            </div>
-          </div>
-        </SheetContent>
-      </Sheet>
-      
-      <Link to="/sessions/create">
-        <Button size="sm" className="bg-tennis-green-primary hover:bg-tennis-green-accent text-white">
-          <Plus className="h-4 w-4 mr-2" />
-          Create
-        </Button>
-      </Link>
-    </div>
-  );
+  // Quick action buttons for the sticky header - removed since we're now inline
+  // const QuickActions = () => (...); // This component is no longer needed
 
   // Enhanced session card with gamification
   const SessionCard = ({ session, isRecommended = false }: { session: any, isRecommended?: boolean }) => {
@@ -444,19 +357,107 @@ const PlayMockup = () => {
               <h1 className="text-xl font-bold">🎾 Play</h1>
             </div>
             
-            {/* Search */}
-            <div className="flex-1 max-w-md relative">
+            {/* Search - Mobile Optimized */}
+            <div className="flex-1 relative">
               <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
               <Input
                 placeholder="Search sessions, players, locations..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-muted/50"
+                className="pl-10 bg-muted/50 text-sm md:text-base"
               />
             </div>
 
-            {/* Quick Actions */}
-            <QuickActions />
+            {/* Quick Actions - Responsive */}
+            <div className="flex items-center gap-2">
+              {/* Filter - Hide text on small screens */}
+              <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="px-2 md:px-4">
+                    <Filter className="h-4 w-4" />
+                    <span className="hidden md:inline ml-2">Filter</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full sm:w-96">
+                  {/* ... keep existing filter content ... */}
+                  <SheetHeader>
+                    <SheetTitle>Filter Sessions</SheetTitle>
+                    <SheetDescription>
+                      Refine your search to find the perfect match
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="space-y-6 mt-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Session Type</label>
+                      <Select value={sessionTypeFilter} onValueChange={setSessionTypeFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All session types" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                          <SelectItem value="all">All Types</SelectItem>
+                          <SelectItem value="match">Matches</SelectItem>
+                          <SelectItem value="social">Social Games</SelectItem>
+                          <SelectItem value="training">Training</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Stakes</label>
+                      <Select value={stakesFilter} onValueChange={setStakesFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Any stakes" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                          <SelectItem value="all">Any Stakes</SelectItem>
+                          <SelectItem value="free">Free (0 tokens)</SelectItem>
+                          <SelectItem value="low">Low (1-50 tokens)</SelectItem>
+                          <SelectItem value="medium">Medium (51-200 tokens)</SelectItem>
+                          <SelectItem value="high">High (200+ tokens)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Distance</label>
+                      <Select value={distanceFilter} onValueChange={setDistanceFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Any distance" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                          <SelectItem value="all">Any Distance</SelectItem>
+                          <SelectItem value="close">Within 2km</SelectItem>
+                          <SelectItem value="medium">Within 10km</SelectItem>
+                          <SelectItem value="far">Within 25km</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="pt-4 border-t">
+                      <Button 
+                        variant="outline" 
+                        className="w-full"
+                        onClick={() => {
+                          setSessionTypeFilter('all');
+                          setStakesFilter('all');
+                          setDistanceFilter('all');
+                        }}
+                      >
+                        Clear All Filters
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+              
+              {/* Create Button - Hide text on small screens */}
+              <Link to="/sessions/create">
+                <Button size="sm" className="bg-tennis-green-primary hover:bg-tennis-green-accent text-white px-2 md:px-4">
+                  <Plus className="h-4 w-4" />
+                  <span className="hidden md:inline ml-2">Create</span>
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
       </div>
