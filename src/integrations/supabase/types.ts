@@ -6041,11 +6041,17 @@ export type Database = {
         Returns: Json
       }
       complete_session_with_hp: {
-        Args: {
-          session_id_param: string
-          winner_id_param?: string
-          winning_team_param?: Json
-        }
+        Args:
+          | {
+              session_id_param: string
+              winner_id_param?: string
+              winning_team_param?: Json
+            }
+          | {
+              session_id_param: string
+              winner_id_param?: string
+              winning_team_param?: string
+            }
         Returns: Json
       }
       complete_social_play_session: {
