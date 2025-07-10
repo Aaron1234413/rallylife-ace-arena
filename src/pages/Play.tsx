@@ -30,7 +30,8 @@ import { NearbyPlayersWidget } from '@/components/play/NearbyPlayersWidget';
 import { useJoinSessionState } from '@/hooks/useJoinSessionState';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
-import { TokenInsufficientError } from '@/components/tokens/TokenInsufficientError';
+import { usePlayerHP } from '@/hooks/usePlayerHP';
+import { useMatchHistory } from '@/hooks/useMatchHistory';
 import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
 import { toast } from 'sonner';
 import { MobileSessionCard } from '@/components/play/MobileSessionCard';
@@ -65,6 +66,12 @@ const Play = () => {
 
   // Player XP and stats
   const { xpData, loading: xpLoading } = usePlayerXP();
+  
+  // Player HP data
+  const { hpData, loading: hpLoading } = usePlayerHP();
+  
+  // Match history data  
+  const { matchHistory, loading: matchLoading } = useMatchHistory();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
