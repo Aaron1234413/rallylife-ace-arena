@@ -260,7 +260,7 @@ const Play = () => {
                   </Badge>
                 )}
               </Button>
-              <Link to="/create-session">
+              <Link to="/sessions/create">
                 <Button size="sm">
                   <Plus className="h-4 w-4" />
                   {!isMobile && "Create"}
@@ -393,7 +393,7 @@ const Play = () => {
                         <h3 className="text-lg font-semibold">No Sessions Available</h3>
                         <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
                       </div>
-                      <Link to="/create-session">
+                      <Link to="/sessions/create">
                         <Button>
                           <Plus className="h-4 w-4 mr-2" />
                           Create Session
@@ -501,7 +501,7 @@ const Play = () => {
                       <h3 className="text-lg font-semibold">No Active Sessions</h3>
                       <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
                     </div>
-                    <Link to="/create-session">
+                    <Link to="/sessions/create">
                       <Button>
                         <Plus className="h-4 w-4 mr-2" />
                         Create Session
@@ -549,12 +549,12 @@ const Play = () => {
                        <h3 className="text-lg font-semibold">No Sessions Yet</h3>
                        <p className="text-muted-foreground">You haven't joined or created any sessions.</p>
                      </div>
-                     <Link to="/create-session">
-                       <Button>
-                         <Plus className="h-4 w-4 mr-2" />
-                         Create Your First Session
-                       </Button>
-                     </Link>
+                      <Link to="/sessions/create">
+                        <Button>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create Your First Session
+                        </Button>
+                      </Link>
                    </div>
                  </CardContent>
                </Card>
