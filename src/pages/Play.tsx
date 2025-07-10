@@ -3,17 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { 
   Users, 
   Trophy, 
@@ -40,11 +29,15 @@ import { EnhancedLocationFilters } from '@/components/play/EnhancedLocationFilte
 import { NearbyPlayersWidget } from '@/components/play/NearbyPlayersWidget';
 import { useJoinSessionState } from '@/hooks/useJoinSessionState';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
+import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { TokenInsufficientError } from '@/components/tokens/TokenInsufficientError';
 import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
 import { toast } from 'sonner';
 import { MobileSessionCard } from '@/components/play/MobileSessionCard';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { PlayerStatsWidget } from '@/components/play/PlayerStatsWidget';
+import { EnhancedSessionCard } from '@/components/play/EnhancedSessionCard';
+import { RecommendedSection } from '@/components/play/RecommendedSection';
 
 const Play = () => {
   const { user } = useAuth();
@@ -52,8 +45,8 @@ const Play = () => {
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   
-  // Get initial tab from URL params or default to "active"
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'active');
+  // Get initial tab from URL params or default to "for-you"
+  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'for-you');
   
   // Add unified sessions hook for delete functionality
   const { cancelSession } = useUnifiedSessions({
@@ -69,6 +62,9 @@ const Play = () => {
     loading: tokensLoading,
     refreshTokens 
   } = usePlayerTokens();
+
+  // Player XP and stats
+  const { xpData, loading: xpLoading } = usePlayerXP();
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedFormat, setSelectedFormat] = useState('all');
   const [showFilters, setShowFilters] = useState(false);
@@ -105,7 +101,7 @@ const Play = () => {
   // Handle tab switching from URL parameters
   React.useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['active', 'upcoming', 'my-sessions'].includes(tabParam)) {
+    if (tabParam && ['for-you', 'nearby', 'all', 'mine'].includes(tabParam)) {
       setActiveTab(tabParam);
       // Clear the URL parameter after switching
       setSearchParams({});
@@ -228,328 +224,65 @@ const Play = () => {
     }
   };
 
-  const getTypeColor = (type: string) => {
-    switch (type) {
-      case 'match': return 'bg-red-100 text-red-700';
-      case 'social': return 'bg-green-100 text-green-700';
-      case 'training': return 'bg-blue-100 text-blue-700';
-      default: return 'bg-gray-100 text-gray-700';
-    }
-  };
-
-  const getTypeIcon = (type: string) => {
-    switch (type) {
-      case 'match': return Trophy;
-      case 'social': return Users;
-      case 'training': return Star;
-      default: return Gamepad2;
-    }
-  };
-
-  const SessionCard = ({ session }: { session: any }) => {
-    const TypeIcon = getTypeIcon(session.session_type || session.type);
-    const sessionType = session.session_type || session.type;
-    
-    // Find distance data if available
-    const nearbySession = nearbySessions.find(ns => ns.id === session.id);
-    const distance = nearbySession?.distance_km;
-    
-    // Check if current user is the session creator
-    const isCreator = user && session.creator_id === user.id;
-    
-    // Token balance checking
-    const hasStakes = session.stakes_amount > 0;
-    const hasInsufficientTokens = hasStakes && regularTokens < session.stakes_amount;
-    const tokensShort = hasInsufficientTokens ? session.stakes_amount - regularTokens : 0;
-    
-    const handleJoinSession = async () => {
-      if (session.user_joined || isJoining(session.id)) return;
-      
-      startJoining(session.id);
-      
-      try {
-        await joinSession(session.id);
-      } catch (error) {
-        console.error('Failed to join session:', error);
-        // Error is already handled by the hook, just need to ensure we stop joining
-      } finally {
-        stopJoining();
-      }
-    };
-
-    const handleDeleteSession = async () => {
-      setDeletingStates(prev => ({ ...prev, [session.id]: true }));
-      try {
-        const success = await cancelSession(session.id);
-        if (success) {
-          toast.success('Session deleted successfully');
-        }
-      } catch (error) {
-        console.error('Error deleting session:', error);
-        toast.error('Failed to delete session');
-      } finally {
-        setDeletingStates(prev => ({ ...prev, [session.id]: false }));
-      }
-    };
-    
-    // Determine card styling based on token availability
-    const cardBorderClass = hasInsufficientTokens 
-      ? "border-l-red-500" 
-      : "border-l-tennis-green-primary";
-    
-    return (
-      <Card className={`hover:shadow-lg transition-all duration-300 border-l-4 ${cardBorderClass}`}>
-        <CardHeader className="pb-3">
-          <div className="flex items-start justify-between">
-            <div className="flex items-center gap-2">
-              <TypeIcon className="h-4 w-4 text-tennis-green-primary" />
-              <CardTitle className="text-lg">
-                {session.title || `${sessionType.charAt(0).toUpperCase() + sessionType.slice(1)} Session`}
-              </CardTitle>
-            </div>
-            <div className="flex items-center gap-2">
-              <div className="flex flex-col items-end gap-1">
-                <Badge className={getTypeColor(sessionType)}>
-                  {sessionType.charAt(0).toUpperCase() + sessionType.slice(1)}
-                </Badge>
-                {distance && (
-                  <Badge variant="outline" className="text-xs">
-                    {distance.toFixed(1)}km away
-                  </Badge>
-                )}
-              </div>
-              {isCreator && (
-                <AlertDialog>
-                  <AlertDialogTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm"
-                      className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2"
-                      disabled={deletingStates[session.id]}
-                      title="Delete session"
-                    >
-                      {deletingStates[session.id] ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <Trash2 className="h-4 w-4" />
-                      )}
-                    </Button>
-                  </AlertDialogTrigger>
-                  <AlertDialogContent>
-                    <AlertDialogHeader>
-                      <AlertDialogTitle>Delete Session</AlertDialogTitle>
-                      <AlertDialogDescription>
-                        Are you sure you want to delete this session? This action cannot be undone.
-                        {session.participant_count && session.participant_count > 0 && (
-                          <span className="block mt-2 text-orange-600 font-medium">
-                            Warning: This session has {session.participant_count} participant(s) who will be notified of the cancellation.
-                          </span>
-                        )}
-                        {session.stakes_amount > 0 && (
-                          <span className="block mt-2 text-blue-600 font-medium">
-                            Stakes will be refunded to participants.
-                          </span>
-                        )}
-                      </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                      <AlertDialogCancel>Cancel</AlertDialogCancel>
-                      <AlertDialogAction
-                        onClick={handleDeleteSession}
-                        className="bg-red-600 hover:bg-red-700"
-                      >
-                        Delete Session
-                      </AlertDialogAction>
-                    </AlertDialogFooter>
-                  </AlertDialogContent>
-                </AlertDialog>
-              )}
-            </div>
-          </div>
-          <div className="flex items-center gap-4 text-sm text-gray-600">
-            <div className="flex items-center gap-1">
-              <MapPin className="h-3 w-3" />
-              <span>{session.location || 'Location TBD'}</span>
-            </div>
-            <div className="flex items-center gap-1">
-              <Clock className="h-3 w-3" />
-              <span>{new Date(session.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-            </div>
-          </div>
-        </CardHeader>
-        
-        <CardContent className="pt-0">
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                {session.format && <Badge variant="outline">{session.format}</Badge>}
-                <Badge variant="outline">{session.status}</Badge>
-              </div>
-              <div className="text-sm font-medium">
-                {session.participant_count || 0}/{session.max_players} players
-              </div>
-            </div>
-            
-            {hasStakes && (
-              <div className={`flex items-center gap-2 text-sm ${hasInsufficientTokens ? 'text-red-600' : 'text-yellow-600'}`}>
-                <Coins className="h-3 w-3" />
-                <span className="font-medium">
-                  Stakes: {session.stakes_amount} tokens
-                </span>
-                {hasInsufficientTokens && (
-                  <Badge variant="destructive" className="text-xs">
-                    Need {tokensShort} more
-                  </Badge>
-                )}
-              </div>
-            )}
-            
-            {/* Token insufficient warning */}
-            {hasInsufficientTokens && (
-              <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                <div className="flex items-center gap-2 mb-2">
-                  <Coins className="h-4 w-4 text-red-600" />
-                  <span className="text-sm font-medium text-red-800">
-                    Insufficient Tokens
-                  </span>
-                </div>
-                <p className="text-xs text-red-700 mb-2">
-                  You have {regularTokens} tokens but need {session.stakes_amount} to join.
-                </p>
-                <Link to="/store?category=tokens">
-                  <Button size="sm" variant="outline" className="text-xs h-7">
-                    Get More Tokens
-                  </Button>
-                </Link>
-              </div>
-            )}
-            
-            {session.notes && (
-              <p className="text-sm text-gray-600 italic">{session.notes}</p>
-            )}
-            
-            <div className="flex items-center justify-between pt-2">
-              <div className="flex flex-col">
-                <span className="text-sm text-gray-500">
-                  Created by {session.creator_name || 'Unknown'}
-                  {isCreator && (
-                    <span className="ml-2 text-xs bg-tennis-green-primary/10 text-tennis-green-primary px-2 py-1 rounded">
-                      You created this
-                    </span>
-                  )}
-                </span>
-                {!tokensLoading && user && (
-                  <span className="text-xs text-gray-400">
-                    Your balance: {regularTokens} tokens
-                  </span>
-                )}
-              </div>
-              
-              {!isCreator && (
-                hasInsufficientTokens ? (
-                  <Button 
-                    size="sm" 
-                    variant="outline"
-                    disabled
-                    className="text-red-600 border-red-300"
-                  >
-                    Need {tokensShort} More Tokens
-                  </Button>
-                ) : (
-                  <Button 
-                    size="sm" 
-                    className={session.user_joined 
-                      ? "bg-green-500 hover:bg-green-600 text-white" 
-                      : "bg-tennis-green-primary hover:bg-tennis-green-medium"
-                    }
-                    onClick={handleJoinSession}
-                    disabled={session.user_joined || !user || isJoining(session.id)}
-                    title={!user ? 'Please log in to join sessions' : undefined}
-                  >
-                    {isJoining(session.id) ? (
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 border border-white border-t-transparent rounded-full animate-spin"></div>
-                        Joining...
-                      </div>
-                    ) : session.user_joined ? '✓ Joined' : 'Join Session'}
-                  </Button>
-                )
-              )}
-            </div>
-          </div>
-        </CardContent>
-      </Card>
-    );
-  };
-
   return (
     <div className="min-h-screen bg-background">
-      {/* Sticky Header */}
-      <div className="sticky top-0 z-50 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
+      {/* Sticky header */}
+      <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl font-bold">Play</h1>
-              <p className="text-sm text-muted-foreground">Find players and join games in your area</p>
-            </div>
-            <Link to="/sessions/create">
-              <Button className="bg-primary hover:bg-primary/90">
-                <Plus className="h-4 w-4 mr-2" />
-                Create Session
+            <h1 className="text-2xl font-bold">Play Tennis</h1>
+            <div className="flex items-center gap-2">
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setShowFilters(!showFilters)}
+                className="relative"
+              >
+                <SlidersHorizontal className="h-4 w-4" />
+                {isMobile && "Filters"}
+                {activeFiltersCount > 0 && (
+                  <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center p-0">
+                    {activeFiltersCount}
+                  </Badge>
+                )}
               </Button>
-            </Link>
+              <Link to="/create-session">
+                <Button size="sm">
+                  <Plus className="h-4 w-4" />
+                  {!isMobile && "Create"}
+                </Button>
+              </Link>
+            </div>
           </div>
           
-          {/* Search Bar */}
+          {/* Search bar */}
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <Input
-              placeholder="Search sessions, players, or locations..."
+              placeholder="Search by location, player, or session type..."
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               className="pl-10"
             />
-            <Button 
-              variant="ghost" 
-              size="sm"
-              onClick={() => setShowFilters(!showFilters)}
-              className="absolute right-2 top-1/2 transform -translate-y-1/2"
-            >
-              <Filter className="h-4 w-4" />
-              {activeFiltersCount > 0 && (
-                <Badge variant="destructive" className="ml-1 h-5 w-5 p-0 text-xs">
-                  {activeFiltersCount}
-                </Badge>
-              )}
-            </Button>
           </div>
         </div>
       </div>
 
-      <div className="container mx-auto px-4 py-6 space-y-6">
+      {/* Main content */}
+      <div className="container mx-auto px-4 pb-24">
         {/* Player Stats Widget */}
-        <Card className="bg-gradient-to-r from-primary/10 to-secondary/10 border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-lg font-semibold">Your Stats</h3>
-              <Badge variant="outline" className="bg-primary/10">Level {Math.floor((regularTokens || 0) / 100) + 1}</Badge>
-            </div>
-            <div className="grid grid-cols-3 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-primary">{regularTokens || 0}</div>
-                <div className="text-sm text-muted-foreground">Tokens</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-secondary">{Math.floor((regularTokens || 0) * 1.5)}</div>
-                <div className="text-sm text-muted-foreground">XP</div>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-accent">{Math.max(85, 100 - Math.floor((regularTokens || 0) / 20))}</div>
-                <div className="text-sm text-muted-foreground">Health</div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="my-6">
+          <PlayerStatsWidget
+            level={xpData?.current_level || 1}
+            currentXP={xpData?.current_xp || 0}
+            xpToNext={xpData?.xp_to_next_level || 100}
+            tokens={regularTokens}
+            hp={80} // TODO: Get from player HP hook
+            maxHP={100}
+            matchesWon={2} // TODO: Get from match history
+            totalMatches={5}
+          />
+        </div>
 
         {/* Enhanced Filters */}
         {showFilters && (
@@ -577,370 +310,248 @@ const Play = () => {
           />
         )}
 
-        {/* Smart Recommendations - Show top recommendations */}
-        {hasLocation && recommendations.length > 0 && (
-          <Card className="border-l-4 border-l-blue-500">
-            <CardHeader>
-              <CardTitle className="flex items-center gap-2">
-                <Star className="h-5 w-5 text-blue-600" />
-                Recommended for You
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid gap-3 md:grid-cols-2">
-                {recommendations.slice(0, 2).map((session) => (
-                  <div key={session.id} className="p-3 border rounded-lg bg-blue-50">
-                    <div className="flex items-center justify-between mb-2">
-                      <h4 className="font-medium">{session.title}</h4>
-                      <Badge variant="secondary" className="text-xs">
-                        {Math.round(session.recommendation_score * 100)}% match
-                      </Badge>
-                    </div>
-                    <p className="text-sm text-gray-600 mb-2">{session.recommendation_reason}</p>
-                    <div className="flex items-center justify-between">
-                      <span className="text-xs text-gray-500">{session.distance_km.toFixed(1)}km away</span>
-                      <Button size="sm" onClick={() => joinSession(session.id)}>
-                        Join Session
-                      </Button>
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
-        )}
-
-        {/* Location Status and Nearby Players */}
-        {!hasLocation && (
-          <Card className="border-l-4 border-l-yellow-500">
-            <CardContent className="p-4">
-              <div className="flex items-center gap-3">
-                <MapPin className="h-5 w-5 text-yellow-600" />
-                <div>
-                  <h3 className="font-medium text-yellow-800">Location Access Needed</h3>
-                  <p className="text-sm text-yellow-700">
-                    Enable location services to see nearby players and sessions. 
-                    Click the location icon in your browser's address bar to allow location access.
-                  </p>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        )}
-        
-        {hasLocation && (
-          <NearbyPlayersWidget
-            players={nearbyPlayers}
-            loading={locationLoading}
-            onMessagePlayer={(playerId) => {
-              // Navigate to messages with this player
-              console.log('Message player:', playerId);
-            }}
-            onInvitePlayer={(playerId) => {
-              // Create invitation to join session
-              console.log('Invite player:', playerId);
-            }}
-          />
-        )}
-
-        {/* Session Tabs */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
-          <TabsList className="grid w-full grid-cols-4">
-            <TabsTrigger value="for-you">For You</TabsTrigger>
-            <TabsTrigger value="nearby">
+        {/* Enhanced Tabs */}
+        <Tabs 
+          value={activeTab} 
+          onValueChange={setActiveTab}
+          className="w-full"
+        >
+          <TabsList className="grid w-full grid-cols-4 mb-6">
+            <TabsTrigger 
+              value="for-you" 
+              className="flex items-center gap-2"
+            >
+              <Star className="h-4 w-4" />
+              For You
+            </TabsTrigger>
+            <TabsTrigger 
+              value="nearby"
+              className="flex items-center gap-2"
+            >
+              <MapPin className="h-4 w-4" />
               Nearby
-              {hasLocation && (
-                <Badge variant="secondary" className="ml-1 text-xs">
-                  {nearbySessions.length}
-                </Badge>
-              )}
             </TabsTrigger>
-            <TabsTrigger value="active">
-              All
-              <Badge variant="secondary" className="ml-1 text-xs">
-                {activeSessions.length}
-              </Badge>
+            <TabsTrigger 
+              value="all"
+              className="flex items-center gap-2"
+            >
+              <Users className="h-4 w-4" />
+              All ({activeSessions.length})
             </TabsTrigger>
-            <TabsTrigger value="my-sessions">
-              Mine
-              <Badge variant="secondary" className="ml-1 text-xs">
-                {mySessions.length}
-              </Badge>
+            <TabsTrigger 
+              value="mine"
+              className="flex items-center gap-2"
+            >
+              <Trophy className="h-4 w-4" />
+              Mine ({mySessions.length})
             </TabsTrigger>
           </TabsList>
-          
+
+          {/* For You Tab */}
           <TabsContent value="for-you" className="space-y-4">
-            <div className="space-y-4">
-              {/* Recommended Sessions */}
-              {hasLocation && recommendations.length > 0 && (
-                <div className="space-y-3">
-                  <h3 className="text-lg font-semibold">Recommended for You</h3>
-                  {recommendations.slice(0, 3).map((session) => (
-                    <Card key={session.id} className="border-l-4 border-l-primary">
+            <RecommendedSection
+              recommendations={recommendations}
+              onJoinSession={handleJoinSession}
+              loading={recommendationsLoading}
+            />
+            
+            {/* Recent Sessions */}
+            <div>
+              <h2 className="text-lg font-semibold mb-3">Recent Sessions</h2>
+              {availableLoading ? (
+                <div className="space-y-4">
+                  {[1, 2, 3].map((i) => (
+                    <Card key={i} className="animate-pulse">
                       <CardContent className="p-4">
-                        <div className="flex items-center justify-between mb-2">
-                          <h4 className="font-medium">{session.title}</h4>
-                          <Badge className="bg-primary/10 text-primary">
-                            {Math.round(session.recommendation_score * 100)}% match
-                          </Badge>
-                        </div>
-                        <p className="text-sm text-muted-foreground mb-3">{session.recommendation_reason}</p>
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs text-muted-foreground">{session.distance_km.toFixed(1)}km away</span>
-                          <Button size="sm" onClick={() => joinSession(session.id)}>
-                            Join Session
-                          </Button>
-                        </div>
+                        <div className="h-20 bg-muted rounded"></div>
                       </CardContent>
                     </Card>
                   ))}
                 </div>
-              )}
-              
-              {/* Popular Sessions */}
-              <div className="space-y-3">
-                <h3 className="text-lg font-semibold">Popular Sessions</h3>
-                <div className={`space-y-4 ${!isMobile && 'md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0'}`}>
-                  {activeSessions.slice(0, 6).map((session) => {
-                    const nearbySession = nearbySessions.find(ns => ns.id === session.id);
-                    const distance = nearbySession?.distance_km;
-                    
-                    return isMobile ? (
-                      <MobileSessionCard
-                        key={session.id}
-                        session={session}
-                        user={user}
-                        onJoinSession={handleJoinSession}
-                        onDeleteSession={handleDeleteSession}
-                        isJoining={isJoining(session.id)}
-                        isDeleting={deletingStates[session.id] || false}
-                        regularTokens={regularTokens}
-                        distance={distance}
-                      />
-                    ) : (
-                      <SessionCard key={session.id} session={session} />
-                    );
-                  })}
+              ) : activeSessions.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <div className="space-y-4">
+                      <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto" />
+                      <div>
+                        <h3 className="text-lg font-semibold">No Sessions Available</h3>
+                        <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
+                      </div>
+                      <Link to="/create-session">
+                        <Button>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create Session
+                        </Button>
+                      </Link>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                <div className="space-y-4">
+                  {activeSessions.slice(0, 3).map((session) => (
+                    <EnhancedSessionCard
+                      key={session.id}
+                      session={session}
+                      onJoin={handleJoinSession}
+                      isJoining={isJoining(session.id)}
+                      userBalance={regularTokens}
+                      showDistance={hasLocation}
+                    />
+                  ))}
                 </div>
-              </div>
+              )}
             </div>
           </TabsContent>
 
+          {/* Nearby Tab */}
           <TabsContent value="nearby" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">
-                Nearby Sessions
-                {hasLocation && (
-                  <span className="text-sm font-normal text-muted-foreground ml-2">
-                    (Within {radiusKm}km)
-                  </span>
-                )}
-              </h2>
-              {hasLocation && (
-                <Badge variant="outline">
-                  {nearbySessions.length} nearby
-                </Badge>
-              )}
-            </div>
-            
-            {!hasLocation ? (
-              <Card className="border-l-4 border-l-yellow-500">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <MapPin className="h-5 w-5 text-yellow-600" />
+            {locationLoading ? (
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-4">
+                      <div className="h-20 bg-muted rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : !hasLocation ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="space-y-4">
+                    <MapPin className="h-12 w-12 text-muted-foreground mx-auto" />
                     <div>
-                      <h3 className="font-medium text-yellow-800">Location Access Needed</h3>
-                      <p className="text-sm text-yellow-700">
-                        Enable location services to see nearby sessions.
-                      </p>
+                      <h3 className="text-lg font-semibold">Location Services Required</h3>
+                      <p className="text-muted-foreground">Enable location access to find nearby sessions and players.</p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : nearbySessions.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="space-y-4">
+                    <MapPin className="h-12 w-12 text-muted-foreground mx-auto" />
+                    <div>
+                      <h3 className="text-lg font-semibold">No Nearby Sessions</h3>
+                      <p className="text-muted-foreground">No sessions found within {radiusKm}km of your location.</p>
                     </div>
                   </div>
                 </CardContent>
               </Card>
             ) : (
-              <div className={`space-y-4 ${!isMobile && 'md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0'}`}>
-                {nearbySessions.map((nearbySession) => {
-                  const session = activeSessions.find(s => s.id === nearbySession.id);
-                  if (!session) return null;
+              <div className="space-y-4">
+                {nearbySessions.map((session) => {
+                  const fullSession = availableSessions.find(s => s.id === session.id);
+                  if (!fullSession) return null;
                   
-                  return isMobile ? (
-                    <MobileSessionCard
+                  return (
+                    <EnhancedSessionCard
                       key={session.id}
-                      session={session}
-                      user={user}
-                      onJoinSession={handleJoinSession}
-                      onDeleteSession={handleDeleteSession}
+                      session={{...fullSession, distance_km: session.distance_km}}
+                      onJoin={handleJoinSession}
                       isJoining={isJoining(session.id)}
-                      isDeleting={deletingStates[session.id] || false}
-                      regularTokens={regularTokens}
-                      distance={nearbySession.distance_km}
+                      userBalance={regularTokens}
+                      showDistance={true}
                     />
-                  ) : (
-                    <SessionCard key={session.id} session={session} />
                   );
                 })}
               </div>
             )}
           </TabsContent>
 
-          <TabsContent value="active" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold">
-                All Sessions
-                {hasLocation && sortBy === 'distance' && (
-                  <span className="text-sm font-normal text-muted-foreground ml-2">
-                    (Sorted by distance)
-                  </span>
-                )}
-              </h2>
-              <div className="flex items-center gap-2">
-                {hasLocation && (
-                  <Badge variant="outline" className="text-xs">
-                    Within {radiusKm}km
-                  </Badge>
-                )}
-                <Badge variant="outline">
-                  {activeSessions.length} available
-                </Badge>
-              </div>
-            </div>
-            
-            {sessionError && (
-              <Card className="border-l-4 border-l-red-500 mb-4">
-                <CardContent className="p-4">
-                  <div className="flex items-center gap-3">
-                    <div className="h-5 w-5 text-red-600">⚠️</div>
-                    <div>
-                      <h3 className="font-medium text-red-800">Failed to Load Sessions</h3>
-                      <p className="text-sm text-red-700">
-                        There was an error loading sessions. Please try refreshing the page.
-                      </p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            )}
-            
+          {/* All Sessions Tab */}
+          <TabsContent value="all" className="space-y-4">
             {availableLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin w-8 h-8 border-4 border-tennis-green-primary border-t-transparent rounded-full mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading sessions...</p>
+              <div className="space-y-4">
+                {[1, 2, 3].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-4">
+                      <div className="h-20 bg-muted rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             ) : activeSessions.length === 0 ? (
-              <div className="text-center py-12">
-                <Gamepad2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-600 mb-2">
-                  No Active Sessions
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  Be the first to create a session in your area!
-                </p>
-                <Link to="/sessions/create">
-                  <Button className="bg-tennis-green-primary hover:bg-tennis-green-medium">
-                    Create Session
-                  </Button>
-                </Link>
-              </div>
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="space-y-4">
+                    <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto" />
+                    <div>
+                      <h3 className="text-lg font-semibold">No Active Sessions</h3>
+                      <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
+                    </div>
+                    <Link to="/create-session">
+                      <Button>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Session
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
             ) : (
-              <div className={`space-y-4 ${!isMobile && 'md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0'}`}>
-                {activeSessions.map((session) => {
-                  const nearbySession = nearbySessions.find(ns => ns.id === session.id);
-                  const distance = nearbySession?.distance_km;
-                  
-                  return isMobile ? (
-                    <MobileSessionCard
-                      key={session.id}
-                      session={session}
-                      user={user}
-                      onJoinSession={handleJoinSession}
-                      onDeleteSession={handleDeleteSession}
-                      isJoining={isJoining(session.id)}
-                      isDeleting={deletingStates[session.id] || false}
-                      regularTokens={regularTokens}
-                      distance={distance}
-                    />
-                  ) : (
-                    <SessionCard key={session.id} session={session} />
-                  );
-                })}
+              <div className="space-y-4">
+                {activeSessions.map((session) => (
+                  <EnhancedSessionCard
+                    key={session.id}
+                    session={session}
+                    onJoin={handleJoinSession}
+                    isJoining={isJoining(session.id)}
+                    userBalance={regularTokens}
+                    showDistance={hasLocation}
+                  />
+                ))}
               </div>
             )}
           </TabsContent>
-          
-          <TabsContent value="upcoming" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-tennis-green-dark">
-                Upcoming Sessions
-              </h2>
-              <Badge variant="outline">
-                {upcomingSessions.length} scheduled
-              </Badge>
-            </div>
-            
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-              {upcomingSessions.map((session) => (
-                <SessionCard key={session.id} session={session} />
-              ))}
-            </div>
-          </TabsContent>
-          
-          <TabsContent value="my-sessions" className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xl font-semibold text-tennis-green-dark">
-                My Sessions
-              </h2>
-              <Badge variant="outline">
-                {mySessions.length} sessions
-              </Badge>
-            </div>
-            
+
+          {/* Mine Tab */}
+          <TabsContent value="mine" className="space-y-4">
             {mySessionsLoading ? (
-              <div className="text-center py-8">
-                <div className="animate-spin w-8 h-8 border-4 border-tennis-green-primary border-t-transparent rounded-full mx-auto"></div>
-                <p className="text-gray-500 mt-2">Loading your sessions...</p>
+              <div className="space-y-4">
+                {[1, 2].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-4">
+                      <div className="h-20 bg-muted rounded"></div>
+                    </CardContent>
+                  </Card>
+                ))}
               </div>
             ) : mySessions.length === 0 ? (
-              <div className="text-center py-12">
-                <Gamepad2 className="h-12 w-12 text-gray-400 mx-auto mb-4" />
-                <h3 className="text-lg font-medium text-gray-600 mb-2">
-                  No Active Sessions
-                </h3>
-                <p className="text-gray-500 mb-4">
-                  You haven't joined any sessions yet. Start playing!
-                </p>
-                <Link to="/sessions/create">
-                  <Button className="bg-tennis-green-primary hover:bg-tennis-green-medium">
-                    Create Your First Session
-                  </Button>
-                </Link>
-              </div>
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="space-y-4">
+                    <Trophy className="h-12 w-12 text-muted-foreground mx-auto" />
+                    <div>
+                      <h3 className="text-lg font-semibold">No Sessions Yet</h3>
+                      <p className="text-muted-foreground">You haven't joined or created any sessions.</p>
+                    </div>
+                    <Link to="/create-session">
+                      <Button>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Your First Session
+                      </Button>
+                    </Link>
+                  </div>
+                </CardContent>
+              </Card>
             ) : (
-              <div className={`space-y-4 ${!isMobile && 'md:grid md:grid-cols-2 lg:grid-cols-3 md:gap-4 md:space-y-0'}`}>
-                {mySessions.map((session) => {
-                  const nearbySession = nearbySessions.find(ns => ns.id === session.id);
-                  const distance = nearbySession?.distance_km;
-                  
-                  return isMobile ? (
-                    <MobileSessionCard
-                      key={session.id}
-                      session={session}
-                      user={user}
-                      onJoinSession={handleJoinSession}
-                      onDeleteSession={handleDeleteSession}
-                      isJoining={isJoining(session.id)}
-                      isDeleting={deletingStates[session.id] || false}
-                      regularTokens={regularTokens}
-                      distance={distance}
-                    />
-                  ) : (
-                    <SessionCard key={session.id} session={session} />
-                  );
-                })}
+              <div className="space-y-4">
+                {mySessions.map((session) => (
+                  <EnhancedSessionCard
+                    key={session.id}
+                    session={session}
+                    onJoin={handleJoinSession}
+                    isJoining={isJoining(session.id)}
+                    userBalance={regularTokens}
+                    showDistance={hasLocation}
+                  />
+                ))}
               </div>
             )}
           </TabsContent>
         </Tabs>
-
       </div>
     </div>
   );
