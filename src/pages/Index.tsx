@@ -326,6 +326,26 @@ const Index = () => {
 
   console.log('🏠 [INDEX] Rendering main dashboard for role:', profile.role);
 
+  // Redirect coaches to their dedicated dashboard
+  useEffect(() => {
+    if (profile?.role === 'coach' && location.pathname === '/dashboard') {
+      console.log('🏠 [INDEX] Redirecting coach to coach dashboard');
+      navigate('/coach-dashboard', { replace: true });
+      return;
+    }
+  }, [profile?.role, location.pathname, navigate]);
+
+  // Don't render anything for coaches being redirected
+  if (profile?.role === 'coach' && location.pathname === '/dashboard') {
+    return (
+      <div className="min-h-screen bg-tennis-green-bg flex items-center justify-center">
+        <div className="text-center">
+          <p className="text-tennis-green-dark">Redirecting to coach dashboard...</p>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-tennis-green-bg via-tennis-green-bg to-blue-50 relative overflow-hidden">
       {/* Animated background elements - Tennis themed */}
