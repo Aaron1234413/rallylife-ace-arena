@@ -1,8 +1,6 @@
 // Phase 4: Integration with Social Play & Training Systems
 // Complete Integration Flow Validation
 
-console.log('🚀 Phase 4 Completion Test Suite Starting...');
-
 interface Phase4TestResults {
   hpAwareSessionJoining: boolean;
   trainingHPRewards: boolean;
@@ -18,6 +16,10 @@ const testResults: Phase4TestResults = {
   unifiedSystemIntegration: false,
   stakesBasedHPCalculation: false
 };
+
+// Execute test immediately
+(function runPhase4Test() {
+console.log('🚀 Phase 4 Completion Test Suite Starting...');
 
 // Test 1: HP-Aware Session Joining
 console.log('🎯 Testing HP-Aware Session Joining...');
@@ -118,5 +120,7 @@ if (score >= 100) {
   console.log('\n⚠️ Phase 4 incomplete. Missing features detected.');
   console.log('Please review the failed tests above.');
 }
+
+})(); // Close and execute the function immediately
 
 export { testResults };
