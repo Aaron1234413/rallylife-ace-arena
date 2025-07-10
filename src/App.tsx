@@ -35,6 +35,7 @@ import EndTraining from "@/pages/EndTraining";
 import StartSocialPlay from "@/pages/StartSocialPlay";
 import JoinSocialPlay from "@/pages/JoinSocialPlay";
 import CoachDashboard from "@/pages/CoachDashboard";
+import { MockDashboard } from "@/pages/MockDashboard";
 import Sessions from "@/pages/Sessions";
 import CreateSession from "@/pages/CreateSession";
 import Club from "@/pages/Club";
@@ -61,6 +62,7 @@ function AppWithGuide() {
           <Route path="/auth/signup" element={<Auth />} />
           <Route path="/auth/forgot-password" element={<Auth />} />
           <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
+          <Route path="/mock-dashboard" element={<ProtectedRoute><MockDashboard /></ProtectedRoute>} />
           <Route path="/coach-dashboard" element={<ProtectedRoute><CoachDashboard /></ProtectedRoute>} />
           
           <Route path="/play" element={<ProtectedRoute><Play /></ProtectedRoute>} />
