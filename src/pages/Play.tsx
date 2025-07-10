@@ -118,18 +118,22 @@ const Play = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Get real session data
+  // Get real session data - use conditional hook calls to prevent duplicate subscriptions
   const { 
     sessions: availableSessions, 
     loading: availableLoading, 
     joinSession,
     error: sessionError 
-  } = useSafeRealTimeSessions('available', user?.id);
+  } = useSafeRealTimeSessions('available', user?.id, {
+    enabled: activeTab !== 'mine' // Only enable when not viewing 'mine' tab
+  });
   
   const { 
     sessions: mySessions, 
     loading: mySessionsLoading 
-  } = useSafeRealTimeSessions('my-sessions', user?.id);
+  } = useSafeRealTimeSessions('my-sessions', user?.id, {
+    enabled: activeTab === 'mine' // Only enable when viewing 'mine' tab
+  });
 
   // Enhanced session filtering and sorting
   const filteredAndSortedSessions = useMemo(() => {
