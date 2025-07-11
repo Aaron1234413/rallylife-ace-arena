@@ -22,7 +22,7 @@ import { SocialPlayParticipantSelector } from './SocialPlayParticipantSelector';
 import { SocialPlayStakesPreview } from './SocialPlayStakesPreview';
 import { useUnifiedInvitations } from '@/hooks/useUnifiedInvitations';
 import { toast } from 'sonner';
-import { LocationInput } from '@/components/ui/location-input';
+import { LocationInput, LocationData } from '@/components/ui/location-input';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 
@@ -57,7 +57,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   // Form state
   const [title, setTitle] = useState('');
   const [sessionType, setSessionType] = useState<'singles' | 'doubles'>('singles');
-  const [location, setLocation] = useState('');
+  const [locationData, setLocationData] = useState<LocationData | null>(null);
   const [scheduledDate, setScheduledDate] = useState<Date>();
   const [scheduledTime, setScheduledTime] = useState('');
   const [description, setDescription] = useState('');
@@ -72,7 +72,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
   const handleOpenChange = onOpenChange || setInternalOpen;
 
   const isFormValid = () => {
-    const basicFieldsValid = title.trim() && location.trim() && scheduledDate && scheduledTime;
+    const basicFieldsValid = title.trim() && locationData?.address?.trim() && scheduledDate && scheduledTime;
     
     // For simplified version, just require basic fields
     return basicFieldsValid;
@@ -98,14 +98,14 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
         format: sessionType,
         max_players: sessionType === 'singles' ? 2 : 4,
         stakes_amount: 0, // Social play is typically free
-        location: location.trim(),
+        location: locationData?.address || null,
+        latitude: locationData?.coordinates?.lat || null,
+        longitude: locationData?.coordinates?.lng || null,
+        location_coordinates_set: !!locationData?.coordinates,
         notes: description.trim() || null,
         is_private: false,
         club_id: clubId,
-        session_source: clubId ? 'member' : null,
-        latitude: null,
-        longitude: null,
-        location_coordinates_set: false
+        session_source: clubId ? 'member' : null
       };
 
       const { data: session, error: sessionError } = await supabase
@@ -133,7 +133,7 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
 
       // Reset form
       setTitle('');
-      setLocation('');
+      setLocationData(null);
       setScheduledDate(undefined);
       setScheduledTime('');
       setDescription('');
@@ -215,8 +215,8 @@ export const CreateSocialPlayDialog: React.FC<CreateSocialPlayDialogProps> = ({
                 Location
               </Label>
               <LocationInput
-                value={location ? { address: location } : null}
-                onChange={(locationData) => setLocation(locationData?.address || '')}
+                value={locationData}
+                onChange={(newLocationData) => setLocationData(newLocationData)}
                 placeholder="Tennis court or venue"
               />
             </div>

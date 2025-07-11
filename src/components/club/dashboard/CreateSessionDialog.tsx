@@ -10,6 +10,10 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { CalendarIcon, Clock } from 'lucide-react';
 import { format } from 'date-fns';
 import { cn } from '@/lib/utils';
+import { LocationInput, LocationData } from '@/components/ui/location-input';
+import { toast } from 'sonner';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
 interface CreateSessionDialogProps {
   open: boolean;
@@ -18,6 +22,7 @@ interface CreateSessionDialogProps {
 }
 
 export function CreateSessionDialog({ open, onOpenChange, clubId }: CreateSessionDialogProps) {
+  const { user } = useAuth();
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -26,25 +31,73 @@ export function CreateSessionDialog({ open, onOpenChange, clubId }: CreateSessio
     startTime: '',
     endTime: '',
     maxParticipants: '',
-    location: ''
+    location: null as LocationData | null
   });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    console.log('Creating session:', formData);
-    // Here you would typically call an API to create the session
-    onOpenChange(false);
-    // Reset form
-    setFormData({
-      title: '',
-      description: '',
-      sessionType: '',
-      date: undefined,
-      startTime: '',
-      endTime: '',
-      maxParticipants: '',
-      location: ''
-    });
+    
+    if (!user) {
+      toast.error('You must be logged in to create a session');
+      return;
+    }
+
+    try {
+      // Create session in database
+      const sessionData = {
+        creator_id: user.id,
+        session_type: formData.sessionType,
+        max_players: parseInt(formData.maxParticipants),
+        stakes_amount: 0,
+        location: formData.location?.address || null,
+        latitude: formData.location?.coordinates?.lat || null,
+        longitude: formData.location?.coordinates?.lng || null,
+        location_coordinates_set: !!formData.location?.coordinates,
+        notes: formData.description.trim() || null,
+        is_private: false,
+        club_id: clubId,
+        session_source: 'club'
+      };
+
+      const { data: session, error: sessionError } = await supabase
+        .from('sessions')
+        .insert(sessionData)
+        .select()
+        .single();
+
+      if (sessionError) throw sessionError;
+
+      // Automatically join the session as creator
+      if (session) {
+        const { error: joinError } = await supabase
+          .rpc('join_session', {
+            session_id_param: session.id,
+            user_id_param: user.id
+          });
+
+        if (joinError) {
+          console.error('Failed to auto-join session:', joinError);
+        }
+      }
+
+      toast.success('Session created successfully!');
+      onOpenChange(false);
+      
+      // Reset form
+      setFormData({
+        title: '',
+        description: '',
+        sessionType: '',
+        date: undefined,
+        startTime: '',
+        endTime: '',
+        maxParticipants: '',
+        location: null
+      });
+    } catch (error) {
+      console.error('Failed to create session:', error);
+      toast.error('Failed to create session');
+    }
   };
 
   return (
@@ -149,22 +202,11 @@ export function CreateSessionDialog({ open, onOpenChange, clubId }: CreateSessio
 
           <div>
             <Label htmlFor="location">Location</Label>
-            <Select
+            <LocationInput
               value={formData.location}
-              onValueChange={(value) => setFormData({ ...formData, location: value })}
-            >
-              <SelectTrigger>
-                <SelectValue placeholder="Select court/location" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="court1">Court 1</SelectItem>
-                <SelectItem value="court2">Court 2</SelectItem>
-                <SelectItem value="court3">Court 3</SelectItem>
-                <SelectItem value="court1-2">Court 1 & 2</SelectItem>
-                <SelectItem value="all-courts">All Courts</SelectItem>
-                <SelectItem value="clubhouse">Clubhouse</SelectItem>
-              </SelectContent>
-            </Select>
+              onChange={(location) => setFormData({ ...formData, location })}
+              placeholder="Enter court/venue location"
+            />
           </div>
 
           <div>

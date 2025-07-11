@@ -7,7 +7,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { toast } from 'sonner';
 
-interface LocationData {
+export interface LocationData {
   address: string;
   coordinates?: {
     lat: number;
