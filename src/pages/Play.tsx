@@ -32,7 +32,7 @@ import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useMatchHistory } from '@/hooks/useMatchHistory';
-import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
+import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { MobileSessionCard } from '@/components/play/MobileSessionCard';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -53,10 +53,6 @@ const Play = () => {
   // Session creation dialog state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   
-  // Add unified sessions hook for delete functionality
-  const { cancelSession } = useUnifiedSessions({
-    includeNonClubSessions: true
-  });
   
   // State for delete operations
   const [deletingStates, setDeletingStates] = useState<Record<string, boolean>>({});
@@ -127,6 +123,23 @@ const Play = () => {
     joinSession,
     error: sessionError 
   } = useConsolidatedSessions();
+
+  // Use a simple cancel function by updating session status
+  const cancelSession = async (sessionId: string) => {
+    try {
+      const { error } = await supabase
+        .from('sessions')
+        .update({ status: 'cancelled' })
+        .eq('id', sessionId)
+        .eq('creator_id', user?.id); // Only creator can cancel
+
+      if (error) throw error;
+      return true;
+    } catch (error) {
+      console.error('Error canceling session:', error);
+      throw error;
+    }
+  };
 
   // Enhanced session filtering and sorting
   const filteredAndSortedSessions = useMemo(() => {
