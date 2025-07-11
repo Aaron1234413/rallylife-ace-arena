@@ -1,91 +1,125 @@
-import React, { Component, ReactNode } from 'react';
-import { AlertTriangle, RefreshCw } from 'lucide-react';
+import React from 'react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { AlertTriangle, RefreshCw, ArrowLeft } from 'lucide-react';
 
 interface ErrorBoundaryProps {
-  children: ReactNode;
-  fallback?: ReactNode;
-  onError?: (error: Error, errorInfo: React.ErrorInfo) => void;
+  error?: string;
+  onRetry?: () => void;
+  onBack?: () => void;
+  title?: string;
+  description?: string;
+  showRetry?: boolean;
+  showBack?: boolean;
 }
 
-interface ErrorBoundaryState {
-  hasError: boolean;
-  error?: Error;
+export function UIErrorBoundary({ 
+  error, 
+  onRetry, 
+  onBack,
+  title = "Something went wrong",
+  description = "We're having trouble loading this content. Please try again.",
+  showRetry = true,
+  showBack = false
+}: ErrorBoundaryProps) {
+  return (
+    <div className="flex items-center justify-center min-h-[400px] p-8">
+      <div className="text-center max-w-md">
+        <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <AlertTriangle className="h-8 w-8 text-red-600" />
+        </div>
+        
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          {title}
+        </h3>
+        
+        <p className="text-gray-600 mb-6">
+          {error || description}
+        </p>
+        
+        <div className="flex gap-3 justify-center">
+          {showRetry && onRetry && (
+            <Button onClick={onRetry} className="flex items-center gap-2">
+              <RefreshCw className="h-4 w-4" />
+              Try Again
+            </Button>
+          )}
+          
+          {showBack && onBack && (
+            <Button variant="outline" onClick={onBack} className="flex items-center gap-2">
+              <ArrowLeft className="h-4 w-4" />
+              Go Back
+            </Button>
+          )}
+        </div>
+      </div>
+    </div>
+  );
 }
 
-export class ErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { hasError: false };
-  }
+interface LoadingSpinnerProps {
+  size?: 'sm' | 'md' | 'lg';
+  message?: string;
+  className?: string;
+}
 
-  static getDerivedStateFromError(error: Error): ErrorBoundaryState {
-    return { hasError: true, error };
-  }
-
-  componentDidCatch(error: Error, errorInfo: React.ErrorInfo) {
-    console.error('ErrorBoundary caught an error:', error, errorInfo);
-    this.props.onError?.(error, errorInfo);
-  }
-
-  handleReset = () => {
-    this.setState({ hasError: false, error: undefined });
+export function LoadingSpinner({ 
+  size = 'md', 
+  message = "Loading...",
+  className = ""
+}: LoadingSpinnerProps) {
+  const sizeClasses = {
+    sm: 'h-4 w-4',
+    md: 'h-8 w-8',
+    lg: 'h-12 w-12'
   };
 
-  render() {
-    if (this.state.hasError) {
-      if (this.props.fallback) {
-        return this.props.fallback;
-      }
-
-      return (
-        <Card className="max-w-md mx-auto m-4">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-destructive">
-              <AlertTriangle className="h-5 w-5" />
-              Something went wrong
-            </CardTitle>
-            <CardDescription>
-              An unexpected error occurred. This has been logged for review.
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="text-sm text-muted-foreground bg-muted p-3 rounded">
-              <strong>Error:</strong> {this.state.error?.message || 'Unknown error'}
-            </div>
-            <div className="flex gap-2">
-              <Button onClick={this.handleReset} size="sm" className="flex items-center gap-2">
-                <RefreshCw className="h-4 w-4" />
-                Try Again
-              </Button>
-              <Button 
-                variant="outline" 
-                size="sm" 
-                onClick={() => window.location.reload()}
-              >
-                Reload Page
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      );
-    }
-
-    return this.props.children;
-  }
+  return (
+    <div className={`flex flex-col items-center justify-center py-8 ${className}`}>
+      <div className={`animate-spin rounded-full border-b-2 border-blue-500 ${sizeClasses[size]} mb-4`}></div>
+      {message && <p className="text-gray-600 text-sm">{message}</p>}
+    </div>
+  );
 }
 
-// React Hook version for functional components
-export function withErrorBoundary<P extends object>(
-  WrappedComponent: React.ComponentType<P>,
-  fallback?: ReactNode
-) {
-  return function WithErrorBoundaryComponent(props: P) {
-    return (
-      <ErrorBoundary fallback={fallback}>
-        <WrappedComponent {...props} />
-      </ErrorBoundary>
-    );
+interface EmptyStateProps {
+  icon?: React.ComponentType<{ className?: string }>;
+  title: string;
+  description?: string;
+  action?: {
+    label: string;
+    onClick: () => void;
   };
+}
+
+export function EmptyState({ 
+  icon: Icon = AlertTriangle, 
+  title, 
+  description, 
+  action 
+}: EmptyStateProps) {
+  return (
+    <div className="flex items-center justify-center min-h-[300px] p-8">
+      <div className="text-center max-w-md">
+        <div className="w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mx-auto mb-4">
+          <Icon className="h-8 w-8 text-gray-600" />
+        </div>
+        
+        <h3 className="text-lg font-semibold text-gray-900 mb-2">
+          {title}
+        </h3>
+        
+        {description && (
+          <p className="text-gray-600 mb-6">
+            {description}
+          </p>
+        )}
+        
+        {action && (
+          <Button onClick={action.onClick}>
+            {action.label}
+          </Button>
+        )}
+      </div>
+    </div>
+  );
 }

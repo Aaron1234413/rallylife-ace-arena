@@ -60,6 +60,7 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
 
   const fetchCourts = async () => {
     try {
+      setLoading(true);
       const { data, error } = await supabase
         .from('club_courts')
         .select('*')
@@ -72,6 +73,9 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
     } catch (error) {
       console.error('Error fetching courts:', error);
       setCourts([]);
+      toast.error('Failed to load courts');
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -93,6 +97,7 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
     } catch (error) {
       console.error('Error fetching bookings:', error);
       setBookings([]);
+      toast.error('Failed to load bookings');
     } finally {
       setLoading(false);
     }
@@ -147,15 +152,46 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
 
   return (
     <>
-      <div className="space-y-6">
-        {/* Date Selection */}
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-              <CalendarIcon className="h-5 w-5 text-tennis-green-primary" />
-              Select Date
-            </CardTitle>
-          </CardHeader>
+      {loading ? (
+        <div className="space-y-6 animate-fade-in">
+          {/* Loading skeleton */}
+          <Card>
+            <CardHeader>
+              <div className="h-6 bg-gray-200 rounded animate-pulse w-1/3"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="h-64 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card>
+            <CardHeader>
+              <div className="h-6 bg-gray-200 rounded animate-pulse w-1/2"></div>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-4">
+                <div className="grid gap-4 sm:grid-cols-3">
+                  {[1, 2, 3].map((i) => (
+                    <div key={i} className="h-24 bg-gray-200 rounded animate-pulse"></div>
+                  ))}
+                </div>
+                <div className="h-48 bg-gray-200 rounded animate-pulse"></div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      ) : (
+        <div className="space-y-6 animate-fade-in">
+          {/* Date Selection */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
+                <CalendarIcon className="h-5 w-5 text-tennis-green-primary" />
+                Select Date
+              </CardTitle>
+            </CardHeader>
           <CardContent>
             <Calendar
               mode="single"
@@ -306,7 +342,9 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
 
           </CardContent>
         </Card>
-      </div>
+
+        </div>
+      )}
 
       <BookCourtDialog
         open={showBookDialog}

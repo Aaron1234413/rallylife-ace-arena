@@ -16,7 +16,8 @@ import {
   UserPlus,
   MapPin,
   Activity,
-  GraduationCap
+  GraduationCap,
+  AlertTriangle
 } from 'lucide-react';
 import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
@@ -67,11 +68,40 @@ export default function Club() {
     return (
       <div className="min-h-screen bg-tennis-green-bg">
         <div className="p-3 sm:p-4 max-w-7xl mx-auto space-y-6">
-          <div className="animate-pulse">
-            <div className="h-32 bg-tennis-neutral-100 rounded-lg mb-6"></div>
-            <div className="h-48 bg-tennis-neutral-100 rounded-lg mb-6"></div>
-            <div className="text-center">
-              <p className="text-tennis-green-dark">Loading club...</p>
+          <div className="animate-fade-in">
+            {/* Header Skeleton */}
+            <div className="flex items-center gap-4 mb-6">
+              <div className="h-8 w-20 bg-tennis-neutral-100 rounded animate-pulse"></div>
+            </div>
+            
+            {/* Club Card Skeleton */}
+            <Card className="shadow-xl border-0 bg-gradient-to-br from-white to-gray-50">
+              <CardContent className="p-4 sm:p-6">
+                <div className="flex items-start gap-3 sm:gap-4">
+                  <div className="h-16 w-16 sm:h-20 sm:w-20 bg-tennis-neutral-100 rounded-full animate-pulse flex-shrink-0"></div>
+                  <div className="flex-1 min-w-0 space-y-3">
+                    <div className="space-y-2">
+                      <div className="h-6 bg-tennis-neutral-100 rounded animate-pulse w-3/4"></div>
+                      <div className="h-4 bg-tennis-neutral-100 rounded animate-pulse w-1/2"></div>
+                    </div>
+                    <div className="h-4 bg-tennis-neutral-100 rounded animate-pulse w-full"></div>
+                    <div className="h-4 bg-tennis-neutral-100 rounded animate-pulse w-2/3"></div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+            
+            {/* Navigation Skeleton */}
+            <div className="h-12 bg-tennis-neutral-100 rounded animate-pulse"></div>
+            
+            {/* Content Skeleton */}
+            <div className="space-y-4">
+              <div className="h-32 bg-tennis-neutral-100 rounded animate-pulse"></div>
+              <div className="h-48 bg-tennis-neutral-100 rounded animate-pulse"></div>
+            </div>
+            
+            <div className="text-center mt-6">
+              <p className="text-tennis-green-dark animate-pulse">Loading club details...</p>
             </div>
           </div>
         </div>
@@ -81,16 +111,31 @@ export default function Club() {
 
   if (!club) {
     return (
-      <div className="min-h-screen bg-tennis-green-bg flex items-center justify-center">
-        <div className="text-center p-8 bg-white rounded-lg shadow-lg max-w-md">
-          <h2 className="text-2xl font-bold text-red-600 mb-4">Club Not Found</h2>
-          <p className="text-gray-700 mb-4">
+      <div className="min-h-screen bg-tennis-green-bg flex items-center justify-center animate-fade-in">
+        <div className="text-center p-6 sm:p-8 bg-white rounded-lg shadow-lg max-w-md mx-4">
+          <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <AlertTriangle className="h-8 w-8 text-red-600" />
+          </div>
+          <h2 className="text-xl sm:text-2xl font-bold text-red-600 mb-4">Club Not Found</h2>
+          <p className="text-gray-700 mb-6 text-sm sm:text-base">
             The club you're looking for doesn't exist or you don't have access to it.
           </p>
-          <Button onClick={() => navigate('/')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Dashboard
-          </Button>
+          <div className="space-y-3">
+            <Button 
+              onClick={() => navigate('/')}
+              className="w-full flex items-center justify-center gap-2"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Dashboard
+            </Button>
+            <Button 
+              variant="outline"
+              onClick={() => window.location.reload()}
+              className="w-full"
+            >
+              Try Again
+            </Button>
+          </div>
         </div>
       </div>
     );
@@ -132,7 +177,7 @@ export default function Club() {
                     </h1>
                     <div className="flex items-center gap-2 flex-wrap">
                       {isOwner && (
-                        <Badge className="bg-amber-100 text-amber-800 border-amber-200 px-2 py-1 text-xs">
+                        <Badge className="bg-amber-100 text-amber-800 border-amber-200 px-2 py-1 text-xs animate-scale-in">
                           <Crown className="h-3 w-3 mr-1" />
                           Owner
                         </Badge>

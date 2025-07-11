@@ -47,7 +47,7 @@ export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCa
           onClick={handleCardClick}
           className="w-full"
         >
-          Manage Club
+          View Club
         </Button>
       );
     }

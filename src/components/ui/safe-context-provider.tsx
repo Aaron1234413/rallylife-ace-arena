@@ -1,5 +1,5 @@
 import React, { ReactNode, useState, useEffect } from 'react';
-import { ErrorBoundary } from './error-boundary';
+// import { UIErrorBoundary } from './error-boundary';
 import { EnhancedLoading } from './enhanced-loading';
 import { useAuth } from '@/hooks/useAuth';
 
@@ -78,25 +78,8 @@ export function SafeContextProvider({
   }
 
   return (
-    <ErrorBoundary 
-      onError={handleError}
-      fallback={
-        fallbackComponent || (
-          <div className="text-center p-8 space-y-4">
-            <p className="text-destructive font-medium">Context failed to load</p>
-            {retryOnError && (
-              <button 
-                onClick={handleRetry}
-                className="px-4 py-2 bg-primary text-primary-foreground rounded hover:bg-primary/90"
-              >
-                Retry ({retryCount} attempts)
-              </button>
-            )}
-          </div>
-        )
-      }
-    >
+    <div>
       {children}
-    </ErrorBoundary>
+    </div>
   );
 }
