@@ -4233,6 +4233,7 @@ export type Database = {
           id: string
           latitude: number | null
           location: string | null
+          location_point: unknown | null
           location_updated_at: string | null
           longitude: number | null
           looking_to_play_until: string | null
@@ -4254,6 +4255,7 @@ export type Database = {
           id: string
           latitude?: number | null
           location?: string | null
+          location_point?: unknown | null
           location_updated_at?: string | null
           longitude?: number | null
           looking_to_play_until?: string | null
@@ -4275,6 +4277,7 @@ export type Database = {
           id?: string
           latitude?: number | null
           location?: string | null
+          location_point?: unknown | null
           location_updated_at?: string | null
           longitude?: number | null
           looking_to_play_until?: string | null
@@ -4853,6 +4856,7 @@ export type Database = {
           latitude: number | null
           location: string | null
           location_coordinates_set: boolean | null
+          location_point: unknown | null
           longitude: number | null
           max_players: number
           notes: string | null
@@ -4885,6 +4889,7 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           location_coordinates_set?: boolean | null
+          location_point?: unknown | null
           longitude?: number | null
           max_players: number
           notes?: string | null
@@ -4917,6 +4922,7 @@ export type Database = {
           latitude?: number | null
           location?: string | null
           location_coordinates_set?: boolean | null
+          location_point?: unknown | null
           longitude?: number | null
           max_players?: number
           notes?: string | null
