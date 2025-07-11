@@ -10,8 +10,10 @@ import {
   Star,
   Gamepad2,
   Coins,
-  Calendar
+  Calendar,
+  Trash2
 } from 'lucide-react';
+import { CancelSessionDialog } from '@/components/sessions/CancelSessionDialog';
 
 interface Session {
   id: string;
@@ -24,6 +26,7 @@ interface Session {
   max_players: number;
   stakes_amount: number;
   creator_name?: string;
+  creator_id?: string;
   status: string;
   format?: string;
   user_joined?: boolean;
@@ -33,18 +36,25 @@ interface Session {
 interface EnhancedSessionCardProps {
   session: Session;
   onJoin: (sessionId: string) => void;
+  onCancel?: (sessionId: string) => void;
   isJoining: boolean;
+  isCancelling?: boolean;
   userBalance: number;
   showDistance?: boolean;
+  currentUserId?: string;
 }
 
 export function EnhancedSessionCard({ 
   session, 
   onJoin, 
+  onCancel,
   isJoining, 
+  isCancelling = false,
   userBalance,
-  showDistance = false 
+  showDistance = false,
+  currentUserId
 }: EnhancedSessionCardProps) {
+  const [showCancelDialog, setShowCancelDialog] = React.useState(false);
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'match': return Trophy;
@@ -67,6 +77,7 @@ export function EnhancedSessionCard({
   const hasInsufficientTokens = session.stakes_amount > 0 && userBalance < session.stakes_amount;
   const spotsFilled = (session.participant_count || 0) / session.max_players;
   const isAlmostFull = spotsFilled >= 0.75;
+  const isCreator = currentUserId && session.creator_id === currentUserId;
 
   return (
     <Card className="hover:shadow-md transition-shadow duration-200 border-l-4 border-l-primary">
@@ -149,9 +160,22 @@ export function EnhancedSessionCard({
             Created by {session.creator_name || 'Unknown'}
           </div>
 
-          {/* Action Button */}
+          {/* Action Buttons */}
           <div className="pt-2">
-            {session.user_joined ? (
+            {isCreator ? (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  size="sm" 
+                  onClick={() => setShowCancelDialog(true)}
+                  disabled={isCancelling}
+                  className="flex-1"
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  {isCancelling ? 'Cancelling...' : 'Delete Session'}
+                </Button>
+              </div>
+            ) : session.user_joined ? (
               <Button variant="secondary" size="sm" disabled className="w-full">
                 Already Joined
               </Button>
@@ -172,6 +196,27 @@ export function EnhancedSessionCard({
           </div>
         </div>
       </CardContent>
+      
+      {/* Cancel Session Dialog */}
+      {onCancel && (
+        <CancelSessionDialog
+          isOpen={showCancelDialog}
+          onClose={() => setShowCancelDialog(false)}
+          onConfirm={(reason) => {
+            onCancel(session.id);
+            setShowCancelDialog(false);
+          }}
+          session={{
+            id: session.id,
+            title: session.title || `${session.session_type.charAt(0).toUpperCase() + session.session_type.slice(1)} Session`,
+            scheduled_date: session.start_time ? new Date(session.start_time).toISOString().split('T')[0] : new Date().toISOString().split('T')[0],
+            start_time: session.start_time ? new Date(session.start_time).toTimeString().split(' ')[0] : '12:00:00',
+            cost_per_person_tokens: session.stakes_amount,
+            cost_per_person_money: 0
+          }}
+          loading={isCancelling}
+        />
+      )}
     </Card>
   );
 }

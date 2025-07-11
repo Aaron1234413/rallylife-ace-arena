@@ -403,16 +403,19 @@ const Play = () => {
                 </Card>
               ) : (
                 <div className="space-y-4">
-                 {activeSessions.slice(0, 3).map((session) => (
-                    <EnhancedSessionCard
-                      key={session.id}
-                      session={{...session, status: 'waiting', creator_name: session.creator?.full_name}}
-                      onJoin={handleJoinSession}
-                      isJoining={isJoining(session.id)}
-                      userBalance={regularTokens}
-                      showDistance={hasLocation}
-                    />
-                  ))}
+                  {activeSessions.slice(0, 3).map((session) => (
+                     <EnhancedSessionCard
+                       key={session.id}
+                       session={{...session, status: 'waiting', creator_name: session.creator?.full_name}}
+                       onJoin={handleJoinSession}
+                       onCancel={handleDeleteSession}
+                       isJoining={isJoining(session.id)}
+                       isCancelling={deletingStates[session.id]}
+                       userBalance={regularTokens}
+                       showDistance={hasLocation}
+                       currentUserId={user?.id}
+                     />
+                   ))}
                 </div>
               )}
             </div>
@@ -465,9 +468,12 @@ const Play = () => {
                       key={session.id}
                       session={{...fullSession, distance_km: session.distance_km, status: 'waiting', creator_name: fullSession.creator?.full_name}}
                       onJoin={handleJoinSession}
+                      onCancel={handleDeleteSession}
                       isJoining={isJoining(session.id)}
+                      isCancelling={deletingStates[session.id]}
                       userBalance={regularTokens}
                       showDistance={true}
+                      currentUserId={user?.id}
                     />
                   );
                 })}
@@ -510,9 +516,12 @@ const Play = () => {
                         key={session.id}
                         session={{...session, status: 'waiting', creator_name: session.creator?.full_name}}
                         onJoin={handleJoinSession}
+                        onCancel={handleDeleteSession}
                         isJoining={isJoining(session.id)}
+                        isCancelling={deletingStates[session.id]}
                         userBalance={regularTokens}
                         showDistance={hasLocation}
+                        currentUserId={user?.id}
                       />
                 ))}
               </div>
@@ -554,9 +563,12 @@ const Play = () => {
                     key={session.id}
                     session={{...session, status: 'waiting', creator_name: session.creator?.full_name}}
                     onJoin={handleJoinSession}
+                    onCancel={handleDeleteSession}
                     isJoining={isJoining(session.id)}
+                    isCancelling={deletingStates[session.id]}
                     userBalance={regularTokens}
                     showDistance={hasLocation}
+                    currentUserId={user?.id}
                   />
                 ))}
               </div>
