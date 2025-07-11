@@ -6159,6 +6159,10 @@ export type Database = {
             }
         Returns: Json
       }
+      create_default_club_services: {
+        Args: { club_id_param: string; owner_id_param: string }
+        Returns: undefined
+      }
       create_direct_conversation: {
         Args:
           | { other_user_id: string; conversation_name?: string }
