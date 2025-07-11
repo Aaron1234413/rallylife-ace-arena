@@ -168,16 +168,12 @@ export function useTokenRedemption(clubId: string) {
       const calculation = calculateRedemption(serviceType, totalServiceValue, tokensToUse);
 
       // Process the redemption
-      const success = await processTokenRedemption(
-        playerId,
-        serviceType,
-        serviceDetails,
+      const result = await processTokenRedemption(
         tokensToUse,
-        calculation.cashAmount,
-        totalServiceValue
+        `${serviceType} service redemption`
       );
 
-      return success;
+      return result.success;
     } catch (error) {
       console.error('Error executing redemption:', error);
       toast.error('Failed to process token redemption');

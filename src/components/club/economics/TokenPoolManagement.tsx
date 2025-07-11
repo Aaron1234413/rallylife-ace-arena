@@ -25,10 +25,16 @@ interface TokenPoolManagementProps {
     rollover_tokens: number;
     expires_at: string;
   };
+  usageBreakdown?: {
+    coaching_sessions: number;
+    court_bookings: number;
+    service_bookings: number;
+    other: number;
+  } | null;
   canManage: boolean;
 }
 
-export function TokenPoolManagement({ club, tokenPoolData, canManage }: TokenPoolManagementProps) {
+export function TokenPoolManagement({ club, tokenPoolData, usageBreakdown, canManage }: TokenPoolManagementProps) {
   const [showPurchaseDialog, setShowPurchaseDialog] = useState(false);
   
   const usagePercentage = (tokenPoolData.used_this_month / tokenPoolData.monthly_allocation) * 100;
@@ -126,27 +132,52 @@ export function TokenPoolManagement({ club, tokenPoolData, canManage }: TokenPoo
             <div>
               <h3 className="font-semibold mb-4">Token Usage This Month</h3>
               <div className="space-y-3">
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm">Coaching Sessions</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">8,500 tokens</span>
-                    <Badge variant="secondary">48.6%</Badge>
+                {usageBreakdown ? (
+                  <>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm">Coaching Sessions</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{usageBreakdown.coaching_sessions.toLocaleString()} tokens</span>
+                        <Badge variant="secondary">
+                          {tokenPoolData.used_this_month > 0 ? ((usageBreakdown.coaching_sessions / tokenPoolData.used_this_month) * 100).toFixed(1) : 0}%
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm">Court Bookings</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{usageBreakdown.court_bookings.toLocaleString()} tokens</span>
+                        <Badge variant="secondary">
+                          {tokenPoolData.used_this_month > 0 ? ((usageBreakdown.court_bookings / tokenPoolData.used_this_month) * 100).toFixed(1) : 0}%
+                        </Badge>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                      <span className="text-sm">Service Bookings</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-medium">{usageBreakdown.service_bookings.toLocaleString()} tokens</span>
+                        <Badge variant="secondary">
+                          {tokenPoolData.used_this_month > 0 ? ((usageBreakdown.service_bookings / tokenPoolData.used_this_month) * 100).toFixed(1) : 0}%
+                        </Badge>
+                      </div>
+                    </div>
+                    {usageBreakdown.other > 0 && (
+                      <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
+                        <span className="text-sm">Other</span>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm font-medium">{usageBreakdown.other.toLocaleString()} tokens</span>
+                          <Badge variant="secondary">
+                            {tokenPoolData.used_this_month > 0 ? ((usageBreakdown.other / tokenPoolData.used_this_month) * 100).toFixed(1) : 0}%
+                          </Badge>
+                        </div>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="text-center py-4 text-gray-500">
+                    <p className="text-sm">No usage data available for this month</p>
                   </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm">Court Bookings</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">6,200 tokens</span>
-                    <Badge variant="secondary">35.4%</Badge>
-                  </div>
-                </div>
-                <div className="flex items-center justify-between p-3 bg-gray-50 rounded-lg">
-                  <span className="text-sm">Tournament Entries</span>
-                  <div className="flex items-center gap-2">
-                    <span className="text-sm font-medium">2,800 tokens</span>
-                    <Badge variant="secondary">16.0%</Badge>
-                  </div>
-                </div>
+                )}
               </div>
             </div>
 
