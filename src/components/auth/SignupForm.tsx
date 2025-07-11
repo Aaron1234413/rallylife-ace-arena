@@ -52,9 +52,8 @@ export function SignupForm() {
       }
     } else {
       setSuccess(true);
-      // Redirect new players to payment gate, coaches to dashboard
-      const redirectPath = role === 'player' ? '/payment-gate' : '/dashboard';
-      setTimeout(() => navigate(redirectPath), 2000);
+      // Redirect all users to dashboard
+      setTimeout(() => navigate('/dashboard'), 2000);
     }
     
     setLoading(false);

@@ -3,7 +3,7 @@ export const ROUTES = {
   // Public routes (no auth required)
   LANDING: '/',
   AUTH: '/auth',
-  PAYMENT_GATE: '/payment-gate',
+  
   
   // Protected routes (auth required)
   DASHBOARD: '/dashboard',
@@ -24,7 +24,7 @@ export const ROUTES = {
 export const PUBLIC_ROUTES = [
   ROUTES.LANDING,
   ROUTES.AUTH,
-  ROUTES.PAYMENT_GATE,
+  
 ];
 
 // Protected app routes where onboarding guide can appear

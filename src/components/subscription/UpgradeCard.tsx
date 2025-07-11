@@ -18,7 +18,7 @@ export const UpgradeCard: React.FC<UpgradeCardProps> = ({
   const navigate = useNavigate();
 
   const handleUpgrade = () => {
-    navigate('/payment-gate');
+    navigate('/dashboard');
   };
 
   const features = [
