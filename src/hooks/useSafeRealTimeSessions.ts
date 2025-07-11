@@ -60,35 +60,56 @@ export function useSafeRealTimeSessions(
   const isSubscribedRef = useRef(false);
   const retryCountRef = useRef(0);
   const isInitializedRef = useRef(false);
+  const isMountedRef = useRef(false);
+  const subscriptionTimeoutRef = useRef<NodeJS.Timeout>();
 
   // Use the authenticated user's ID if no userId provided
   const effectiveUserId = userId || user?.id;
 
   const clearChannels = useCallback(() => {
-    if (channelsRef.current.length > 0) {
-      channelsRef.current.forEach(channel => {
-        try {
-          supabase.removeChannel(channel);
-        } catch (err) {
-          console.warn('Error removing channel:', err);
-        }
-      });
-      channelsRef.current = [];
+    try {
+      // Clear any pending subscription timeout first
+      if (subscriptionTimeoutRef.current) {
+        clearTimeout(subscriptionTimeoutRef.current);
+        subscriptionTimeoutRef.current = undefined;
+      }
+      
+      if (channelsRef.current.length > 0) {
+        channelsRef.current.forEach(channel => {
+          try {
+            if (channel && typeof channel.unsubscribe === 'function') {
+              channel.unsubscribe();
+            }
+            supabase.removeChannel(channel);
+          } catch (err) {
+            console.warn('Error removing channel:', err);
+          }
+        });
+        channelsRef.current = [];
+      }
+      isSubscribedRef.current = false;
+    } catch (err) {
+      console.warn('Error in clearChannels:', err);
     }
-    isSubscribedRef.current = false;
   }, []);
 
   const resetState = useCallback(() => {
-    setSessions([]);
-    setError(null);
-    setLoading(true);
-    retryCountRef.current = 0;
-    isInitializedRef.current = false;
-  }, []);
+    try {
+      setSessions([]);
+      setError(null);
+      setLoading(true);
+      retryCountRef.current = 0;
+      isInitializedRef.current = false;
+      // Clear any existing subscriptions when resetting
+      clearChannels();
+    } catch (err) {
+      console.warn('Error in resetState:', err);
+    }
+  }, [clearChannels]);
 
   const fetchSessions = useCallback(async () => {
-    // Safety check: don't fetch if disabled or no user
-    if (!enabled || !effectiveUserId) {
+    // Safety check: don't fetch if disabled, no user, or component unmounted
+    if (!enabled || !effectiveUserId || !isMountedRef.current) {
       setLoading(false);
       return;
     }
@@ -192,55 +213,89 @@ export function useSafeRealTimeSessions(
     }
   }, [activeTab, effectiveUserId, enabled, retryAttempts, retryDelay, onError]);
 
-  // Initial fetch with proper initialization
+  // Mount/unmount tracking
   useEffect(() => {
-    if (enabled && effectiveUserId) {
-      isInitializedRef.current = false;
-      fetchSessions().finally(() => {
-        isInitializedRef.current = true;
-      });
-    } else {
-      setLoading(false);
-    }
-
+    isMountedRef.current = true;
     return () => {
+      isMountedRef.current = false;
+      clearChannels();
       if (retryTimeoutRef.current) {
         clearTimeout(retryTimeoutRef.current);
       }
     };
-  }, [activeTab, effectiveUserId, enabled]);
+  }, [clearChannels]);
 
   // Reset state when key dependencies change
   useEffect(() => {
     resetState();
   }, [activeTab, effectiveUserId, resetState]);
 
+  // Initial fetch with proper initialization
+  useEffect(() => {
+    if (enabled && effectiveUserId && isMountedRef.current) {
+      isInitializedRef.current = false;
+      fetchSessions()
+        .catch(err => {
+          // Swallow errors here to prevent them from reaching ErrorBoundary
+          console.warn('Initial fetch error (handled):', err);
+          setError(err instanceof Error ? err.message : 'Failed to load sessions');
+        })
+        .finally(() => {
+          if (isMountedRef.current) {
+            isInitializedRef.current = true;
+          }
+        });
+    } else if (!enabled || !effectiveUserId) {
+      setLoading(false);
+    }
+  }, [activeTab, effectiveUserId, enabled, fetchSessions]);
+
   // Create a stable reference to fetchSessions for subscriptions
   const fetchSessionsRef = useRef(fetchSessions);
   fetchSessionsRef.current = fetchSessions;
 
-  // Set up real-time subscriptions with safety checks
+  // Set up real-time subscriptions with comprehensive safety checks
   useEffect(() => {
-    if (!enabled || !effectiveUserId || isSubscribedRef.current || !isInitializedRef.current) return;
+    // Multiple safety checks to prevent subscription errors
+    if (!enabled || 
+        !effectiveUserId || 
+        !isMountedRef.current || 
+        !isInitializedRef.current || 
+        isSubscribedRef.current) {
+      return;
+    }
 
-    let sessionsChannel: any = null;
-    let participantsChannel: any = null;
+    // Clear any existing subscription timeout
+    if (subscriptionTimeoutRef.current) {
+      clearTimeout(subscriptionTimeoutRef.current);
+    }
 
-    // Use a timeout to prevent immediate subscription after mount
-    const subscriptionTimeout = setTimeout(() => {
+    // Use a longer timeout to ensure component is fully stable
+    subscriptionTimeoutRef.current = setTimeout(() => {
+      // Final safety checks before subscribing
+      if (!isMountedRef.current || 
+          !isInitializedRef.current || 
+          isSubscribedRef.current || 
+          !enabled || 
+          !effectiveUserId) {
+        return;
+      }
+
       try {
-        // Double-check subscription state before proceeding
-        if (isSubscribedRef.current) return;
-
-        // Clear any existing channels first
+        // Clear any existing channels to prevent conflicts
         clearChannels();
 
-        // Create unique channel names to avoid conflicts with timestamp and random
-        const uniqueId = `${effectiveUserId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        const sessionChannelName = `safe-sessions-${uniqueId}`;
-        const participantChannelName = `safe-participants-${uniqueId}`;
+        // Create highly unique channel names to prevent any conflicts
+        const timestamp = Date.now();
+        const random = Math.random().toString(36).substring(2, 15);
+        const uniqueId = `${effectiveUserId}-${timestamp}-${random}`;
+        const sessionChannelName = `sessions-${uniqueId}`;
+        const participantChannelName = `participants-${uniqueId}`;
 
-        // Subscribe to sessions table changes
+        let sessionsChannel: any = null;
+        let participantsChannel: any = null;
+
+        // Subscribe to sessions table changes with error handling
         sessionsChannel = supabase
           .channel(sessionChannelName)
           .on(
@@ -251,14 +306,22 @@ export function useSafeRealTimeSessions(
               table: 'sessions'
             },
             () => {
-              if (isInitializedRef.current) {
-                fetchSessionsRef.current();
+              if (isMountedRef.current && isInitializedRef.current) {
+                fetchSessionsRef.current().catch(err => {
+                  console.warn('Error in realtime fetchSessions:', err);
+                });
               }
             }
           )
-          .subscribe();
+          .subscribe((status: string) => {
+            if (status === 'SUBSCRIBED') {
+              console.log('Sessions subscription active');
+            } else if (status === 'CHANNEL_ERROR') {
+              console.warn('Sessions subscription error');
+            }
+          });
 
-        // Subscribe to session_participants table changes
+        // Subscribe to session_participants table changes with error handling
         participantsChannel = supabase
           .channel(participantChannelName)
           .on(
@@ -269,25 +332,40 @@ export function useSafeRealTimeSessions(
               table: 'session_participants'
             },
             () => {
-              if (isInitializedRef.current) {
-                fetchSessionsRef.current();
+              if (isMountedRef.current && isInitializedRef.current) {
+                fetchSessionsRef.current().catch(err => {
+                  console.warn('Error in realtime fetchSessions:', err);
+                });
               }
             }
           )
-          .subscribe();
+          .subscribe((status: string) => {
+            if (status === 'SUBSCRIBED') {
+              console.log('Participants subscription active');
+            } else if (status === 'CHANNEL_ERROR') {
+              console.warn('Participants subscription error');
+            }
+          });
 
-        channelsRef.current = [sessionsChannel, participantsChannel];
-        isSubscribedRef.current = true;
+        // Only mark as subscribed if both channels were created successfully
+        if (sessionsChannel && participantsChannel) {
+          channelsRef.current = [sessionsChannel, participantsChannel];
+          isSubscribedRef.current = true;
+        }
       } catch (error) {
-        console.error('Error setting up real-time subscriptions:', error);
+        console.warn('Error setting up real-time subscriptions (handled):', error);
+        // Don't re-throw to prevent ErrorBoundary trigger
       }
-    }, 100); // Small delay to prevent race conditions
+    }, 500); // Longer delay to ensure stability
 
     return () => {
-      clearTimeout(subscriptionTimeout);
+      if (subscriptionTimeoutRef.current) {
+        clearTimeout(subscriptionTimeoutRef.current);
+        subscriptionTimeoutRef.current = undefined;
+      }
       clearChannels();
     };
-  }, [effectiveUserId, enabled, clearChannels]);
+  }, [effectiveUserId, enabled, isInitializedRef.current, clearChannels]);
 
   const joinSession = useCallback(async (sessionId: string) => {
     if (!effectiveUserId) {
