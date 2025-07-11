@@ -177,12 +177,23 @@ export function useClubServices(clubId: string) {
     updates: Partial<ClubService>
   ): Promise<boolean> => {
     try {
-      const { error } = await supabase
-        .from('club_services')
-        .update(updates)
-        .eq('id', serviceId);
+      const { data, error } = await supabase.rpc('update_club_service', {
+        service_id_param: serviceId,
+        service_name: updates.name,
+        service_description: updates.description,
+        price_tokens_param: updates.price_tokens,
+        price_usd_param: updates.price_usd,
+        hybrid_payment_enabled_param: updates.hybrid_payment_enabled,
+        duration_minutes_param: updates.duration_minutes,
+        max_participants_param: updates.max_participants,
+        is_active_param: updates.is_active
+      });
 
       if (error) throw error;
+      
+      if (data && typeof data === 'object' && 'success' in data && !data.success) {
+        throw new Error((data as any).error || 'Failed to update service');
+      }
 
       toast.success('Service updated successfully');
       await fetchServices();

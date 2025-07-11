@@ -13,8 +13,9 @@ import {
   Trophy
 } from 'lucide-react';
 import { CreateServiceDialog } from './CreateServiceDialog';
+import { EditServiceDialog } from './EditServiceDialog';
 import { HybridPaymentSelector } from '../../payments/HybridPaymentSelector';
-import { useClubServices } from '@/hooks/useClubServices';
+import { useClubServices, ClubService } from '@/hooks/useClubServices';
 
 interface ServicePricingManagerProps {
   club: {
@@ -26,7 +27,9 @@ interface ServicePricingManagerProps {
 
 export function ServicePricingManager({ club, canManage }: ServicePricingManagerProps) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
-  const { services, loading } = useClubServices(club.id);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [selectedService, setSelectedService] = useState<ClubService | null>(null);
+  const { services, loading, updateService, deleteService } = useClubServices(club.id);
 
   if (loading) {
     return (
@@ -36,57 +39,18 @@ export function ServicePricingManager({ club, canManage }: ServicePricingManager
     );
   }
 
-  // Fallback mock services if none exist
-  const displayServices = services.length > 0 ? services : [
-    {
-      id: '1',
-      name: 'Private Tennis Lesson',
-      service_type: 'lesson',
-      price_tokens: 500,
-      price_usd: 2500, // $25.00
-      hybrid_payment_enabled: true,
-      duration_minutes: 60,
-      max_participants: 1,
-      organizer_name: 'Coach Sarah',
-      is_active: true
-    },
-    {
-      id: '2',
-      name: 'Weekly Tournament',
-      service_type: 'tournament',
-      price_tokens: 1000,
-      price_usd: 0,
-      hybrid_payment_enabled: false,
-      duration_minutes: 180,
-      max_participants: 16,
-      organizer_name: 'Club Admin',
-      is_active: true
-    },
-    {
-      id: '3',
-      name: 'Court Booking (1 hour)',
-      service_type: 'court_booking',
-      price_tokens: 300,
-      price_usd: 1500, // $15.00
-      hybrid_payment_enabled: true,
-      duration_minutes: 60,
-      max_participants: 4,
-      organizer_name: 'Club Manager',
-      is_active: true
-    },
-    {
-      id: '4',
-      name: 'Group Lesson (Beginner)',
-      service_type: 'lesson',
-      price_tokens: 200,
-      price_usd: 1200, // $12.00
-      hybrid_payment_enabled: true,
-      duration_minutes: 90,
-      max_participants: 6,
-      organizer_name: 'Coach Mike',
-      is_active: false
-    }
-  ];
+  const handleEditService = (service: ClubService) => {
+    setSelectedService(service);
+    setShowEditDialog(true);
+  };
+
+  const handleSaveService = async (serviceId: string, updates: Partial<ClubService>) => {
+    await updateService(serviceId, updates);
+  };
+
+  const handleDeleteService = async (serviceId: string) => {
+    await deleteService(serviceId);
+  };
 
   const getServiceIcon = (type: string) => {
     switch (type) {
@@ -140,8 +104,23 @@ export function ServicePricingManager({ club, canManage }: ServicePricingManager
 
         {/* Services List */}
         <div className="space-y-4">
-          {displayServices.map((service) => {
-            const Icon = getServiceIcon(service.service_type);
+          {services.length === 0 ? (
+            <Card>
+              <CardContent className="p-6 text-center">
+                <p className="text-gray-500">No services configured yet.</p>
+                {canManage && (
+                  <Button 
+                    onClick={() => setShowCreateDialog(true)}
+                    className="mt-2"
+                  >
+                    Create Your First Service
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          ) : (
+            services.map((service) => {
+              const Icon = getServiceIcon(service.service_type);
             
             return (
               <Card key={service.id} className={`${!service.is_active ? 'opacity-60' : ''}`}>
@@ -209,7 +188,12 @@ export function ServicePricingManager({ club, canManage }: ServicePricingManager
                           Hybrid payments: {service.hybrid_payment_enabled ? 'Enabled' : 'Disabled'}
                         </div>
                         {canManage && (
-                          <Button variant="outline" size="sm" className="flex items-center gap-2">
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            className="flex items-center gap-2"
+                            onClick={() => handleEditService(service)}
+                          >
                             <Edit className="h-4 w-4" />
                             Edit Service
                           </Button>
@@ -220,7 +204,7 @@ export function ServicePricingManager({ club, canManage }: ServicePricingManager
                 </CardContent>
               </Card>
             );
-          })}
+          }))}
         </div>
 
         {/* Pricing Guidelines */}
@@ -264,6 +248,14 @@ export function ServicePricingManager({ club, canManage }: ServicePricingManager
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         club={club}
+      />
+
+      <EditServiceDialog
+        open={showEditDialog}
+        onOpenChange={setShowEditDialog}
+        service={selectedService}
+        onSave={handleSaveService}
+        onDelete={handleDeleteService}
       />
     </>
   );

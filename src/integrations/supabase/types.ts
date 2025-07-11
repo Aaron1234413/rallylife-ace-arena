@@ -8343,6 +8343,20 @@ export type Database = {
         }
         Returns: Json
       }
+      update_club_service: {
+        Args: {
+          service_id_param: string
+          service_name?: string
+          service_description?: string
+          price_tokens_param?: number
+          price_usd_param?: number
+          hybrid_payment_enabled_param?: boolean
+          duration_minutes_param?: number
+          max_participants_param?: number
+          is_active_param?: boolean
+        }
+        Returns: Json
+      }
       update_club_usage_tracking: {
         Args: { club_id_param: string }
         Returns: undefined
