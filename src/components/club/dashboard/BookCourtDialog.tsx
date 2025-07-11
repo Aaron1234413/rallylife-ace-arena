@@ -24,6 +24,8 @@ import { toast } from 'sonner';
 import { supabase } from '@/integrations/supabase/client';
 import { useClubServices, ClubService } from '@/hooks/useClubServices';
 import { HybridPaymentSelector } from '@/components/payments/HybridPaymentSelector';
+import { calculateCourtPricing, calculateServicePricing, calculateTotalPricing } from '@/utils/pricing';
+import { PricingBreakdown } from '@/components/ui/PricingBreakdown';
 
 interface Court {
   id: string;
@@ -145,49 +147,23 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts, pre
   const calculateCourtCost = () => {
     if (!selectedCourt) return { tokens: 0, money: 0, baseAmount: 0, convenienceFee: 0, totalAmount: 0 };
     
-    const baseAmount = Math.round(selectedCourt.hourly_rate_money * formData.duration * 100); // Convert to cents
-    const convenienceFee = Math.round(baseAmount * 0.05); // 5% RAKO convenience fee
-    const totalAmount = baseAmount + convenienceFee;
-    
-    return {
-      tokens: selectedCourt.hourly_rate_tokens * formData.duration,
-      money: selectedCourt.hourly_rate_money * formData.duration,
-      baseAmount,
-      convenienceFee,
-      totalAmount
-    };
+    return calculateCourtPricing(selectedCourt, formData.duration);
   };
 
   const calculateServicesCost = () => {
-    return formData.selectedServices.reduce((total, serviceId) => {
+    const servicesPricing = formData.selectedServices.map(serviceId => {
       const service = courtServices.find(s => s.id === serviceId);
-      if (!service) return total;
-      
-      const serviceBaseAmount = Math.round(service.price_usd * 100); // Convert to cents
-      const serviceConvenienceFee = Math.round(serviceBaseAmount * 0.05); // 5% RAKO fee
-      const serviceTotalAmount = serviceBaseAmount + serviceConvenienceFee;
-      
-      return {
-        tokens: total.tokens + service.price_tokens,
-        money: total.money + service.price_usd,
-        baseAmount: total.baseAmount + serviceBaseAmount,
-        convenienceFee: total.convenienceFee + serviceConvenienceFee,
-        totalAmount: total.totalAmount + serviceTotalAmount
-      };
-    }, { tokens: 0, money: 0, baseAmount: 0, convenienceFee: 0, totalAmount: 0 });
+      return service ? calculateServicePricing(service) : { tokens: 0, money: 0, baseAmount: 0, convenienceFee: 0, totalAmount: 0 };
+    });
+    
+    return calculateTotalPricing(servicesPricing);
   };
 
   const calculateTotalCost = () => {
     const courtCost = calculateCourtCost();
     const servicesCost = calculateServicesCost();
     
-    return {
-      tokens: courtCost.tokens + servicesCost.tokens,
-      money: courtCost.money + servicesCost.money,
-      baseAmount: courtCost.baseAmount + servicesCost.baseAmount,
-      convenienceFee: courtCost.convenienceFee + servicesCost.convenienceFee,
-      totalAmount: courtCost.totalAmount + servicesCost.totalAmount
-    };
+    return calculateTotalPricing([courtCost, servicesCost]);
   };
 
   const handleServiceToggle = (serviceId: string, checked: boolean) => {
@@ -497,75 +473,25 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts, pre
           </div>
 
           {/* Cost Breakdown */}
-          <div className="p-4 bg-tennis-green-bg/10 rounded-lg border space-y-4">
-            <h4 className="font-medium text-tennis-green-dark">Cost Breakdown</h4>
-            
-            <div className="space-y-2 text-sm">
-              <div className="flex justify-between">
-                <span className="text-tennis-green-medium">Court ({formData.duration}h):</span>
-                <div className="flex items-center gap-2">
-                  <span>{courtCost.tokens} tokens</span>
-                  {courtCost.money > 0 && <span>or ${(courtCost.baseAmount / 100).toFixed(2)}</span>}
-                </div>
-              </div>
-              
-              {formData.selectedServices.length > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-tennis-green-medium">Services:</span>
-                  <div className="flex items-center gap-2">
-                    <span>{servicesCost.tokens} tokens</span>
-                    {servicesCost.money > 0 && <span>or ${(servicesCost.baseAmount / 100).toFixed(2)}</span>}
-                  </div>
-                </div>
-              )}
-              
-              {/* Show convenience fee breakdown for cash payments */}
-              {totalCost.totalAmount > 0 && (
-                <>
-                  <div className="flex justify-between text-xs text-tennis-green-medium/80">
-                    <span>RAKO convenience fee (5%):</span>
-                    <span>${(totalCost.convenienceFee / 100).toFixed(2)}</span>
-                  </div>
-                  
-                  <Separator />
-                  
-                  <div className="flex justify-between font-medium">
-                    <span className="text-tennis-green-dark">Total:</span>
-                    <div className="flex items-center gap-2">
-                      <span>{totalCost.tokens} tokens</span>
-                      <span>or ${(totalCost.totalAmount / 100).toFixed(2)}</span>
-                    </div>
-                  </div>
-                </>
-              )}
-              
-              {/* Fallback for token-only bookings */}
-              {totalCost.totalAmount === 0 && (
-                <>
-                  <Separator />
-                  <div className="flex justify-between font-medium">
-                    <span className="text-tennis-green-dark">Total:</span>
-                    <span>{totalCost.tokens} tokens</span>
-                  </div>
-                </>
-              )}
-            </div>
+          <PricingBreakdown 
+            pricing={totalCost} 
+            title={`Total Cost${formData.duration > 1 ? ` (${formData.duration}h)` : ''}`}
+          />
 
-            {/* Payment Method */}
-            <div>
-              <Label className="text-sm font-medium">Payment Method</Label>
-              <HybridPaymentSelector
-                tokenPrice={totalCost.tokens}
-                usdPrice={totalCost.money * 100} // Convert to cents
-                onPaymentChange={(payment) => 
-                  setFormData(prev => ({
-                    ...prev,
-                    paymentMethod: { tokens: payment.tokens, cash: payment.usd }
-                  }))
-                }
-                disabled={false}
-              />
-            </div>
+          {/* Payment Method */}
+          <div>
+            <Label className="text-sm font-medium">Payment Method</Label>
+            <HybridPaymentSelector
+              tokenPrice={totalCost.tokens}
+              usdPrice={totalCost.money * 100} // Convert to cents
+              onPaymentChange={(payment) => 
+                setFormData(prev => ({
+                  ...prev,
+                  paymentMethod: { tokens: payment.tokens, cash: payment.usd }
+                }))
+              }
+              disabled={false}
+            />
           </div>
 
           {/* Action Buttons */}

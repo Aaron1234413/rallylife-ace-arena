@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { CheckCircle, AlertCircle, Clock, Coins, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { calculateCourtPricing } from '@/utils/pricing';
 
 interface Court {
   id: string;
@@ -152,12 +153,7 @@ export function InteractiveTimeGrid({
     const court = courts.find(c => c.id === courtId);
     if (!court) return { baseAmount: 0, convenienceFee: 0, totalAmount: 0, tokens: 0 };
     
-    const baseAmount = Math.round(court.hourly_rate_money * durationHours * 100);
-    const convenienceFee = Math.round(baseAmount * 0.05);
-    const totalAmount = baseAmount + convenienceFee;
-    const tokens = court.hourly_rate_tokens * durationHours;
-    
-    return { baseAmount, convenienceFee, totalAmount, tokens };
+    return calculateCourtPricing(court, durationHours);
   };
 
   const isSlotInSelection = (courtId: string, time: string) => {

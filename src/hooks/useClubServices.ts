@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { calculateServicePricing } from '@/utils/pricing';
 
 export interface ClubService {
   id: string;
@@ -155,10 +156,17 @@ export function useClubServices(clubId: string) {
     cashAmountCents: number
   ): Promise<string | null> => {
     try {
+      // Apply 5% RAKO convenience fee to cash payments
+      const service = services.find(s => s.id === serviceId);
+      if (!service) throw new Error('Service not found');
+      
+      const pricing = calculateServicePricing(service);
+      const adjustedCashAmount = cashAmountCents > 0 ? pricing.totalAmount : cashAmountCents;
+      
       const { data, error } = await supabase.rpc('book_club_service', {
         service_id_param: serviceId,
         tokens_to_use: tokensToUse,
-        cash_amount_cents: cashAmountCents
+        cash_amount_cents: adjustedCashAmount
       });
 
       if (error) throw error;
