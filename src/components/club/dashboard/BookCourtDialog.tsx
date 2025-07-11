@@ -40,6 +40,8 @@ interface BookCourtDialogProps {
   courtId: string | null;
   date: Date;
   courts: Court[];
+  preselectedTime?: string;
+  preselectedDuration?: number;
 }
 
 interface BookingFormData {
@@ -51,10 +53,10 @@ interface BookingFormData {
   selectedServices: string[];
 }
 
-export function BookCourtDialog({ open, onOpenChange, courtId, date, courts }: BookCourtDialogProps) {
+export function BookCourtDialog({ open, onOpenChange, courtId, date, courts, preselectedTime, preselectedDuration }: BookCourtDialogProps) {
   const [formData, setFormData] = useState<BookingFormData>({
-    startTime: '',
-    duration: 1,
+    startTime: preselectedTime || '',
+    duration: preselectedDuration || 1,
     notes: '',
     bookingType: 'personal',
     paymentMethod: { tokens: 0, cash: 0 },
@@ -84,6 +86,17 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts }: B
       generateTimeSlots();
     }
   }, [open, courtId, date]);
+
+  // Update form data when preselected values change
+  useEffect(() => {
+    if (open && preselectedTime) {
+      setFormData(prev => ({
+        ...prev,
+        startTime: preselectedTime,
+        duration: preselectedDuration || 1
+      }));
+    }
+  }, [open, preselectedTime, preselectedDuration]);
 
   const fetchExistingBookings = async () => {
     if (!courtId) return;
@@ -386,14 +399,16 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts }: B
               <Label htmlFor="duration">Duration *</Label>
               <Select
                 value={formData.duration.toString()}
-                onValueChange={(value) => setFormData({ ...formData, duration: parseInt(value) })}
+                onValueChange={(value) => setFormData({ ...formData, duration: parseFloat(value) })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="1">1 hour</SelectItem>
+                  <SelectItem value="1.5">1.5 hours</SelectItem>
                   <SelectItem value="2">2 hours</SelectItem>
+                  <SelectItem value="2.5">2.5 hours</SelectItem>
                   <SelectItem value="3">3 hours</SelectItem>
                   <SelectItem value="4">4 hours</SelectItem>
                 </SelectContent>

@@ -22,6 +22,7 @@ import { AvailableServicesWidget } from '../services/AvailableServicesWidget';
 import { useClubCourts } from '@/hooks/useClubCourts';
 import { useAuth } from '@/hooks/useAuth';
 import { EmptyCourtState } from '../courts/EmptyCourtState';
+import { InteractiveTimeGrid } from '../courts/InteractiveTimeGrid';
 
 interface CourtBookingProps {
   clubId: string;
@@ -40,6 +41,8 @@ export function CourtBooking({ clubId, isOwner = false, onNavigateToSettings }: 
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showBookDialog, setShowBookDialog] = useState(false);
   const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
+  const [selectedTime, setSelectedTime] = useState<string>('');
+  const [selectedDuration, setSelectedDuration] = useState<number>(1);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [club, setClub] = useState<Club | null>(null);
@@ -129,10 +132,10 @@ export function CourtBooking({ clubId, isOwner = false, onNavigateToSettings }: 
     return { baseAmount, convenienceFee, totalAmount };
   };
 
-  const handleBookCourt = (courtId: string, time: string) => {
+  const handleBookCourt = (courtId: string, time: string, duration: number = 1) => {
     // Validate booking time against operating hours
     if (club?.operating_hours) {
-      const endTime = `${parseInt(time.split(':')[0]) + 1}:${time.split(':')[1]}`;
+      const endTime = `${parseInt(time.split(':')[0]) + duration}:${time.split(':')[1]}`;
       const validation = validateBookingTime(selectedDate, time, endTime, club.operating_hours);
       
       if (!validation.valid) {
@@ -142,7 +145,21 @@ export function CourtBooking({ clubId, isOwner = false, onNavigateToSettings }: 
     }
     
     setSelectedCourt(courtId);
+    setSelectedTime(time);
+    setSelectedDuration(duration);
     setShowBookDialog(true);
+  };
+
+  const handleTimeSelectionChange = (selection: { courtId: string; startTime: string; duration: number } | null) => {
+    if (selection) {
+      setSelectedCourt(selection.courtId);
+      setSelectedTime(selection.startTime);
+      setSelectedDuration(selection.duration);
+    } else {
+      setSelectedCourt(null);
+      setSelectedTime('');
+      setSelectedDuration(1);
+    }
   };
 
   // Show empty state if no courts are configured
@@ -304,96 +321,21 @@ export function CourtBooking({ clubId, isOwner = false, onNavigateToSettings }: 
               </div>
             )}
 
-            {/* Time Slot Grid */}
+            {/* Interactive Time Slot Grid */}
             <div className="space-y-4">
               <h3 className="font-semibold text-tennis-green-dark">Available Time Slots</h3>
               
-              <div className="overflow-x-auto">
-                <div className="min-w-[600px]">
-                  {/* Header */}
-                  <div className="grid grid-cols-4 gap-2 mb-2">
-                    <div className="font-medium text-sm text-tennis-green-dark">Time</div>
-                    {courts.map((court) => (
-                      <div key={court.id} className="font-medium text-sm text-tennis-green-dark text-center">
-                        {court.name}
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* Time Slots */}
-                  <div className="space-y-1">
-                    {timeSlots.map((time) => (
-                      <div key={time} className="grid grid-cols-4 gap-2">
-                        <div className="flex items-center text-sm font-medium text-tennis-green-dark py-2">
-                          {time}
-                        </div>
-                        {courts.map((court) => {
-                          const isBooked = isSlotBooked(court.id, time);
-                          const bookingInfo = getBookingInfo(court.id, time);
-                          const isMyBooking = bookingInfo?.user_id === bookingInfo?.user_id; // Would need auth context
-
-                          return (
-                            <div key={`${court.id}-${time}`} className="h-10">
-                              {isBooked ? (
-                                <div
-                                  className={`h-full rounded px-2 py-1 text-xs flex items-center justify-center ${
-                                    isMyBooking
-                                      ? 'bg-blue-100 text-blue-800 border border-blue-200'
-                                      : 'bg-red-100 text-red-800 border border-red-200'
-                                  }`}
-                                >
-                                  {isMyBooking ? (
-                                    <CheckCircle className="h-3 w-3" />
-                                  ) : (
-                                    <AlertCircle className="h-3 w-3" />
-                                  )}
-                                </div>
-                              ) : (
-                                <Button
-                                  variant="outline"
-                                  size="sm"
-                                  className="h-full w-full text-xs hover:bg-tennis-green-primary hover:text-white group"
-                                  onClick={() => handleBookCourt(court.id, time)}
-                                >
-                                  <div className="flex flex-col items-center">
-                                    <span>Book</span>
-                                    {court.hourly_rate_money > 0 && (
-                                      <span className="text-[10px] opacity-75 group-hover:opacity-100">
-                                        ${(calculatePricing(court.id).totalAmount / 100).toFixed(2)}
-                                      </span>
-                                    )}
-                                  </div>
-                                </Button>
-                              )}
-                            </div>
-                          );
-                        })}
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
+              <InteractiveTimeGrid
+                courts={courts}
+                timeSlots={timeSlots}
+                bookings={bookings}
+                selectedDate={selectedDate}
+                currentUserId={user?.id}
+                onSelectionChange={handleTimeSelectionChange}
+                onBookingClick={handleBookCourt}
+              />
             </div>
 
-            {/* Legend */}
-            <div className="flex items-center gap-6 pt-4 border-t border-tennis-green-bg/50">
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-green-100 border border-green-200 rounded"></div>
-                <span className="text-xs text-tennis-green-medium">Available</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-blue-100 border border-blue-200 rounded flex items-center justify-center">
-                  <CheckCircle className="h-2 w-2 text-blue-800" />
-                </div>
-                <span className="text-xs text-tennis-green-medium">Your Booking</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-4 h-4 bg-red-100 border border-red-200 rounded flex items-center justify-center">
-                  <AlertCircle className="h-2 w-2 text-red-800" />
-                </div>
-                <span className="text-xs text-tennis-green-medium">Booked</span>
-              </div>
-            </div>
 
           </CardContent>
         </Card>
@@ -420,6 +362,8 @@ export function CourtBooking({ clubId, isOwner = false, onNavigateToSettings }: 
         courtId={selectedCourt}
         date={selectedDate}
         courts={courts}
+        preselectedTime={selectedTime}
+        preselectedDuration={selectedDuration}
       />
     </>
   );
