@@ -1,0 +1,2 @@
+-- Update the Google Places API key secret
+-- This will be used by the google-places-search edge function for location autocomplete
