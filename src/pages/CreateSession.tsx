@@ -47,7 +47,7 @@ const CreateSession = () => {
   const clubId = isInClubContext ? routerLocation.pathname.split('/')[2] : null;
 
   // Form state
-  const [sessionType, setSessionType] = useState('match');
+  const [sessionType, setSessionType] = useState('');
   const [format, setFormat] = useState<'singles' | 'doubles'>('singles');
   const [maxPlayers, setMaxPlayers] = useState(2);
   const [stakesAmount, setStakesAmount] = useState(0);
@@ -307,212 +307,217 @@ const CreateSession = () => {
               </div>
             </div>
 
-            {/* Format (for matches only) */}
-            {sessionType === 'match' && (
-              <div className="space-y-3">
-                <Label className="text-base font-semibold">Match Format</Label>
-                <Select value={format} onValueChange={(value: 'singles' | 'doubles') => setFormat(value)}>
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="singles">Singles (1 vs 1)</SelectItem>
-                    <SelectItem value="doubles">Doubles (2 vs 2)</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-            )}
-
-            {/* Max Players (customizable for non-match sessions) */}
-            {sessionType !== 'match' && (
-              <div className="space-y-3">
-                <Label className="text-base font-semibold">Maximum Players</Label>
-                <Input
-                  type="number"
-                  min="2"
-                  max="20"
-                  value={maxPlayers}
-                  onChange={(e) => setMaxPlayers(parseInt(e.target.value) || 2)}
-                />
-              </div>
-            )}
-
-            {/* Stakes */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold flex items-center gap-2">
-                <Coins className="h-4 w-4 text-yellow-500" />
-                Stakes (Optional)
-              </Label>
-              <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
-                {stakesOptions.map((amount) => (
-                  <Button
-                    key={amount}
-                    variant={stakesAmount === amount ? "default" : "outline"}
-                    onClick={() => setStakesAmount(amount)}
-                    className="text-sm"
-                  >
-                    {amount === 0 ? 'Free' : `${amount}T`}
-                  </Button>
-                ))}
-              </div>
-              
-              {/* Custom stakes input */}
-              <div className="flex gap-2">
-                <Input
-                  type="number"
-                  placeholder="Custom amount"
-                  min="0"
-                  max={tokenData?.regular_tokens || 0}
-                  value={stakesAmount || ''}
-                  onChange={(e) => setStakesAmount(parseInt(e.target.value) || 0)}
-                  className="flex-1"
-                />
-                <Button variant="outline" size="icon">
-                  <Calculator className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Stakes breakdown */}
-              {stakesBreakdown && (
-                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-3">
-                  <div className="flex items-center gap-2 mb-2">
-                    <Calculator className="h-4 w-4 text-yellow-600" />
-                    <span className="font-medium text-yellow-800">Stakes Breakdown</span>
+            {/* Show detailed form only when session type is selected */}
+            {sessionType && (
+              <>
+                {/* Format (for matches only) */}
+                {sessionType === 'match' && (
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">Match Format</Label>
+                    <Select value={format} onValueChange={(value: 'singles' | 'doubles') => setFormat(value)}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="singles">Singles (1 vs 1)</SelectItem>
+                        <SelectItem value="doubles">Doubles (2 vs 2)</SelectItem>
+                      </SelectContent>
+                    </Select>
                   </div>
-                  <div className="space-y-1 text-sm">
-                    <div><strong>Type:</strong> {stakesBreakdown.type}</div>
-                    <div><strong>Total Pool:</strong> {stakesBreakdown.totalPool} tokens</div>
-                    <div><strong>Distribution:</strong> {stakesBreakdown.distribution}</div>
-                    <div className="text-yellow-700 text-xs mt-2">{stakesBreakdown.details}</div>
-                  </div>
-                </div>
-              )}
+                )}
 
-              {/* Token balance warning */}
-              {tokenData && stakesAmount > tokenData.regular_tokens && (
-                <div className="bg-red-50 border border-red-200 rounded-lg p-3">
-                  <p className="text-red-800 text-sm">
-                    Insufficient tokens. You have {tokenData.regular_tokens} tokens, but need {stakesAmount}.
-                  </p>
-                </div>
-              )}
-            </div>
-
-            {/* Location */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-gray-500" />
-                Location *
-              </Label>
-              <LocationInput
-                value={location ? { address: location } : null}
-                onChange={(locationData) => setLocation(locationData?.address || '')}
-                placeholder="e.g., Central Park Tennis Courts, NYC"
-              />
-            </div>
-
-            {/* Notes */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold flex items-center gap-2">
-                <StickyNote className="h-4 w-4 text-gray-500" />
-                Notes (Optional)
-              </Label>
-              <Textarea
-                placeholder="Add any additional details about your session..."
-                value={notes}
-                onChange={(e) => setNotes(e.target.value)}
-                rows={3}
-              />
-            </div>
-
-            
-            {/* Duration Estimator with Live Preview */}
-            <div className="space-y-3">
-              <Label className="text-base font-semibold">Session Duration</Label>
-              <DurationEstimator 
-                value={estimatedDuration}
-                onValueChange={setEstimatedDuration}
-                sessionType={sessionType}
-                currentHP={hpData?.current_hp}
-                maxHP={hpData?.max_hp}
-                showPreview={true}
-              />
-            </div>
-
-            {/* Privacy Settings */}
-            <div className="space-y-3">
-              <div className="flex items-center justify-between">
-                <Label className="text-base font-semibold flex items-center gap-2">
-                  {isPrivate ? (
-                    <Lock className="h-4 w-4 text-red-500" />
-                  ) : (
-                    <Unlock className="h-4 w-4 text-green-500" />
-                  )}
-                  Private Session
-                </Label>
-                <Switch
-                  checked={isPrivate}
-                  onCheckedChange={setIsPrivate}
-                />
-              </div>
-              
-              <p className="text-sm text-gray-600">
-                {isPrivate 
-                  ? 'Only people with the invitation link can join'
-                  : 'Anyone can see and join this session'
-                }
-              </p>
-
-              {/* Invitation code for private sessions */}
-              {isPrivate && invitationCode && (
-                <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="font-medium text-blue-800">Invitation Code</span>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={generateInvitationCode}
-                    >
-                      Regenerate
-                    </Button>
-                  </div>
-                  
-                  <div className="flex items-center gap-2">
-                    <Input 
-                      value={invitationCode} 
-                      readOnly 
-                      className="font-mono"
+                {/* Max Players (customizable for non-match sessions) */}
+                {sessionType !== 'match' && (
+                  <div className="space-y-3">
+                    <Label className="text-base font-semibold">Maximum Players</Label>
+                    <Input
+                      type="number"
+                      min="2"
+                      max="20"
+                      value={maxPlayers}
+                      onChange={(e) => setMaxPlayers(parseInt(e.target.value) || 2)}
                     />
-                    <Button
-                      variant="outline"
-                      size="icon"
-                      onClick={copyInvitationLink}
-                    >
-                      {copiedCode ? (
-                        <Check className="h-4 w-4 text-green-600" />
-                      ) : (
-                        <Copy className="h-4 w-4" />
-                      )}
-                    </Button>
+                  </div>
+                )}
+
+                {/* Stakes */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold flex items-center gap-2">
+                    <Coins className="h-4 w-4 text-yellow-500" />
+                    Stakes (Optional)
+                  </Label>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {stakesOptions.map((amount) => (
+                      <Button
+                        key={amount}
+                        variant={stakesAmount === amount ? "default" : "outline"}
+                        onClick={() => setStakesAmount(amount)}
+                        className="text-sm"
+                      >
+                        {amount === 0 ? 'Free' : `${amount}T`}
+                      </Button>
+                    ))}
                   </div>
                   
-                  <p className="text-xs text-blue-700 mt-2">
-                    Share this link: {window.location.origin}/sessions/join/{invitationCode}
-                  </p>
-                </div>
-              )}
-            </div>
+                  {/* Custom stakes input */}
+                  <div className="flex gap-2">
+                    <Input
+                      type="number"
+                      placeholder="Custom amount"
+                      min="0"
+                      max={tokenData?.regular_tokens || 0}
+                      value={stakesAmount || ''}
+                      onChange={(e) => setStakesAmount(parseInt(e.target.value) || 0)}
+                      className="flex-1"
+                    />
+                    <Button variant="outline" size="icon">
+                      <Calculator className="h-4 w-4" />
+                    </Button>
+                  </div>
 
-            {/* Create Session Button */}
-            <div className="pt-4">
-              <Button
-                onClick={handleCreateSession}
-                disabled={creating || !location.trim()}
-                className="w-full h-12 text-lg bg-tennis-green-dark hover:bg-tennis-green text-white"
-              >
-                {creating ? 'Creating Session...' : 'Create Session'}
-              </Button>
-            </div>
+                  {/* Stakes breakdown */}
+                  {stakesBreakdown && (
+                    <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4 mt-3">
+                      <div className="flex items-center gap-2 mb-2">
+                        <Calculator className="h-4 w-4 text-yellow-600" />
+                        <span className="font-medium text-yellow-800">Stakes Breakdown</span>
+                      </div>
+                      <div className="space-y-1 text-sm">
+                        <div><strong>Type:</strong> {stakesBreakdown.type}</div>
+                        <div><strong>Total Pool:</strong> {stakesBreakdown.totalPool} tokens</div>
+                        <div><strong>Distribution:</strong> {stakesBreakdown.distribution}</div>
+                        <div className="text-yellow-700 text-xs mt-2">{stakesBreakdown.details}</div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Token balance warning */}
+                  {tokenData && stakesAmount > tokenData.regular_tokens && (
+                    <div className="bg-red-50 border border-red-200 rounded-lg p-3">
+                      <p className="text-red-800 text-sm">
+                        Insufficient tokens. You have {tokenData.regular_tokens} tokens, but need {stakesAmount}.
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Location */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold flex items-center gap-2">
+                    <MapPin className="h-4 w-4 text-gray-500" />
+                    Location *
+                  </Label>
+                  <LocationInput
+                    value={location ? { address: location } : null}
+                    onChange={(locationData) => setLocation(locationData?.address || '')}
+                    placeholder="e.g., Central Park Tennis Courts, NYC"
+                  />
+                </div>
+
+                {/* Notes */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold flex items-center gap-2">
+                    <StickyNote className="h-4 w-4 text-gray-500" />
+                    Notes (Optional)
+                  </Label>
+                  <Textarea
+                    placeholder="Add any additional details about your session..."
+                    value={notes}
+                    onChange={(e) => setNotes(e.target.value)}
+                    rows={3}
+                  />
+                </div>
+
+                
+                {/* Duration Estimator with Live Preview */}
+                <div className="space-y-3">
+                  <Label className="text-base font-semibold">Session Duration</Label>
+                  <DurationEstimator 
+                    value={estimatedDuration}
+                    onValueChange={setEstimatedDuration}
+                    sessionType={sessionType}
+                    currentHP={hpData?.current_hp}
+                    maxHP={hpData?.max_hp}
+                    showPreview={true}
+                  />
+                </div>
+
+                {/* Privacy Settings */}
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <Label className="text-base font-semibold flex items-center gap-2">
+                      {isPrivate ? (
+                        <Lock className="h-4 w-4 text-red-500" />
+                      ) : (
+                        <Unlock className="h-4 w-4 text-green-500" />
+                      )}
+                      Private Session
+                    </Label>
+                    <Switch
+                      checked={isPrivate}
+                      onCheckedChange={setIsPrivate}
+                    />
+                  </div>
+                  
+                  <p className="text-sm text-gray-600">
+                    {isPrivate 
+                      ? 'Only people with the invitation link can join'
+                      : 'Anyone can see and join this session'
+                    }
+                  </p>
+
+                  {/* Invitation code for private sessions */}
+                  {isPrivate && invitationCode && (
+                    <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-medium text-blue-800">Invitation Code</span>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={generateInvitationCode}
+                        >
+                          Regenerate
+                        </Button>
+                      </div>
+                      
+                      <div className="flex items-center gap-2">
+                        <Input 
+                          value={invitationCode} 
+                          readOnly 
+                          className="font-mono"
+                        />
+                        <Button
+                          variant="outline"
+                          size="icon"
+                          onClick={copyInvitationLink}
+                        >
+                          {copiedCode ? (
+                            <Check className="h-4 w-4 text-green-600" />
+                          ) : (
+                            <Copy className="h-4 w-4" />
+                          )}
+                        </Button>
+                      </div>
+                      
+                      <p className="text-xs text-blue-700 mt-2">
+                        Share this link: {window.location.origin}/sessions/join/{invitationCode}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Create Session Button */}
+                <div className="pt-4">
+                  <Button
+                    onClick={handleCreateSession}
+                    disabled={creating || !location.trim()}
+                    className="w-full h-12 text-lg bg-tennis-green-dark hover:bg-tennis-green text-white"
+                  >
+                    {creating ? 'Creating Session...' : 'Create Session'}
+                  </Button>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
