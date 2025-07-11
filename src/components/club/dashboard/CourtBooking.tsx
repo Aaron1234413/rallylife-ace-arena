@@ -18,6 +18,7 @@ import { toast } from 'sonner';
 import { BookCourtDialog } from './BookCourtDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { getAvailableTimeSlots, validateBookingTime } from '@/utils/operatingHoursValidation';
+import { AvailableServicesWidget } from '../services/AvailableServicesWidget';
 
 interface CourtBookingProps {
   clubId: string;
@@ -342,6 +343,13 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
 
           </CardContent>
         </Card>
+
+        {/* Available Services Widget */}
+        <AvailableServicesWidget 
+          clubId={clubId}
+          title="Book Club Services"
+          compact={true}
+        />
 
         </div>
       )}

@@ -26,6 +26,7 @@ export interface ServiceBooking {
   id: string;
   service_id: string;
   user_id: string;
+  club_id: string;
   booking_status: string;
   payment_method: string;
   tokens_used: number;
@@ -94,6 +95,7 @@ export function useClubServices(clubId: string) {
         id: booking.id,
         service_id: booking.service_id,
         user_id: booking.player_id, // Correct field name from schema
+        club_id: booking.club_id,
         booking_status: booking.booking_status,
         payment_method: booking.payment_type || 'unknown',
         tokens_used: booking.tokens_paid || 0,

@@ -31,7 +31,7 @@ import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickAction
 import { CoachInteractionPanel } from "@/components/coach/dashboard/CoachInteractionPanel";
 import { MobileActionPanel } from "@/components/dashboard/mobile";
 
-import { UpcomingCourtBookings } from "@/components/dashboard/UpcomingCourtBookings";
+import { YourSessions } from "@/components/dashboard/YourSessions";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
@@ -532,9 +532,9 @@ const Index = () => {
               </CardContent>
             </Card>
 
-            {/* Court Bookings Widget */}
-            <ErrorBoundary fallbackTitle="Court Bookings Error">
-              <UpcomingCourtBookings />
+            {/* Your Sessions Widget */}
+            <ErrorBoundary fallbackTitle="Sessions Error">
+              <YourSessions />
             </ErrorBoundary>
           </>
         )}
