@@ -7,6 +7,9 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge';
 import { useSessionManager } from '@/hooks/useSessionManager';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
+import { usePlayerHP } from '@/hooks/usePlayerHP';
+import { usePlayerXP } from '@/hooks/usePlayerXP';
+import { HPReductionPreview } from './HPReductionPreview';
 import { 
   Plus, 
   ChevronLeft, 
@@ -93,6 +96,8 @@ export function SessionCreationDialog({
   
   const { createSession } = useSessionManager({ clubId });
   const { regularTokens } = usePlayerTokens();
+  const { hpData } = usePlayerHP();
+  const { xpData } = usePlayerXP();
 
   const [formData, setFormData] = useState<SessionCreationData>({
     sessionType: 'challenge',
@@ -423,6 +428,17 @@ export function SessionCreationDialog({
                     </div>
                   </CardContent>
                 </Card>
+              )}
+
+              {/* HP Impact Preview */}
+              {hpData && xpData && (
+                <HPReductionPreview
+                  sessionType={formData.sessionType}
+                  playerLevel={xpData.current_level}
+                  currentHP={hpData.current_hp}
+                  maxHP={hpData.max_hp}
+                  className="mt-4"
+                />
               )}
             </div>
           </div>

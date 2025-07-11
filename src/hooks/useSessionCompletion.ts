@@ -128,22 +128,54 @@ export function useSessionCompletion() {
       // Process rewards for each participant
       const rewardPromises = rewards.map(async (reward) => {
         try {
-          // Add tokens (if any) - using placeholder for now since add_tokens function doesn't exist
+          // Add tokens (if any)
           if (reward.tokens_earned > 0 || reward.tokens_returned > 0) {
-            console.log(`Would add ${reward.tokens_earned + reward.tokens_returned} tokens to user ${reward.participant_id}`);
-            // TODO: Implement token addition when add_tokens function is available
+            const totalTokens = reward.tokens_earned + reward.tokens_returned;
+            const { error: tokenError } = await supabase
+              .rpc('add_tokens', {
+                user_id: reward.participant_id,
+                amount: totalTokens,
+                token_type: 'regular',
+                source: 'session_completion',
+                description: `Session rewards: ${reward.tokens_earned} earned, ${reward.tokens_returned} returned`
+              });
+
+            if (tokenError) {
+              console.error('Error adding tokens:', tokenError);
+              // Continue processing other rewards
+            }
           }
 
-          // Add XP - using placeholder for now since add_xp function doesn't exist
+          // Add XP
           if (reward.xp_earned > 0) {
-            console.log(`Would add ${reward.xp_earned} XP to user ${reward.participant_id}`);
-            // TODO: Implement XP addition when add_xp function is available
+            const { error: xpError } = await supabase
+              .rpc('add_xp', {
+                user_id: reward.participant_id,
+                xp_amount: reward.xp_earned,
+                activity_type: 'session_completion',
+                description: `Session completion XP${reward.is_winner ? ' (Winner bonus)' : ''}`
+              });
+
+            if (xpError) {
+              console.error('Error adding XP:', xpError);
+              // Continue processing other rewards
+            }
           }
 
-          // Reduce HP (if applicable) - using placeholder for now since reduce_hp function doesn't exist
+          // Reduce HP (if applicable) - use negative amount for reduction
           if (reward.hp_reduction > 0) {
-            console.log(`Would reduce ${reward.hp_reduction} HP from user ${reward.participant_id}`);
-            // TODO: Implement HP reduction when reduce_hp function is available
+            const { error: hpError } = await supabase
+              .rpc('restore_hp', {
+                user_id: reward.participant_id,
+                restoration_amount: -reward.hp_reduction,
+                activity_type: 'session_hp_loss',
+                description: `HP loss from challenge session`
+              });
+
+            if (hpError) {
+              console.error('Error reducing HP:', hpError);
+              // Continue processing other rewards
+            }
           }
         } catch (rewardError) {
           console.error(`Error processing rewards for participant ${reward.participant_id}:`, rewardError);
