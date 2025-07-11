@@ -31,44 +31,41 @@ export function useRealTimeCourtBookings(clubId: string) {
     if (!user || !clubId) return;
 
     try {
-      // Get court IDs for this club
-      const { data: courts } = await supabase
-        .from('club_courts')
-        .select('id')
-        .eq('club_id', clubId);
+      // Fetch real bookings from database
+      const { data: bookings, error } = await supabase
+        .from('club_court_bookings')
+        .select(`
+          *,
+          court:club_courts!club_court_bookings_court_id_fkey(name, surface_type)
+        `)
+        .eq('club_id', clubId)
+        .order('booking_date', { ascending: true })
+        .order('start_time', { ascending: true });
 
-      if (!courts?.length) {
-        setBookings([]);
-        setLoading(false);
-        return;
-      }
+      if (error) throw error;
 
-      const courtIds = courts.map(court => court.id);
-
-      // Fetch bookings for these courts (mock data for now)
-      const mockBookings: CourtBooking[] = courtIds.flatMap(courtId => [
-        {
-          id: `booking-${courtId}-1`,
-          court_id: courtId,
-          user_id: user.id,
-          booking_date: new Date().toISOString().split('T')[0],
-          start_time: '09:00',
-          end_time: '10:00',
-          status: 'confirmed',
-          payment_status: 'paid',
-          created_at: new Date().toISOString(),
-          court: {
-            name: `Court ${courtId.slice(-1)}`,
-            surface_type: 'hard'
-          },
-          user: {
-            full_name: 'Current User',
-            avatar_url: undefined
-          }
+      // Transform the data to match our interface
+      const transformedBookings: CourtBooking[] = (bookings || []).map(booking => ({
+        id: booking.id,
+        court_id: booking.court_id,
+        user_id: booking.user_id,
+        booking_date: booking.booking_date,
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+        status: booking.status,
+        payment_status: 'paid', // Assuming paid since tokens were used
+        created_at: booking.created_at,
+        court: booking.court ? {
+          name: booking.court.name,
+          surface_type: booking.court.surface_type
+        } : undefined,
+        user: {
+          full_name: 'Club Member',
+          avatar_url: undefined
         }
-      ]);
+      }));
 
-      setBookings(mockBookings);
+      setBookings(transformedBookings);
     } catch (error) {
       console.error('Error fetching court bookings:', error);
     } finally {
@@ -131,29 +128,56 @@ export function useRealTimeCourtBookings(clubId: string) {
   ) => {
     if (!user) throw new Error('User not authenticated');
 
-    // Mock booking creation for now
-    const newBooking: CourtBooking = {
-      id: `booking-${Date.now()}`,
-      court_id: courtId,
-      user_id: user.id,
-      booking_date: bookingDate,
-      start_time: startTime,
-      end_time: endTime,
-      status: 'confirmed',
-      payment_status: 'pending',
-      created_at: new Date().toISOString(),
-      court: {
-        name: `Court ${courtId.slice(-1)}`,
-        surface_type: 'hard'
-      },
-      user: {
-        full_name: 'Current User',
-        avatar_url: undefined
-      }
-    };
+    try {
+      // Create real booking in database
+      const { data: booking, error } = await supabase
+        .from('club_court_bookings')
+        .insert({
+          club_id: clubId,
+          court_id: courtId,
+          user_id: user.id,
+          booking_date: bookingDate,
+          start_time: startTime,
+          end_time: endTime,
+          status: 'confirmed',
+          payment_method: 'tokens',
+          tokens_used: 50 // Default token cost
+        })
+        .select(`
+          *,
+          court:club_courts!club_court_bookings_court_id_fkey(name, surface_type)
+        `)
+        .single();
 
-    setBookings(prev => [...prev, newBooking]);
-    return newBooking;
+      if (error) throw error;
+
+      // Transform and add to state
+      const newBooking: CourtBooking = {
+        id: booking.id,
+        court_id: booking.court_id,
+        user_id: booking.user_id,
+        booking_date: booking.booking_date,
+        start_time: booking.start_time,
+        end_time: booking.end_time,
+        status: booking.status,
+        payment_status: 'paid',
+        created_at: booking.created_at,
+        court: booking.court ? {
+          name: booking.court.name,
+          surface_type: booking.court.surface_type
+        } : undefined,
+        user: {
+          full_name: 'Current User',
+          avatar_url: undefined
+        }
+      };
+
+      setBookings(prev => [...prev, newBooking]);
+      return newBooking;
+    } catch (error) {
+      console.error('Error creating booking:', error);
+      throw error;
+    }
   };
 
   return {

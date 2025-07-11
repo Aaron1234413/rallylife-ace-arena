@@ -32,12 +32,15 @@ export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
   const generateInviteLink = async () => {
     setLoading(true);
     try {
+      // Generate unique email for shareable links to avoid constraint conflicts
+      const uniqueEmail = `invite-${Date.now()}@shareable.link`;
+      
       const { data, error } = await supabase
         .from('club_invitations')
         .insert({
           club_id: clubId,
           inviter_id: (await supabase.auth.getUser()).data.user?.id,
-          invitee_email: 'unlimited@shareable.link', // For unlimited shareable links
+          invitee_email: uniqueEmail,
           max_uses: null, // Unlimited uses
           expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year
           message: 'Join our tennis club!',
