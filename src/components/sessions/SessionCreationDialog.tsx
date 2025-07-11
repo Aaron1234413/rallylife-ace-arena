@@ -25,6 +25,7 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
+import { LocationInput, LocationData } from '@/components/ui/location-input';
 
 type SessionType = 'match' | 'social_play' | 'training';
 
@@ -39,7 +40,7 @@ interface SessionTypeOption {
 
 interface SessionCreationData {
   sessionType: SessionType;
-  location: string;
+  location: LocationData | null;
   maxPlayers: number;
   stakes: number;
 }
@@ -103,7 +104,7 @@ export function SessionCreationDialog({
 
   const [formData, setFormData] = useState<SessionCreationData>({
     sessionType: 'match',
-    location: '',
+    location: null,
     maxPlayers: 2,
     stakes: 10
   });
@@ -111,7 +112,7 @@ export function SessionCreationDialog({
   const resetForm = () => {
     setFormData({
       sessionType: 'match',
-      location: '',
+      location: null,
       maxPlayers: 2,
       stakes: 10
     });
@@ -123,7 +124,7 @@ export function SessionCreationDialog({
     const newErrors: Record<string, string> = {};
 
     if (step === 2) {
-      if (!formData.location.trim()) {
+      if (!formData.location?.address?.trim()) {
         newErrors.location = 'Location is required';
       }
       
@@ -182,10 +183,13 @@ export function SessionCreationDialog({
         .insert({
           creator_id: user.id,
           session_type: formData.sessionType,
-          location: formData.location,
+          location: formData.location?.address || null,
+          latitude: formData.location?.coordinates?.lat || null,
+          longitude: formData.location?.coordinates?.lng || null,
+          location_coordinates_set: !!formData.location?.coordinates,
           max_players: formData.maxPlayers,
           stakes_amount: formData.stakes,
-          notes: `${selectedType?.description} at ${formData.location}`,
+          notes: `${selectedType?.description} at ${formData.location?.address || 'TBD'}`,
           club_id: clubId || null,
           is_private: false,
           invitation_code: null,
@@ -289,10 +293,9 @@ export function SessionCreationDialog({
                   <MapPin className="h-4 w-4" />
                   Location *
                 </Label>
-                <Input
-                  id="location"
+                <LocationInput
                   value={formData.location}
-                  onChange={(e) => setFormData(prev => ({ ...prev, location: e.target.value }))}
+                  onChange={(locationData) => setFormData(prev => ({ ...prev, location: locationData }))}
                   placeholder="e.g. Central Tennis Club, Court 1"
                   className={errors.location ? "border-destructive" : ""}
                 />
