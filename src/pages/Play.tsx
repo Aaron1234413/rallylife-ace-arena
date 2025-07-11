@@ -22,7 +22,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
+import { useRealTimeSessions } from '@/hooks/useRealTimeSessions';
 import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
 import { useAuth } from '@/hooks/useAuth';
@@ -120,18 +120,17 @@ const Play = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Get real session data
+  // Get real session data using consolidated hook
   const { 
     sessions: availableSessions, 
     loading: availableLoading, 
-    joinSession,
-    error: sessionError 
-  } = useSafeRealTimeSessions('available', user?.id);
+    joinSession
+  } = useRealTimeSessions('available', user?.id);
   
   const { 
     sessions: mySessions, 
     loading: mySessionsLoading 
-  } = useSafeRealTimeSessions('my-sessions', user?.id);
+  } = useRealTimeSessions('my-sessions', user?.id);
 
   // Enhanced session filtering and sorting
   const filteredAndSortedSessions = useMemo(() => {
