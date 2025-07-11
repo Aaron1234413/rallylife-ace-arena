@@ -293,10 +293,11 @@ const Play = () => {
             currentXP={xpData?.current_xp || 0}
             xpToNext={xpData?.xp_to_next_level || 100}
             tokens={regularTokens}
-            hp={80} // TODO: Get from player HP hook
-            maxHP={100}
-            matchesWon={2} // TODO: Get from match history
-            totalMatches={5}
+            hp={hpData?.current_hp || 100}
+            maxHP={hpData?.max_hp || 100}
+            matchesWon={matchHistory.matchesWon}
+            totalMatches={matchHistory.totalMatches}
+            loading={xpLoading || hpLoading || tokensLoading || matchLoading}
           />
         </div>
 
