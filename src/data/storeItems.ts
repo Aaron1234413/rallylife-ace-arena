@@ -211,16 +211,14 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'player_basic',
     name: 'Player Basic',
-    description: 'Essential features for casual players',
-    price_monthly: 9.99,
-    price_yearly: 99.99,
+    description: '100 monthly tokens for casual play',
+    price_monthly: 1.99,
+    price_yearly: 19.99,
+    original_price_monthly: 9.99,
+    original_price_yearly: 99.99,
     target_type: 'player',
     features: [
-      '100 monthly tokens',
-      'Match tracking',
-      'Training sessions',
-      'Community access',
-      'Basic stats'
+      '100 monthly tokens'
     ],
     token_allocation: 100,
     tier_level: 1,
@@ -230,18 +228,14 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'player_premium',
     name: 'Player Premium',
-    description: 'Advanced features for serious players',
-    price_monthly: 19.99,
-    price_yearly: 199.99,
+    description: '250 monthly tokens for serious players',
+    price_monthly: 3.99,
+    price_yearly: 39.99,
+    original_price_monthly: 19.99,
+    original_price_yearly: 199.99,
     target_type: 'player',
     features: [
-      '250 monthly tokens',
-      'Advanced stats tracking',
-      'Coach connections',
-      'Priority support',
-      'Enhanced features',
-      'Monthly challenges',
-      'Tournament tracking'
+      '250 monthly tokens'
     ],
     token_allocation: 250,
     tier_level: 2,
@@ -252,18 +246,14 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'player_pro',
     name: 'Player Pro',
-    description: 'Ultimate package for professional players',
-    price_monthly: 39.99,
-    price_yearly: 399.99,
+    description: '500 monthly tokens for professional players',
+    price_monthly: 7.99,
+    price_yearly: 79.99,
+    original_price_monthly: 39.99,
+    original_price_yearly: 399.99,
     target_type: 'player',
     features: [
-      '500 monthly tokens',
-      'Professional stats',
-      'Premium features',
-      'Personal coaching access',
-      'Tournament tracking',
-      'VIP support',
-      'All features unlocked'
+      '500 monthly tokens'
     ],
     token_allocation: 500,
     tier_level: 3,
@@ -274,16 +264,14 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'coach_standard',
     name: 'Coach Standard',
-    description: 'Essential tools for coaching professionals',
-    price_monthly: 29.99,
-    price_yearly: 299.99,
+    description: '200 monthly tokens for coaching professionals',
+    price_monthly: 5.99,
+    price_yearly: 59.99,
+    original_price_monthly: 29.99,
+    original_price_yearly: 299.99,
     target_type: 'coach',
     features: [
-      '200 monthly tokens',
-      'Client management',
-      'Scheduling tools',
-      'Basic analytics',
-      'Payment processing'
+      '200 monthly tokens'
     ],
     token_allocation: 200,
     tier_level: 1,
@@ -293,17 +281,14 @@ export const subscriptionPlans: SubscriptionPlan[] = [
   {
     id: 'coach_professional',
     name: 'Coach Professional',
-    description: 'Advanced coaching platform',
-    price_monthly: 59.99,
-    price_yearly: 599.99,
+    description: '500 monthly tokens for advanced coaching',
+    price_monthly: 11.99,
+    price_yearly: 119.99,
+    original_price_monthly: 59.99,
+    original_price_yearly: 599.99,
     target_type: 'coach',
     features: [
-      '500 monthly tokens',
-      'Advanced client analytics',
-      'Automated scheduling',
-      'Video analysis tools',
-      'Marketing features',
-      'Club partnerships'
+      '500 monthly tokens'
     ],
     token_allocation: 500,
     tier_level: 2,

@@ -55,6 +55,8 @@ export interface SubscriptionPlan {
   description: string;
   price_monthly: number;
   price_yearly?: number;
+  original_price_monthly?: number;
+  original_price_yearly?: number;
   target_type: 'player' | 'coach' | 'club';
   features: string[];
   token_allocation: number;
