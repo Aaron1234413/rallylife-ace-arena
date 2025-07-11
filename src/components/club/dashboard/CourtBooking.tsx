@@ -86,8 +86,7 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
         .from('club_court_bookings')
         .select(`
           *,
-          court:club_courts(name),
-          user:profiles(full_name)
+          court:club_courts(name)
         `)
         .eq('club_id', clubId)
         .eq('booking_date', format(selectedDate, 'yyyy-MM-dd'))
@@ -99,8 +98,6 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
       console.error('Error fetching bookings:', error);
       setBookings([]);
       toast.error('Failed to load bookings');
-    } finally {
-      setLoading(false);
     }
   };
 
