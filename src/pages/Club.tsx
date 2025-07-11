@@ -57,6 +57,12 @@ export default function Club() {
   const isCoach = user?.email?.includes('coach') || false;
 
 
+  useEffect(() => {
+    if (club?.id) {
+      fetchClubMembers(club.id);
+    }
+  }, [club?.id, fetchClubMembers]);
+
   const handleRefresh = async () => {
     if (!club?.id) return;
     setRefreshing(true);
