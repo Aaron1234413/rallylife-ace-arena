@@ -12,9 +12,11 @@ import {
   Heart,
   Star,
   Clock,
-  CheckCircle
+  CheckCircle,
+  Building
 } from 'lucide-react';
 import { UnifiedSession, SessionParticipant } from '@/hooks/useUnifiedSessions';
+import { TokenDistributionSummary } from './TokenDistributionSummary';
 import { cn } from '@/lib/utils';
 
 interface WinnerSelectionDialogProps {
@@ -209,42 +211,44 @@ export function WinnerSelectionDialog({
             </div>
           </div>
 
-          {/* Rewards Preview */}
+          {/* Token Distribution Summary */}
           {isValidSelection && (
             <>
               <Separator />
+              <TokenDistributionSummary
+                sessionType={session.session_type as 'challenge' | 'social' | 'training'}
+                totalStakes={totalStakes}
+                participantCount={participants.length}
+                winnerId={selectedWinner.winner_id}
+                winnerName={
+                  selectedWinner.winner_id 
+                    ? participants.find(p => p.user_id === selectedWinner.winner_id)?.user?.full_name 
+                    : undefined
+                }
+                isDraw={isDraw}
+                platformFeePercentage={10}
+                participantContributions={participants.map(p => ({
+                  userId: p.user_id,
+                  userName: p.user?.full_name || 'Unknown Player',
+                  contribution: p.tokens_paid || session.stakes_amount,
+                  isWinner: selectedWinner.winner_id === p.user_id,
+                  tokensReceived: isDraw 
+                    ? p.tokens_paid || session.stakes_amount 
+                    : selectedWinner.winner_id === p.user_id 
+                    ? winnerPayout 
+                    : 0
+                }))}
+              />
+
+              {/* XP and HP Summary */}
               <Card className="bg-muted/30">
                 <CardHeader className="pb-3">
                   <CardTitle className="text-base flex items-center gap-2">
                     <Star className="h-4 w-4" />
-                    Rewards Distribution
+                    Additional Rewards
                   </CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
-                  {!isDraw ? (
-                    <div className="space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Winner Payout:</span>
-                        <Badge className="gap-1">
-                          <Coins className="h-3 w-3" />
-                          {winnerPayout} tokens
-                        </Badge>
-                      </div>
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm">Platform Fee (10%):</span>
-                        <span className="text-sm text-muted-foreground">{platformFee} tokens</span>
-                      </div>
-                    </div>
-                  ) : (
-                    <div className="text-center">
-                      <p className="text-sm text-muted-foreground">
-                        All stakes will be returned to participants
-                      </p>
-                    </div>
-                  )}
-                  
-                  <Separator />
-                  
+                <CardContent className="space-y-2">
                   <div className="space-y-2">
                     <h4 className="text-sm font-medium">All Participants Receive:</h4>
                     <div className="grid grid-cols-2 gap-3 text-sm">

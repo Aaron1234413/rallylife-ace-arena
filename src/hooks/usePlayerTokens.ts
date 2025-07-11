@@ -291,6 +291,25 @@ export function usePlayerTokens() {
     lifetimeEarned: tokenData?.lifetime_earned || 0,
     addTokens,
     spendTokens,
-    refreshTokens: fetchTokens
+    refreshTokens: fetchTokens,
+    // Real-time balance updates
+    hasRecentTransaction: (timeWindow = 30000) => {
+      const now = Date.now();
+      return transactions.some(tx => {
+        const txTime = new Date(tx.created_at).getTime();
+        return now - txTime < timeWindow;
+      });
+    },
+    // Get session-related transactions
+    getSessionTransactions: () => {
+      return transactions.filter(tx => 
+        tx.source?.includes('session') || 
+        tx.description?.toLowerCase().includes('session')
+      );
+    },
+    // Check if user has sufficient balance
+    hasSufficientBalance: (amount: number) => {
+      return (tokenData?.regular_tokens || 0) >= amount;
+    }
   };
 }

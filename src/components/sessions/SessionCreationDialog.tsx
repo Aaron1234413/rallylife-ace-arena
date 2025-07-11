@@ -19,7 +19,8 @@ import {
   GraduationCap,
   MapPin,
   Coins,
-  Clock
+  Clock,
+  AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
@@ -414,20 +415,56 @@ export function SessionCreationDialog({
               </div>
 
               {formData.sessionType !== 'training' && (
-                <Card className="bg-muted/30">
-                  <CardContent className="p-4">
-                    <div className="flex items-start gap-2">
-                      <Clock className="h-4 w-4 mt-0.5 text-muted-foreground" />
-                      <div className="text-sm">
-                        <p className="font-medium">Stakes Distribution:</p>
-                        <p className="text-muted-foreground">
-                          Winner takes {Math.floor(formData.stakes * formData.maxPlayers * 0.9)} tokens 
-                          (10% platform fee applies)
-                        </p>
+                <div className="space-y-3">
+                  {/* Stakes Distribution Preview */}
+                  <Card className="bg-muted/30">
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="flex items-start gap-2">
+                          <Clock className="h-4 w-4 mt-0.5 text-muted-foreground" />
+                          <div className="text-sm flex-1">
+                            <p className="font-medium">Stakes Distribution Preview:</p>
+                            <div className="space-y-1 mt-2">
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Total Stakes Pool:</span>
+                                <span className="font-medium">{formData.stakes * formData.maxPlayers} tokens</span>
+                              </div>
+                              <div className="flex justify-between">
+                                <span className="text-muted-foreground">Platform Fee (10%):</span>
+                                <span className="font-medium text-destructive">
+                                  -{Math.floor(formData.stakes * formData.maxPlayers * 0.1)} tokens
+                                </span>
+                              </div>
+                              <div className="flex justify-between border-t pt-1">
+                                <span className="font-medium">Winner Receives:</span>
+                                <span className="font-bold text-tennis-green-primary">
+                                  {Math.floor(formData.stakes * formData.maxPlayers * 0.9)} tokens
+                                </span>
+                              </div>
+                            </div>
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </CardContent>
-                </Card>
+                    </CardContent>
+                  </Card>
+
+                  {/* Insufficient Balance Warning */}
+                  {formData.stakes > regularTokens && (
+                    <Card className="border-destructive/20 bg-destructive/5">
+                      <CardContent className="p-4">
+                        <div className="flex items-start gap-2">
+                          <AlertTriangle className="h-4 w-4 mt-0.5 text-destructive" />
+                          <div className="text-sm">
+                            <p className="font-medium text-destructive">Insufficient Token Balance</p>
+                            <p className="text-muted-foreground">
+                              You need {formData.stakes} tokens but only have {regularTokens} available.
+                            </p>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  )}
+                </div>
               )}
 
               {/* HP Impact Preview */}
