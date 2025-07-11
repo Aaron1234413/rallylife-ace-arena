@@ -299,7 +299,9 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     fetchSessions();
   }, [user, clubId, includeNonClubSessions, filterUserSessions]);
 
-  // Set up real-time subscriptions
+  // TEMPORARILY DISABLED: Real-time subscriptions to fix Play page loading
+  // TODO: Re-enable with proper channel management to prevent conflicts
+  /*
   useEffect(() => {
     if (!user) return;
 
@@ -335,6 +337,7 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
       supabase.removeChannel(channel);
     };
   }, [user, clubId]);
+  */
 
   return {
     sessions,

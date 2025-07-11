@@ -195,12 +195,13 @@ export function usePlayerXP() {
             fetchActivities();
           }
         )
-        .subscribe((status) => {
-          console.log('XP Channel subscription status:', status);
-          if (status === 'SUBSCRIBED') {
-            subscriptionInitialized.current = true;
-          }
-        });
+        // TEMPORARILY DISABLED: Real-time subscription to fix Play page loading
+        // .subscribe((status) => {
+        //   console.log('XP Channel subscription status:', status);
+        //   if (status === 'SUBSCRIBED') {
+        //     subscriptionInitialized.current = true;
+        //   }
+        // });
 
       channelRef.current = channel;
 
