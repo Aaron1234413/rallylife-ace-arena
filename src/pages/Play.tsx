@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -21,7 +22,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useConsolidatedSessions } from '@/hooks/useConsolidatedSessions';
+import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
 import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
 import { useAuth } from '@/hooks/useAuth';
@@ -32,7 +33,7 @@ import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useMatchHistory } from '@/hooks/useMatchHistory';
-import { supabase } from '@/integrations/supabase/client';
+import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
 import { toast } from 'sonner';
 import { MobileSessionCard } from '@/components/play/MobileSessionCard';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -53,6 +54,10 @@ const Play = () => {
   // Session creation dialog state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   
+  // Add unified sessions hook for delete functionality
+  const { cancelSession } = useUnifiedSessions({
+    includeNonClubSessions: true
+  });
   
   // State for delete operations
   const [deletingStates, setDeletingStates] = useState<Record<string, boolean>>({});
@@ -115,31 +120,18 @@ const Play = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Get consolidated session data with single subscription
+  // Get real session data
   const { 
-    availableSessions,
-    mySessions, 
-    loading: sessionsLoading,
+    sessions: availableSessions, 
+    loading: availableLoading, 
     joinSession,
     error: sessionError 
-  } = useConsolidatedSessions();
-
-  // Use a simple cancel function by updating session status
-  const cancelSession = async (sessionId: string) => {
-    try {
-      const { error } = await supabase
-        .from('sessions')
-        .update({ status: 'cancelled' })
-        .eq('id', sessionId)
-        .eq('creator_id', user?.id); // Only creator can cancel
-
-      if (error) throw error;
-      return true;
-    } catch (error) {
-      console.error('Error canceling session:', error);
-      throw error;
-    }
-  };
+  } = useSafeRealTimeSessions('available', user?.id);
+  
+  const { 
+    sessions: mySessions, 
+    loading: mySessionsLoading 
+  } = useSafeRealTimeSessions('my-sessions', user?.id);
 
   // Enhanced session filtering and sorting
   const filteredAndSortedSessions = useMemo(() => {
@@ -376,7 +368,7 @@ const Play = () => {
             {/* Recent Sessions */}
             <div>
               <h2 className="text-lg font-semibold mb-3">Recent Sessions</h2>
-              {sessionsLoading ? (
+              {availableLoading ? (
                 <div className="space-y-4">
                   {[1, 2, 3].map((i) => (
                     <Card key={i} className="animate-pulse">
@@ -386,7 +378,7 @@ const Play = () => {
                     </Card>
                   ))}
                 </div>
-            ) : activeSessions.length === 0 ? (
+              ) : activeSessions.length === 0 ? (
                 <Card>
                   <CardContent className="p-8 text-center">
                     <div className="space-y-4">
@@ -478,7 +470,7 @@ const Play = () => {
 
           {/* All Sessions Tab */}
           <TabsContent value="all" className="space-y-4">
-            {sessionsLoading ? (
+            {availableLoading ? (
               <div className="space-y-4">
                 {[1, 2, 3].map((i) => (
                   <Card key={i} className="animate-pulse">
@@ -522,7 +514,7 @@ const Play = () => {
 
           {/* Mine Tab */}
           <TabsContent value="mine" className="space-y-4">
-            {sessionsLoading ? (
+            {mySessionsLoading ? (
               <div className="space-y-4">
                 {[1, 2].map((i) => (
                   <Card key={i} className="animate-pulse">
@@ -572,11 +564,17 @@ const Play = () => {
         onOpenChange={setShowCreateDialog}
         onSuccess={() => {
           setShowCreateDialog(false);
-          toast.success('Session created! It should appear in your sessions shortly.');
+          toast.success('Session created successfully!');
         }}
       />
     </div>
   );
 };
 
-export default Play;
+export default function WrappedPlay() {
+  return (
+    <ErrorBoundary fallbackTitle="Play Page Error">
+      <Play />
+    </ErrorBoundary>
+  );
+}

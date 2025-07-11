@@ -54,23 +54,27 @@ export function useSafeRealTimeSessions(
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [retryCount, setRetryCount] = useState(0);
   
   const retryTimeoutRef = useRef<NodeJS.Timeout>();
   const channelsRef = useRef<any[]>([]);
+  const isSubscribedRef = useRef(false);
+  const retryCountRef = useRef(0);
 
   // Use the authenticated user's ID if no userId provided
   const effectiveUserId = userId || user?.id;
 
   const clearChannels = useCallback(() => {
-    channelsRef.current.forEach(channel => {
-      try {
-        supabase.removeChannel(channel);
-      } catch (err) {
-        console.warn('Error removing channel:', err);
-      }
-    });
-    channelsRef.current = [];
+    if (channelsRef.current.length > 0) {
+      channelsRef.current.forEach(channel => {
+        try {
+          supabase.removeChannel(channel);
+        } catch (err) {
+          console.warn('Error removing channel:', err);
+        }
+      });
+      channelsRef.current = [];
+    }
+    isSubscribedRef.current = false;
   }, []);
 
   const fetchSessions = useCallback(async () => {
@@ -158,7 +162,7 @@ export function useSafeRealTimeSessions(
       }) || [];
 
       setSessions(processedSessions);
-      setRetryCount(0); // Reset retry count on success
+      retryCountRef.current = 0; // Reset retry count on success
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : 'Unknown error';
       console.error('Error fetching sessions:', error);
@@ -166,18 +170,18 @@ export function useSafeRealTimeSessions(
       onError?.(error instanceof Error ? error : new Error(errorMessage));
       
       // Retry logic
-      if (retryCount < retryAttempts) {
-        setRetryCount(prev => prev + 1);
+      if (retryCountRef.current < retryAttempts) {
+        retryCountRef.current += 1;
         retryTimeoutRef.current = setTimeout(() => {
           fetchSessions();
-        }, retryDelay * Math.pow(2, retryCount)); // Exponential backoff
+        }, retryDelay * Math.pow(2, retryCountRef.current)); // Exponential backoff
       } else {
         toast.error('Failed to load sessions after multiple attempts');
       }
     } finally {
       setLoading(false);
     }
-  }, [activeTab, effectiveUserId, enabled, retryCount, retryAttempts, retryDelay, onError]);
+  }, [activeTab, effectiveUserId, enabled, retryAttempts, retryDelay, onError]);
 
   // Initial fetch
   useEffect(() => {
@@ -192,11 +196,15 @@ export function useSafeRealTimeSessions(
         clearTimeout(retryTimeoutRef.current);
       }
     };
-  }, [fetchSessions]);
+  }, [activeTab, effectiveUserId, enabled]);
+
+  // Create a stable reference to fetchSessions for subscriptions
+  const fetchSessionsRef = useRef(fetchSessions);
+  fetchSessionsRef.current = fetchSessions;
 
   // Set up real-time subscriptions with safety checks
   useEffect(() => {
-    if (!enabled || !effectiveUserId) return;
+    if (!enabled || !effectiveUserId || isSubscribedRef.current) return;
 
     let sessionsChannel: any = null;
     let participantsChannel: any = null;
@@ -221,7 +229,7 @@ export function useSafeRealTimeSessions(
             table: 'sessions'
           },
           () => {
-            fetchSessions();
+            fetchSessionsRef.current();
           }
         )
         .subscribe();
@@ -237,12 +245,13 @@ export function useSafeRealTimeSessions(
             table: 'session_participants'
           },
           () => {
-            fetchSessions();
+            fetchSessionsRef.current();
           }
         )
         .subscribe();
 
       channelsRef.current = [sessionsChannel, participantsChannel];
+      isSubscribedRef.current = true;
     } catch (error) {
       console.error('Error setting up real-time subscriptions:', error);
     }
@@ -250,7 +259,7 @@ export function useSafeRealTimeSessions(
     return () => {
       clearChannels();
     };
-  }, [effectiveUserId, activeTab, enabled, fetchSessions, clearChannels]);
+  }, [effectiveUserId, enabled]);
 
   const joinSession = useCallback(async (sessionId: string) => {
     if (!effectiveUserId) {
@@ -513,7 +522,7 @@ export function useSafeRealTimeSessions(
     sessions,
     loading,
     error,
-    retryCount,
+    retryCount: retryCountRef.current,
     joinSession,
     leaveSession,
     kickParticipant,
