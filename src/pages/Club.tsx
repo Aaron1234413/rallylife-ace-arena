@@ -149,12 +149,6 @@ export default function Club() {
                   
                   {/* Mobile Action Buttons */}
                   <div className="flex gap-2 sm:hidden">
-                    {isOwner && (
-                      <Button size="sm" className="flex items-center gap-2 text-xs">
-                        <Settings className="h-3 w-3" />
-                        Manage
-                      </Button>
-                    )}
                     {!isOwner && !isMember && (
                       <Button size="sm" className="flex items-center gap-2 text-xs">
                         <UserPlus className="h-3 w-3" />
@@ -179,12 +173,6 @@ export default function Club() {
 
               {/* Desktop Action Buttons */}
               <div className="hidden sm:flex gap-2 flex-shrink-0">
-                {isOwner && (
-                  <Button className="flex items-center gap-2 px-4 py-2 hover-scale">
-                    <Settings className="h-4 w-4" />
-                    Manage Club
-                  </Button>
-                )}
                 {!isOwner && !isMember && (
                   <Button className="flex items-center gap-2 px-4 py-2 hover-scale">
                     <UserPlus className="h-4 w-4" />
@@ -209,7 +197,11 @@ export default function Club() {
           />
 
           <TabsContent value="play">
-            <ClubMobileDashboard club={club} isMember={isMember} />
+            <ClubMobileDashboard 
+              club={club} 
+              isMember={isMember} 
+              onNavigateToTab={setActiveTab}
+            />
           </TabsContent>
 
 

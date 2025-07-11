@@ -20,6 +20,8 @@ import {
 import { Link } from 'react-router-dom';
 import { useClubs } from '@/hooks/useClubs';
 import { formatDistanceToNow } from 'date-fns';
+import { ClubInvitationManager } from '../ClubInvitationManager';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 
 interface ClubMobileDashboardProps {
   club: {
@@ -30,11 +32,13 @@ interface ClubMobileDashboardProps {
     owner_id: string;
   };
   isMember: boolean;
+  onNavigateToTab: (tab: string) => void;
 }
 
-export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps) {
+export function ClubMobileDashboard({ club, isMember, onNavigateToTab }: ClubMobileDashboardProps) {
   const { clubMembers, fetchClubMembers } = useClubs();
   const [loading, setLoading] = useState(true);
+  const [showInviteDialog, setShowInviteDialog] = useState(false);
 
   // Mock activity data for now
   const clubActivities = [
@@ -142,7 +146,7 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
               <Button 
                 variant="outline" 
                 className="w-full justify-between h-12 hover:bg-tennis-green-bg"
-                onClick={() => {/* Navigate to court booking */}}
+                onClick={() => onNavigateToTab('courts')}
               >
                 <div className="flex items-center gap-3">
                   <Calendar className="h-5 w-5 text-tennis-green-primary" />
@@ -154,7 +158,7 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
               <Button 
                 variant="outline" 
                 className="w-full justify-between h-12 hover:bg-tennis-green-bg"
-                onClick={() => {/* Navigate to invite members */}}
+                onClick={() => setShowInviteDialog(true)}
               >
                 <div className="flex items-center gap-3">
                   <UserPlus className="h-5 w-5 text-tennis-green-primary" />
@@ -297,6 +301,23 @@ export function ClubMobileDashboard({ club, isMember }: ClubMobileDashboardProps
           </div>
         </CardContent>
       </Card>
+
+      {/* Invite Member Dialog */}
+      <Dialog open={showInviteDialog} onOpenChange={setShowInviteDialog}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <UserPlus className="h-5 w-5" />
+              Invite Members to {club.name}
+            </DialogTitle>
+          </DialogHeader>
+          <ClubInvitationManager
+            clubId={club.id}
+            isPrivate={true}
+            onPrivacyChange={() => {}}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
