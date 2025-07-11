@@ -204,7 +204,10 @@ export function useSafeRealTimeSessions(
 
   // Set up real-time subscriptions with safety checks
   useEffect(() => {
-    if (!enabled || !effectiveUserId || isSubscribedRef.current) return;
+    // Guard against multiple subscriptions
+    if (!enabled || !effectiveUserId || isSubscribedRef.current) {
+      return;
+    }
 
     let sessionsChannel: any = null;
     let participantsChannel: any = null;
@@ -212,6 +215,9 @@ export function useSafeRealTimeSessions(
     try {
       // Clear any existing channels first
       clearChannels();
+      
+      // Set flag immediately to prevent race conditions
+      isSubscribedRef.current = true;
 
       // Create unique channel names to avoid conflicts with timestamp and random
       const uniqueId = `${effectiveUserId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
