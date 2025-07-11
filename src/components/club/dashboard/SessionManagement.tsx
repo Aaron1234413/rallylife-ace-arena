@@ -3,17 +3,6 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import {
-  AlertDialog,
-  AlertDialogAction,
-  AlertDialogCancel,
-  AlertDialogContent,
-  AlertDialogDescription,
-  AlertDialogFooter,
-  AlertDialogHeader,
-  AlertDialogTitle,
-  AlertDialogTrigger,
-} from '@/components/ui/alert-dialog';
 import { 
   Calendar, 
   Users, 
@@ -33,6 +22,7 @@ import { format } from 'date-fns';
 import { CreateSocialPlayDialog } from '@/components/social-play/CreateSocialPlayDialog';
 import { SessionParticipantsList } from '../sessions/SessionParticipantsList';
 import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
+import { CancelSessionDialog } from '@/components/sessions/CancelSessionDialog';
 import { toast } from 'sonner';
 
 interface SessionManagementProps {
@@ -63,6 +53,7 @@ interface UnifiedSession {
 export function SessionManagement({ clubId }: SessionManagementProps) {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [selectedSession, setSelectedSession] = useState<UnifiedSession | null>(null);
+  const [cancelSessionDialog, setCancelSessionDialog] = useState<UnifiedSession | null>(null);
   const [showSocialPlayDialog, setShowSocialPlayDialog] = useState(false);
   const { user } = useAuth();
   const navigate = useNavigate();
@@ -98,12 +89,13 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
     setSelectedSession(session);
   };
 
-  const handleDeleteSession = async (sessionId: string) => {
+  const handleDeleteSession = async (sessionId: string, reason?: string) => {
     setDeletingStates(prev => ({ ...prev, [sessionId]: true }));
     try {
-      const success = await cancelSession(sessionId);
+      const success = await cancelSession(sessionId, reason);
       if (success) {
-        // Sessions will auto-refresh via real-time updates
+        setCancelSessionDialog(null);
+        toast.success('Session cancelled successfully');
       }
     } finally {
       setDeletingStates(prev => ({ ...prev, [sessionId]: false }));
@@ -213,49 +205,19 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
                             {session.session_type.replace('_', ' ')}
                           </Badge>
                           {session.creator_id === user?.id && (
-                            <AlertDialog>
-                              <AlertDialogTrigger asChild>
-                                <Button 
-                                  variant="ghost" 
-                                  size="sm"
-                                  className="text-red-600 hover:text-red-700 hover:bg-red-50"
-                                  disabled={deletingStates[session.id]}
-                                >
-                                  {deletingStates[session.id] ? (
-                                    <Loader2 className="h-4 w-4 animate-spin" />
-                                  ) : (
-                                    <Trash2 className="h-4 w-4" />
-                                  )}
-                                </Button>
-                              </AlertDialogTrigger>
-                              <AlertDialogContent>
-                                <AlertDialogHeader>
-                                  <AlertDialogTitle>Delete Session</AlertDialogTitle>
-                                  <AlertDialogDescription>
-                                    Are you sure you want to delete this session? This action cannot be undone.
-                                    {session.participant_count && session.participant_count > 0 && (
-                                      <span className="block mt-2 text-orange-600 font-medium">
-                                        Warning: This session has {session.participant_count} participant(s) who will be notified of the cancellation.
-                                      </span>
-                                    )}
-                                    {session.stakes_amount > 0 && (
-                                      <span className="block mt-2 text-blue-600 font-medium">
-                                        Stakes will be refunded to participants.
-                                      </span>
-                                    )}
-                                  </AlertDialogDescription>
-                                </AlertDialogHeader>
-                                <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                  <AlertDialogAction
-                                    onClick={() => handleDeleteSession(session.id)}
-                                    className="bg-red-600 hover:bg-red-700"
-                                  >
-                                    Delete Session
-                                  </AlertDialogAction>
-                                </AlertDialogFooter>
-                              </AlertDialogContent>
-                            </AlertDialog>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                              disabled={deletingStates[session.id]}
+                              onClick={() => setCancelSessionDialog(session)}
+                            >
+                              {deletingStates[session.id] ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                <Trash2 className="h-4 w-4" />
+                              )}
+                            </Button>
                           )}
                         </div>
                       </div>
@@ -365,6 +327,22 @@ export function SessionManagement({ clubId }: SessionManagementProps) {
           getSessionParticipants={getSessionParticipants}
         />
       )}
+
+      {/* Cancel Session Dialog */}
+      <CancelSessionDialog
+        isOpen={!!cancelSessionDialog}
+        onClose={() => setCancelSessionDialog(null)}
+        onConfirm={(reason) => cancelSessionDialog && handleDeleteSession(cancelSessionDialog.id, reason)}
+        session={cancelSessionDialog ? {
+          id: cancelSessionDialog.id,
+          title: `${cancelSessionDialog.session_type.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())} Session`,
+          scheduled_date: new Date().toISOString().split('T')[0], // Using current date as placeholder
+          start_time: '12:00', // Default time as placeholder
+          cost_per_person_tokens: cancelSessionDialog.stakes_amount || 0,
+          cost_per_person_money: 0
+        } : null}
+        loading={cancelSessionDialog ? deletingStates[cancelSessionDialog.id] : false}
+      />
     </>
   );
 }
