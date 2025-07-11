@@ -3,7 +3,7 @@ import { Card, CardContent, CardHeader } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
-import { Users, Globe, Lock, Crown } from 'lucide-react';
+import { Users, Globe, Lock, Crown, MapPin } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow } from 'date-fns';
@@ -125,6 +125,14 @@ export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCa
             <p className="text-sm text-gray-600 leading-relaxed line-clamp-2">
               {club.description}
             </p>
+          )}
+
+          {/* Location */}
+          {club.location && (
+            <div className="flex items-center gap-1 text-gray-600 bg-gray-50 px-2 py-1 rounded-md">
+              <MapPin className="h-3 w-3 flex-shrink-0" />
+              <span className="text-xs font-medium truncate">{club.location}</span>
+            </div>
           )}
           
           {/* Footer Section */}

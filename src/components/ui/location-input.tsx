@@ -93,6 +93,18 @@ export const LocationInput: React.FC<LocationInputProps> = ({
     }, 300);
   };
 
+  const handleInputBlur = () => {
+    // If user typed something and didn't select a suggestion, treat it as manual entry
+    setTimeout(() => {
+      if (query.trim() && (!value || value.address !== query.trim())) {
+        onChange({
+          address: query.trim()
+        });
+      }
+      setShowSuggestions(false);
+    }, 200); // Delay to allow suggestion clicks
+  };
+
   const handleSuggestionSelect = (suggestion: any) => {
     const locationData: LocationData = {
       address: suggestion.formatted_address || suggestion.name,
@@ -186,14 +198,11 @@ export const LocationInput: React.FC<LocationInputProps> = ({
           ref={inputRef}
           value={query}
           onChange={handleInputChange}
+          onBlur={handleInputBlur}
           placeholder={placeholder}
           disabled={disabled}
           className="pl-10 pr-24"
           onFocus={() => setShowSuggestions(true)}
-          onBlur={(e) => {
-            // Delay hiding suggestions to allow clicks
-            setTimeout(() => setShowSuggestions(false), 150);
-          }}
         />
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
           {currentLocation && locationPermission === 'granted' && (
