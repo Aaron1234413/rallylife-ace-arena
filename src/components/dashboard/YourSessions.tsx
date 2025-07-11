@@ -135,19 +135,9 @@ export function YourSessions() {
           <div className="text-center py-6">
             <Calendar className="h-12 w-12 mx-auto mb-3 text-gray-400" />
             <h3 className="font-medium mb-2">No Upcoming Sessions</h3>
-            <p className="text-sm text-gray-600 mb-4">
+            <p className="text-sm text-gray-600">
               You don't have any court bookings or service sessions scheduled.
             </p>
-            {myClubs.length > 0 && (
-              <Button 
-                onClick={handleViewAllSessions}
-                size="sm"
-                className="flex items-center gap-2"
-              >
-                <Plus className="h-4 w-4" />
-                Book a Session
-              </Button>
-            )}
           </div>
         </CardContent>
       </Card>
