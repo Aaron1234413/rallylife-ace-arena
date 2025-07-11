@@ -39,9 +39,10 @@ import { validateBookingTime } from '@/utils/operatingHoursValidation';
 interface ClubSettingsProps {
   club: Club;
   onSettingsUpdate?: () => void;
+  onNavigateToEconomics?: () => void;
 }
 
-export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
+export function ClubSettings({ club, onSettingsUpdate, onNavigateToEconomics }: ClubSettingsProps) {
   const { user } = useAuth();
   const { updateClub } = useClubs();
   const { subscription, usage, updateUsageTracking, upgradeSubscription, openCustomerPortal } = useClubSubscription(club.id);
@@ -455,7 +456,7 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setShowUpgradeModal(true)}
+                            onClick={() => onNavigateToEconomics?.()}
                             className="text-xs h-6 px-2"
                           >
                             <Crown className="h-3 w-3 mr-1" />
@@ -476,7 +477,7 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
                           setFormData(prev => ({ ...prev, court_count: value }));
                         } else {
                           toast.error(`Your ${currentTier.name} plan allows up to ${maxCourts} courts`);
-                          setShowUpgradeModal(true);
+                          onNavigateToEconomics?.();
                         }
                       }}
                       disabled={isUpdating}
@@ -493,7 +494,7 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
                           <Button
                             size="sm"
                             variant="outline"
-                            onClick={() => setShowUpgradeModal(true)}
+                            onClick={() => onNavigateToEconomics?.()}
                             className="text-xs h-6 px-2"
                           >
                             <Crown className="h-3 w-3 mr-1" />
@@ -514,7 +515,7 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
                           setFormData(prev => ({ ...prev, coach_slots: value }));
                         } else {
                           toast.error(`Your ${currentTier.name} plan allows up to ${tierLimits.coachLimit} coaches`);
-                          setShowUpgradeModal(true);
+                          onNavigateToEconomics?.();
                         }
                       }}
                       disabled={isUpdating}

@@ -24,10 +24,16 @@ interface ClubEconomicsProps {
   };
   isOwner: boolean;
   canManage: boolean;
+  initialTab?: string;
 }
 
-export function ClubEconomics({ club, isOwner, canManage }: ClubEconomicsProps) {
-  const [activeEconomicsTab, setActiveEconomicsTab] = useState('overview');
+export function ClubEconomics({ club, isOwner, canManage, initialTab = 'overview' }: ClubEconomicsProps) {
+  const [activeEconomicsTab, setActiveEconomicsTab] = useState(initialTab);
+  
+  // Update the active tab when initialTab changes
+  React.useEffect(() => {
+    setActiveEconomicsTab(initialTab);
+  }, [initialTab]);
   const { tokenPoolData, usageBreakdown, loading, error } = useClubTokenPool(club.id);
 
   if (loading) {

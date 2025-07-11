@@ -43,6 +43,7 @@ export default function Club() {
   } = useClubs();
   const [refreshing, setRefreshing] = useState(false);
   const [activeTab, setActiveTab] = useState('play');
+  const [economicsInitialTab, setEconomicsInitialTab] = useState('overview');
 
   // Find the club in either clubs or myClubs
   const club = [...clubs, ...myClubs].find(c => c.id === clubId);
@@ -243,7 +244,13 @@ export default function Club() {
         </Card>
 
         {/* Mobile-First Club Navigation */}
-        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+        <Tabs value={activeTab} onValueChange={(value) => {
+          setActiveTab(value);
+          // Reset economics tab to overview when navigating normally
+          if (value === 'economics' && economicsInitialTab === 'subscription') {
+            setEconomicsInitialTab('overview');
+          }
+        }} className="space-y-6">
           <SimplifiedClubNav
             activeTab={activeTab}
             onTabChange={setActiveTab}
@@ -278,7 +285,8 @@ export default function Club() {
             <ClubEconomics 
               club={club} 
               isOwner={isOwner} 
-              canManage={canManageMembers || canEditClub} 
+              canManage={canManageMembers || canEditClub}
+              initialTab={economicsInitialTab}
             />
           </TabsContent>
 
@@ -286,6 +294,10 @@ export default function Club() {
             <ClubSettings 
               club={club} 
               onSettingsUpdate={handleRefresh}
+              onNavigateToEconomics={() => {
+                setEconomicsInitialTab('subscription');
+                setActiveTab('economics');
+              }}
             />
           </TabsContent>
 
