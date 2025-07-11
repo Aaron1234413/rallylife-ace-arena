@@ -238,51 +238,6 @@ export function ClubSettings({ club, onSettingsUpdate, onNavigateToEconomics }: 
         />
       )}
 
-      {/* Mobile-First: Save Actions at Top */}
-      {hasChanges && (
-        <Card className="border-orange-200 bg-orange-50/50">
-          <CardContent className="p-4">
-            <div className="flex flex-col sm:flex-row gap-3">
-              <Button
-                onClick={handleSave}
-                disabled={isUpdating || !formData.name.trim()}
-                className="flex items-center gap-2 flex-1 sm:flex-initial"
-              >
-                <Save className="h-4 w-4" />
-                {isUpdating ? 'Saving...' : 'Save Changes'}
-              </Button>
-              
-              <Button
-                variant="outline"
-                onClick={() => {
-                  setFormData({
-                    name: club.name,
-                    description: club.description || '',
-                    location: club.location || '',
-                    is_private: true, // Always private
-                    logo_url: club.logo_url || '',
-                    court_count: club.court_count || 1,
-                    coach_slots: club.coach_slots || 1,
-                    operating_hours: club.operating_hours || {
-                      monday: { open: '06:00', close: '22:00' },
-                      tuesday: { open: '06:00', close: '22:00' },
-                      wednesday: { open: '06:00', close: '22:00' },
-                      thursday: { open: '06:00', close: '22:00' },
-                      friday: { open: '06:00', close: '22:00' },
-                      saturday: { open: '08:00', close: '20:00' },
-                      sunday: { open: '08:00', close: '20:00' }
-                    }
-                  });
-                }}
-                disabled={isUpdating}
-                className="flex-1 sm:flex-initial"
-              >
-                Cancel
-              </Button>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Tabbed Settings Interface */}
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
