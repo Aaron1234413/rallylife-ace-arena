@@ -26,7 +26,7 @@ import {
 import { toast } from 'sonner';
 import { cn } from '@/lib/utils';
 
-type SessionType = 'challenge' | 'social' | 'training';
+type SessionType = 'match' | 'social_play' | 'training';
 
 interface SessionTypeOption {
   type: SessionType;
@@ -55,7 +55,7 @@ interface SessionCreationDialogProps {
 
 const sessionTypes: SessionTypeOption[] = [
   {
-    type: 'challenge',
+    type: 'match',
     name: 'Challenge',
     icon: Trophy,
     description: 'Competitive match with stakes and HP reduction',
@@ -63,7 +63,7 @@ const sessionTypes: SessionTypeOption[] = [
     color: 'from-amber-500 to-orange-600'
   },
   {
-    type: 'social',
+    type: 'social_play',
     name: 'Social',
     icon: Users,
     description: 'Casual play with optional stakes, no HP loss',
@@ -102,7 +102,7 @@ export function SessionCreationDialog({
   const { xpData } = usePlayerXP();
 
   const [formData, setFormData] = useState<SessionCreationData>({
-    sessionType: 'challenge',
+    sessionType: 'match',
     location: '',
     maxPlayers: 2,
     stakes: 10
@@ -110,7 +110,7 @@ export function SessionCreationDialog({
 
   const resetForm = () => {
     setFormData({
-      sessionType: 'challenge',
+      sessionType: 'match',
       location: '',
       maxPlayers: 2,
       stakes: 10
@@ -339,7 +339,7 @@ export function SessionCreationDialog({
                 </div>
                 {formData.sessionType !== 'training' && (
                   <p className="text-sm text-muted-foreground">
-                    {formData.sessionType === 'challenge' ? 'Challenge' : 'Social'} sessions: 2-4 players
+                    {formData.sessionType === 'match' ? 'Challenge' : 'Social'} sessions: 2-4 players
                   </p>
                 )}
                 {formData.sessionType === 'training' && (

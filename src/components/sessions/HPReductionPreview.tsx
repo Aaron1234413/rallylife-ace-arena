@@ -5,7 +5,7 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/comp
 import { Heart, Info, Shield } from 'lucide-react';
 
 interface HPReductionPreviewProps {
-  sessionType: 'challenge' | 'social' | 'training';
+  sessionType: 'match' | 'social_play' | 'training';
   playerLevel: number;
   currentHP: number;
   maxHP: number;
@@ -14,11 +14,11 @@ interface HPReductionPreviewProps {
 
 // Calculate HP reduction based on player level and session type
 function calculateHPReduction(sessionType: string, playerLevel: number): number {
-  if (sessionType === 'social' || sessionType === 'training') {
+  if (sessionType === 'social_play' || sessionType === 'training') {
     return 0; // No HP loss for social/training sessions
   }
   
-  // Challenge sessions: Base reduction decreases with level
+  // Match sessions: Base reduction decreases with level
   // Level 1-10: 15-10 HP reduction
   // Level 11-20: 8-5 HP reduction  
   // Level 21+: 5 HP reduction (minimum)
@@ -55,7 +55,7 @@ export function HPReductionPreview({
   const hpProgress = (currentHP / maxHP) * 100;
   const hpAfterProgress = (hpAfterSession / maxHP) * 100;
   
-  if (sessionType === 'social' || sessionType === 'training') {
+  if (sessionType === 'social_play' || sessionType === 'training') {
     return (
       <Card className={className}>
         <CardContent className="p-4">
@@ -69,7 +69,7 @@ export function HPReductionPreview({
             </Badge>
           </div>
           <p className="text-sm text-tennis-green-medium mt-2">
-            {sessionType === 'social' ? 'Social' : 'Training'} sessions don't reduce your HP. Play worry-free!
+            {sessionType === 'social_play' ? 'Social' : 'Training'} sessions don't reduce your HP. Play worry-free!
           </p>
         </CardContent>
       </Card>
