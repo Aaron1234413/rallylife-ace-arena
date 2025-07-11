@@ -47,7 +47,6 @@ export function ClubSettings({ club, onSettingsUpdate, onNavigateToEconomics }: 
   const { updateClub } = useClubs();
   const { subscription, usage, updateUsageTracking, upgradeSubscription, openCustomerPortal } = useClubSubscription(club.id);
   const { tiers } = useSubscriptionTiers();
-  const { tierLimits, usageStatus, checkCanAddCoach, getUpgradeRecommendation } = useTierEnforcement(subscription, usage);
   const [formData, setFormData] = useState({
     name: club.name,
     description: club.description || '',
@@ -66,6 +65,7 @@ export function ClubSettings({ club, onSettingsUpdate, onNavigateToEconomics }: 
       sunday: { open: '08:00', close: '20:00' }
     }
   });
+  const { tierLimits, usageStatus, checkCanAddCoach, checkCanAddCourt, getUpgradeRecommendation } = useTierEnforcement(subscription, usage, formData.court_count);
   const [isUpdating, setIsUpdating] = useState(false);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -86,33 +86,27 @@ export function ClubSettings({ club, onSettingsUpdate, onNavigateToEconomics }: 
     features: []
   };
   
-  // Get real tier limits from subscription tiers
-  const getTierCourts = (tierId: string) => {
-    switch(tierId) {
-      case 'community': return 1;
-      case 'core': return 3;
-      case 'plus': return 10;
-      case 'pro': return 25;
-      default: return 1;
-    }
-  };
+  // Get max courts from tier limits (use actual subscription-based limits)
+  const maxCourts = tierLimits.courtLimit === Infinity ? 999 : tierLimits.courtLimit;
 
   const validateSettings = () => {
-    const maxCourts = getTierCourts(subscription?.tier_id || 'community');
+    const courtCheck = checkCanAddCourt();
     const coachCheck = checkCanAddCoach();
     
     // Validate court count against tier limits
     if (formData.court_count > maxCourts) {
-      toast.error(`Your ${currentTier.name} plan allows up to ${maxCourts} courts. Upgrade to add more.`);
-      setShowUpgradeModal(true);
-      return false;
+      if (!courtCheck.allowed) {
+        toast.error(courtCheck.reason || `Your ${currentTier.name} plan allows up to ${maxCourts} courts. Upgrade to add more.`);
+        onNavigateToEconomics?.();
+        return false;
+      }
     }
     
     // Validate coach slots against tier limits  
     if (formData.coach_slots > tierLimits.coachLimit) {
       if (!coachCheck.allowed) {
         toast.error(coachCheck.reason || `Your ${currentTier.name} plan allows up to ${tierLimits.coachLimit} coaches. Upgrade to add more.`);
-        setShowUpgradeModal(true);
+        onNavigateToEconomics?.();
         return false;
       }
     }
@@ -203,7 +197,6 @@ export function ClubSettings({ club, onSettingsUpdate, onNavigateToEconomics }: 
 
   // Get upgrade recommendation
   const upgradeRecommendation = getUpgradeRecommendation();
-  const maxCourts = getTierCourts(subscription?.tier_id || 'community');
 
   return (
     <div className="space-y-4 sm:space-y-6">
@@ -226,7 +219,7 @@ export function ClubSettings({ club, onSettingsUpdate, onNavigateToEconomics }: 
             {currentTier.name} Plan
           </Badge>
           <span className="text-tennis-green-medium">
-            {maxCourts} courts • {tierLimits.coachLimit} coaches • {tierLimits.memberLimit} members
+            {maxCourts === 999 ? '∞' : maxCourts} courts • {tierLimits.coachLimit} coaches • {tierLimits.memberLimit} members
           </span>
         </div>
         
@@ -451,7 +444,7 @@ export function ClubSettings({ club, onSettingsUpdate, onNavigateToEconomics }: 
                     <div className="flex items-center justify-between">
                       <Label htmlFor="court_count">Number of Courts</Label>
                       <div className="flex items-center gap-2">
-                        <span className="text-xs text-tennis-green-medium">Max: {maxCourts}</span>
+                        <span className="text-xs text-tennis-green-medium">Max: {maxCourts === 999 ? '∞' : maxCourts}</span>
                         {formData.court_count >= maxCourts && (
                           <Button
                             size="sm"

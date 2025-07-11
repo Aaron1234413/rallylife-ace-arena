@@ -5167,6 +5167,7 @@ export type Database = {
       subscription_tiers: {
         Row: {
           coach_limit: number
+          court_limit: number | null
           created_at: string | null
           features: Json
           id: string
@@ -5180,6 +5181,7 @@ export type Database = {
         }
         Insert: {
           coach_limit: number
+          court_limit?: number | null
           created_at?: string | null
           features: Json
           id: string
@@ -5193,6 +5195,7 @@ export type Database = {
         }
         Update: {
           coach_limit?: number
+          court_limit?: number | null
           created_at?: string | null
           features?: Json
           id?: string

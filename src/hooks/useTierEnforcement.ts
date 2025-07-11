@@ -5,9 +5,11 @@ import { ClubSubscription, ClubUsage } from './useClubSubscription';
 export interface TierLimits {
   memberLimit: number;
   coachLimit: number;
+  courtLimit: number;
   features: string[];
   canInviteMembers: boolean;
   canAddCoaches: boolean;
+  canAddCourts: boolean;
   hasRealtimeUpdates: boolean;
   hasSessionAnalytics: boolean;
   hasRecurringScheduling: boolean;
@@ -18,30 +20,36 @@ export interface TierLimits {
 export interface UsageStatus {
   memberUsagePercent: number;
   coachUsagePercent: number;
+  courtUsagePercent: number;
   isNearMemberLimit: boolean;
   isNearCoachLimit: boolean;
+  isNearCourtLimit: boolean;
   isAtMemberLimit: boolean;
   isAtCoachLimit: boolean;
+  isAtCourtLimit: boolean;
 }
 
 export function useTierEnforcement(
   subscription: ClubSubscription | null,
-  usage: ClubUsage | null
+  usage: ClubUsage | null,
+  currentCourtCount?: number
 ) {
   const { getTierLimits } = useSubscriptionTiers();
 
   const tierLimits = useMemo((): TierLimits => {
-    const tierId = subscription?.tier_id || 'free';
+    const tierId = subscription?.tier_id || 'community';
     const baseLimits = getTierLimits(tierId);
     
     return {
       memberLimit: baseLimits.memberLimit,
       coachLimit: baseLimits.coachLimit,
+      courtLimit: baseLimits.courtLimit === -1 ? Infinity : baseLimits.courtLimit, // Handle unlimited courts
       features: baseLimits.features,
       canInviteMembers: true, // All tiers can invite
       canAddCoaches: true, // All tiers can add coaches
-      hasRealtimeUpdates: tierId !== 'free',
-      hasSessionAnalytics: tierId !== 'free',
+      canAddCourts: true, // All tiers can add courts
+      hasRealtimeUpdates: tierId !== 'community',
+      hasSessionAnalytics: tierId !== 'community',
       hasRecurringScheduling: ['plus', 'pro'].includes(tierId),
       hasPeakPricing: ['plus', 'pro'].includes(tierId),
       hasCustomBranding: tierId === 'pro'
@@ -53,25 +61,34 @@ export function useTierEnforcement(
       return {
         memberUsagePercent: 0,
         coachUsagePercent: 0,
+        courtUsagePercent: 0,
         isNearMemberLimit: false,
         isNearCoachLimit: false,
+        isNearCourtLimit: false,
         isAtMemberLimit: false,
-        isAtCoachLimit: false
+        isAtCoachLimit: false,
+        isAtCourtLimit: false
       };
     }
 
     const memberUsagePercent = (usage.active_members / tierLimits.memberLimit) * 100;
     const coachUsagePercent = (usage.active_coaches / tierLimits.coachLimit) * 100;
+    const courtUsagePercent = tierLimits.courtLimit === Infinity 
+      ? 0 // Unlimited courts
+      : ((currentCourtCount || 0) / tierLimits.courtLimit) * 100;
 
     return {
       memberUsagePercent,
       coachUsagePercent,
+      courtUsagePercent,
       isNearMemberLimit: memberUsagePercent >= 80,
       isNearCoachLimit: coachUsagePercent >= 80,
+      isNearCourtLimit: courtUsagePercent >= 80,
       isAtMemberLimit: usage.active_members >= tierLimits.memberLimit,
-      isAtCoachLimit: usage.active_coaches >= tierLimits.coachLimit
+      isAtCoachLimit: usage.active_coaches >= tierLimits.coachLimit,
+      isAtCourtLimit: tierLimits.courtLimit !== Infinity && (currentCourtCount || 0) >= tierLimits.courtLimit
     };
-  }, [usage, tierLimits]);
+  }, [usage, tierLimits, currentCourtCount]);
 
   const checkCanInviteMember = (): { allowed: boolean; reason?: string } => {
     if (!tierLimits || !usage) {
@@ -97,6 +114,23 @@ export function useTierEnforcement(
       return {
         allowed: false,
         reason: `You've reached your coach limit of ${tierLimits.coachLimit}. Upgrade your plan to add more coaches.`
+      };
+    }
+
+    return { allowed: true };
+  };
+
+  const checkCanAddCourt = (): { allowed: boolean; reason?: string } => {
+    if (!tierLimits) {
+      return { allowed: true };
+    }
+
+    if (usageStatus.isAtCourtLimit) {
+      return {
+        allowed: false,
+        reason: tierLimits.courtLimit === Infinity 
+          ? 'Unlimited courts available' 
+          : `You've reached your court limit of ${tierLimits.courtLimit}. Upgrade your plan to add more courts.`
       };
     }
 
@@ -129,8 +163,8 @@ export function useTierEnforcement(
 
     const currentTier = subscription.tier_id;
 
-    if (usageStatus.isNearMemberLimit || usageStatus.isNearCoachLimit) {
-      if (currentTier === 'free') {
+    if (usageStatus.isNearMemberLimit || usageStatus.isNearCoachLimit || usageStatus.isNearCourtLimit) {
+      if (currentTier === 'community') {
         return {
           shouldUpgrade: true,
           reason: 'You\'re approaching your limits. Upgrade to Core for higher limits and real-time features.',
@@ -159,6 +193,7 @@ export function useTierEnforcement(
     usageStatus,
     checkCanInviteMember,
     checkCanAddCoach,
+    checkCanAddCourt,
     checkFeatureAccess,
     getUpgradeRecommendation
   };

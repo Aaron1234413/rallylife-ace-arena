@@ -8,6 +8,7 @@ export interface SubscriptionTier {
   price_monthly: number;
   member_limit: number;
   coach_limit: number;
+  court_limit: number;
   token_allocation?: number;
   features: string[];
   created_at: string;
@@ -54,6 +55,7 @@ export function useSubscriptionTiers() {
     return {
       memberLimit: tier?.member_limit || 50,
       coachLimit: tier?.coach_limit || 1,
+      courtLimit: tier?.court_limit || 1,
       features: tier?.features || []
     };
   };
