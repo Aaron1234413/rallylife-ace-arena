@@ -128,6 +128,12 @@ const Play = () => {
   const availableSessions = allSessions.filter(s => !s.user_has_joined);
   const mySessions = allSessions.filter(s => s.user_has_joined || s.creator_id === user?.id);
   
+  // Debug logging
+  console.log('All sessions:', allSessions.length);
+  console.log('Available sessions:', availableSessions.length);
+  console.log('My sessions:', mySessions.length);
+  console.log('User ID:', user?.id);
+  
   // Use static loading state from unified sessions
   const availableLoading = sessionsLoading;
   const mySessionsLoading = sessionsLoading;

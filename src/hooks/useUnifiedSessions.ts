@@ -105,6 +105,9 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
       const { data: sessionsData, error } = await query;
 
       if (error) throw error;
+      
+      console.log('Sessions fetched:', sessionsData?.length, 'sessions');
+      console.log('Sample session:', sessionsData?.[0]);
 
       // Get participant counts and user participation status
       const sessionsWithCounts = await Promise.all(
