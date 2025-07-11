@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -10,14 +10,22 @@ import {
   Calendar as CalendarIcon,
   Plus,
   CheckCircle,
-  AlertCircle
+  AlertCircle,
+  Info
 } from 'lucide-react';
 import { format, addDays, isSameDay } from 'date-fns';
+import { toast } from 'sonner';
 import { BookCourtDialog } from './BookCourtDialog';
 import { supabase } from '@/integrations/supabase/client';
+import { getAvailableTimeSlots, validateBookingTime } from '@/utils/operatingHoursValidation';
 
 interface CourtBookingProps {
   clubId: string;
+}
+
+interface Club {
+  id: string;
+  operating_hours?: any;
 }
 
 export function CourtBooking({ clubId }: CourtBookingProps) {
@@ -27,11 +35,28 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
   const [courts, setCourts] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [club, setClub] = useState<Club | null>(null);
 
-  React.useEffect(() => {
+  useEffect(() => {
+    fetchClub();
     fetchCourts();
     fetchBookings();
   }, [clubId, selectedDate]);
+
+  const fetchClub = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('clubs')
+        .select('id, operating_hours')
+        .eq('id', clubId)
+        .single();
+
+      if (error) throw error;
+      setClub(data);
+    } catch (error) {
+      console.error('Error fetching club:', error);
+    }
+  };
 
   const fetchCourts = async () => {
     try {
@@ -73,11 +98,20 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
     }
   };
 
-  const timeSlots = [
-    '08:00', '09:00', '10:00', '11:00', '12:00',
-    '13:00', '14:00', '15:00', '16:00', '17:00',
-    '18:00', '19:00', '20:00'
-  ];
+  // Generate time slots based on operating hours
+  const timeSlots = React.useMemo(() => {
+    if (!club?.operating_hours) {
+      // Fallback to default slots
+      return [
+        '08:00', '09:00', '10:00', '11:00', '12:00',
+        '13:00', '14:00', '15:00', '16:00', '17:00',
+        '18:00', '19:00', '20:00'
+      ];
+    }
+
+    const availableSlots = getAvailableTimeSlots(selectedDate, club.operating_hours);
+    return availableSlots.map(slot => slot.split('-')[0]); // Get start times only
+  }, [club?.operating_hours, selectedDate]);
 
   const isSlotBooked = (courtId: string, time: string) => {
     return bookings.some(booking => {
@@ -96,6 +130,17 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
   };
 
   const handleBookCourt = (courtId: string, time: string) => {
+    // Validate booking time against operating hours
+    if (club?.operating_hours) {
+      const endTime = `${parseInt(time.split(':')[0]) + 1}:${time.split(':')[1]}`;
+      const validation = validateBookingTime(selectedDate, time, endTime, club.operating_hours);
+      
+      if (!validation.valid) {
+        toast.error(validation.error);
+        return;
+      }
+    }
+    
     setSelectedCourt(courtId);
     setShowBookDialog(true);
   };
@@ -155,6 +200,25 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
                 </div>
               ))}
             </div>
+
+            {/* Operating Hours Info */}
+            {club?.operating_hours && (
+              <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+                <div className="flex items-start gap-2">
+                  <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                  <div>
+                    <h4 className="font-medium text-blue-900 mb-1">Operating Hours</h4>
+                    <p className="text-sm text-blue-700">
+                      {(() => {
+                        const dayOfWeek = selectedDate.toLocaleDateString('en-US', { weekday: 'long' }).toLowerCase();
+                        const dayHours = club.operating_hours[dayOfWeek];
+                        return dayHours ? `${dayHours.open} - ${dayHours.close}` : 'Closed';
+                      })()}
+                    </p>
+                  </div>
+                </div>
+              </div>
+            )}
 
             {/* Time Slot Grid */}
             <div className="space-y-4">

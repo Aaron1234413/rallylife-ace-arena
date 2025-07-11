@@ -165,6 +165,13 @@ export default function Club() {
                     <span className="font-medium text-sm sm:text-base">{club.member_count} members</span>
                   </div>
                   
+                  {club.location && (
+                    <div className="flex items-center gap-2 text-gray-600">
+                      <MapPin className="h-4 w-4" />
+                      <span className="text-sm sm:text-base">{club.location}</span>
+                    </div>
+                  )}
+                  
                   {club.description && (
                     <p className="text-gray-700 leading-relaxed text-sm sm:text-base">{club.description}</p>
                   )}

@@ -31,6 +31,8 @@ import { UsageLimitWarning } from './UsageLimitWarning';
 import { OperatingHoursEditor, OperatingHours } from './OperatingHoursEditor';
 import { LocationInput } from '@/components/ui/location-input';
 import { ClubInvitationManager } from './ClubInvitationManager';
+import { CourtOperatingHours } from './CourtOperatingHours';
+import { validateBookingTime } from '@/utils/operatingHoursValidation';
 // import { MemberManagementPanel } from '../management/MemberManagementPanel';
 // import { CourtManagementPanel } from '../management/CourtManagementPanel';
 
@@ -118,6 +120,27 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
       toast.error('Club name is required');
       return false;
     }
+
+    // Validate operating hours - ensure they're valid time ranges
+    for (const [day, hours] of Object.entries(formData.operating_hours)) {
+      if (hours && typeof hours === 'object' && 'open' in hours && 'close' in hours) {
+        const openTime = hours.open;
+        const closeTime = hours.close;
+        
+        if (openTime && closeTime && typeof openTime === 'string' && typeof closeTime === 'string') {
+          // Simple validation to ensure close time is after open time
+          const [openHour, openMin] = openTime.split(':').map(Number);
+          const [closeHour, closeMin] = closeTime.split(':').map(Number);
+          const openMinutes = openHour * 60 + openMin;
+          const closeMinutes = closeHour * 60 + closeMin;
+          
+          if (closeMinutes <= openMinutes) {
+            toast.error(`Invalid operating hours for ${day}: Close time must be after open time`);
+            return false;
+          }
+        }
+      }
+    }
     
     return true;
   };
@@ -142,9 +165,12 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
       await updateUsageTracking();
       onSettingsUpdate?.();
       
-      // Show success feedback
+      // Show success feedback with location info if updated
+      const locationUpdated = formData.location !== (club.location || '');
       toast.success('Club settings saved successfully!', {
-        description: 'Your changes have been applied and are now visible across the platform.'
+        description: locationUpdated 
+          ? 'Your changes have been applied. Location will be visible on your club page.'
+          : 'Your changes have been applied and are now visible across the platform.'
       });
     } catch (error) {
       console.error('Error updating club:', error);
@@ -378,21 +404,37 @@ export function ClubSettings({ club, onSettingsUpdate }: ClubSettingsProps) {
             /> */}
             
             {/* Operating Hours */}
-            <Card className="shadow-lg border-0">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <Clock className="h-5 w-5" />
-                  Operating Hours
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <OperatingHoursEditor
-                  operatingHours={formData.operating_hours as OperatingHours}
-                  onOperatingHoursChange={(hours) => setFormData(prev => ({ ...prev, operating_hours: hours }))}
-                  disabled={isUpdating}
-                />
-              </CardContent>
-            </Card>
+            <div className="grid gap-6 lg:grid-cols-2">
+              <Card className="shadow-lg border-0">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2">
+                    <Clock className="h-5 w-5" />
+                    Set Operating Hours
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <OperatingHoursEditor
+                    operatingHours={formData.operating_hours as OperatingHours}
+                    onOperatingHoursChange={(hours) => setFormData(prev => ({ ...prev, operating_hours: hours }))}
+                    disabled={isUpdating}
+                  />
+                  <div className="mt-4 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                    <div className="flex items-start gap-2">
+                      <Info className="h-4 w-4 text-blue-600 mt-0.5" />
+                      <p className="text-sm text-blue-700">
+                        Operating hours determine when courts can be booked. 
+                        Members can only make reservations during these times.
+                      </p>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+
+              {/* Current Operating Hours Preview */}
+              <CourtOperatingHours 
+                operatingHours={formData.operating_hours as OperatingHours}
+              />
+            </div>
 
             {/* Club Capacity */}
             <Card className="shadow-lg border-0">
