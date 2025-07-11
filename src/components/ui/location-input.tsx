@@ -1,9 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
-import { MapPin, Search, X } from 'lucide-react';
+import { MapPin, Search, X, Navigation } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { supabase } from '@/integrations/supabase/client';
+import { useUserLocation } from '@/hooks/useUserLocation';
+import { toast } from 'sonner';
 
 interface LocationData {
   address: string;
@@ -33,8 +35,11 @@ export const LocationInput: React.FC<LocationInputProps> = ({
   const [suggestions, setSuggestions] = useState<any[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(false);
+  const [isGettingCurrentLocation, setIsGettingCurrentLocation] = useState(false);
   const debounceRef = useRef<NodeJS.Timeout>();
   const inputRef = useRef<HTMLInputElement>(null);
+  
+  const { currentLocation, locationPermission } = useUserLocation();
 
   useEffect(() => {
     if (value?.address) {
@@ -119,6 +124,60 @@ export const LocationInput: React.FC<LocationInputProps> = ({
     setShowSuggestions(false);
   };
 
+  const handleUseCurrentLocation = async () => {
+    if (!currentLocation) {
+      toast.error('Current location not available. Please enable location services.');
+      return;
+    }
+
+    setIsGettingCurrentLocation(true);
+    try {
+      // Use reverse geocoding to get address from coordinates
+      const { data, error } = await supabase.functions.invoke('google-reverse-geocode', {
+        body: { 
+          lat: currentLocation.lat, 
+          lng: currentLocation.lng 
+        }
+      });
+
+      if (error) {
+        console.error('Error reverse geocoding:', error);
+        // Fallback to just coordinates
+        const locationData: LocationData = {
+          address: `${currentLocation.lat.toFixed(6)}, ${currentLocation.lng.toFixed(6)}`,
+          coordinates: currentLocation
+        };
+        setQuery(locationData.address);
+        onChange(locationData);
+        toast.success('Using current location');
+      } else {
+        // Use the formatted address from reverse geocoding
+        const result = data?.results?.[0];
+        const locationData: LocationData = {
+          address: result?.formatted_address || `${currentLocation.lat.toFixed(6)}, ${currentLocation.lng.toFixed(6)}`,
+          coordinates: currentLocation,
+          place_id: result?.place_id
+        };
+        setQuery(locationData.address);
+        onChange(locationData);
+        toast.success('Using current location');
+      }
+    } catch (error) {
+      console.error('Error getting current location address:', error);
+      // Fallback to coordinates only
+      const locationData: LocationData = {
+        address: `${currentLocation.lat.toFixed(6)}, ${currentLocation.lng.toFixed(6)}`,
+        coordinates: currentLocation
+      };
+      setQuery(locationData.address);
+      onChange(locationData);
+      toast.success('Using current location');
+    } finally {
+      setIsGettingCurrentLocation(false);
+      setShowSuggestions(false);
+    }
+  };
+
   return (
     <div className={cn("relative", className)}>
       <div className="relative">
@@ -129,7 +188,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
           onChange={handleInputChange}
           placeholder={placeholder}
           disabled={disabled}
-          className="pl-10 pr-20"
+          className="pl-10 pr-24"
           onFocus={() => setShowSuggestions(true)}
           onBlur={(e) => {
             // Delay hiding suggestions to allow clicks
@@ -137,6 +196,23 @@ export const LocationInput: React.FC<LocationInputProps> = ({
           }}
         />
         <div className="absolute right-2 top-1/2 transform -translate-y-1/2 flex items-center gap-1">
+          {currentLocation && locationPermission === 'granted' && (
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              onClick={handleUseCurrentLocation}
+              disabled={isGettingCurrentLocation || disabled}
+              className="h-6 w-6 p-0"
+              title="Use current location"
+            >
+              {isGettingCurrentLocation ? (
+                <div className="h-3 w-3 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+              ) : (
+                <Navigation className="h-3 w-3" />
+              )}
+            </Button>
+          )}
           {query && (
             <Button
               type="button"
@@ -144,6 +220,7 @@ export const LocationInput: React.FC<LocationInputProps> = ({
               size="sm"
               onClick={handleClear}
               className="h-6 w-6 p-0"
+              title="Clear location"
             >
               <X className="h-3 w-3" />
             </Button>
