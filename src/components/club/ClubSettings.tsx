@@ -33,8 +33,8 @@ import { LocationInput } from '@/components/ui/location-input';
 import { ClubInvitationManager } from './ClubInvitationManager';
 import { CourtOperatingHours } from './CourtOperatingHours';
 import { validateBookingTime } from '@/utils/operatingHoursValidation';
+import { CourtManagement } from './courts/CourtManagement';
 // import { MemberManagementPanel } from '../management/MemberManagementPanel';
-// import { CourtManagementPanel } from '../management/CourtManagementPanel';
 
 interface ClubSettingsProps {
   club: Club;
@@ -392,10 +392,10 @@ export function ClubSettings({ club, onSettingsUpdate, onNavigateToEconomics }: 
         <TabsContent value="facilities" className="mt-6">
           <div className="space-y-6">
             {/* Court Management */}
-            {/* <CourtManagementPanel 
-              clubId={club.id}
+            <CourtManagement 
+              club={club}
               canManage={canManageMembers || canEditClub}
-            /> */}
+            />
             
             {/* Operating Hours */}
             <div className="grid gap-6 lg:grid-cols-2">
