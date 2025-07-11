@@ -1,5 +1,4 @@
 import React, { useState, useMemo } from 'react';
-import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -564,17 +563,11 @@ const Play = () => {
         onOpenChange={setShowCreateDialog}
         onSuccess={() => {
           setShowCreateDialog(false);
-          toast.success('Session created successfully!');
+          toast.success('Session created! It should appear in your sessions shortly.');
         }}
       />
     </div>
   );
 };
 
-export default function WrappedPlay() {
-  return (
-    <ErrorBoundary fallbackTitle="Play Page Error">
-      <Play />
-    </ErrorBoundary>
-  );
-}
+export default Play;
