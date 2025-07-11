@@ -173,7 +173,7 @@ serve(async (req) => {
       line_items: lineItems,
       mode: "payment",
       success_url: `${origin}/booking-success?session_id={CHECKOUT_SESSION_ID}`,
-      cancel_url: `${origin}/dashboard`,
+      cancel_url: `${origin}/booking-canceled`,
       metadata: {
         user_id: user.id,
         court_id: bookingData.court_id,
