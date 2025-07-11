@@ -26,6 +26,7 @@ import { useClubServices, ClubService } from '@/hooks/useClubServices';
 import { HybridPaymentSelector } from '@/components/payments/HybridPaymentSelector';
 import { calculateCourtPricing, calculateServicePricing, calculateTotalPricing } from '@/utils/pricing';
 import { PricingBreakdown } from '@/components/ui/PricingBreakdown';
+import { BookingConfirmationDialog } from '@/components/club/courts/BookingConfirmationDialog';
 
 interface Court {
   id: string;
@@ -66,6 +67,7 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts, pre
   });
   
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [showConfirmation, setShowConfirmation] = useState(false);
   const [availableTimeSlots, setAvailableTimeSlots] = useState<string[]>([]);
   const [existingBookings, setExistingBookings] = useState<any[]>([]);
   
@@ -199,6 +201,13 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts, pre
       return;
     }
 
+    // Show confirmation dialog instead of directly creating booking
+    setShowConfirmation(true);
+  };
+
+  const handleConfirmBooking = async () => {
+    if (!selectedCourt) return;
+
     setIsSubmitting(true);
 
     try {
@@ -251,6 +260,7 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts, pre
       }
 
       toast.success('Court booking created successfully!');
+      setShowConfirmation(false);
       onOpenChange(false);
       
       // Reset form
@@ -271,7 +281,12 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts, pre
     }
   };
 
+  const handleBackToEdit = () => {
+    setShowConfirmation(false);
+  };
+
   const handleClose = () => {
+    setShowConfirmation(false);
     onOpenChange(false);
     // Reset form
     setFormData({
@@ -286,242 +301,261 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts, pre
 
   if (!selectedCourt) return null;
 
+  // Calculate costs
   const totalCost = calculateTotalCost();
-  const courtCost = calculateCourtCost();
-  const servicesCost = calculateServicesCost();
+
+  // Prepare booking details for confirmation
+  const selectedServicesData = formData.selectedServices.map(serviceId => 
+    courtServices.find(s => s.id === serviceId)!
+  ).filter(Boolean);
+
+  const bookingDetails = selectedCourt ? {
+    court: selectedCourt,
+    date,
+    startTime: formData.startTime,
+    duration: formData.duration,
+    selectedServices: selectedServicesData,
+    bookingType: formData.bookingType,
+    notes: formData.notes
+  } : null;
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <MapPin className="h-5 w-5 text-tennis-green-primary" />
-            Book {selectedCourt.name}
-          </DialogTitle>
-        </DialogHeader>
+    <>
+      <Dialog open={open && !showConfirmation} onOpenChange={handleClose}>
+        <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <MapPin className="h-5 w-5 text-tennis-green-primary" />
+              Book {selectedCourt.name}
+            </DialogTitle>
+          </DialogHeader>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          {/* Court Information */}
-          <div className="p-4 bg-tennis-green-bg/20 rounded-lg border">
-            <div className="space-y-3">
-              <div className="flex items-center gap-2">
-                <MapPin className="h-4 w-4 text-tennis-green-medium" />
-                <span className="font-medium text-tennis-green-dark">{selectedCourt.name}</span>
-                <Badge variant="outline" className="capitalize">
-                  {selectedCourt.surface_type.replace('_', ' ')}
-                </Badge>
-              </div>
-              <div className="flex items-center gap-2">
-                <Calendar className="h-4 w-4 text-tennis-green-medium" />
-                <span className="text-sm text-tennis-green-medium">
-                  {format(date, 'EEEE, MMMM d, yyyy')}
-                </span>
-              </div>
-              <div className="flex items-center gap-4 text-sm">
-                <div className="flex items-center gap-1">
-                  <Coins className="h-4 w-4 text-emerald-500" />
-                  <span className="text-tennis-green-medium">
-                    {selectedCourt.hourly_rate_tokens} tokens/hour
+          <form onSubmit={handleSubmit} className="space-y-6">
+            {/* Court Information */}
+            <div className="p-4 bg-tennis-green-bg/20 rounded-lg border">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <MapPin className="h-4 w-4 text-tennis-green-medium" />
+                  <span className="font-medium text-tennis-green-dark">{selectedCourt.name}</span>
+                  <Badge variant="outline" className="capitalize">
+                    {selectedCourt.surface_type.replace('_', ' ')}
+                  </Badge>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Calendar className="h-4 w-4 text-tennis-green-medium" />
+                  <span className="text-sm text-tennis-green-medium">
+                    {format(date, 'EEEE, MMMM d, yyyy')}
                   </span>
                 </div>
-                {selectedCourt.hourly_rate_money > 0 && (
+                <div className="flex items-center gap-4 text-sm">
                   <div className="flex items-center gap-1">
-                    <DollarSign className="h-4 w-4 text-green-500" />
+                    <Coins className="h-4 w-4 text-emerald-500" />
                     <span className="text-tennis-green-medium">
-                      ${selectedCourt.hourly_rate_money}/hour
+                      {selectedCourt.hourly_rate_tokens} tokens/hour
                     </span>
                   </div>
-                )}
+                  {selectedCourt.hourly_rate_money > 0 && (
+                    <div className="flex items-center gap-1">
+                      <DollarSign className="h-4 w-4 text-green-500" />
+                      <span className="text-tennis-green-medium">
+                        ${selectedCourt.hourly_rate_money}/hour
+                      </span>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
-          </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            {/* Start Time */}
-            <div>
-              <Label htmlFor="startTime">Start Time *</Label>
-              <Select
-                value={formData.startTime}
-                onValueChange={(value) => setFormData({ ...formData, startTime: value })}
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Select start time" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableTimeSlots.map((time) => {
-                    const available = isTimeSlotAvailable(time);
-                    return (
-                      <SelectItem 
-                        key={time} 
-                        value={time}
-                        disabled={!available}
-                        className={!available ? 'opacity-50' : ''}
-                      >
-                        <div className="flex items-center gap-2">
-                          {time}
-                          {!available && (
-                            <AlertCircle className="h-3 w-3 text-red-500" />
-                          )}
-                        </div>
-                      </SelectItem>
-                    );
-                  })}
-                </SelectContent>
-              </Select>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {/* Start Time */}
+              <div>
+                <Label htmlFor="startTime">Start Time *</Label>
+                <Select
+                  value={formData.startTime}
+                  onValueChange={(value) => setFormData({ ...formData, startTime: value })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Select start time" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {availableTimeSlots.map((time) => {
+                      const available = isTimeSlotAvailable(time);
+                      return (
+                        <SelectItem 
+                          key={time} 
+                          value={time}
+                          disabled={!available}
+                          className={!available ? 'opacity-50' : ''}
+                        >
+                          <div className="flex items-center gap-2">
+                            {time}
+                            {!available && (
+                              <AlertCircle className="h-3 w-3 text-red-500" />
+                            )}
+                          </div>
+                        </SelectItem>
+                      );
+                    })}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {/* Duration */}
+              <div>
+                <Label htmlFor="duration">Duration *</Label>
+                <Select
+                  value={formData.duration.toString()}
+                  onValueChange={(value) => setFormData({ ...formData, duration: parseFloat(value) })}
+                >
+                  <SelectTrigger>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="1">1 hour</SelectItem>
+                    <SelectItem value="1.5">1.5 hours</SelectItem>
+                    <SelectItem value="2">2 hours</SelectItem>
+                    <SelectItem value="2.5">2.5 hours</SelectItem>
+                    <SelectItem value="3">3 hours</SelectItem>
+                    <SelectItem value="4">4 hours</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
-            {/* Duration */}
+            {/* Booking Type */}
             <div>
-              <Label htmlFor="duration">Duration *</Label>
+              <Label htmlFor="bookingType">Booking Type</Label>
               <Select
-                value={formData.duration.toString()}
-                onValueChange={(value) => setFormData({ ...formData, duration: parseFloat(value) })}
+                value={formData.bookingType}
+                onValueChange={(value) => setFormData({ ...formData, bookingType: value })}
               >
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="1">1 hour</SelectItem>
-                  <SelectItem value="1.5">1.5 hours</SelectItem>
-                  <SelectItem value="2">2 hours</SelectItem>
-                  <SelectItem value="2.5">2.5 hours</SelectItem>
-                  <SelectItem value="3">3 hours</SelectItem>
-                  <SelectItem value="4">4 hours</SelectItem>
+                  <SelectItem value="personal">Personal Practice</SelectItem>
+                  <SelectItem value="lesson">Coaching Lesson</SelectItem>
+                  <SelectItem value="match">Match Play</SelectItem>
+                  <SelectItem value="tournament">Tournament</SelectItem>
                 </SelectContent>
               </Select>
             </div>
-          </div>
 
-          {/* Booking Type */}
-          <div>
-            <Label htmlFor="bookingType">Booking Type</Label>
-            <Select
-              value={formData.bookingType}
-              onValueChange={(value) => setFormData({ ...formData, bookingType: value })}
-            >
-              <SelectTrigger>
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="personal">Personal Practice</SelectItem>
-                <SelectItem value="lesson">Coaching Lesson</SelectItem>
-                <SelectItem value="match">Match Play</SelectItem>
-                <SelectItem value="tournament">Tournament</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {/* Optional Services */}
-          {courtServices.length > 0 && (
-            <div>
-              <Label>Optional Services</Label>
-              <div className="space-y-3 mt-2">
-                {courtServices.map((service) => (
-                  <div key={service.id} className="flex items-start space-x-3 p-3 border rounded-lg">
-                    <Checkbox
-                      id={service.id}
-                      checked={formData.selectedServices.includes(service.id)}
-                      onCheckedChange={(checked) => handleServiceToggle(service.id, !!checked)}
-                    />
-                    <div className="flex-1 min-w-0">
-                      <label
-                        htmlFor={service.id}
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
-                      >
-                        {service.name}
-                      </label>
-                      {service.description && (
-                        <p className="text-xs text-muted-foreground mt-1">
-                          {service.description}
-                        </p>
-                      )}
-                      <div className="flex items-center gap-3 mt-2 text-xs">
-                        <div className="flex items-center gap-1">
-                          <Coins className="h-3 w-3 text-emerald-500" />
-                          <span>{service.price_tokens} tokens</span>
+            {/* Optional Services */}
+            {courtServices.length > 0 && (
+              <div>
+                <Label>Optional Services</Label>
+                <div className="space-y-3 mt-2">
+                  {courtServices.map((service) => (
+                    <div key={service.id} className="flex items-start space-x-3 p-3 border rounded-lg">
+                      <Checkbox
+                        id={service.id}
+                        checked={formData.selectedServices.includes(service.id)}
+                        onCheckedChange={(checked) => handleServiceToggle(service.id, !!checked)}
+                      />
+                      <div className="flex-1 min-w-0">
+                        <label
+                          htmlFor={service.id}
+                          className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70 cursor-pointer"
+                        >
+                          {service.name}
+                        </label>
+                        {service.description && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            {service.description}
+                          </p>
+                        )}
+                        <div className="flex items-center gap-3 mt-2 text-xs">
+                          <div className="flex items-center gap-1">
+                            <Coins className="h-3 w-3 text-emerald-500" />
+                            <span>{service.price_tokens} tokens</span>
+                          </div>
+                          {service.price_usd > 0 && (
+                            <div className="flex items-center gap-1">
+                              <DollarSign className="h-3 w-3 text-green-500" />
+                              <span>${service.price_usd}</span>
+                            </div>
+                          )}
+                          {service.duration_minutes && (
+                            <div className="flex items-center gap-1">
+                              <Clock className="h-3 w-3" />
+                              <span>{service.duration_minutes} min</span>
+                            </div>
+                          )}
                         </div>
-                        {service.price_usd > 0 && (
-                          <div className="flex items-center gap-1">
-                            <DollarSign className="h-3 w-3 text-green-500" />
-                            <span>${service.price_usd}</span>
-                          </div>
-                        )}
-                        {service.duration_minutes && (
-                          <div className="flex items-center gap-1">
-                            <Clock className="h-3 w-3" />
-                            <span>{service.duration_minutes} min</span>
-                          </div>
-                        )}
                       </div>
                     </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          )}
-
-          {/* Notes */}
-          <div>
-            <Label htmlFor="notes">Notes (Optional)</Label>
-            <Textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              placeholder="Any special requirements or notes..."
-              rows={2}
-            />
-          </div>
-
-          {/* Cost Breakdown */}
-          <PricingBreakdown 
-            pricing={totalCost} 
-            title={`Total Cost${formData.duration > 1 ? ` (${formData.duration}h)` : ''}`}
-          />
-
-          {/* Payment Method */}
-          <div>
-            <Label className="text-sm font-medium">Payment Method</Label>
-            <HybridPaymentSelector
-              tokenPrice={totalCost.tokens}
-              usdPrice={totalCost.money * 100} // Convert to cents
-              onPaymentChange={(payment) => 
-                setFormData(prev => ({
-                  ...prev,
-                  paymentMethod: { tokens: payment.tokens, cash: payment.usd }
-                }))
-              }
-              disabled={false}
-            />
-          </div>
-
-          {/* Action Buttons */}
-          <div className="flex gap-3 pt-4">
-            <Button
-              type="button"
-              variant="outline"
-              onClick={handleClose}
-              className="flex-1"
-              disabled={isSubmitting}
-            >
-              Cancel
-            </Button>
-            <Button 
-              type="submit" 
-              className="flex-1"
-              disabled={!formData.startTime || isSubmitting || (!formData.paymentMethod.tokens && !formData.paymentMethod.cash)}
-            >
-              {isSubmitting ? (
-                <div className="flex items-center gap-2">
-                  <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
-                  Booking...
+                  ))}
                 </div>
-              ) : (
-                `Book Court - ${totalCost.tokens > 0 ? `${totalCost.tokens} tokens` : `$${totalCost.money}`}`
-              )}
-            </Button>
-          </div>
-        </form>
-      </DialogContent>
-    </Dialog>
+              </div>
+            )}
+
+            {/* Notes */}
+            <div>
+              <Label htmlFor="notes">Notes (Optional)</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
+                placeholder="Any special requirements or notes..."
+                rows={2}
+              />
+            </div>
+
+            {/* Cost Breakdown */}
+            <PricingBreakdown 
+              pricing={totalCost} 
+              title={`Total Cost${formData.duration > 1 ? ` (${formData.duration}h)` : ''}`}
+            />
+
+            {/* Payment Method */}
+            <div>
+              <Label className="text-sm font-medium">Payment Method</Label>
+              <HybridPaymentSelector
+                tokenPrice={totalCost.tokens}
+                usdPrice={totalCost.money * 100} // Convert to cents
+                onPaymentChange={(payment) => 
+                  setFormData(prev => ({
+                    ...prev,
+                    paymentMethod: { tokens: payment.tokens, cash: payment.usd }
+                  }))
+                }
+                disabled={false}
+              />
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex gap-3 pt-4">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={handleClose}
+                className="flex-1"
+                disabled={isSubmitting}
+              >
+                Cancel
+              </Button>
+              <Button 
+                type="submit" 
+                className="flex-1"
+                disabled={!formData.startTime || isSubmitting || (!formData.paymentMethod.tokens && !formData.paymentMethod.cash)}
+              >
+                Continue to Confirmation
+              </Button>
+            </div>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Booking Confirmation Dialog */}
+      <BookingConfirmationDialog
+        open={showConfirmation}
+        onOpenChange={setShowConfirmation}
+        bookingDetails={bookingDetails}
+        onConfirm={handleConfirmBooking}
+        onBack={handleBackToEdit}
+        isSubmitting={isSubmitting}
+      />
+    </>
   );
 }
