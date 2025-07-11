@@ -15,6 +15,8 @@ import {
 import { format, addHours } from 'date-fns';
 import { PricingBreakdown } from '@/components/ui/PricingBreakdown';
 import { calculateCourtPricing, calculateServicePricing, calculateTotalPricing, type PricingBreakdown as PricingData } from '@/utils/pricing';
+import { supabase } from '@/integrations/supabase/client';
+import { toast } from 'sonner';
 
 interface Court {
   id: string;
@@ -47,21 +49,20 @@ interface BookingConfirmationDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   bookingDetails: BookingDetails | null;
-  onConfirm: () => void;
   onBack: () => void;
-  isSubmitting?: boolean;
+  clubId: string;
 }
 
 export function BookingConfirmationDialog({
   open,
   onOpenChange,
   bookingDetails,
-  onConfirm,
   onBack,
-  isSubmitting = false
+  clubId
 }: BookingConfirmationDialogProps) {
   const [termsAccepted, setTermsAccepted] = useState(false);
   const [formErrors, setFormErrors] = useState<string[]>([]);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   if (!bookingDetails) return null;
 
@@ -88,15 +89,58 @@ export function BookingConfirmationDialog({
     return errors.length === 0;
   };
 
-  const handleConfirm = () => {
-    if (validateForm()) {
-      onConfirm();
+  const handleConfirm = async () => {
+    if (!validateForm()) return;
+
+    setIsProcessing(true);
+    try {
+      // Prepare booking data for Stripe checkout
+      const bookingData = {
+        court_id: court.id,
+        club_id: clubId,
+        booking_date: format(date, 'yyyy-MM-dd'),
+        start_time: startTime,
+        end_time: endTime,
+        duration_hours: duration,
+        base_amount: courtPricing.money,
+        convenience_fee: courtPricing.convenienceFee / 100,
+        total_amount: totalPricing.money,
+        notes: notes,
+        selected_services: selectedServices.map(service => ({
+          id: service.id,
+          name: service.name,
+          price_usd: service.price_usd
+        }))
+      };
+
+      // Call Stripe checkout edge function
+      const { data, error } = await supabase.functions.invoke('create-court-booking-checkout', {
+        body: bookingData
+      });
+
+      if (error) {
+        throw new Error(error.message);
+      }
+
+      if (data?.url) {
+        // Redirect to Stripe checkout
+        window.location.href = data.url;
+      } else {
+        throw new Error('No checkout URL received');
+      }
+
+    } catch (error) {
+      console.error('Error creating checkout:', error);
+      toast.error(error instanceof Error ? error.message : 'Failed to create checkout session');
+    } finally {
+      setIsProcessing(false);
     }
   };
 
   const handleClose = () => {
     setTermsAccepted(false);
     setFormErrors([]);
+    setIsProcessing(false);
     onOpenChange(false);
   };
 
@@ -266,16 +310,16 @@ export function BookingConfirmationDialog({
           <Button 
             variant="outline" 
             onClick={onBack}
-            disabled={isSubmitting}
+            disabled={isProcessing}
           >
             Back to Edit
           </Button>
           <Button 
             onClick={handleConfirm}
-            disabled={!termsAccepted || isSubmitting}
+            disabled={!termsAccepted || isProcessing}
             className="bg-tennis-green-primary hover:bg-tennis-green-medium"
           >
-            {isSubmitting ? 'Processing...' : 'Proceed to Payment'}
+            {isProcessing ? 'Creating Checkout...' : 'Proceed to Payment'}
           </Button>
         </DialogFooter>
       </DialogContent>

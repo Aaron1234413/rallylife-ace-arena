@@ -552,9 +552,8 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts, pre
         open={showConfirmation}
         onOpenChange={setShowConfirmation}
         bookingDetails={bookingDetails}
-        onConfirm={handleConfirmBooking}
         onBack={handleBackToEdit}
-        isSubmitting={isSubmitting}
+        clubId={clubId}
       />
     </>
   );
