@@ -316,6 +316,62 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     }
   };
 
+  // Create a new session
+  const createSession = async (sessionData: Partial<UnifiedSession>): Promise<UnifiedSession | null> => {
+    if (!user) return null;
+
+    try {
+      const { data, error } = await supabase
+        .from('sessions')
+        .insert({
+          creator_id: user.id,
+          session_type: sessionData.session_type,
+          format: sessionData.format,
+          max_players: sessionData.max_players,
+          stakes_amount: sessionData.stakes_amount || 0,
+          location: sessionData.location,
+          latitude: sessionData.latitude,
+          longitude: sessionData.longitude,
+          location_coordinates_set: !!(sessionData.latitude && sessionData.longitude),
+          notes: sessionData.notes,
+          is_private: sessionData.is_private || false,
+          invitation_code: sessionData.invitation_code,
+          club_id: sessionData.club_id,
+          session_source: sessionData.session_source || 'member'
+        })
+        .select(`
+          *,
+          creator:profiles!sessions_creator_id_fkey (
+            full_name,
+            avatar_url
+          )
+        `)
+        .single();
+
+      if (error) throw error;
+
+      const newSession: UnifiedSession = {
+        ...data,
+        participant_count: 0,
+        user_has_joined: false,
+        participants: [],
+        // Ensure arrays are properly typed
+        winning_team: Array.isArray(data.winning_team) ? 
+                     (data.winning_team as string[]) : 
+                     data.winning_team ? [String(data.winning_team)] : undefined
+      };
+
+      toast.success('Session created successfully!');
+      await fetchSessions();
+      return newSession;
+
+    } catch (error) {
+      console.error('Error creating session:', error);
+      toast.error('Failed to create session');
+      return null;
+    }
+  };
+
   // Cancel/Delete a session with proper refunds
   const cancelSession = async (sessionId: string, reason?: string): Promise<boolean> => {
     if (!user) return false;
@@ -397,6 +453,7 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     sessions,
     loading,
     joining,
+    createSession,
     joinSession,
     leaveSession,
     getSessionParticipants,

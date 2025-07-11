@@ -63,12 +63,14 @@ export function useLocationBasedSessions(radiusKm: number = 50) {
       try {
         console.log('Fetching nearby data with location:', currentLocation, 'radius:', radiusKm);
         
-        // Fetch nearby sessions with enhanced data
+        // Fetch nearby sessions with enhanced data using optimized PostGIS function
         const { data: sessionsData, error: sessionsError } = await supabase.rpc('get_nearby_sessions', {
           user_lat: currentLocation.lat,
           user_lng: currentLocation.lng,
           radius_km: radiusKm
         });
+
+        console.log('Nearby sessions RPC result:', { sessionsData, sessionsError });
 
         if (sessionsError) {
           console.warn('Error fetching nearby sessions:', sessionsError);

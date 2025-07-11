@@ -1,11 +1,11 @@
-import { useSessionManager } from './useSessionManager';
+import { useUnifiedSessions } from './useUnifiedSessions';
 
 /**
  * Hook for managing training sessions
+ * Uses unified sessions system which supports coordinate data
  */
 export function useTrainingSessions() {
-  return useSessionManager({
-    sessionType: 'training',
+  return useUnifiedSessions({
     includeNonClubSessions: true
   });
 }
