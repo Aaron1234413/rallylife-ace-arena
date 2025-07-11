@@ -111,15 +111,53 @@ export function useSessionManager(options: SessionManagerOptions | string = {}) 
   const createSession = async (sessionData: Partial<Session>) => {
     if (!user) throw new Error('User not authenticated');
     
-    // Mock session creation
+    console.log('Creating session with data:', sessionData);
+    
+    // Insert into the actual database
+    const { data, error } = await supabase
+      .from('sessions')
+      .insert({
+        creator_id: user.id,
+        session_type: sessionData.session_type,
+        location: sessionData.location,
+        max_players: sessionData.max_participants,
+        stakes_amount: sessionData.stakes_amount || 0,
+        notes: sessionData.description,
+        club_id: sessionData.club_id,
+        is_private: false,
+        invitation_code: null,
+        session_source: 'manual'
+      })
+      .select()
+      .single();
+    
+    if (error) {
+      console.error('Database error creating session:', error);
+      throw new Error(`Failed to create session: ${error.message}`);
+    }
+    
+    console.log('Session created successfully:', data);
+    
+    // Convert database format to our Session interface
     const newSession: Session = {
-      id: Date.now().toString(),
-      ...sessionData,
-      creator_id: user.id,
+      id: data.id,
+      title: `${sessionData.session_type} Session`,
+      description: sessionData.description,
+      start_time: sessionData.start_time || new Date().toISOString(),
+      end_time: sessionData.end_time || new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
+      location: data.location,
+      max_participants: data.max_players,
+      current_participants: 0,
       status: 'upcoming',
-      current_participants: 0
+      creator_id: data.creator_id,
+      session_type: data.session_type,
+      club_id: data.club_id,
+      created_at: data.created_at,
+      updated_at: data.updated_at,
+      stakes_amount: data.stakes_amount
     } as Session;
 
+    // Update local state
     setSessions(prev => [...prev, newSession]);
     return newSession;
   };
