@@ -989,47 +989,62 @@ export type Database = {
       }
       club_court_bookings: {
         Row: {
+          base_amount: number | null
           booking_date: string
           club_id: string
+          convenience_fee: number | null
           court_id: string
           created_at: string
           end_time: string
           id: string
           notes: string | null
           payment_method: string
+          payment_status: string
           start_time: string
           status: string
+          stripe_session_id: string | null
           tokens_used: number
+          total_amount: number | null
           updated_at: string
           user_id: string
         }
         Insert: {
+          base_amount?: number | null
           booking_date: string
           club_id: string
+          convenience_fee?: number | null
           court_id: string
           created_at?: string
           end_time: string
           id?: string
           notes?: string | null
           payment_method?: string
+          payment_status?: string
           start_time: string
           status?: string
+          stripe_session_id?: string | null
           tokens_used?: number
+          total_amount?: number | null
           updated_at?: string
           user_id: string
         }
         Update: {
+          base_amount?: number | null
           booking_date?: string
           club_id?: string
+          convenience_fee?: number | null
           court_id?: string
           created_at?: string
           end_time?: string
           id?: string
           notes?: string | null
           payment_method?: string
+          payment_status?: string
           start_time?: string
           status?: string
+          stripe_session_id?: string | null
           tokens_used?: number
+          total_amount?: number | null
           updated_at?: string
           user_id?: string
         }
