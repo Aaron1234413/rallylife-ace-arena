@@ -22,8 +22,7 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useCoordinatedRealTimeSessions } from '@/hooks/useCoordinatedRealTimeSessions';
-import { useSubscriptionCleanup } from '@/hooks/useSubscriptionCleanup';
+import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
 import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
 import { useAuth } from '@/hooks/useAuth';
@@ -46,9 +45,6 @@ import { SessionCreationDialog } from '@/components/sessions/SessionCreationDial
 const Play = () => {
   const { user } = useAuth();
   const { isJoining, startJoining, stopJoining } = useJoinSessionState();
-  
-  // Ensure proper subscription cleanup
-  useSubscriptionCleanup();
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   
@@ -124,18 +120,18 @@ const Play = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Get real session data using coordinated subscriptions
+  // Get real session data
   const { 
     sessions: availableSessions, 
     loading: availableLoading, 
     joinSession,
     error: sessionError 
-  } = useCoordinatedRealTimeSessions('available', user?.id);
+  } = useSafeRealTimeSessions('available', user?.id);
   
   const { 
     sessions: mySessions, 
     loading: mySessionsLoading 
-  } = useCoordinatedRealTimeSessions('my-sessions', user?.id);
+  } = useSafeRealTimeSessions('my-sessions', user?.id);
 
   // Enhanced session filtering and sorting
   const filteredAndSortedSessions = useMemo(() => {
