@@ -11,6 +11,7 @@ import { TrainingSessionProvider } from "@/contexts/TrainingSessionContext";
 import { SocialPlaySessionProvider } from "@/contexts/SocialPlaySessionContext";
 
 import { useAuth } from "@/hooks/useAuth";
+import { useRealtimeManager } from "@/hooks/useRealtimeManager";
 import { MobileBottomNav } from "@/components/mobile/MobileBottomNav";
 import { PWAInstaller } from "@/components/mobile/PWAInstaller";
 
@@ -50,6 +51,9 @@ const queryClient = new QueryClient();
 function AppWithGuide() {
   const { user } = useAuth();
   const location = useLocation();
+  
+  // Initialize global realtime manager
+  useRealtimeManager();
 
   return (
     <>
