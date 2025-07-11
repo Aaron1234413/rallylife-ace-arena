@@ -278,7 +278,11 @@ export default function Club() {
           </TabsContent>
 
           <TabsContent value="courts">
-            <CourtBooking clubId={club.id} />
+            <CourtBooking 
+              clubId={club.id} 
+              isOwner={isOwner}
+              onNavigateToSettings={() => setActiveTab('settings')}
+            />
           </TabsContent>
 
           <TabsContent value="economics">

@@ -19,9 +19,14 @@ import { BookCourtDialog } from './BookCourtDialog';
 import { supabase } from '@/integrations/supabase/client';
 import { getAvailableTimeSlots, validateBookingTime } from '@/utils/operatingHoursValidation';
 import { AvailableServicesWidget } from '../services/AvailableServicesWidget';
+import { useClubCourts } from '@/hooks/useClubCourts';
+import { useAuth } from '@/hooks/useAuth';
+import { EmptyCourtState } from '../courts/EmptyCourtState';
 
 interface CourtBookingProps {
   clubId: string;
+  isOwner?: boolean;
+  onNavigateToSettings?: () => void;
 }
 
 interface Club {
@@ -29,18 +34,18 @@ interface Club {
   operating_hours?: any;
 }
 
-export function CourtBooking({ clubId }: CourtBookingProps) {
+export function CourtBooking({ clubId, isOwner = false, onNavigateToSettings }: CourtBookingProps) {
+  const { user } = useAuth();
+  const { courts, loading: courtsLoading } = useClubCourts(clubId);
   const [selectedDate, setSelectedDate] = useState<Date>(new Date());
   const [showBookDialog, setShowBookDialog] = useState(false);
   const [selectedCourt, setSelectedCourt] = useState<string | null>(null);
-  const [courts, setCourts] = useState<any[]>([]);
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [club, setClub] = useState<Club | null>(null);
 
   useEffect(() => {
     fetchClub();
-    fetchCourts();
     fetchBookings();
   }, [clubId, selectedDate]);
 
@@ -59,26 +64,7 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
     }
   };
 
-  const fetchCourts = async () => {
-    try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('club_courts')
-        .select('*')
-        .eq('club_id', clubId)
-        .eq('is_active', true)
-        .order('name');
-
-      if (error) throw error;
-      setCourts(data || []);
-    } catch (error) {
-      console.error('Error fetching courts:', error);
-      setCourts([]);
-      toast.error('Failed to load courts');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // Remove fetchCourts function - now using useClubCourts hook
 
   const fetchBookings = async () => {
     try {
@@ -132,6 +118,17 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
     );
   };
 
+  const calculatePricing = (courtId: string, duration: number = 1) => {
+    const court = courts.find(c => c.id === courtId);
+    if (!court) return { baseAmount: 0, convenienceFee: 0, totalAmount: 0 };
+    
+    const baseAmount = Math.round(court.hourly_rate_money * duration * 100); // Convert to cents
+    const convenienceFee = Math.round(baseAmount * 0.05); // 5% RAKO fee
+    const totalAmount = baseAmount + convenienceFee;
+    
+    return { baseAmount, convenienceFee, totalAmount };
+  };
+
   const handleBookCourt = (courtId: string, time: string) => {
     // Validate booking time against operating hours
     if (club?.operating_hours) {
@@ -148,9 +145,19 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
     setShowBookDialog(true);
   };
 
+  // Show empty state if no courts are configured
+  if (!courtsLoading && courts.length === 0) {
+    return (
+      <EmptyCourtState 
+        isOwner={isOwner}
+        onNavigateToSettings={onNavigateToSettings || (() => {})}
+      />
+    );
+  }
+
   return (
     <>
-      {loading ? (
+      {courtsLoading ? (
         <div className="space-y-6 animate-fade-in">
           {/* Loading skeleton */}
           <Card>
@@ -259,11 +266,18 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
                   <div className="space-y-2">
                     <h3 className="font-semibold text-tennis-green-dark">{court.name}</h3>
                     <p className="text-sm text-tennis-green-medium capitalize">{court.surface_type.replace('_', ' ')}</p>
-                    <div className="flex items-center gap-1 text-sm">
-                      <DollarSign className="h-4 w-4 text-tennis-green-medium" />
-                      <span className="text-tennis-green-medium">{court.hourly_rate_tokens} tokens/hour</span>
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-1 text-sm">
+                        <DollarSign className="h-4 w-4 text-tennis-green-medium" />
+                        <span className="text-tennis-green-medium">{court.hourly_rate_tokens} tokens/hour</span>
+                        {court.hourly_rate_money > 0 && (
+                          <span className="text-tennis-green-medium">or ${court.hourly_rate_money}/hour</span>
+                        )}
+                      </div>
                       {court.hourly_rate_money > 0 && (
-                        <span className="text-tennis-green-medium">or ${court.hourly_rate_money}/hour</span>
+                        <div className="text-xs text-tennis-green-medium/80">
+                          + 5% convenience fee
+                        </div>
                       )}
                     </div>
                   </div>
@@ -338,10 +352,17 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
                                 <Button
                                   variant="outline"
                                   size="sm"
-                                  className="h-full w-full text-xs hover:bg-tennis-green-primary hover:text-white"
+                                  className="h-full w-full text-xs hover:bg-tennis-green-primary hover:text-white group"
                                   onClick={() => handleBookCourt(court.id, time)}
                                 >
-                                  Book
+                                  <div className="flex flex-col items-center">
+                                    <span>Book</span>
+                                    {court.hourly_rate_money > 0 && (
+                                      <span className="text-[10px] opacity-75 group-hover:opacity-100">
+                                        ${(calculatePricing(court.id).totalAmount / 100).toFixed(2)}
+                                      </span>
+                                    )}
+                                  </div>
                                 </Button>
                               )}
                             </div>

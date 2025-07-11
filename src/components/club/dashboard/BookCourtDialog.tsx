@@ -130,11 +130,18 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts }: B
   };
 
   const calculateCourtCost = () => {
-    if (!selectedCourt) return { tokens: 0, money: 0 };
+    if (!selectedCourt) return { tokens: 0, money: 0, baseAmount: 0, convenienceFee: 0, totalAmount: 0 };
+    
+    const baseAmount = Math.round(selectedCourt.hourly_rate_money * formData.duration * 100); // Convert to cents
+    const convenienceFee = Math.round(baseAmount * 0.05); // 5% RAKO convenience fee
+    const totalAmount = baseAmount + convenienceFee;
     
     return {
       tokens: selectedCourt.hourly_rate_tokens * formData.duration,
-      money: selectedCourt.hourly_rate_money * formData.duration
+      money: selectedCourt.hourly_rate_money * formData.duration,
+      baseAmount,
+      convenienceFee,
+      totalAmount
     };
   };
 
@@ -143,11 +150,18 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts }: B
       const service = courtServices.find(s => s.id === serviceId);
       if (!service) return total;
       
+      const serviceBaseAmount = Math.round(service.price_usd * 100); // Convert to cents
+      const serviceConvenienceFee = Math.round(serviceBaseAmount * 0.05); // 5% RAKO fee
+      const serviceTotalAmount = serviceBaseAmount + serviceConvenienceFee;
+      
       return {
         tokens: total.tokens + service.price_tokens,
-        money: total.money + service.price_usd
+        money: total.money + service.price_usd,
+        baseAmount: total.baseAmount + serviceBaseAmount,
+        convenienceFee: total.convenienceFee + serviceConvenienceFee,
+        totalAmount: total.totalAmount + serviceTotalAmount
       };
-    }, { tokens: 0, money: 0 });
+    }, { tokens: 0, money: 0, baseAmount: 0, convenienceFee: 0, totalAmount: 0 });
   };
 
   const calculateTotalCost = () => {
@@ -156,7 +170,10 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts }: B
     
     return {
       tokens: courtCost.tokens + servicesCost.tokens,
-      money: courtCost.money + servicesCost.money
+      money: courtCost.money + servicesCost.money,
+      baseAmount: courtCost.baseAmount + servicesCost.baseAmount,
+      convenienceFee: courtCost.convenienceFee + servicesCost.convenienceFee,
+      totalAmount: courtCost.totalAmount + servicesCost.totalAmount
     };
   };
 
@@ -473,7 +490,7 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts }: B
                 <span className="text-tennis-green-medium">Court ({formData.duration}h):</span>
                 <div className="flex items-center gap-2">
                   <span>{courtCost.tokens} tokens</span>
-                  {courtCost.money > 0 && <span>or ${courtCost.money}</span>}
+                  {courtCost.money > 0 && <span>or ${(courtCost.baseAmount / 100).toFixed(2)}</span>}
                 </div>
               </div>
               
@@ -482,20 +499,41 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts }: B
                   <span className="text-tennis-green-medium">Services:</span>
                   <div className="flex items-center gap-2">
                     <span>{servicesCost.tokens} tokens</span>
-                    {servicesCost.money > 0 && <span>or ${servicesCost.money}</span>}
+                    {servicesCost.money > 0 && <span>or ${(servicesCost.baseAmount / 100).toFixed(2)}</span>}
                   </div>
                 </div>
               )}
               
-              <Separator />
+              {/* Show convenience fee breakdown for cash payments */}
+              {totalCost.totalAmount > 0 && (
+                <>
+                  <div className="flex justify-between text-xs text-tennis-green-medium/80">
+                    <span>RAKO convenience fee (5%):</span>
+                    <span>${(totalCost.convenienceFee / 100).toFixed(2)}</span>
+                  </div>
+                  
+                  <Separator />
+                  
+                  <div className="flex justify-between font-medium">
+                    <span className="text-tennis-green-dark">Total:</span>
+                    <div className="flex items-center gap-2">
+                      <span>{totalCost.tokens} tokens</span>
+                      <span>or ${(totalCost.totalAmount / 100).toFixed(2)}</span>
+                    </div>
+                  </div>
+                </>
+              )}
               
-              <div className="flex justify-between font-medium">
-                <span className="text-tennis-green-dark">Total:</span>
-                <div className="flex items-center gap-2">
-                  <span>{totalCost.tokens} tokens</span>
-                  {totalCost.money > 0 && <span>or ${totalCost.money}</span>}
-                </div>
-              </div>
+              {/* Fallback for token-only bookings */}
+              {totalCost.totalAmount === 0 && (
+                <>
+                  <Separator />
+                  <div className="flex justify-between font-medium">
+                    <span className="text-tennis-green-dark">Total:</span>
+                    <span>{totalCost.tokens} tokens</span>
+                  </div>
+                </>
+              )}
             </div>
 
             {/* Payment Method */}
