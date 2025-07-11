@@ -133,7 +133,7 @@ export function EnhancedQuickActions({
         energyRequirement: 'high' as const,
         estimatedDuration: 90,
         difficulty: 'high' as const,
-        navigateTo: '/play',
+        navigateTo: '/sessions/create?type=match',
         timePreference: ['morning', 'evening'],
         varietyType: 'competitive'
       },
@@ -148,7 +148,7 @@ export function EnhancedQuickActions({
         energyRequirement: 'medium' as const,
         estimatedDuration: 60,
         difficulty: 'medium' as const,
-        navigateTo: '/play',
+        navigateTo: '/sessions/create?type=training',
         timePreference: ['morning', 'afternoon', 'evening'],
         varietyType: 'skill-building'
       },
@@ -163,7 +163,7 @@ export function EnhancedQuickActions({
         energyRequirement: 'low' as const,
         estimatedDuration: 45,
         difficulty: 'low' as const,
-        navigateTo: '/play',
+        navigateTo: '/sessions/create?type=social_play',
         timePreference: ['afternoon', 'evening'],
         varietyType: 'social'
       }

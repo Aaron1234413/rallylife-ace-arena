@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { 
@@ -9,20 +10,19 @@ import {
   Search,
   Trophy
 } from 'lucide-react';
-import { CreateOpenSessionDialog } from '../sessions/CreateOpenSessionDialog';
 
 interface ClubQuickActionsProps {
   clubId: string;
 }
 
 export function ClubQuickActions({ clubId }: ClubQuickActionsProps) {
-  const [showCreateSession, setShowCreateSession] = useState(false);
+  const navigate = useNavigate();
 
   const quickActions = [
     {
       icon: Plus,
       label: 'Create Session',
-      action: () => setShowCreateSession(true),
+      action: () => navigate(`/club/${clubId}/sessions/create`),
       variant: 'default' as const,
       className: 'bg-tennis-green-primary hover:bg-tennis-green-dark'
     },
@@ -74,17 +74,6 @@ export function ClubQuickActions({ clubId }: ClubQuickActionsProps) {
           </div>
         </CardContent>
       </Card>
-
-      {/* Create Session Dialog */}
-      <CreateOpenSessionDialog
-        clubId={clubId}
-        isOpen={showCreateSession}
-        onClose={() => setShowCreateSession(false)}
-        onSuccess={() => {
-          setShowCreateSession(false);
-          // Could show success message or navigate to sessions
-        }}
-      />
     </>
   );
 }
