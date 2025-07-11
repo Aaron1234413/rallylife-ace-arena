@@ -189,7 +189,7 @@ export function SessionCreationDialog({
           club_id: clubId || null,
           is_private: false,
           invitation_code: null,
-          session_source: 'manual',
+          session_source: 'member',
           status: 'waiting'
         })
         .select()
