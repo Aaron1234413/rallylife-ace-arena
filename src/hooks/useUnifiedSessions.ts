@@ -19,6 +19,13 @@ export interface UnifiedSession {
   latitude?: number;
   longitude?: number;
   location_coordinates_set?: boolean;
+  status?: string;
+  session_started_at?: string;
+  session_ended_at?: string;
+  completed_at?: string;
+  session_result?: any;
+  winner_id?: string;
+  winning_team?: string[];
   created_at: string;
   updated_at: string;
   
@@ -120,8 +127,11 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
           return {
             ...session,
             participant_count: participantCount,
-            user_has_joined: userParticipation
-          };
+            user_has_joined: userParticipation,
+            // Ensure arrays are properly typed
+            winning_team: Array.isArray(session.winning_team) ? session.winning_team : 
+                         session.winning_team ? [session.winning_team] : undefined
+          } as UnifiedSession;
         })
       );
 
@@ -256,8 +266,9 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
       const { error } = await supabase
         .from('sessions')
         .update({ 
+          status: 'active',
+          session_started_at: new Date().toISOString(),
           updated_at: new Date().toISOString()
-          // Add status field if needed in future
         })
         .eq('id', sessionId)
         .eq('creator_id', user.id);
@@ -270,6 +281,35 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     } catch (error) {
       console.error('Error starting session:', error);
       toast.error('Failed to start session');
+      return false;
+    }
+  };
+
+  // End/Complete a session
+  const completeSession = async (sessionId: string, completionData: any): Promise<boolean> => {
+    if (!user) return false;
+
+    try {
+      const { error } = await supabase
+        .from('sessions')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+          session_ended_at: new Date().toISOString(),
+          session_result: completionData,
+          updated_at: new Date().toISOString()
+        })
+        .eq('id', sessionId)
+        .eq('creator_id', user.id);
+
+      if (error) throw error;
+
+      toast.success('Session completed!');
+      await fetchSessions();
+      return true;
+    } catch (error) {
+      console.error('Error completing session:', error);
+      toast.error('Failed to complete session');
       return false;
     }
   };
@@ -350,6 +390,7 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     leaveSession,
     getSessionParticipants,
     startSession,
+    completeSession,
     cancelSession,
     refreshSessions: fetchSessions
   };
