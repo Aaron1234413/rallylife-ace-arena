@@ -1,18 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Switch } from '@/components/ui/switch';
 import { Badge } from '@/components/ui/badge';
 import { toast } from '@/hooks/use-toast';
 import { supabase } from '@/integrations/supabase/client';
-import { Copy, Link2, Users, Clock, CheckCircle, Share2 } from 'lucide-react';
+import { Copy, Link2, Users, Clock, Share2, X } from 'lucide-react';
+import { Share } from '@capacitor/share';
+import { Capacitor } from '@capacitor/core';
+import { useAuth } from '@/hooks/useAuth';
 
 interface ClubInvitationManagerProps {
   clubId: string;
-  isPrivate: boolean;
-  onPrivacyChange: (isPrivate: boolean) => void;
+  isPrivate?: boolean;
+  onPrivacyChange?: (isPrivate: boolean) => void;
 }
 
 interface Invitation {
@@ -28,8 +28,76 @@ interface Invitation {
 export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
   const [invitations, setInvitations] = useState<Invitation[]>([]);
   const [loading, setLoading] = useState(false);
+  const [userPermissions, setUserPermissions] = useState<any>(null);
+  const { user } = useAuth();
+
+  // Check user permissions on component mount
+  useEffect(() => {
+    const checkUserPermissions = async () => {
+      if (!user?.id) return;
+      
+      const { data: membership } = await supabase
+        .from('club_memberships')
+        .select('permissions, role')
+        .eq('club_id', clubId)
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .single();
+        
+      setUserPermissions(membership);
+    };
+    
+    checkUserPermissions();
+  }, [clubId, user?.id]);
+
+  // Fetch existing invitations
+  useEffect(() => {
+    const fetchInvitations = async () => {
+      const { data } = await supabase
+        .from('club_invitations')
+        .select('*')
+        .eq('club_id', clubId)
+        .eq('is_shareable_link', true)
+        .eq('is_active', true)
+        .order('created_at', { ascending: false });
+      
+      if (data) {
+        setInvitations(data);
+      }
+    };
+    
+    fetchInvitations();
+  }, [clubId]);
 
   const generateInviteLink = async () => {
+    if (!user?.id) {
+      toast({
+        title: "Authentication Required",
+        description: "Please log in to create invitation links",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    // Check permissions before attempting to create invitation
+    if (!userPermissions) {
+      toast({
+        title: "Permission Check Failed",
+        description: "Unable to verify your permissions. Please try again.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    if (!userPermissions.permissions?.can_invite && userPermissions.role !== 'owner') {
+      toast({
+        title: "Insufficient Permissions",
+        description: "You don't have permission to create invitation links. Contact your club owner to request invitation privileges.",
+        variant: "destructive"
+      });
+      return;
+    }
+
     setLoading(true);
     try {
       // Generate unique email for shareable links to avoid constraint conflicts
@@ -39,7 +107,7 @@ export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
         .from('club_invitations')
         .insert({
           club_id: clubId,
-          inviter_id: (await supabase.auth.getUser()).data.user?.id,
+          inviter_id: user.id,
           invitee_email: uniqueEmail,
           max_uses: null, // Unlimited uses
           expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString(), // 1 year
@@ -49,7 +117,25 @@ export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        // Handle specific RLS errors
+        if (error.code === '42501' || error.message.includes('policy')) {
+          toast({
+            title: "Permission Denied",
+            description: "You don't have permission to create invitations. Please contact your club administrator.",
+            variant: "destructive"
+          });
+        } else if (error.code === '23505') {
+          toast({
+            title: "Duplicate Invitation",
+            description: "An invitation with this code already exists. Please try again.",
+            variant: "destructive"
+          });
+        } else {
+          throw error;
+        }
+        return;
+      }
 
       setInvitations(prev => [data, ...prev]);
       toast({
@@ -59,8 +145,8 @@ export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
     } catch (error) {
       console.error('Error creating invitation:', error);
       toast({
-        title: "Error",
-        description: "Failed to create invitation link",
+        title: "Creation Failed",
+        description: "Failed to create invitation link. Please check your internet connection and try again.",
         variant: "destructive"
       });
     } finally {
@@ -77,16 +163,43 @@ export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
     });
   };
 
-  const shareLink = (code: string) => {
+  const shareLink = async (code: string) => {
     const fullUrl = `${window.location.origin}/join/${code}`;
-    if (navigator.share) {
-      navigator.share({
-        title: `Join our Tennis Club`,
-        text: `You're invited to join our tennis club!`,
-        url: fullUrl,
-      });
-    } else {
-      copyInviteLink(code);
+    const shareData = {
+      title: 'Join Our Tennis Club',
+      text: "You're invited to join our tennis club! Click the link to get started.",
+      url: fullUrl,
+    };
+
+    try {
+      // Check if we're on a native platform
+      const isNative = Capacitor.isNativePlatform();
+      
+      if (isNative) {
+        // Use Capacitor Share plugin for native platforms (iOS/Android)
+        await Share.share(shareData);
+        toast({
+          title: "Shared Successfully",
+          description: "Invitation link shared!"
+        });
+      } else if (navigator.share && navigator.canShare && navigator.canShare(shareData)) {
+        // Use Web Share API for modern browsers
+        await navigator.share(shareData);
+        toast({
+          title: "Shared Successfully", 
+          description: "Invitation link shared!"
+        });
+      } else {
+        // Fallback to clipboard copy for older browsers
+        copyInviteLink(code);
+      }
+    } catch (error: any) {
+      // Handle share cancellation gracefully (user canceled the share dialog)
+      if (error.name !== 'AbortError' && error.message !== 'Share canceled') {
+        console.error('Error sharing:', error);
+        // Fallback to clipboard copy on error
+        copyInviteLink(code);
+      }
     }
   };
 
@@ -109,41 +222,57 @@ export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
       });
     } catch (error) {
       console.error('Error deactivating invitation:', error);
+      toast({
+        title: "Error",
+        description: "Failed to deactivate invitation",
+        variant: "destructive"
+      });
     }
   };
 
+  // Check if user has permission to create invitations
+  const canCreateInvitations = userPermissions?.role === 'owner' || userPermissions?.permissions?.can_invite;
+
   return (
-    <div className="space-y-6">
-      {/* Club Invitation Management */}
-      <Card className="shadow-lg border-0">
+    <div className="space-y-4">
+      <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <Share2 className="h-5 w-5" />
-            Member Invitations
+            <Users className="h-5 w-5" />
+            Club Invitations
           </CardTitle>
           <CardDescription>
-            Create shareable links for new members to join your private club. All clubs are private by default.
+            Create shareable links for new members to join your club
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="p-3 bg-tennis-green-bg/50 rounded-lg border border-tennis-green-primary/20">
-            <div className="flex items-center gap-2 mb-2">
-              <Users className="h-4 w-4 text-tennis-green-primary" />
-              <span className="text-sm font-medium text-tennis-green-dark">Private Club</span>
+          {/* Permission Check Display */}
+          {!canCreateInvitations && (
+            <div className="p-3 rounded-md bg-orange-50 border border-orange-200">
+              <p className="text-sm text-orange-800">
+                <strong>No invitation permissions:</strong> Contact your club owner to request invitation privileges.
+              </p>
             </div>
-            <p className="text-xs text-tennis-green-medium">
-              Only invited members can join your club through shareable links
+          )}
+          
+          {/* Create Shareable Link */}
+          <div className="space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-medium">Create Shareable Invite Link</h3>
+              <Button 
+                onClick={generateInviteLink} 
+                disabled={loading || !canCreateInvitations}
+                size="sm"
+                className="flex items-center gap-2"
+              >
+                <Link2 className="h-4 w-4" />
+                {loading ? 'Creating...' : 'Create Link'}
+              </Button>
+            </div>
+            <p className="text-sm text-muted-foreground">
+              Generate unlimited-use invitation links that expire in 1 year
             </p>
           </div>
-          
-          <Button 
-            onClick={generateInviteLink} 
-            disabled={loading}
-            className="w-full sm:w-auto"
-          >
-            <Link2 className="h-4 w-4 mr-2" />
-            {loading ? 'Creating Link...' : 'Create Shareable Invite Link'}
-          </Button>
         </CardContent>
       </Card>
 
@@ -173,17 +302,17 @@ export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
                     </div>
                     
                     {/* Full shareable link display */}
-                    <div className="bg-tennis-green-bg/20 p-3 rounded-lg mb-2">
+                    <div className="bg-gray-50 p-3 rounded-lg mb-2">
                       <div className="flex items-center gap-2 mb-1">
-                        <Share2 className="h-4 w-4 text-tennis-green-primary" />
-                        <span className="text-sm font-medium text-tennis-green-dark">Share this link:</span>
+                        <Share2 className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium">Share this link:</span>
                       </div>
-                      <code className="text-sm text-tennis-green-primary break-all">
+                      <code className="text-sm text-blue-600 break-all">
                         {`${window.location.origin}/join/${invitation.invitation_code}`}
                       </code>
                     </div>
                     
-                    <div className="flex items-center gap-4 text-sm text-tennis-green-medium">
+                    <div className="flex items-center gap-4 text-sm text-muted-foreground">
                       <span className="flex items-center gap-1">
                         <Users className="h-4 w-4" />
                         {invitation.uses_count} members joined
@@ -194,35 +323,33 @@ export function ClubInvitationManager({ clubId }: ClubInvitationManagerProps) {
                       </span>
                     </div>
                   </div>
-                  <div className="flex gap-2 flex-col sm:flex-row">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => copyInviteLink(invitation.invitation_code)}
-                      className="flex items-center gap-2"
-                    >
-                      <Copy className="h-4 w-4" />
-                      Copy Link
-                    </Button>
+                  <div className="flex gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => shareLink(invitation.invitation_code)}
-                      className="flex items-center gap-2"
+                      className="flex items-center gap-1"
                     >
-                      <Share2 className="h-4 w-4" />
+                      <Share2 className="h-3 w-3" />
                       Share
                     </Button>
-                    {invitation.is_active && (
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => deactivateInvitation(invitation.id)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        Deactivate
-                      </Button>
-                    )}
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => copyInviteLink(invitation.invitation_code)}
+                      className="flex items-center gap-1"
+                    >
+                      <Copy className="h-3 w-3" />
+                      Copy
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => deactivateInvitation(invitation.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <X className="h-3 w-3" />
+                    </Button>
                   </div>
                 </div>
               ))}
