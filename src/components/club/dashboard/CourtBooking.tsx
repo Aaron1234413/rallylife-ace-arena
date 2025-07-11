@@ -193,16 +193,52 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
                 Select Date
               </CardTitle>
             </CardHeader>
-          <CardContent>
-            <Calendar
-              mode="single"
-              selected={selectedDate}
-              onSelect={(date) => date && setSelectedDate(date)}
-              disabled={(date) => date < new Date() || date > addDays(new Date(), 30)}
-              className="rounded-md border pointer-events-auto"
-            />
-          </CardContent>
-        </Card>
+            <CardContent className="space-y-4">
+              {/* Quick date selection buttons */}
+              <div className="flex gap-2 mb-4">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedDate(new Date())}
+                  className={isSameDay(selectedDate, new Date()) ? 'bg-tennis-green-primary text-white' : ''}
+                >
+                  Today
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedDate(addDays(new Date(), 1))}
+                  className={isSameDay(selectedDate, addDays(new Date(), 1)) ? 'bg-tennis-green-primary text-white' : ''}
+                >
+                  Tomorrow
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedDate(addDays(selectedDate, -1))}
+                  disabled={selectedDate <= new Date()}
+                >
+                  Previous Day
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setSelectedDate(addDays(selectedDate, 1))}
+                  disabled={selectedDate >= addDays(new Date(), 30)}
+                >
+                  Next Day
+                </Button>
+              </div>
+              
+              <Calendar
+                mode="single"
+                selected={selectedDate}
+                onSelect={(date) => date && setSelectedDate(date)}
+                disabled={(date) => date < new Date() || date > addDays(new Date(), 30)}
+                className="rounded-md border pointer-events-auto"
+              />
+            </CardContent>
+          </Card>
 
         {/* Court Availability */}
         <Card className="shadow-lg">
@@ -356,7 +392,13 @@ export function CourtBooking({ clubId }: CourtBookingProps) {
 
       <BookCourtDialog
         open={showBookDialog}
-        onOpenChange={setShowBookDialog}
+        onOpenChange={(open) => {
+          setShowBookDialog(open);
+          if (!open) {
+            // Refresh bookings when dialog closes
+            fetchBookings();
+          }
+        }}
         courtId={selectedCourt}
         date={selectedDate}
         courts={courts}
