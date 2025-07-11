@@ -22,7 +22,6 @@ import {
 } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useSafeRealTimeSessions } from '@/hooks/useSafeRealTimeSessions';
 import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
 import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
 import { useAuth } from '@/hooks/useAuth';
@@ -54,8 +53,13 @@ const Play = () => {
   // Session creation dialog state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   
-  // Add unified sessions hook for delete functionality
-  const { cancelSession } = useUnifiedSessions({
+  // Add unified sessions hook for basic session management
+  const { 
+    sessions: allSessions, 
+    loading: sessionsLoading,
+    joinSession,
+    cancelSession 
+  } = useUnifiedSessions({
     includeNonClubSessions: true
   });
   
@@ -120,18 +124,13 @@ const Play = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Get real session data
-  const { 
-    sessions: availableSessions, 
-    loading: availableLoading, 
-    joinSession,
-    error: sessionError 
-  } = useSafeRealTimeSessions('available', user?.id);
+  // Filter sessions for different tabs
+  const availableSessions = allSessions.filter(s => !s.user_has_joined);
+  const mySessions = allSessions.filter(s => s.user_has_joined || s.creator_id === user?.id);
   
-  const { 
-    sessions: mySessions, 
-    loading: mySessionsLoading 
-  } = useSafeRealTimeSessions('my-sessions', user?.id);
+  // Use static loading state from unified sessions
+  const availableLoading = sessionsLoading;
+  const mySessionsLoading = sessionsLoading;
 
   // Enhanced session filtering and sorting
   const filteredAndSortedSessions = useMemo(() => {
@@ -139,7 +138,7 @@ const Play = () => {
       // Search filter
       const matchesSearch = !searchQuery || 
         session.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        session.creator_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        session.creator?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         session.session_type.toLowerCase().includes(searchQuery.toLowerCase());
       
       // Format filter
@@ -202,8 +201,8 @@ const Play = () => {
     setSortBy(hasLocation ? 'distance' : 'created_at');
   };
 
-  // Separate sessions by timing
-  const activeSessions = filteredAndSortedSessions.filter(session => session.status === 'waiting');
+  // For now, all sessions are considered "active" (available)
+  const activeSessions = filteredAndSortedSessions;
   const upcomingSessions = []; // We'll enhance this later with scheduled sessions
 
   // Mobile-first session handlers
@@ -396,10 +395,10 @@ const Play = () => {
                 </Card>
               ) : (
                 <div className="space-y-4">
-                  {activeSessions.slice(0, 3).map((session) => (
+                 {activeSessions.slice(0, 3).map((session) => (
                     <EnhancedSessionCard
                       key={session.id}
-                      session={session}
+                      session={{...session, status: 'waiting', creator_name: session.creator?.full_name}}
                       onJoin={handleJoinSession}
                       isJoining={isJoining(session.id)}
                       userBalance={regularTokens}
@@ -456,7 +455,7 @@ const Play = () => {
                   return (
                     <EnhancedSessionCard
                       key={session.id}
-                      session={{...fullSession, distance_km: session.distance_km}}
+                      session={{...fullSession, distance_km: session.distance_km, status: 'waiting', creator_name: fullSession.creator?.full_name}}
                       onJoin={handleJoinSession}
                       isJoining={isJoining(session.id)}
                       userBalance={regularTokens}
@@ -499,14 +498,14 @@ const Play = () => {
             ) : (
               <div className="space-y-4">
                 {activeSessions.map((session) => (
-                  <EnhancedSessionCard
-                    key={session.id}
-                    session={session}
-                    onJoin={handleJoinSession}
-                    isJoining={isJoining(session.id)}
-                    userBalance={regularTokens}
-                    showDistance={hasLocation}
-                  />
+                      <EnhancedSessionCard
+                        key={session.id}
+                        session={{...session, status: 'waiting', creator_name: session.creator?.full_name}}
+                        onJoin={handleJoinSession}
+                        isJoining={isJoining(session.id)}
+                        userBalance={regularTokens}
+                        showDistance={hasLocation}
+                      />
                 ))}
               </div>
             )}
@@ -541,11 +540,11 @@ const Play = () => {
                 </CardContent>
               </Card>
             ) : (
-              <div className="space-y-4">
+               <div className="space-y-4">
                 {mySessions.map((session) => (
                   <EnhancedSessionCard
                     key={session.id}
-                    session={session}
+                    session={{...session, status: 'waiting', creator_name: session.creator?.full_name}}
                     onJoin={handleJoinSession}
                     isJoining={isJoining(session.id)}
                     userBalance={regularTokens}
