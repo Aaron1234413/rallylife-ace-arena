@@ -182,29 +182,35 @@ export function useOpenSessions(clubId?: string) {
     return await unifiedLeaveSession(sessionId);
   };
 
-  // Cancel a session (for creators)
+  // Cancel a session (for creators) with proper refunds
   const cancelSession = async (sessionId: string, reason?: string) => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
-        .from('open_sessions')
-        .update({
-          status: 'cancelled',
-          cancelled_reason: reason,
-          cancelled_at: new Date().toISOString()
-        })
-        .eq('id', sessionId)
-        .eq('creator_id', user.id);
+      const { data, error } = await supabase
+        .rpc('cancel_open_session_with_refunds', {
+          session_id_param: sessionId,
+          canceller_id_param: user.id,
+          cancellation_reason_param: reason || 'Cancelled by creator'
+        });
 
-      if (error) throw error;
+      const result = data as any;
+      if (!error && result?.success) {
+        toast.success(
+          `Session cancelled successfully! ${result.creator_tokens_refund > 0 
+            ? `${result.creator_tokens_refund} tokens refunded (${result.refund_percentage}% refund rate)`
+            : 'No refund applicable'
+          }`
+        );
+        await fetchSessions();
+        return true;
+      }
 
-      toast.success('Session cancelled successfully');
-      await fetchSessions();
-      return true;
+      const errorMsg = result?.error || 'Failed to cancel session';
+      throw new Error(errorMsg);
     } catch (error) {
       console.error('Error cancelling session:', error);
-      toast.error('Failed to cancel session');
+      toast.error(error instanceof Error ? error.message : 'Failed to cancel session');
       return false;
     }
   };

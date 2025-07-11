@@ -3623,6 +3623,7 @@ export type Database = {
           duration_minutes: number
           end_time: string
           equipment_provided: Json | null
+          expires_at: string | null
           id: string
           is_public: boolean
           max_participants: number
@@ -3653,6 +3654,7 @@ export type Database = {
           duration_minutes: number
           end_time: string
           equipment_provided?: Json | null
+          expires_at?: string | null
           id?: string
           is_public?: boolean
           max_participants?: number
@@ -3683,6 +3685,7 @@ export type Database = {
           duration_minutes?: number
           end_time?: string
           equipment_provided?: Json | null
+          expires_at?: string | null
           id?: string
           is_public?: boolean
           max_participants?: number
@@ -4835,11 +4838,14 @@ export type Database = {
       }
       sessions: {
         Row: {
+          cancellation_reason: string | null
+          cancelled_at: string | null
           club_id: string | null
           completed_at: string | null
           created_at: string
           creator_id: string
           current_participants: number | null
+          expires_at: string | null
           format: string | null
           id: string
           invitation_code: string | null
@@ -4864,11 +4870,14 @@ export type Database = {
           winning_team: Json | null
         }
         Insert: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           club_id?: string | null
           completed_at?: string | null
           created_at?: string
           creator_id: string
           current_participants?: number | null
+          expires_at?: string | null
           format?: string | null
           id?: string
           invitation_code?: string | null
@@ -4893,11 +4902,14 @@ export type Database = {
           winning_team?: Json | null
         }
         Update: {
+          cancellation_reason?: string | null
+          cancelled_at?: string | null
           club_id?: string | null
           completed_at?: string | null
           created_at?: string
           creator_id?: string
           current_participants?: number | null
+          expires_at?: string | null
           format?: string | null
           id?: string
           invitation_code?: string | null
@@ -5944,12 +5956,36 @@ export type Database = {
         Args: { total_xp: number }
         Returns: number
       }
+      calculate_refund_percentage_open_sessions: {
+        Args: {
+          scheduled_date: string
+          start_time: string
+          cancellation_time?: string
+        }
+        Returns: number
+      }
       calculate_xp_for_level: {
         Args: { level: number }
         Returns: number
       }
       cancel_court_booking: {
         Args: { booking_id: string }
+        Returns: Json
+      }
+      cancel_open_session_with_refunds: {
+        Args: {
+          session_id_param: string
+          canceller_id_param: string
+          cancellation_reason_param?: string
+        }
+        Returns: Json
+      }
+      cancel_session_with_refunds: {
+        Args: {
+          session_id_param: string
+          canceller_id_param: string
+          cancellation_reason_param?: string
+        }
         Returns: Json
       }
       check_academy_milestones: {
@@ -6252,6 +6288,10 @@ export type Database = {
       }
       equip_coach_avatar_item: {
         Args: { user_id: string; item_id: string }
+        Returns: Json
+      }
+      expire_open_sessions: {
+        Args: Record<PropertyKey, never>
         Returns: Json
       }
       find_nearby_users: {

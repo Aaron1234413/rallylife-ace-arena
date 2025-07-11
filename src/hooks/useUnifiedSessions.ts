@@ -314,25 +314,58 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     }
   };
 
-  // Cancel/Delete a session
-  const cancelSession = async (sessionId: string): Promise<boolean> => {
+  // Cancel/Delete a session with proper refunds
+  const cancelSession = async (sessionId: string, reason?: string): Promise<boolean> => {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
-        .from('sessions')
-        .delete()
-        .eq('id', sessionId)
-        .eq('creator_id', user.id);
+      // Try open_sessions first (main session type)
+      const { data: openSessionData, error: openSessionError } = await supabase
+        .rpc('cancel_open_session_with_refunds', {
+          session_id_param: sessionId,
+          canceller_id_param: user.id,
+          cancellation_reason_param: reason || 'Cancelled by creator'
+        });
 
-      if (error) throw error;
+      const openResult = openSessionData as any;
+      if (!openSessionError && openResult?.success) {
+        toast.success(
+          `Session cancelled successfully! ${openResult.creator_tokens_refund > 0 
+            ? `${openResult.creator_tokens_refund} tokens refunded (${openResult.refund_percentage}% refund rate)`
+            : 'No refund applicable'
+          }`
+        );
+        await fetchSessions();
+        return true;
+      }
 
-      toast.success('Session cancelled successfully');
-      await fetchSessions();
-      return true;
+      // Fallback to basic sessions table
+      const { data: sessionData, error: sessionError } = await supabase
+        .rpc('cancel_session_with_refunds', {
+          session_id_param: sessionId,
+          canceller_id_param: user.id,
+          cancellation_reason_param: reason || 'Cancelled by creator'
+        });
+
+      const sessionResult = sessionData as any;
+      if (!sessionError && sessionResult?.success) {
+        toast.success(
+          `Session cancelled successfully! ${sessionResult.total_refunded > 0 
+            ? `${sessionResult.total_refunded} tokens refunded to ${sessionResult.participants_refunded + 1} users`
+            : 'No refunds applicable'
+          }`
+        );
+        await fetchSessions();
+        return true;
+      }
+
+      // If both fail, show specific error
+      const errorMsg = sessionResult?.error || openResult?.error || 'Failed to cancel session';
+      throw new Error(errorMsg);
+
     } catch (error) {
       console.error('Error cancelling session:', error);
-      toast.error('Failed to cancel session');
+      toast.error(error instanceof Error ? error.message : 'Failed to cancel session');
       return false;
     }
   };
