@@ -58,7 +58,8 @@ const Play = () => {
     sessions: allSessions, 
     loading: sessionsLoading,
     joinSession,
-    cancelSession 
+    cancelSession,
+    refreshSessions 
   } = useUnifiedSessions({
     includeNonClubSessions: true
   });
@@ -569,7 +570,8 @@ const Play = () => {
         onOpenChange={setShowCreateDialog}
         onSuccess={() => {
           setShowCreateDialog(false);
-          toast.success('Session created successfully!');
+          // Refresh sessions after creation
+          refreshSessions();
         }}
       />
     </div>

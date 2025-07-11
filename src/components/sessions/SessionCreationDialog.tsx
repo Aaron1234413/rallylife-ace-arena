@@ -5,10 +5,11 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { useSessionManager } from '@/hooks/useSessionManager';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { HPReductionPreview } from './HPReductionPreview';
 import { 
   Plus, 
@@ -95,7 +96,7 @@ export function SessionCreationDialog({
   const [loading, setLoading] = useState(false);
   const [errors, setErrors] = useState<Record<string, string>>({});
   
-  const { createSession } = useSessionManager({ clubId });
+  const { user } = useAuth();
   const { regularTokens } = usePlayerTokens();
   const { hpData } = usePlayerHP();
   const { xpData } = usePlayerXP();
@@ -169,26 +170,37 @@ export function SessionCreationDialog({
   };
 
   const handleSubmit = async () => {
-    if (!validateStep(3)) return;
+    if (!validateStep(3) || !user) return;
 
     setLoading(true);
     try {
       const selectedType = sessionTypes.find(t => t.type === formData.sessionType);
-      const sessionTitle = `${selectedType?.name} Session`;
+      
+      // Insert directly into sessions table using the correct format
+      const { data, error } = await supabase
+        .from('sessions')
+        .insert({
+          creator_id: user.id,
+          session_type: formData.sessionType,
+          location: formData.location,
+          max_players: formData.maxPlayers,
+          stakes_amount: formData.stakes,
+          notes: `${selectedType?.description} at ${formData.location}`,
+          club_id: clubId || null,
+          is_private: false,
+          invitation_code: null,
+          session_source: 'manual',
+          status: 'waiting'
+        })
+        .select()
+        .single();
 
-      await createSession({
-        title: sessionTitle,
-        description: `${selectedType?.description} at ${formData.location}`,
-        location: formData.location,
-        max_participants: formData.maxPlayers,
-        session_type: formData.sessionType,
-        stakes_amount: formData.stakes,
-        club_id: clubId,
-        start_time: new Date().toISOString(),
-        end_time: new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(), // 2 hours from now
-        skill_level: 'all'
-      });
+      if (error) {
+        console.error('Database error creating session:', error);
+        throw new Error(`Failed to create session: ${error.message}`);
+      }
 
+      console.log('Session created successfully:', data);
       toast.success('Session created successfully!');
       setOpen(false);
       resetForm();
