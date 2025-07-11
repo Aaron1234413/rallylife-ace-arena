@@ -59,7 +59,6 @@ export function useSafeRealTimeSessions(
   const channelsRef = useRef<any[]>([]);
   const isSubscribedRef = useRef(false);
   const retryCountRef = useRef(0);
-  const isInitializedRef = useRef(false);
 
   // Use the authenticated user's ID if no userId provided
   const effectiveUserId = userId || user?.id;
@@ -76,14 +75,6 @@ export function useSafeRealTimeSessions(
       channelsRef.current = [];
     }
     isSubscribedRef.current = false;
-  }, []);
-
-  const resetState = useCallback(() => {
-    setSessions([]);
-    setError(null);
-    setLoading(true);
-    retryCountRef.current = 0;
-    isInitializedRef.current = false;
   }, []);
 
   const fetchSessions = useCallback(async () => {
@@ -192,13 +183,10 @@ export function useSafeRealTimeSessions(
     }
   }, [activeTab, effectiveUserId, enabled, retryAttempts, retryDelay, onError]);
 
-  // Initial fetch with proper initialization
+  // Initial fetch
   useEffect(() => {
     if (enabled && effectiveUserId) {
-      isInitializedRef.current = false;
-      fetchSessions().finally(() => {
-        isInitializedRef.current = true;
-      });
+      fetchSessions();
     } else {
       setLoading(false);
     }
@@ -210,84 +198,68 @@ export function useSafeRealTimeSessions(
     };
   }, [activeTab, effectiveUserId, enabled]);
 
-  // Reset state when key dependencies change
-  useEffect(() => {
-    resetState();
-  }, [activeTab, effectiveUserId, resetState]);
-
   // Create a stable reference to fetchSessions for subscriptions
   const fetchSessionsRef = useRef(fetchSessions);
   fetchSessionsRef.current = fetchSessions;
 
   // Set up real-time subscriptions with safety checks
   useEffect(() => {
-    if (!enabled || !effectiveUserId || isSubscribedRef.current || !isInitializedRef.current) return;
+    if (!enabled || !effectiveUserId || isSubscribedRef.current) return;
 
     let sessionsChannel: any = null;
     let participantsChannel: any = null;
 
-    // Use a timeout to prevent immediate subscription after mount
-    const subscriptionTimeout = setTimeout(() => {
-      try {
-        // Double-check subscription state before proceeding
-        if (isSubscribedRef.current) return;
+    try {
+      // Clear any existing channels first
+      clearChannels();
 
-        // Clear any existing channels first
-        clearChannels();
+      // Create unique channel names to avoid conflicts with timestamp and random
+      const uniqueId = `${effectiveUserId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+      const sessionChannelName = `safe-sessions-${uniqueId}`;
+      const participantChannelName = `safe-participants-${uniqueId}`;
 
-        // Create unique channel names to avoid conflicts with timestamp and random
-        const uniqueId = `${effectiveUserId}-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        const sessionChannelName = `safe-sessions-${uniqueId}`;
-        const participantChannelName = `safe-participants-${uniqueId}`;
+      // Subscribe to sessions table changes
+      sessionsChannel = supabase
+        .channel(sessionChannelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'sessions'
+          },
+          () => {
+            fetchSessionsRef.current();
+          }
+        )
+        .subscribe();
 
-        // Subscribe to sessions table changes
-        sessionsChannel = supabase
-          .channel(sessionChannelName)
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'sessions'
-            },
-            () => {
-              if (isInitializedRef.current) {
-                fetchSessionsRef.current();
-              }
-            }
-          )
-          .subscribe();
+      // Subscribe to session_participants table changes
+      participantsChannel = supabase
+        .channel(participantChannelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'session_participants'
+          },
+          () => {
+            fetchSessionsRef.current();
+          }
+        )
+        .subscribe();
 
-        // Subscribe to session_participants table changes
-        participantsChannel = supabase
-          .channel(participantChannelName)
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'session_participants'
-            },
-            () => {
-              if (isInitializedRef.current) {
-                fetchSessionsRef.current();
-              }
-            }
-          )
-          .subscribe();
-
-        channelsRef.current = [sessionsChannel, participantsChannel];
-        isSubscribedRef.current = true;
-      } catch (error) {
-        console.error('Error setting up real-time subscriptions:', error);
-      }
-    }, 100); // Small delay to prevent race conditions
+      channelsRef.current = [sessionsChannel, participantsChannel];
+      isSubscribedRef.current = true;
+    } catch (error) {
+      console.error('Error setting up real-time subscriptions:', error);
+    }
 
     return () => {
-      clearTimeout(subscriptionTimeout);
       clearChannels();
     };
-  }, [effectiveUserId, enabled, clearChannels]);
+  }, [effectiveUserId, enabled]);
 
   const joinSession = useCallback(async (sessionId: string) => {
     if (!effectiveUserId) {
