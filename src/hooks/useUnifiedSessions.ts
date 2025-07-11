@@ -90,6 +90,8 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
             avatar_url
           )
         `)
+        .is('completed_at', null)  // Only show non-completed sessions
+        .is('cancelled_at', null)  // Only show non-cancelled sessions
         .order('created_at', { ascending: false });
 
       // Apply filters based on options
