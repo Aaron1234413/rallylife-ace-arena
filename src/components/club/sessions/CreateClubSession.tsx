@@ -22,6 +22,7 @@ import {
 import { useClubSessions } from '@/hooks/useClubSessions';
 import { useClubCourts } from '@/hooks/useClubCourts';
 import { HybridPayment } from '@/components/payments/HybridPayment';
+import { LocationInput } from '@/components/ui/location-input';
 
 interface CreateClubSessionProps {
   clubId: string;
@@ -52,6 +53,7 @@ export function CreateClubSession({ clubId, isOpen, onClose, onSuccess }: Create
     session_type: 'court_booking' as const,
     title: '',
     description: '',
+    location: '',
     court_id: '',
     coach_id: '',
     date: new Date(),
@@ -119,20 +121,21 @@ export function CreateClubSession({ clubId, isOpen, onClose, onSuccess }: Create
       onSuccess?.();
       onClose();
       setStep(1);
-      setSessionData({
-        session_type: 'court_booking',
-        title: '',
-        description: '',
-        court_id: '',
-        coach_id: '',
-        date: new Date(),
-        start_time: '',
-        end_time: '',
-        max_participants: 1,
-        cost_tokens: 50,
-        cost_money: 0,
-        payment_method: 'tokens'
-      });
+        setSessionData({
+          session_type: 'court_booking',
+          title: '',
+          description: '',
+          location: '',
+          court_id: '',
+          coach_id: '',
+          date: new Date(),
+          start_time: '',
+          end_time: '',
+          max_participants: 1,
+          cost_tokens: 50,
+          cost_money: 0,
+          payment_method: 'tokens'
+        });
     } catch (error) {
       console.error('Error creating session:', error);
     } finally {
@@ -188,6 +191,15 @@ export function CreateClubSession({ clubId, isOpen, onClose, onSuccess }: Create
                   onChange={(e) => setSessionData(prev => ({ ...prev, description: e.target.value }))}
                   placeholder="Add session details..."
                   rows={3}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium mb-2 block">Location</label>
+                <LocationInput
+                  value={sessionData.location ? { address: sessionData.location } : null}
+                  onChange={(locationData) => setSessionData(prev => ({ ...prev, location: locationData?.address || '' }))}
+                  placeholder="Enter session location"
                 />
               </div>
             </div>
