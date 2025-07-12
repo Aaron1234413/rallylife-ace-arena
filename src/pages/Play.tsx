@@ -27,6 +27,8 @@ import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecomme
 import { useAuth } from '@/hooks/useAuth';
 import { EnhancedLocationFilters } from '@/components/play/EnhancedLocationFilters';
 import { NearbyPlayersWidget } from '@/components/play/NearbyPlayersWidget';
+import { useEnhancedLocation } from '@/hooks/useEnhancedLocation';
+import { LocationPermissionHandler } from '@/components/location/LocationPermissionHandler';
 import { useJoinSessionState } from '@/hooks/useJoinSessionState';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
@@ -107,13 +109,22 @@ const Play = () => {
   const [showOnlyWithLocation, setShowOnlyWithLocation] = useState(false);
   const [showTravelTime, setShowTravelTime] = useState(true);
   
+  // Enhanced location service
+  const {
+    hasLocation,
+    currentLocation,
+    permission,
+    isLoading: locationLoading,
+    filterByDistance,
+    formatDistance,
+    formatTravelTime
+  } = useEnhancedLocation();
+  
   // Location-based data
   const { 
     nearbySessions, 
     nearbyPlayers, 
-    loading: locationLoading,
-    hasLocation,
-    currentLocation 
+    loading: nearbyDataLoading
   } = useLocationBasedSessions(radiusKm);
 
   // Recommendations
@@ -149,7 +160,7 @@ const Play = () => {
   const availableLoading = sessionsLoading;
   const mySessionsLoading = sessionsLoading;
 
-  // Enhanced session filtering and sorting
+  // Enhanced session filtering and sorting with location integration
   const filteredAndSortedSessions = useMemo(() => {
     let filtered = availableSessions.filter(session => {
       // Search filter
@@ -173,18 +184,53 @@ const Play = () => {
         (stakesFilter === 'low' && session.stakes_amount > 0 && session.stakes_amount <= 50) ||
         (stakesFilter === 'medium' && session.stakes_amount > 50 && session.stakes_amount <= 200) ||
         (stakesFilter === 'high' && session.stakes_amount > 200);
+
+      // Location filter
+      const matchesLocation = !showOnlyWithLocation || 
+        (session.latitude && session.longitude);
       
-      return matchesSearch && matchesFormat && matchesSessionType && matchesStakes;
+      return matchesSearch && matchesFormat && matchesSessionType && matchesStakes && matchesLocation;
     });
 
-    // Sorting
+    // Apply distance filtering if location is available
+    if (hasLocation && currentLocation) {
+      const sessionsWithLocation = filtered.filter(s => s.latitude && s.longitude);
+      const filteredByDistance = filterByDistance(sessionsWithLocation, radiusKm);
+      
+      // Combine with sessions without location if not filtering by location only
+      if (!showOnlyWithLocation) {
+        const sessionsWithoutLocation = filtered.filter(s => !s.latitude || !s.longitude);
+        filtered = [...filteredByDistance, ...sessionsWithoutLocation];
+      } else {
+        filtered = filteredByDistance;
+      }
+    }
+
+    // Enhanced sorting with location awareness
     filtered.sort((a, b) => {
       switch (sortBy) {
         case 'distance':
-          // Use location data if available
-          const aDistance = nearbySessions.find(ns => ns.id === a.id)?.distance_km ?? 999;
-          const bDistance = nearbySessions.find(ns => ns.id === b.id)?.distance_km ?? 999;
+          if (!hasLocation || !currentLocation) return 0;
+          
+          const aHasLocation = a.latitude && a.longitude;
+          const bHasLocation = b.latitude && b.longitude;
+          
+          if (!aHasLocation && !bHasLocation) return 0;
+          if (!aHasLocation) return 1;
+          if (!bHasLocation) return -1;
+          
+          // Use enhanced location service for distance calculation
+          const aDistance = filterByDistance([a], radiusKm)[0]?.distance?.distanceKm ?? 999;
+          const bDistance = filterByDistance([b], radiusKm)[0]?.distance?.distanceKm ?? 999;
           return aDistance - bDistance;
+          
+        case 'travel_time':
+          if (!hasLocation || !currentLocation) return 0;
+          
+          const aTravelTime = filterByDistance([a], radiusKm)[0]?.distance?.drivingTimeMinutes ?? 999;
+          const bTravelTime = filterByDistance([b], radiusKm)[0]?.distance?.drivingTimeMinutes ?? 999;
+          return aTravelTime - bTravelTime;
+          
         case 'participants':
           return (b.participant_count || 0) - (a.participant_count || 0);
         case 'stakes':
@@ -196,7 +242,19 @@ const Play = () => {
     });
 
     return filtered;
-  }, [availableSessions, searchQuery, selectedFormat, sessionTypeFilter, stakesFilter, sortBy, nearbySessions]);
+  }, [
+    availableSessions, 
+    searchQuery, 
+    selectedFormat, 
+    sessionTypeFilter, 
+    stakesFilter, 
+    sortBy, 
+    showOnlyWithLocation,
+    hasLocation,
+    currentLocation,
+    radiusKm,
+    filterByDistance
+  ]);
 
   // Count active filters
   const activeFiltersCount = [
@@ -430,11 +488,22 @@ const Play = () => {
 
           {/* Nearby Tab */}
           <TabsContent value="nearby" className="space-y-4">
+            {!hasLocation && (
+              <LocationPermissionHandler 
+                onLocationObtained={() => {
+                  toast.success('Location enabled! Finding nearby sessions...');
+                }}
+                autoRequest={false}
+                showDetails={true}
+                compact={false}
+              />
+            )}
+            
             <SessionErrorWrapper 
               context="nearby sessions"
               onRetry={refreshSessions}
             >
-              {locationLoading ? (
+              {(locationLoading || nearbyDataLoading) ? (
                 <SessionListSkeleton count={3} />
               ) : !hasLocation ? (
                 <Card>
@@ -448,7 +517,7 @@ const Play = () => {
                     </div>
                   </CardContent>
                 </Card>
-              ) : nearbySessions.length === 0 ? (
+              ) : filteredAndSortedSessions.length === 0 ? (
                 <Card>
                   <CardContent className="p-8 text-center">
                     <div className="space-y-4">
@@ -462,22 +531,18 @@ const Play = () => {
                 </Card>
               ) : (
                 <div className="space-y-4">
-                  {nearbySessions.map((session) => {
-                    const fullSession = availableSessions.find(s => s.id === session.id);
-                    if (!fullSession) return null;
-                    
-                    return (
-                       <SessionCard
-                         key={session.id}
-                         session={{...fullSession, status: 'waiting'}}
-                         participants={fullSession.participants || []}
-                         onJoin={handleJoinSession}
-                         onRefresh={refreshSessions}
-                         isJoining={isJoining(session.id)}
-                         showJoinButton={true}
-                       />
-                    );
-                  })}
+                  {filteredAndSortedSessions.map((session) => (
+                    <SessionCard
+                      key={session.id}
+                      session={{...session, status: 'waiting'}}
+                      participants={session.participants || []}
+                      onJoin={handleJoinSession}
+                      onRefresh={refreshSessions}
+                      isJoining={isJoining(session.id)}
+                      showJoinButton={true}
+                      showDistance={true}
+                    />
+                  ))}
                 </div>
               )}
             </SessionErrorWrapper>

@@ -3,6 +3,8 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
+import { DistanceDisplay } from '@/components/location/DistanceDisplay';
+import { useEnhancedLocation } from '@/hooks/useEnhancedLocation';
 import { Separator } from '@/components/ui/separator';
 import { StatusBadge } from '@/components/ui/status-badge';
 import { 
@@ -42,6 +44,7 @@ interface SessionCardProps {
   onRefresh?: () => void;
   isJoining?: boolean;
   showJoinButton?: boolean;
+  showDistance?: boolean;
 }
 
 type SessionView = 'card' | 'active' | 'completion';
@@ -57,7 +60,8 @@ export function SessionCard({
   onJoin,
   onRefresh,
   isJoining = false,
-  showJoinButton = true
+  showJoinButton = true,
+  showDistance = true
 }: SessionCardProps) {
   const { user } = useAuth();
   const { startSession, completeSession } = useSessionCompletion();
@@ -70,6 +74,14 @@ export function SessionCard({
   const [error, setError] = useState<SessionError | null>(null);
   const [completionData, setCompletionData] = useState<any>(null);
   const [showCompletionFlow, setShowCompletionFlow] = useState(false);
+  
+  // Enhanced location integration
+  const { calculateDistance, hasLocation } = useEnhancedLocation();
+  
+  // Calculate distance if location is available
+  const distance = hasLocation && session.latitude && session.longitude 
+    ? calculateDistance({ lat: session.latitude, lng: session.longitude })
+    : null;
 
   // Update participants when props change
   useEffect(() => {
@@ -371,6 +383,13 @@ export function SessionCard({
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <MapPin className="h-4 w-4" />
                   {session.location}
+                  {showDistance && distance && (
+                    <DistanceDisplay 
+                      distance={distance} 
+                      variant="compact" 
+                      className="ml-2" 
+                    />
+                  )}
                 </div>
               </div>
             </div>
