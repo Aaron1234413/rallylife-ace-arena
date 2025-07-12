@@ -18,6 +18,66 @@ export function useEnhancedSessionActions() {
   const navigate = useNavigate();
   const { user } = useAuth();
 
+  // Status validation logic
+  const validateStatusTransition = (currentStatus: string, newStatus: string): boolean => {
+    const validTransitions = {
+      'open': ['active', 'cancelled'],
+      'waiting': ['active', 'cancelled'], // Allow waiting -> active transition
+      'active': ['completed', 'cancelled', 'paused'],  
+      'paused': ['active', 'cancelled', 'completed'],
+      'completed': [], // final state
+      'cancelled': [] // final state
+    };
+    return validTransitions[currentStatus]?.includes(newStatus) || false;
+  };
+
+  // Get session by ID for validation
+  const getSessionById = async (sessionId: string) => {
+    const { data, error } = await supabase
+      .from('sessions')
+      .select(`
+        *,
+        participant_count:session_participants(count)
+      `)
+      .eq('id', sessionId)
+      .single();
+    
+    if (error) throw error;
+    return {
+      ...data,
+      participant_count: data.participant_count?.[0]?.count || 0
+    };
+  };
+
+  // Check for automatic status updates
+  const checkAutoStatusUpdate = async (sessionId: string) => {
+    try {
+      const session = await getSessionById(sessionId);
+      
+      // Auto-start eligibility notification for creators
+      if (session.status === 'open' && 
+          session.participant_count === session.max_players &&
+          session.creator_id === user?.id) {
+        toast.success('Session is full! You can now start the session.', {
+          duration: 5000,
+          action: {
+            label: 'Start Now',
+            onClick: () => executeAction({
+              id: 'start',
+              type: 'start',
+              label: 'Start Session',
+              icon: '▶️',
+              variant: 'default',
+              loadingText: 'Starting...'
+            }, sessionId)
+          }
+        });
+      }
+    } catch (error) {
+      console.error('Error checking auto status update:', error);
+    }
+  };
+
   const getSessionActions = (session: any, userRole: string): SessionAction[] => {
     const actions: SessionAction[] = [];
     const isCreator = session.creator_id === user?.id;
@@ -97,6 +157,22 @@ export function useEnhancedSessionActions() {
     try {
       switch (action.type) {
         case 'start':
+          // Get current session state for validation
+          const session = await getSessionById(sessionId);
+          
+          // Validate session can be started
+          if (!validateStatusTransition(session.status, 'active')) {
+            throw new Error(`Cannot start session with status '${session.status}'. Session must be in 'open' or 'waiting' status.`);
+          }
+          
+          if (session.participant_count < 2) {
+            throw new Error('Need at least 2 participants to start the session');
+          }
+          
+          if (session.creator_id !== user.id) {
+            throw new Error('Only the session creator can start the session');
+          }
+
           // Call start session RPC with correct parameters
           const { data: startData, error: startError } = await supabase
             .rpc('start_session', {
@@ -117,6 +193,19 @@ export function useEnhancedSessionActions() {
           }
 
         case 'pause':
+          // Get current session state for validation
+          const pauseSession = await getSessionById(sessionId);
+          
+          // Validate session can be paused/resumed
+          const targetStatus = pauseSession.status === 'active' ? 'paused' : 'active';
+          if (!validateStatusTransition(pauseSession.status, targetStatus)) {
+            throw new Error(`Cannot ${targetStatus === 'paused' ? 'pause' : 'resume'} session with status '${pauseSession.status}'`);
+          }
+          
+          if (pauseSession.creator_id !== user.id) {
+            throw new Error('Only the session creator can pause/resume the session');
+          }
+
           // Call pause session RPC
           const { data: pauseData, error: pauseError } = await supabase
             .rpc('pause_session', {
@@ -139,6 +228,27 @@ export function useEnhancedSessionActions() {
           }
 
         case 'end':
+          // Get current session state for validation
+          const endSession = await getSessionById(sessionId);
+          
+          // Validate session can be completed
+          if (!validateStatusTransition(endSession.status, 'completed')) {
+            throw new Error(`Cannot end session with status '${endSession.status}'. Session must be active to end.`);
+          }
+          
+          // Check if user has permission to end session
+          const isParticipant = endSession.creator_id === user.id || 
+                               (await supabase
+                                .from('session_participants')
+                                .select('id')
+                                .eq('session_id', sessionId)
+                                .eq('user_id', user.id)
+                                .single()).data !== null;
+          
+          if (!isParticipant) {
+            throw new Error('Only participants can end the session');
+          }
+
           // Call complete session RPC
           const { data: completeData, error: completeError } = await supabase
             .rpc('complete_session', {
@@ -157,9 +267,33 @@ export function useEnhancedSessionActions() {
               : 'Failed to complete session';
             toast.error(errorMessage);
             return false;
-          };
+          }
 
         case 'join':
+          // Get current session state for validation
+          const joinSession = await getSessionById(sessionId);
+          
+          // Validate session is open for joining
+          if (joinSession.status !== 'open' && joinSession.status !== 'waiting') {
+            throw new Error(`Cannot join session with status '${joinSession.status}'. Session must be open.`);
+          }
+          
+          if (joinSession.participant_count >= joinSession.max_players) {
+            throw new Error('Session is full. Cannot join.');
+          }
+          
+          // Check if user is already a participant
+          const existingParticipant = await supabase
+            .from('session_participants')
+            .select('id')
+            .eq('session_id', sessionId)
+            .eq('user_id', user.id)
+            .single();
+          
+          if (existingParticipant.data) {
+            throw new Error('You are already a participant in this session');
+          }
+
           // Use join_session RPC function for proper token handling
           const { data: joinData, error: joinError } = await supabase
             .rpc('join_session', {
@@ -171,6 +305,10 @@ export function useEnhancedSessionActions() {
           
           if (joinData && typeof joinData === 'object' && 'success' in joinData && joinData.success) {
             toast.success('Successfully joined session!');
+            
+            // Check for auto-start eligibility after joining
+            setTimeout(() => checkAutoStatusUpdate(sessionId), 1000);
+            
             return true;
           } else {
             const errorMessage = typeof joinData === 'object' && 'error' in joinData 
@@ -201,6 +339,8 @@ export function useEnhancedSessionActions() {
   return {
     getSessionActions,
     executeAction,
-    loading
+    loading,
+    checkAutoStatusUpdate,
+    validateStatusTransition
   };
 }
