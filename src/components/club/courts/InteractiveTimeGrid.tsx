@@ -4,9 +4,10 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, AlertCircle, Clock, Coins, DollarSign } from 'lucide-react';
+import { CheckCircle, AlertCircle, Clock, Coins, DollarSign, Zap, ArrowRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { calculateCourtPricing } from '@/utils/pricing';
+import { toast } from 'sonner';
 
 interface Court {
   id: string;
@@ -107,6 +108,7 @@ export function InteractiveTimeGrid({
   const handleSlotClick = (courtId: string, time: string) => {
     if (isSlotBooked(courtId, time)) return;
 
+    const court = courts.find(c => c.id === courtId);
     const newSelection = { courtId, startTime: time, duration };
     
     // Check if the full duration is available
@@ -122,15 +124,30 @@ export function InteractiveTimeGrid({
       }
       
       if (maxDuration === 0) {
+        toast.error('This time slot is not available for the selected duration');
         return; // No availability
       }
       
       setDuration(maxDuration);
       newSelection.duration = maxDuration;
+      toast.info(`Duration adjusted to ${maxDuration} ${maxDuration === 1 ? 'hour' : 'hours'} based on availability`);
     }
     
     setSelectedSlot(newSelection);
     onSelectionChange(newSelection);
+    
+    // Show success toast with clear next step
+    const endTime = `${(parseInt(time.split(':')[0]) + newSelection.duration).toString().padStart(2, '0')}:00`;
+    toast.success(
+      `${court?.name} selected for ${time} - ${endTime}. Click "BOOK THIS SLOT" to continue.`,
+      {
+        duration: 4000,
+        action: {
+          label: 'Book Now',
+          onClick: () => handleBookClick(),
+        },
+      }
+    );
   };
 
   const handleDurationChange = (newDuration: number) => {
@@ -214,46 +231,82 @@ export function InteractiveTimeGrid({
               </SelectContent>
             </Select>
             
-            {selectedSlot && (
-              <div className="flex items-center gap-4 ml-auto">
-                <div className="flex items-center gap-2 text-sm">
-                  <Clock className="h-4 w-4 text-tennis-green-medium" />
-                  <span className="text-tennis-green-dark font-medium">
-                    {selectedSlot.startTime} - {
-                      `${(parseInt(selectedSlot.startTime.split(':')[0]) + selectedSlot.duration).toString().padStart(2, '0')}:00`
-                    }
-                  </span>
-                </div>
-                
-                <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1">
-                    <Coins className="h-4 w-4 text-emerald-500" />
-                    <span className="text-sm font-medium">
-                      {calculatePricing(selectedSlot.courtId, selectedSlot.duration).tokens} tokens
-                    </span>
-                  </div>
-                  
-                  {calculatePricing(selectedSlot.courtId, selectedSlot.duration).totalAmount > 0 && (
-                    <div className="flex items-center gap-1">
-                      <DollarSign className="h-4 w-4 text-green-500" />
-                      <span className="text-sm font-medium">
-                        ${(calculatePricing(selectedSlot.courtId, selectedSlot.duration).totalAmount / 100).toFixed(2)}
-                      </span>
-                    </div>
-                  )}
-                </div>
-                
-                <Button 
-                  onClick={handleBookClick}
-                  className="bg-tennis-green-primary hover:bg-tennis-green-medium"
-                >
-                  Book Now
-                </Button>
-              </div>
-            )}
           </div>
         </CardContent>
       </Card>
+
+      {/* Prominent Booking Panel - Appears when slot is selected */}
+      {selectedSlot && (
+        <Card className="border-2 border-tennis-green-primary bg-gradient-to-r from-tennis-green-bg/30 to-tennis-green-primary/10 animate-fade-in shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-4">
+                <div className="flex items-center gap-2 bg-tennis-green-primary/10 px-3 py-2 rounded-lg">
+                  <Zap className="h-5 w-5 text-tennis-green-primary animate-pulse" />
+                  <span className="font-semibold text-tennis-green-dark">
+                    Slot Selected!
+                  </span>
+                </div>
+                
+                <div className="space-y-1">
+                  <div className="flex items-center gap-2">
+                    <Clock className="h-4 w-4 text-tennis-green-medium" />
+                    <span className="font-medium text-tennis-green-dark">
+                      {courts.find(c => c.id === selectedSlot.courtId)?.name} - {selectedSlot.startTime} to {
+                        `${(parseInt(selectedSlot.startTime.split(':')[0]) + selectedSlot.duration).toString().padStart(2, '0')}:00`
+                      }
+                    </span>
+                  </div>
+                  
+                  <div className="flex items-center gap-4 text-sm">
+                    <div className="flex items-center gap-1">
+                      <Coins className="h-4 w-4 text-emerald-500" />
+                      <span className="font-medium">
+                        {calculatePricing(selectedSlot.courtId, selectedSlot.duration).tokens} tokens
+                      </span>
+                    </div>
+                    
+                    {calculatePricing(selectedSlot.courtId, selectedSlot.duration).totalAmount > 0 && (
+                      <div className="flex items-center gap-1">
+                        <DollarSign className="h-4 w-4 text-green-500" />
+                        <span className="font-medium">
+                          ${(calculatePricing(selectedSlot.courtId, selectedSlot.duration).totalAmount / 100).toFixed(2)}
+                        </span>
+                      </div>
+                    )}
+                    
+                    <Badge variant="outline" className="bg-white/50">
+                      {selectedSlot.duration} {selectedSlot.duration === 1 ? 'hour' : 'hours'}
+                    </Badge>
+                  </div>
+                </div>
+              </div>
+              
+              <div className="flex items-center gap-3">
+                <Button 
+                  variant="outline"
+                  onClick={() => {
+                    setSelectedSlot(null);
+                    onSelectionChange(null);
+                  }}
+                  className="border-tennis-green-medium text-tennis-green-medium hover:bg-tennis-green-bg"
+                >
+                  Clear Selection
+                </Button>
+                
+                <Button 
+                  onClick={handleBookClick}
+                  size="lg"
+                  className="bg-tennis-green-primary hover:bg-tennis-green-medium text-white shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-8 animate-pulse hover:animate-none"
+                >
+                  <ArrowRight className="h-5 w-5 mr-2" />
+                  BOOK THIS SLOT
+                </Button>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Time Grid */}
       <div className="overflow-x-auto">
