@@ -62,6 +62,7 @@ export function InteractiveTimeGrid({
   const [selectedSlot, setSelectedSlot] = useState<TimeSlotSelection | null>(null);
   const [duration, setDuration] = useState<number>(1);
   const [hoveredSlot, setHoveredSlot] = useState<{ courtId: string; time: string } | null>(null);
+  const [isUpdatingFromSlotClick, setIsUpdatingFromSlotClick] = useState(false);
 
   useEffect(() => {
     // Clear selection when date changes
@@ -108,6 +109,8 @@ export function InteractiveTimeGrid({
   const handleSlotClick = (courtId: string, time: string) => {
     if (isSlotBooked(courtId, time)) return;
 
+    console.log('Slot clicked:', { courtId, time, currentDuration: duration });
+
     const court = courts.find(c => c.id === courtId);
     const newSelection = { courtId, startTime: time, duration };
     
@@ -128,13 +131,23 @@ export function InteractiveTimeGrid({
         return; // No availability
       }
       
+      console.log('Auto-adjusting duration from', duration, 'to', maxDuration);
+      
+      // Prevent duration change handler from clearing selection
+      setIsUpdatingFromSlotClick(true);
+      
+      // Update duration state but don't trigger onChange handler for select
       setDuration(maxDuration);
       newSelection.duration = maxDuration;
       toast.info(`Duration adjusted to ${maxDuration} ${maxDuration === 1 ? 'hour' : 'hours'} based on availability`);
     }
     
+    console.log('Setting selected slot:', newSelection);
     setSelectedSlot(newSelection);
     onSelectionChange(newSelection);
+    
+    // Reset the flag after selection is set
+    setIsUpdatingFromSlotClick(false);
     
     // Show success toast with clear next step
     const endTime = `${(parseInt(time.split(':')[0]) + newSelection.duration).toString().padStart(2, '0')}:00`;
@@ -151,17 +164,27 @@ export function InteractiveTimeGrid({
   };
 
   const handleDurationChange = (newDuration: number) => {
+    console.log('Duration change triggered:', { newDuration, isUpdatingFromSlotClick });
+    
     setDuration(newDuration);
+    
+    // If we're updating from a slot click, don't interfere with the selection
+    if (isUpdatingFromSlotClick) {
+      console.log('Ignoring duration change as it was triggered by slot click');
+      return;
+    }
     
     if (selectedSlot) {
       if (isSlotAvailable(selectedSlot.courtId, selectedSlot.startTime, newDuration)) {
         const updatedSelection = { ...selectedSlot, duration: newDuration };
         setSelectedSlot(updatedSelection);
         onSelectionChange(updatedSelection);
+        toast.success(`Duration updated to ${newDuration} ${newDuration === 1 ? 'hour' : 'hours'}`);
       } else {
-        // Duration not available, clear selection
+        // Duration not available, clear selection and notify user
         setSelectedSlot(null);
         onSelectionChange(null);
+        toast.error(`${newDuration} ${newDuration === 1 ? 'hour' : 'hours'} is not available for this slot. Please select a different duration or time slot.`);
       }
     }
   };
