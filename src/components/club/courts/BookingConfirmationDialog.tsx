@@ -12,7 +12,7 @@ import {
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
-import { format, addHours } from 'date-fns';
+import { format, addHours, parse } from 'date-fns';
 import { PricingBreakdown } from '@/components/ui/PricingBreakdown';
 import { calculateCourtPricing, calculateServicePricing, calculateTotalPricing, type PricingBreakdown as PricingData } from '@/utils/pricing';
 import { supabase } from '@/integrations/supabase/client';
@@ -66,16 +66,40 @@ export function BookingConfirmationDialog({
 
   if (!bookingDetails) return null;
 
-  const { court, date, startTime, duration, selectedServices, bookingType, notes } = bookingDetails;
+  // Safely destructure with defaults and guards
+  const {
+    court,
+    date: bookingDate,
+    startTime = '00:00',
+    duration,
+    selectedServices = [],
+    bookingType = 'personal',
+    notes
+  } = bookingDetails;
+
+  // Ensure all required fields exist
+  if (!court || !bookingDate) return null;
 
   // Ensure duration is a valid number
   const safeDuration = duration || 1;
+  const safeDate = bookingDate ?? new Date();
 
-  // Calculate end time
-  const [hours, minutes] = startTime.split(':').map(Number);
-  const endTime = `${(hours + safeDuration).toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  // Calculate end time using date-fns
+  let endTime = '00:00';
+  try {
+    // Parse the start time and add duration hours
+    const startDate = parse(startTime, 'HH:mm', safeDate);
+    const endDate = addHours(startDate, safeDuration);
+    endTime = format(endDate, 'HH:mm');
+  } catch (error) {
+    console.warn('Error calculating end time:', error);
+    // Fallback to manual calculation if date parsing fails
+    const [hours = 0, minutes = 0] = startTime.split(':').map(Number);
+    const totalHours = hours + safeDuration;
+    endTime = `${totalHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  }
 
-  // Calculate pricing
+  // Calculate pricing with safe values
   const courtPricing = calculateCourtPricing(court, safeDuration);
   const servicesPricing = selectedServices.map(service => calculateServicePricing(service));
   const totalServicesPricing = calculateTotalPricing(servicesPricing);
@@ -101,7 +125,7 @@ export function BookingConfirmationDialog({
       const bookingData = {
         court_id: court.id,
         club_id: clubId,
-        booking_date: format(date, 'yyyy-MM-dd'),
+        booking_date: format(safeDate, 'yyyy-MM-dd'),
         start_time: startTime,
         end_time: endTime,
         duration_hours: safeDuration,
@@ -175,7 +199,7 @@ export function BookingConfirmationDialog({
               {/* Date and Time */}
               <div className="flex items-center gap-3">
                 <Calendar className="h-4 w-4 text-tennis-green-medium" />
-                <span>{format(date, 'EEEE, MMMM d, yyyy')}</span>
+                <span>{format(safeDate, 'EEEE, MMMM d, yyyy')}</span>
               </div>
 
               <div className="flex items-center gap-3">
