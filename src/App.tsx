@@ -40,6 +40,7 @@ import { MockDashboard } from "@/pages/MockDashboard";
 import PlayMockup from "@/pages/PlayMockup";
 import Sessions from "@/pages/Sessions";
 import CreateSession from "@/pages/CreateSession";
+import EditSession from "@/pages/EditSession";
 import Club from "@/pages/Club";
 import Clubs from "@/pages/Clubs";
 import JoinClub from "@/pages/JoinClub";
@@ -71,6 +72,7 @@ function AppWithGuide() {
           <Route path="/play-mockup" element={<ProtectedRoute><PlayMockup /></ProtectedRoute>} />
           <Route path="/sessions" element={<ProtectedRoute><Sessions /></ProtectedRoute>} />
           <Route path="/sessions/create" element={<ProtectedRoute><CreateSession /></ProtectedRoute>} />
+          <Route path="/sessions/:sessionId/edit" element={<ProtectedRoute><EditSession /></ProtectedRoute>} />
           <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
           <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
           <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />

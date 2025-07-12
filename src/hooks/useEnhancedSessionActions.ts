@@ -301,6 +301,11 @@ export function useEnhancedSessionActions() {
             return false;
           }
 
+        case 'edit':
+          // Navigate to edit session page
+          navigate(`/sessions/${sessionId}/edit`);
+          return true;
+
         case 'leave':
           // Call leave session functionality
           const { error: leaveError } = await supabase
@@ -340,11 +345,6 @@ export function useEnhancedSessionActions() {
             toast.error(errorMessage);
             return false;
           }
-
-        case 'edit':
-          // Navigate to edit page
-          navigate(`/sessions/${sessionId}/edit`);
-          return true;
 
         default:
           toast.error('Action not implemented yet');
