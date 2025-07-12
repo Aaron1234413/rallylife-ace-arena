@@ -32,7 +32,7 @@ import { useEnhancedSessionActions } from '@/hooks/useEnhancedSessionActions';
 import { useSessionManager } from '@/hooks/useSessionManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { SessionCreationDialog } from '@/components/sessions/SessionCreationDialog';
-import { EnhancedSessionCard } from '@/components/sessions/EnhancedSessionCard';
+import { SessionCard as UnifiedSessionCard } from '@/components/sessions/SessionCard';
 import { SessionCompletionModal, SessionCompletionData } from '@/components/sessions/SessionCompletionModal';
 
 interface Session {
@@ -165,8 +165,9 @@ const Sessions = () => {
     }
   };
 
-  const handleJoinSession = async (sessionId: string) => {
-    await joinSession(sessionId);
+  const handleJoinSession = async (sessionId: string): Promise<boolean> => {
+    const result = await joinSession(sessionId);
+    return result;
   };
 
   const handleLeaveSession = async (sessionId: string) => {
@@ -498,7 +499,7 @@ const Sessions = () => {
 interface SessionsListProps {
   sessions: any[];
   loading: boolean;
-  onJoinSession: (sessionId: string) => void;
+  onJoinSession: (sessionId: string) => Promise<boolean>;
   onLeaveSession: (sessionId: string) => void;
   onStartSession: (sessionId: string) => void;
   onCompleteSession: (sessionId: string) => void;
@@ -555,14 +556,17 @@ const SessionsList: React.FC<SessionsListProps> = ({
   return (
     <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
       {sessions.map((session) => (
-        <EnhancedSessionCard
+        <UnifiedSessionCard
           key={session.id}
           session={session}
-          userRole="member"
-          onActionComplete={() => {
-            // Handle action completion
-            console.log('Action completed for session:', session.id);
+          participants={session.participants || []}
+          onJoin={onJoinSession}
+          onRefresh={() => {
+            // Handle refresh if needed
+            console.log('Session refreshed:', session.id);
           }}
+          isJoining={isActionLoading(session.id, 'join')}
+          showJoinButton={showJoinButton}
         />
       ))}
     </div>

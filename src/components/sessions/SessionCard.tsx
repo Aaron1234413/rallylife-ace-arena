@@ -21,10 +21,12 @@ import {
 } from 'lucide-react';
 import { UnifiedSession } from '@/hooks/useUnifiedSessions';
 import { useAuth } from '@/hooks/useAuth';
+import { useEnhancedSessionActions } from '@/hooks/useEnhancedSessionActions';
 import { SessionActiveView } from './SessionActiveView';
 import { SessionCompletionView } from './SessionCompletionView';
 import { SessionErrorBoundary } from './SessionErrorBoundary';
 import { SessionLoadingSkeleton } from './SessionLoadingSkeleton';
+import { SessionActionButton } from './SessionActionButton';
 import { useSessionCompletion } from '@/hooks/useSessionCompletion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -55,6 +57,7 @@ export function SessionCard({
 }: SessionCardProps) {
   const { user } = useAuth();
   const { startSession, completeSession } = useSessionCompletion();
+  const { getSessionActions, executeAction, loading } = useEnhancedSessionActions();
   const [currentView, setCurrentView] = useState<SessionView>('card');
   const [currentParticipants, setCurrentParticipants] = useState(participants);
   const [isLoading, setIsLoading] = useState(false);
@@ -72,6 +75,10 @@ export function SessionCard({
   const isFull = participantCount >= session.max_players;
   const isAlmostFull = participantCount >= session.max_players - 1 && !isFull;
   const canJoin = !hasJoined && !isFull;
+
+  // Enhanced session actions integration
+  const userRole = isCreator ? 'creator' : hasJoined ? 'participant' : 'viewer';
+  const availableActions = getSessionActions(session, userRole);
   
   // Determine session state and view
   const sessionState = {
@@ -185,6 +192,13 @@ export function SessionCard({
       toast.error('Failed to join session');
     } finally {
       setIsLoading(false);
+    }
+  };
+
+  const handleEnhancedActionClick = async (action: any) => {
+    const success = await executeAction(action, session.id);
+    if (success && onRefresh) {
+      onRefresh();
     }
   };
 
@@ -404,26 +418,23 @@ export function SessionCard({
           </div>
         </div>
 
-        {/* Enhanced Action Buttons */}
-        <div className="flex gap-2 pt-2">
-          {/* Start Session Button - For creators when session is full */}
-          {isCreator && isFull && sessionState.waiting && (
-            <Button 
-              onClick={() => handleStartSession(session.id)}
-              disabled={isLoading}
-              className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Play className="h-4 w-4" />
-              )}
-              Start Session
-            </Button>
-          )}
+        {/* Enhanced Action Buttons using Enhanced Session Actions */}
+        {availableActions.length > 0 && (
+          <div className="flex gap-2 pt-2 border-t">
+            {availableActions.map((action) => (
+              <SessionActionButton
+                key={action.id}
+                action={action}
+                onClick={() => handleEnhancedActionClick(action)}
+                loading={loading === action.id}
+              />
+            ))}
+          </div>
+        )}
 
-          {/* Join Button - For non-creators who can join */}
-          {showJoinButton && canJoin && !sessionState.completed && !sessionState.cancelled && (
+        {/* Fallback Join Button - For compatibility with existing onJoin prop */}
+        {!availableActions.some(a => a.type === 'join') && showJoinButton && canJoin && !sessionState.completed && !sessionState.cancelled && (
+          <div className="flex gap-2 pt-2">
             <Button 
               onClick={handleJoinSession}
               disabled={isJoining || isLoading}
@@ -436,68 +447,34 @@ export function SessionCard({
               )}
               {isJoining ? 'Joining...' : isLoading ? 'Loading...' : `Join (${session.stakes_amount} tokens)`}
             </Button>
-          )}
-          
-          {/* Session Management Button - For creators and participants */}
-          {(isCreator || hasJoined) && !sessionState.completed && !sessionState.cancelled && !isCreator && (
-            <Button 
-              onClick={() => handleViewTransition('active')}
-              variant="outline"
-              disabled={isLoading}
-              className="flex-1 gap-2"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Eye className="h-4 w-4" />
-              )}
-              {sessionState.active ? 'View Session' : 'Manage Session'}
-            </Button>
-          )}
+          </div>
+        )}
 
-          {/* Creator Management Button - For creators only */}
-          {isCreator && !sessionState.completed && !sessionState.cancelled && !(isFull && sessionState.waiting) && (
-            <Button 
-              onClick={() => handleViewTransition('active')}
-              variant="outline"
-              disabled={isLoading}
-              className="flex-1 gap-2"
-            >
-              {isLoading ? (
-                <Loader2 className="h-4 w-4 animate-spin" />
-              ) : (
-                <Activity className="h-4 w-4" />
-              )}
-              {sessionState.active ? 'Manage Active Session' : 'Session Controls'}
-            </Button>
-          )}
+        {/* Status Messages for Non-actionable States */}
+        {availableActions.length === 0 && (
+          <div className="flex gap-2 pt-2">
+            {/* Full Session Message - For non-creators/non-participants */}
+            {isFull && !isCreator && !hasJoined && !sessionState.completed && (
+              <div className="flex-1 text-center py-2 text-sm text-muted-foreground">
+                Session Full
+              </div>
+            )}
 
-          {/* View Results Button - For completed sessions */}
-          {sessionState.completed && (isCreator || hasJoined) && (
-            <Button 
-              onClick={() => handleViewTransition('completion')}
-              variant="outline"
-              className="flex-1 gap-2"
-            >
-              <CheckCircle className="h-4 w-4" />
-              View Results
-            </Button>
-          )}
-          
-          {/* Full Session Message - For non-creators/non-participants */}
-          {isFull && !isCreator && !hasJoined && !sessionState.completed && (
-            <div className="flex-1 text-center py-2 text-sm text-muted-foreground">
-              Session Full
-            </div>
-          )}
+            {/* Cancelled Session Message */}
+            {sessionState.cancelled && (
+              <div className="flex-1 text-center py-2 text-sm text-muted-foreground">
+                Session Cancelled
+              </div>
+            )}
 
-          {/* Cancelled Session Message */}
-          {sessionState.cancelled && (
-            <div className="flex-1 text-center py-2 text-sm text-muted-foreground">
-              Session Cancelled
-            </div>
-          )}
-        </div>
+            {/* No Actions Available */}
+            {!isFull && !sessionState.cancelled && !sessionState.completed && (
+              <div className="flex-1 text-center py-2 text-sm text-muted-foreground">
+                No actions available
+              </div>
+            )}
+          </div>
+        )}
 
         {/* Enhanced Additional Info */}
         <div className="text-xs text-muted-foreground space-y-1">
