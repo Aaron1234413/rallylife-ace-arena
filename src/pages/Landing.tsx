@@ -103,9 +103,9 @@ export default function Landing() {
                     <Link to="/auth" className="block">
                       <Button 
                         size="lg" 
-                        className="w-full md:w-auto bg-tennis-yellow hover:bg-tennis-yellow/90 text-tennis-green-dark font-orbitron text-base md:text-lg lg:text-xl px-4 md:px-8 lg:px-12 py-3 md:py-4 lg:py-6 rounded-none border-4 border-tennis-green-dark shadow-[0_0_20px_rgba(255,255,155,0.5)] hover:shadow-[0_0_30px_rgba(255,255,155,0.8)] transition-all duration-300 uppercase tracking-widest hover:scale-105 transform font-bold min-h-[3rem] md:min-h-[4rem]"
+                        className="w-full md:w-auto bg-tennis-yellow hover:bg-tennis-yellow/90 text-tennis-green-dark font-orbitron text-sm md:text-lg lg:text-xl px-3 md:px-8 lg:px-12 py-3 md:py-4 lg:py-6 rounded-none border-4 border-tennis-green-dark shadow-[0_0_20px_rgba(255,255,155,0.5)] hover:shadow-[0_0_30px_rgba(255,255,155,0.8)] transition-all duration-300 uppercase tracking-wide md:tracking-widest hover:scale-105 transform font-bold min-h-[3rem] md:min-h-[4rem]"
                       >
-                        <span className="text-center leading-tight">
+                        <span className="text-center leading-tight break-words">
                           START YOUR FIRST MATCH
                         </span>
                       </Button>
