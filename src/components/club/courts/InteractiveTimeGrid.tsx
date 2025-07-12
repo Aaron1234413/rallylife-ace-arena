@@ -131,6 +131,9 @@ export function InteractiveTimeGrid({
     
     setSelectedSlot(newSelection);
     onSelectionChange(newSelection);
+    
+    // Immediately trigger the booking dialog
+    onBookingClick(courtId, time, newSelection.duration);
   };
 
   const handleDurationChange = (newDuration: number) => {
