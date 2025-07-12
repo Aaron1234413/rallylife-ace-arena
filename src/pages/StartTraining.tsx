@@ -4,38 +4,85 @@ import { useNavigate } from 'react-router-dom';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { BookOpen, ArrowRight, Sparkles } from 'lucide-react';
-import { useTrainingSession } from '@/contexts/TrainingSessionContext';
+import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
 import { TrainingGreeting } from '@/components/training/TrainingGreeting';
 import { SessionTypeSelector } from '@/components/training/SessionTypeSelector';
 import { CoachSelector } from '@/components/training/CoachSelector';
 import { SkillsChipSelector } from '@/components/training/SkillsChipSelector';
 import { IntensitySelector } from '@/components/training/IntensitySelector';
 import { DurationEstimator } from '@/components/training/DurationEstimator';
+import { toast } from 'sonner';
 
 export default function StartTraining() {
   const navigate = useNavigate();
-  const { updateSessionData } = useTrainingSession();
+  const { createSession, startSession } = useUnifiedSessions({});
   
   const [sessionType, setSessionType] = useState<string>('');
   const [coachName, setCoachName] = useState<string>('');
   const [skillsFocus, setSkillsFocus] = useState<string[]>([]);
   const [intensity, setIntensity] = useState<string>('');
   const [estimatedDuration, setEstimatedDuration] = useState<number>(0);
+  const [isCreating, setIsCreating] = useState(false);
 
-  const handleStartSession = () => {
-    const sessionData = {
-      sessionType,
-      coachName: coachName || undefined,
-      skillsFocus,
-      intensity,
-      estimatedDuration,
-      startTime: new Date().toISOString(),
-    };
-
-    updateSessionData(sessionData);
-    console.log('Starting training session with data:', sessionData);
+  const handleStartSession = async () => {
+    if (!canStart) return;
     
-    navigate('/dashboard');
+    setIsCreating(true);
+    
+    try {
+      // Create session in database with proper mapping
+      const sessionData = {
+        session_type: 'training', // Map to database enum
+        format: sessionType, // Store training type in format field
+        max_players: 1, // Training sessions are solo
+        stakes_amount: 0, // No stakes for training
+        location: 'Training Session',
+        notes: buildSessionNotes(),
+        is_private: true, // Training sessions are private
+        session_source: 'training' as const
+      };
+
+      const newSession = await createSession(sessionData);
+      
+      if (!newSession) {
+        throw new Error('Failed to create session');
+      }
+
+      // Start the session immediately
+      const started = await startSession(newSession.id);
+      
+      if (!started) {
+        throw new Error('Failed to start session');
+      }
+
+      toast.success('Training session started successfully!');
+      
+      // Navigate to dashboard to show active session
+      navigate('/dashboard');
+      
+    } catch (error) {
+      console.error('Error starting training session:', error);
+      toast.error('Failed to start training session. Please try again.');
+    } finally {
+      setIsCreating(false);
+    }
+  };
+
+  const buildSessionNotes = () => {
+    const notes = [`Training Type: ${sessionType}`];
+    
+    if (coachName) {
+      notes.push(`Coach: ${coachName}`);
+    }
+    
+    if (skillsFocus.length > 0) {
+      notes.push(`Focus: ${skillsFocus.join(', ')}`);
+    }
+    
+    notes.push(`Intensity: ${intensity}`);
+    notes.push(`Estimated Duration: ${estimatedDuration} minutes`);
+    
+    return notes.join('\n');
   };
 
   const canStart = sessionType && intensity && estimatedDuration > 0;
@@ -115,11 +162,11 @@ export default function StartTraining() {
                 </Button>
                 <Button 
                   onClick={handleStartSession}
-                  disabled={!canStart}
+                  disabled={!canStart || isCreating}
                   className="flex-1 h-12 bg-gradient-to-r from-tennis-green-primary to-tennis-green-medium hover:from-tennis-green-medium hover:to-tennis-green-primary text-white shadow-lg hover:shadow-xl transition-all duration-200"
                   size="lg"
                 >
-                  Start Training
+                  {isCreating ? 'Starting...' : 'Start Training'}
                   <ArrowRight className="ml-2 h-5 w-5" />
                 </Button>
               </div>
