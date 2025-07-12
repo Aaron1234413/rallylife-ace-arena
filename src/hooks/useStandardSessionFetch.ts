@@ -2,6 +2,7 @@ import { useCallback, useEffect } from 'react';
 import { useUnifiedSessions } from './useUnifiedSessions';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { useSessionSubscriptionManager } from './useSessionSubscriptionManager';
 
 interface UseStandardSessionFetchOptions {
   clubId?: string;
@@ -136,6 +137,12 @@ export function useStandardSessionFetch(options: UseStandardSessionFetchOptions 
     }
   }, [cancelSession, handleError]);
 
+  // Enhanced real-time session updates with conflict resolution
+  const { isConnected, connectionStatus, isHealthy } = useSessionSubscriptionManager({
+    enableAutoRefresh: true,
+    autoRefreshCallback: refreshSessions
+  });
+
   // Data processing and filtering
   const processedSessions = sessions || [];
   
@@ -184,6 +191,11 @@ export function useStandardSessionFetch(options: UseStandardSessionFetchOptions 
       includeNonClubSessions,
       filterUserSessions,
       enableRealTime
-    }
+    },
+    
+    // Real-time connection status
+    isRealTimeConnected: isConnected,
+    realTimeStatus: connectionStatus,
+    isRealTimeHealthy: isHealthy
   };
 }
