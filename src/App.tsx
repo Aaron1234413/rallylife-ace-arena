@@ -52,8 +52,15 @@ function AppWithGuide() {
   const { user } = useAuth();
   const location = useLocation();
   
-  // Enable session automation for real-time notifications
-  useSessionAutomation();
+  // Global refresh callback (can be enhanced to target specific components)
+  const handleGlobalSessionUpdate = () => {
+    // This could be enhanced to use a global state manager or event system
+    // For now, we'll rely on individual component subscriptions
+    console.log('Global session update triggered');
+  };
+  
+  // Enable session automation for real-time notifications with global refresh
+  useSessionAutomation(handleGlobalSessionUpdate);
 
   return (
     <>

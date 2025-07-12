@@ -33,6 +33,7 @@ import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useMatchHistory } from '@/hooks/useMatchHistory';
 import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
+import { useSessionAutomation } from '@/hooks/useSessionAutomation';
 import { toast } from 'sonner';
 import { MobileSessionCard } from '@/components/play/MobileSessionCard';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -63,6 +64,9 @@ const Play = () => {
   } = useUnifiedSessions({
     includeNonClubSessions: true
   });
+  
+  // Enable real-time updates for Play page sessions
+  useSessionAutomation(refreshSessions);
   
   // State for delete operations
   const [deletingStates, setDeletingStates] = useState<Record<string, boolean>>({});

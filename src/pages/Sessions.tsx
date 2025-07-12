@@ -25,6 +25,7 @@ import {
   X
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
+import { useSessionAutomation } from '@/hooks/useSessionAutomation';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -103,8 +104,11 @@ const Sessions = () => {
     filterUserParticipation: activeTab === 'my-sessions'
   };
   
-  const { sessions, loading, error, joinSession, leaveSession, startSession, completeSession, cancelSession } = useSessionManager(sessionOptions);
+  const { sessions, loading, error, joinSession, leaveSession, startSession, completeSession, cancelSession, refreshSessions } = useSessionManager(sessionOptions);
   const { getSessionActions, executeAction, loading: actionLoading } = useEnhancedSessionActions();
+  
+  // Enable real-time updates for Sessions page
+  useSessionAutomation(refreshSessions);
   
   // Mock action states for compatibility
   const actionStates = {};
