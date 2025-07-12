@@ -60,8 +60,8 @@ export function useEnhancedSessionActions() {
       });
     }
 
-    // End/Complete action for creators during active sessions
-    if (isCreator && session.status === 'active') {
+    // End/Complete action for any participant during active sessions
+    if ((isCreator || session.user_joined) && session.status === 'active') {
       actions.push({
         id: 'end',
         type: 'end',

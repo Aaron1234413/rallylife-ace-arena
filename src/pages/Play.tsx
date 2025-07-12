@@ -37,7 +37,7 @@ import { toast } from 'sonner';
 import { MobileSessionCard } from '@/components/play/MobileSessionCard';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { PlayerStatsWidget } from '@/components/play/PlayerStatsWidget';
-import { EnhancedSessionCard } from '@/components/play/EnhancedSessionCard';
+import { SessionCard } from '@/components/sessions/SessionCard';
 import { RecommendedSection } from '@/components/play/RecommendedSection';
 import { SessionCreationDialog } from '@/components/sessions/SessionCreationDialog';
 
@@ -213,15 +213,17 @@ const Play = () => {
   const upcomingSessions = []; // We'll enhance this later with scheduled sessions
 
   // Mobile-first session handlers
-  const handleJoinSession = async (sessionId: string) => {
-    if (isJoining(sessionId)) return;
+  const handleJoinSession = async (sessionId: string): Promise<boolean> => {
+    if (isJoining(sessionId)) return false;
     
     startJoining(sessionId);
     
     try {
       await joinSession(sessionId);
+      return true;
     } catch (error) {
       console.error('Failed to join session:', error);
+      return false;
     } finally {
       stopJoining();
     }
@@ -404,16 +406,14 @@ const Play = () => {
               ) : (
                 <div className="space-y-4">
                   {activeSessions.slice(0, 3).map((session) => (
-                     <EnhancedSessionCard
+                     <SessionCard
                        key={session.id}
-                       session={{...session, status: 'waiting', creator_name: session.creator?.full_name}}
+                        session={{...session, status: 'waiting'}}
+                       participants={[]}
                        onJoin={handleJoinSession}
-                       onCancel={handleDeleteSession}
+                       onRefresh={refreshSessions}
                        isJoining={isJoining(session.id)}
-                       isCancelling={deletingStates[session.id]}
-                       userBalance={regularTokens}
-                       showDistance={hasLocation}
-                       currentUserId={user?.id}
+                       showJoinButton={true}
                      />
                    ))}
                 </div>
@@ -464,17 +464,15 @@ const Play = () => {
                   if (!fullSession) return null;
                   
                   return (
-                    <EnhancedSessionCard
-                      key={session.id}
-                      session={{...fullSession, distance_km: session.distance_km, status: 'waiting', creator_name: fullSession.creator?.full_name}}
-                      onJoin={handleJoinSession}
-                      onCancel={handleDeleteSession}
-                      isJoining={isJoining(session.id)}
-                      isCancelling={deletingStates[session.id]}
-                      userBalance={regularTokens}
-                      showDistance={true}
-                      currentUserId={user?.id}
-                    />
+                     <SessionCard
+                       key={session.id}
+                       session={{...fullSession, status: 'waiting'}}
+                       participants={[]}
+                       onJoin={handleJoinSession}
+                       onRefresh={refreshSessions}
+                       isJoining={isJoining(session.id)}
+                       showJoinButton={true}
+                     />
                   );
                 })}
               </div>
@@ -512,17 +510,15 @@ const Play = () => {
             ) : (
               <div className="space-y-4">
                 {activeSessions.map((session) => (
-                      <EnhancedSessionCard
-                        key={session.id}
-                        session={{...session, status: 'waiting', creator_name: session.creator?.full_name}}
-                        onJoin={handleJoinSession}
-                        onCancel={handleDeleteSession}
-                        isJoining={isJoining(session.id)}
-                        isCancelling={deletingStates[session.id]}
-                        userBalance={regularTokens}
-                        showDistance={hasLocation}
-                        currentUserId={user?.id}
-                      />
+                       <SessionCard
+                         key={session.id}
+                         session={{...session, status: 'waiting'}}
+                         participants={[]}
+                         onJoin={handleJoinSession}
+                         onRefresh={refreshSessions}
+                         isJoining={isJoining(session.id)}
+                         showJoinButton={true}
+                       />
                 ))}
               </div>
             )}
@@ -559,17 +555,15 @@ const Play = () => {
             ) : (
                <div className="space-y-4">
                 {mySessions.map((session) => (
-                  <EnhancedSessionCard
-                    key={session.id}
-                    session={{...session, status: 'waiting', creator_name: session.creator?.full_name}}
-                    onJoin={handleJoinSession}
-                    onCancel={handleDeleteSession}
-                    isJoining={isJoining(session.id)}
-                    isCancelling={deletingStates[session.id]}
-                    userBalance={regularTokens}
-                    showDistance={hasLocation}
-                    currentUserId={user?.id}
-                  />
+                   <SessionCard
+                     key={session.id}
+                     session={{...session, status: 'waiting'}}
+                     participants={[]}
+                     onJoin={handleJoinSession}
+                     onRefresh={refreshSessions}
+                     isJoining={isJoining(session.id)}
+                     showJoinButton={true}
+                   />
                 ))}
               </div>
             )}
