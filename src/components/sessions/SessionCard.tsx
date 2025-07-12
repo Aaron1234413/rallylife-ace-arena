@@ -89,22 +89,32 @@ export function SessionCard({
     cancelled: session.status === 'cancelled'
   };
 
+  // Auto-switching view detection logic
+  const determineSessionView = (session: UnifiedSession, userRole: string) => {
+    const userHasJoined = hasJoined || isCreator;
+    
+    if (session.status === 'active' && userHasJoined) {
+      return 'active';
+    }
+    if (session.status === 'completed' && userHasJoined) {
+      return 'completion';
+    }
+    if (session.status === 'paused' && userHasJoined) {
+      return 'active'; // Show active view for paused sessions
+    }
+    return 'card';
+  };
+
   // Auto-show appropriate view based on session status and user involvement
   useEffect(() => {
-    if (sessionState.completed && (isCreator || hasJoined)) {
-      setCurrentView('completion');
-      // Load completion data if available
-      if (session.session_result) {
-        setCompletionData(session.session_result);
-      }
-    } else if (sessionState.active && (isCreator || hasJoined)) {
-      setCurrentView('active');
-    } else if (sessionState.paused && (isCreator || hasJoined)) {
-      setCurrentView('active'); // Show active view for paused sessions too
-    } else {
-      setCurrentView('card');
+    const newView = determineSessionView(session, userRole);
+    setCurrentView(newView);
+    
+    // Load completion data if switching to completion view
+    if (newView === 'completion' && session.session_result) {
+      setCompletionData(session.session_result);
     }
-  }, [session.status, isCreator, hasJoined, sessionState]);
+  }, [session.status, session.user_has_joined, userRole, hasJoined, isCreator]);
 
   // Clear error after 5 seconds
   useEffect(() => {
