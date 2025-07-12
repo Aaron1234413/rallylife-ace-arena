@@ -29,28 +29,6 @@ export default function Landing() {
         <div className="container mx-auto px-3 md:px-4 py-4 md:py-8">
           <div className="max-w-6xl mx-auto space-y-8 md:space-y-12">
             
-            {/* Limited Time Promotional Banner */}
-            <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.05s' }}>
-              <div className="relative overflow-hidden bg-gradient-to-r from-tennis-green-dark via-tennis-green-medium to-tennis-green-dark border-2 border-tennis-yellow rounded-lg p-4 md:p-6 backdrop-blur-sm shadow-[0_0_30px_rgba(255,255,155,0.5)]">
-                <div className="absolute inset-0 bg-tennis-yellow/10 animate-pulse"></div>
-                <div className="relative z-10 space-y-2">
-                  <div className="flex items-center justify-center gap-2 text-tennis-yellow">
-                    <span className="text-xs md:text-sm font-orbitron tracking-widest uppercase font-bold animate-bounce-subtle">🎮</span>
-                    <span className="text-sm md:text-base font-orbitron tracking-wider uppercase font-bold">LIMITED TIME LAUNCH OFFER</span>
-                    <span className="text-xs md:text-sm font-orbitron tracking-widest uppercase font-bold animate-bounce-subtle">🎮</span>
-                  </div>
-                  <div className="text-lg md:text-xl lg:text-2xl font-orbitron font-bold text-white">
-                    Join Today: <span className="text-tennis-yellow">$4.99</span> One-Time Payment
-                  </div>
-                  <div className="text-xs md:text-sm text-tennis-green-bg font-poppins">
-                    Full Year Access • Usually $9.99/month • Limited Time Only
-                  </div>
-                  <div className="text-xs text-tennis-yellow/90 font-orbitron tracking-wide uppercase">
-                    [ OFFER EXPIRES SOON - ACT NOW ]
-                  </div>
-                </div>
-              </div>
-            </div>
 
             {/* Rako Network Status */}
             <div className="text-center animate-fade-in-up" style={{ animationDelay: '0.1s' }}>
@@ -75,15 +53,36 @@ export default function Landing() {
                       RAKO
                     </h1>
                     <div className="text-xl md:text-3xl lg:text-4xl font-orbitron font-bold text-tennis-yellow animate-pulse mb-2">
-                      Tennis Gaming Platform
+                      Compete. Connect. Level Up.
                     </div>
                   </div>
                   
                   <p className="text-sm md:text-base lg:text-lg text-tennis-green-medium font-poppins max-w-2xl mx-auto leading-relaxed mb-4 md:mb-6 px-2">
-                    Track your progress, compete with players worldwide, and level up your tennis skills with our fun gaming platform.
+                    The only gamified tennis platform where players, coaches & clubs earn HP, XP & tokens—wager, win, shop, and improve your game at every level.
                   </p>
                 </div>
               </CRTMonitor>
+            </div>
+            
+            {/* Why RAKO? Three-Column Section */}
+            <div className="animate-fade-in-up px-2 md:px-0" style={{ animationDelay: '0.2s' }}>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
+                <div className="text-center bg-tennis-green-dark/80 border border-tennis-green-primary/40 rounded-lg p-4 md:p-6 backdrop-blur-sm hover:border-tennis-green-primary transition-all duration-300">
+                  <div className="text-2xl md:text-3xl mb-3">🎾</div>
+                  <h3 className="text-lg md:text-xl font-orbitron font-bold text-tennis-yellow mb-2">Play & Compete</h3>
+                  <p className="text-sm md:text-base text-tennis-green-bg font-poppins">Challenge anyone, anywhere—wager tokens to climb leaderboards.</p>
+                </div>
+                <div className="text-center bg-tennis-green-dark/80 border border-tennis-green-primary/40 rounded-lg p-4 md:p-6 backdrop-blur-sm hover:border-tennis-green-primary transition-all duration-300">
+                  <div className="text-2xl md:text-3xl mb-3">🤝</div>
+                  <h3 className="text-lg md:text-xl font-orbitron font-bold text-tennis-yellow mb-2">Join Clubs</h3>
+                  <p className="text-sm md:text-base text-tennis-green-bg font-poppins">Become part of your favorite clubs—participate in events & network.</p>
+                </div>
+                <div className="text-center bg-tennis-green-dark/80 border border-tennis-green-primary/40 rounded-lg p-4 md:p-6 backdrop-blur-sm hover:border-tennis-green-primary transition-all duration-300">
+                  <div className="text-2xl md:text-3xl mb-3">📈</div>
+                  <h3 className="text-lg md:text-xl font-orbitron font-bold text-tennis-yellow mb-2">Train & Develop</h3>
+                  <p className="text-sm md:text-base text-tennis-green-bg font-poppins">Log sessions to earn XP—unlock drills, power-ups & pro feedback.</p>
+                </div>
+              </div>
             </div>
             
             {/* Live Stats Section - Now positioned before How It Works */}
@@ -97,7 +96,13 @@ export default function Landing() {
             
             {/* How It Works Section - Now positioned after Live Stats */}
             <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <HowItWorks />
+              <HowItWorks 
+                steps={[
+                  "Log Play & Training → Earn HP, XP & tokens",
+                  "Join Clubs & Events → Wager tokens in tournaments",
+                  "Shop & Level Up → Unlock gear, drills & feedback"
+                ]}
+              />
             </div>
             
             {/* Main CTA in Gaming Style - Mobile Optimized with Shorter Text */}
@@ -111,7 +116,7 @@ export default function Landing() {
                         className="w-full md:w-auto bg-tennis-yellow hover:bg-tennis-yellow/90 text-tennis-green-dark font-orbitron text-base md:text-lg lg:text-xl px-4 md:px-8 lg:px-12 py-3 md:py-4 lg:py-6 rounded-none border-4 border-tennis-green-dark shadow-[0_0_20px_rgba(255,255,155,0.5)] hover:shadow-[0_0_30px_rgba(255,255,155,0.8)] transition-all duration-300 uppercase tracking-widest hover:scale-105 transform font-bold min-h-[3rem] md:min-h-[4rem]"
                       >
                         <span className="text-center leading-tight">
-                          JOIN RAKO NOW
+                          START YOUR FIRST MATCH
                         </span>
                       </Button>
                     </Link>

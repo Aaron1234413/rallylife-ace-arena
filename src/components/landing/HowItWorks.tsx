@@ -3,8 +3,12 @@ import React from 'react';
 import { CRTMonitor } from './CRTMonitor';
 import { Trophy, Users, Target, ArrowRight, ShoppingBag, Zap, Heart } from 'lucide-react';
 
-export function HowItWorks() {
-  const steps = [
+interface HowItWorksProps {
+  steps?: string[];
+}
+
+export function HowItWorks({ steps: customSteps }: HowItWorksProps = {}) {
+  const defaultSteps = [
     {
       number: 1,
       title: 'Create & Customize',
@@ -30,6 +34,15 @@ export function HowItWorks() {
       bgColor: 'bg-tennis-green-accent/10'
     }
   ];
+
+  const steps = customSteps ? customSteps.map((step, index) => ({
+    number: index + 1,
+    title: step.split(' → ')[0],
+    description: step.split(' → ')[1] || step,
+    icon: [Target, Trophy, Users][index] || Target,
+    color: ['text-tennis-green-primary', 'text-tennis-yellow', 'text-tennis-green-accent'][index] || 'text-tennis-green-primary',
+    bgColor: ['bg-tennis-green-primary/10', 'bg-tennis-yellow/10', 'bg-tennis-green-accent/10'][index] || 'bg-tennis-green-primary/10'
+  })) : defaultSteps;
 
   const features = [
     {
