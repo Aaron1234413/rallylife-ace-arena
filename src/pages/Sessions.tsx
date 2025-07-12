@@ -26,6 +26,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { useSessionAutomation } from '@/hooks/useSessionAutomation';
+import { useStandardSessionFetch } from '@/hooks/useStandardSessionFetch';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { useNavigate } from 'react-router-dom';
@@ -97,14 +98,22 @@ const Sessions = () => {
     stakesFilter !== 'all'
   ].filter(Boolean).length;
 
-  // Use enhanced session management
-  const sessionOptions = {
-    sessionType: 'all' as const,
-    filterUserSessions: activeTab === 'my-sessions',
-    filterUserParticipation: activeTab === 'my-sessions'
-  };
+  // Use standardized session fetching with enhanced error handling
+  const { 
+    sessions, 
+    mySessions,
+    availableSessions,
+    loading, 
+    joinSession, 
+    leaveSession, 
+    startSession, 
+    completeSession, 
+    cancelSession, 
+    refreshSessions 
+  } = useStandardSessionFetch({
+    filterUserSessions: activeTab === 'my-sessions'
+  });
   
-  const { sessions, loading, error, joinSession, leaveSession, startSession, completeSession, cancelSession, refreshSessions } = useSessionManager(sessionOptions);
   const { getSessionActions, executeAction, loading: actionLoading } = useEnhancedSessionActions();
   
   // Enable real-time updates for Sessions page

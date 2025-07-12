@@ -33,6 +33,7 @@ import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useMatchHistory } from '@/hooks/useMatchHistory';
 import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
+import { useStandardSessionFetch } from '@/hooks/useStandardSessionFetch';
 import { useSessionAutomation } from '@/hooks/useSessionAutomation';
 import { toast } from 'sonner';
 import { MobileSessionCard } from '@/components/play/MobileSessionCard';
@@ -54,14 +55,17 @@ const Play = () => {
   // Session creation dialog state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   
-  // Add unified sessions hook for basic session management
+  // Standardized session fetching with enhanced error handling
   const { 
-    sessions: allSessions, 
+    sessions: allSessions,
+    availableSessions,
+    mySessions,
     loading: sessionsLoading,
+    joining,
     joinSession,
     cancelSession,
-    refreshSessions 
-  } = useUnifiedSessions({
+    refreshSessions
+  } = useStandardSessionFetch({
     includeNonClubSessions: true
   });
   
@@ -129,9 +133,8 @@ const Play = () => {
     }
   }, [searchParams, setSearchParams]);
 
-  // Filter sessions for different tabs
-  const availableSessions = allSessions.filter(s => !s.user_has_joined);
-  const mySessions = allSessions.filter(s => s.user_has_joined || s.creator_id === user?.id);
+  // Use data from standardized hook that already provides filtered sessions
+  // No need for manual filtering since useStandardSessionFetch handles this
   
   // Debug logging
   console.log('All sessions:', allSessions.length);
@@ -139,7 +142,7 @@ const Play = () => {
   console.log('My sessions:', mySessions.length);
   console.log('User ID:', user?.id);
   
-  // Use static loading state from unified sessions
+  // Use static loading state from standardized sessions
   const availableLoading = sessionsLoading;
   const mySessionsLoading = sessionsLoading;
 

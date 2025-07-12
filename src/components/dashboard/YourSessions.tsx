@@ -16,6 +16,7 @@ import { useCourtBooking, CourtBooking } from '@/hooks/useCourtBooking';
 import { useClubServices, ServiceBooking } from '@/hooks/useClubServices';
 import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
+import { useStandardSessionFetch } from '@/hooks/useStandardSessionFetch';
 import { useNavigate } from 'react-router-dom';
 import { format, isFuture, isToday, isTomorrow } from 'date-fns';
 
@@ -27,6 +28,11 @@ export function YourSessions() {
   const [serviceBookings, setServiceBookings] = useState<ServiceBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
+
+  // Use standardized session fetching for game sessions
+  const { mySessions, loading: sessionsLoading } = useStandardSessionFetch({
+    filterUserSessions: true
+  });
 
   useEffect(() => {
     if (user) {
@@ -100,7 +106,7 @@ export function YourSessions() {
     }
   };
 
-  if (loading) {
+  if (loading || sessionsLoading) {
     return (
       <Card>
         <CardHeader>
