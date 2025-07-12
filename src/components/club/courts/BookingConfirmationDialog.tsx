@@ -64,9 +64,32 @@ export function BookingConfirmationDialog({
   const [formErrors, setFormErrors] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
 
-  if (!bookingDetails) return null;
+  // Solution 1: Safe default BookingDetails to prevent undefined errors
+  const defaultDetails: BookingDetails = {
+    court: {
+      id: '',
+      name: '',
+      surface_type: '',
+      hourly_rate_tokens: 0,
+      hourly_rate_money: 0
+    },
+    date: new Date(),
+    startTime: '00:00',
+    duration: 1,
+    selectedServices: [],
+    bookingType: 'personal',
+    notes: ''
+  };
 
-  const { court, date, startTime, duration, selectedServices, bookingType, notes } = bookingDetails;
+  // Solution 3: Only render dialog when we have valid essential data
+  if (!bookingDetails?.date || !bookingDetails?.startTime || !bookingDetails?.court?.id) {
+    return null;
+  }
+
+  // Merge with defaults to ensure no undefined values
+  const safeDetails = { ...defaultDetails, ...bookingDetails };
+
+  const { court, date, startTime, duration, selectedServices, bookingType, notes } = safeDetails;
 
   // Calculate end time
   const [hours, minutes] = startTime.split(':').map(Number);
