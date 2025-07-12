@@ -396,7 +396,11 @@ export function InteractiveTimeGrid({
                             !isAvailable && "opacity-40 cursor-not-allowed",
                             isAvailable && !isSelected && !isHovered && "hover:bg-tennis-green-bg hover:border-tennis-green-medium"
                           )}
-                          onClick={() => handleSlotClick(court.id, time)}
+                          onClick={(e: React.MouseEvent) => {
+                            e.preventDefault();
+                            e.stopPropagation();
+                            handleSlotClick(court.id, time);
+                          }}
                           onMouseEnter={() => handleSlotHover(court.id, time)}
                           onMouseLeave={handleSlotLeave}
                           disabled={!isAvailable}
