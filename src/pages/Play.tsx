@@ -42,6 +42,9 @@ import { PlayerStatsWidget } from '@/components/play/PlayerStatsWidget';
 import { SessionCard } from '@/components/sessions/SessionCard';
 import { RecommendedSection } from '@/components/play/RecommendedSection';
 import { SessionCreationDialog } from '@/components/sessions/SessionCreationDialog';
+import { SessionErrorWrapper } from '@/components/sessions/SessionErrorWrapper';
+import { SessionListSkeleton } from '@/components/sessions/SessionSkeletons';
+import { SessionLoadingState } from '@/components/sessions/SessionLoadingState';
 
 const Play = () => {
   const { user } = useAuth();
@@ -384,23 +387,117 @@ const Play = () => {
             {/* Recent Sessions */}
             <div>
               <h2 className="text-lg font-semibold mb-3">Recent Sessions</h2>
-              {availableLoading ? (
+              <SessionErrorWrapper 
+                context="recent sessions"
+                onRetry={refreshSessions}
+              >
+                {availableLoading ? (
+                  <SessionListSkeleton count={3} />
+                ) : activeSessions.length === 0 ? (
+                  <Card>
+                    <CardContent className="p-8 text-center">
+                      <div className="space-y-4">
+                        <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto" />
+                        <div>
+                          <h3 className="text-lg font-semibold">No Sessions Available</h3>
+                          <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
+                        </div>
+                        <Button onClick={() => setShowCreateDialog(true)}>
+                          <Plus className="h-4 w-4 mr-2" />
+                          Create Session
+                        </Button>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ) : (
+                  <div className="space-y-4">
+                    {activeSessions.slice(0, 3).map((session) => (
+                       <SessionCard
+                         key={session.id}
+                          session={{...session, status: 'waiting'}}
+                         participants={session.participants || []}
+                         onJoin={handleJoinSession}
+                         onRefresh={refreshSessions}
+                         isJoining={isJoining(session.id)}
+                         showJoinButton={true}
+                       />
+                     ))}
+                  </div>
+                )}
+              </SessionErrorWrapper>
+            </div>
+          </TabsContent>
+
+          {/* Nearby Tab */}
+          <TabsContent value="nearby" className="space-y-4">
+            <SessionErrorWrapper 
+              context="nearby sessions"
+              onRetry={refreshSessions}
+            >
+              {locationLoading ? (
+                <SessionListSkeleton count={3} />
+              ) : !hasLocation ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <div className="space-y-4">
+                      <MapPin className="h-12 w-12 text-muted-foreground mx-auto" />
+                      <div>
+                        <h3 className="text-lg font-semibold">Location Services Required</h3>
+                        <p className="text-muted-foreground">Enable location access to find nearby sessions and players.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : nearbySessions.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <div className="space-y-4">
+                      <MapPin className="h-12 w-12 text-muted-foreground mx-auto" />
+                      <div>
+                        <h3 className="text-lg font-semibold">No Nearby Sessions</h3>
+                        <p className="text-muted-foreground">No sessions found within {radiusKm}km of your location.</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
                 <div className="space-y-4">
-                  {[1, 2, 3].map((i) => (
-                    <Card key={i} className="animate-pulse">
-                      <CardContent className="p-4">
-                        <div className="h-20 bg-muted rounded"></div>
-                      </CardContent>
-                    </Card>
-                  ))}
+                  {nearbySessions.map((session) => {
+                    const fullSession = availableSessions.find(s => s.id === session.id);
+                    if (!fullSession) return null;
+                    
+                    return (
+                       <SessionCard
+                         key={session.id}
+                         session={{...fullSession, status: 'waiting'}}
+                         participants={fullSession.participants || []}
+                         onJoin={handleJoinSession}
+                         onRefresh={refreshSessions}
+                         isJoining={isJoining(session.id)}
+                         showJoinButton={true}
+                       />
+                    );
+                  })}
                 </div>
+              )}
+            </SessionErrorWrapper>
+          </TabsContent>
+
+          {/* All Sessions Tab */}
+          <TabsContent value="all" className="space-y-4">
+            <SessionErrorWrapper 
+              context="all sessions"
+              onRetry={refreshSessions}
+            >
+              {availableLoading ? (
+                <SessionListSkeleton count={6} />
               ) : activeSessions.length === 0 ? (
                 <Card>
                   <CardContent className="p-8 text-center">
                     <div className="space-y-4">
                       <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto" />
                       <div>
-                        <h3 className="text-lg font-semibold">No Sessions Available</h3>
+                        <h3 className="text-lg font-semibold">No Active Sessions</h3>
                         <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
                       </div>
                       <Button onClick={() => setShowCreateDialog(true)}>
@@ -412,168 +509,62 @@ const Play = () => {
                 </Card>
               ) : (
                 <div className="space-y-4">
-                  {activeSessions.slice(0, 3).map((session) => (
+                  {activeSessions.map((session) => (
+                         <SessionCard
+                           key={session.id}
+                           session={{...session, status: 'waiting'}}
+                           participants={session.participants || []}
+                           onJoin={handleJoinSession}
+                           onRefresh={refreshSessions}
+                           isJoining={isJoining(session.id)}
+                           showJoinButton={true}
+                         />
+                  ))}
+                </div>
+              )}
+            </SessionErrorWrapper>
+          </TabsContent>
+
+          {/* Mine Tab */}
+          <TabsContent value="mine" className="space-y-4">
+            <SessionErrorWrapper 
+              context="my sessions"
+              onRetry={refreshSessions}
+            >
+              {mySessionsLoading ? (
+                <SessionListSkeleton count={4} />
+              ) : mySessions.length === 0 ? (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <div className="space-y-4">
+                      <Trophy className="h-12 w-12 text-muted-foreground mx-auto" />
+                      <div>
+                        <h3 className="text-lg font-semibold">No Sessions Yet</h3>
+                        <p className="text-muted-foreground">You haven't joined or created any sessions.</p>
+                      </div>
+                      <Button onClick={() => setShowCreateDialog(true)}>
+                        <Plus className="h-4 w-4 mr-2" />
+                        Create Your First Session
+                      </Button>
+                    </div>
+                  </CardContent>
+                </Card>
+              ) : (
+                 <div className="space-y-4">
+                  {mySessions.map((session) => (
                      <SessionCard
                        key={session.id}
-                        session={{...session, status: 'waiting'}}
+                       session={{...session, status: 'waiting'}}
                        participants={session.participants || []}
                        onJoin={handleJoinSession}
                        onRefresh={refreshSessions}
                        isJoining={isJoining(session.id)}
                        showJoinButton={true}
                      />
-                   ))}
+                  ))}
                 </div>
               )}
-            </div>
-          </TabsContent>
-
-          {/* Nearby Tab */}
-          <TabsContent value="nearby" className="space-y-4">
-            {locationLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardContent className="p-4">
-                      <div className="h-20 bg-muted rounded"></div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : !hasLocation ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <div className="space-y-4">
-                    <MapPin className="h-12 w-12 text-muted-foreground mx-auto" />
-                    <div>
-                      <h3 className="text-lg font-semibold">Location Services Required</h3>
-                      <p className="text-muted-foreground">Enable location access to find nearby sessions and players.</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : nearbySessions.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <div className="space-y-4">
-                    <MapPin className="h-12 w-12 text-muted-foreground mx-auto" />
-                    <div>
-                      <h3 className="text-lg font-semibold">No Nearby Sessions</h3>
-                      <p className="text-muted-foreground">No sessions found within {radiusKm}km of your location.</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {nearbySessions.map((session) => {
-                  const fullSession = availableSessions.find(s => s.id === session.id);
-                  if (!fullSession) return null;
-                  
-                  return (
-                     <SessionCard
-                       key={session.id}
-                       session={{...fullSession, status: 'waiting'}}
-                       participants={fullSession.participants || []}
-                       onJoin={handleJoinSession}
-                       onRefresh={refreshSessions}
-                       isJoining={isJoining(session.id)}
-                       showJoinButton={true}
-                     />
-                  );
-                })}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* All Sessions Tab */}
-          <TabsContent value="all" className="space-y-4">
-            {availableLoading ? (
-              <div className="space-y-4">
-                {[1, 2, 3].map((i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardContent className="p-4">
-                      <div className="h-20 bg-muted rounded"></div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : activeSessions.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <div className="space-y-4">
-                    <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto" />
-                    <div>
-                      <h3 className="text-lg font-semibold">No Active Sessions</h3>
-                      <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
-                    </div>
-                    <Button onClick={() => setShowCreateDialog(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Session
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="space-y-4">
-                {activeSessions.map((session) => (
-                       <SessionCard
-                         key={session.id}
-                         session={{...session, status: 'waiting'}}
-                         participants={session.participants || []}
-                         onJoin={handleJoinSession}
-                         onRefresh={refreshSessions}
-                         isJoining={isJoining(session.id)}
-                         showJoinButton={true}
-                       />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-
-          {/* Mine Tab */}
-          <TabsContent value="mine" className="space-y-4">
-            {mySessionsLoading ? (
-              <div className="space-y-4">
-                {[1, 2].map((i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardContent className="p-4">
-                      <div className="h-20 bg-muted rounded"></div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : mySessions.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <div className="space-y-4">
-                    <Trophy className="h-12 w-12 text-muted-foreground mx-auto" />
-                    <div>
-                      <h3 className="text-lg font-semibold">No Sessions Yet</h3>
-                      <p className="text-muted-foreground">You haven't joined or created any sessions.</p>
-                    </div>
-                    <Button onClick={() => setShowCreateDialog(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Your First Session
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-               <div className="space-y-4">
-                {mySessions.map((session) => (
-                   <SessionCard
-                     key={session.id}
-                     session={{...session, status: 'waiting'}}
-                     participants={session.participants || []}
-                     onJoin={handleJoinSession}
-                     onRefresh={refreshSessions}
-                     isJoining={isJoining(session.id)}
-                     showJoinButton={true}
-                   />
-                ))}
-              </div>
-            )}
+            </SessionErrorWrapper>
           </TabsContent>
         </Tabs>
       </div>
