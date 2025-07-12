@@ -164,15 +164,21 @@ export function BookingConfirmationDialog({
     }
   };
 
-  const handleClose = () => {
-    setTermsAccepted(false);
-    setFormErrors([]);
-    setIsProcessing(false);
-    onOpenChange(false);
+  /**
+   * Only reset internal state when the dialog actually closes,
+   * but propagate *any* open/close event back to the parent.
+   */
+  const handleDialogOpenChange = (nextOpen: boolean) => {
+    if (!nextOpen) {
+      setTermsAccepted(false);
+      setFormErrors([]);
+      setIsProcessing(false);
+    }
+    onOpenChange(nextOpen);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleClose}>
+    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
