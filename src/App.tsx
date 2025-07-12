@@ -31,7 +31,7 @@ import Scheduling from "@/pages/Scheduling";
 
 import StartMatch from "@/pages/StartMatch";
 import EndMatch from "@/pages/EndMatch";
-import StartTraining from "@/pages/StartTraining";
+
 import EndTraining from "@/pages/EndTraining";
 import StartSocialPlay from "@/pages/StartSocialPlay";
 import JoinSocialPlay from "@/pages/JoinSocialPlay";
@@ -82,7 +82,7 @@ function AppWithGuide() {
           
           <Route path="/start-match" element={<ProtectedRoute><StartMatch /></ProtectedRoute>} />
           <Route path="/end-match" element={<ProtectedRoute><EndMatch /></ProtectedRoute>} />
-          <Route path="/start-training" element={<ProtectedRoute><StartTraining /></ProtectedRoute>} />
+          <Route path="/start-training" element={<ProtectedRoute><CreateSession /></ProtectedRoute>} />
           <Route path="/end-training" element={<ProtectedRoute><EndTraining /></ProtectedRoute>} />
           <Route path="/start-social-play" element={<ProtectedRoute><StartSocialPlay /></ProtectedRoute>} />
           <Route path="/join-social-play" element={<ProtectedRoute><JoinSocialPlay /></ProtectedRoute>} />

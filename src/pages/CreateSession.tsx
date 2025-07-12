@@ -46,8 +46,8 @@ const CreateSession = () => {
   const isInClubContext = routerLocation.pathname.startsWith('/club/');
   const clubId = isInClubContext ? routerLocation.pathname.split('/')[2] : null;
 
-  // Form state
-  const [sessionType, setSessionType] = useState('');
+  // Form state  
+  const [sessionType, setSessionType] = useState(searchParams.get('type') || '');
   const [format, setFormat] = useState<'singles' | 'doubles'>('singles');
   const [maxPlayers, setMaxPlayers] = useState(2);
   const [stakesAmount, setStakesAmount] = useState(0);

@@ -1,5 +1,6 @@
 
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -30,6 +31,7 @@ export function MobileActionPanel({
   onAddTokens,
   className 
 }: MobileActionPanelProps) {
+  const navigate = useNavigate();
   const [activePanel, setActivePanel] = useState<'stats' | 'actions' | null>(null);
   const [wellbeingCenterOpen, setWellbeingCenterOpen] = useState(false);
 
@@ -40,25 +42,18 @@ export function MobileActionPanel({
 
   const quickActions = [
     {
+      id: 'create-session',
+      title: 'Create Session',
+      description: 'Start new tennis session',
+      icon: Activity,
+      onClick: () => navigate('/sessions/create')
+    },
+    {
       id: 'restore-hp',
       title: 'Restore HP',
       description: 'Quick health boost',
       icon: Heart,
       onClick: () => onRestoreHP(10, 'rest', 'Quick mobile HP restore')
-    },
-    {
-      id: 'add-xp',
-      title: 'Add XP',
-      description: 'Log quick activity',
-      icon: Star,
-      onClick: () => onAddXP(25, 'training', 'Quick mobile XP gain')
-    },
-    {
-      id: 'earn-tokens',
-      title: 'Earn Tokens',
-      description: 'Daily bonus',
-      icon: Coins,
-      onClick: () => onAddTokens(5, 'regular', 'daily_bonus', 'Daily mobile bonus')
     },
     {
       id: 'wellbeing-center',

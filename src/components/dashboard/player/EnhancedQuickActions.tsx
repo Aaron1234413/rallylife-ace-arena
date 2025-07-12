@@ -125,7 +125,7 @@ export function EnhancedQuickActions({
       {
         id: 'match',
         title: 'Tennis Match',
-        baseDescription: 'Record a competitive tennis match with detailed scoring',
+        baseDescription: 'Create a competitive tennis match with detailed scoring',
         icon: Zap,
         color: 'bg-gradient-to-br from-blue-500 via-blue-600 to-blue-700',
         textColor: 'text-blue-700',
@@ -133,14 +133,14 @@ export function EnhancedQuickActions({
         energyRequirement: 'high' as const,
         estimatedDuration: 90,
         difficulty: 'high' as const,
-        navigateTo: '/sessions/create',
+        navigateTo: '/sessions/create?type=match',
         timePreference: ['morning', 'evening'],
         varietyType: 'competitive'
       },
       {
         id: 'training',
         title: 'Training Session',
-        baseDescription: 'Practice drills, technique work, and skill development',
+        baseDescription: 'Start a focused training session with skill development',
         icon: BookOpen,
         color: 'bg-gradient-to-br from-green-500 via-green-600 to-emerald-700',
         textColor: 'text-green-700',
@@ -148,14 +148,14 @@ export function EnhancedQuickActions({
         energyRequirement: 'medium' as const,
         estimatedDuration: 60,
         difficulty: 'medium' as const,
-        navigateTo: '/sessions/create',
+        navigateTo: '/sessions/create?type=training',
         timePreference: ['morning', 'afternoon', 'evening'],
         varietyType: 'skill-building'
       },
       {
         id: 'social',
         title: 'Social Play',
-        baseDescription: 'Create a session and invite friends to play together',
+        baseDescription: 'Create a social session and invite friends to play together',
         icon: Users,
         color: 'bg-gradient-to-br from-purple-500 via-purple-600 to-indigo-700',
         textColor: 'text-purple-700',
@@ -163,7 +163,7 @@ export function EnhancedQuickActions({
         energyRequirement: 'low' as const,
         estimatedDuration: 45,
         difficulty: 'low' as const,
-        navigateTo: '/sessions/create',
+        navigateTo: '/sessions/create?type=social_play',
         timePreference: ['afternoon', 'evening'],
         varietyType: 'social'
       }
