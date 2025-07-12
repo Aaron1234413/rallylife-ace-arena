@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -18,6 +18,8 @@ import { useAuth } from '@/hooks/useAuth';
 import { useEnhancedSessionActions } from '@/hooks/useEnhancedSessionActions';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'sonner';
+import { CompletionFlow } from '@/components/sessions/CompletionFlow';
+import { supabase } from '@/integrations/supabase/client';
 
 interface ActiveSessionCardProps {
   session: UnifiedSession;
@@ -28,12 +30,70 @@ export function ActiveSessionCard({ session, onRefresh }: ActiveSessionCardProps
   const { user } = useAuth();
   const { getSessionActions, executeAction, loading } = useEnhancedSessionActions();
   const navigate = useNavigate();
+  
+  const [showCompletionFlow, setShowCompletionFlow] = useState(false);
+  const [participants, setParticipants] = useState<any[]>([]);
 
   const isCreator = user?.id === session.creator_id;
   const userRole = isCreator ? 'creator' : 'participant';
   const actions = getSessionActions(session, userRole);
 
+  // Load participants when completion flow is opened
+  useEffect(() => {
+    if (showCompletionFlow) {
+      loadParticipants();
+    }
+  }, [showCompletionFlow]);
+
+  const loadParticipants = async () => {
+    try {
+      console.log('📋 Loading participants for session:', session.id);
+      
+      const { data, error } = await supabase
+        .from('session_participants')
+        .select(`
+          *,
+          profiles:user_id (
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq('session_id', session.id);
+
+      if (error) throw error;
+      
+      console.log('📋 Participants loaded:', data);
+      setParticipants(data || []);
+      
+      // If no participants found, create a basic entry for the creator
+      if (!data || data.length === 0) {
+        console.log('📋 No participants found, adding creator as participant');
+        setParticipants([{
+          user_id: session.creator_id,
+          session_id: session.id,
+          stakes_contributed: 0,
+          profiles: {
+            full_name: 'Session Creator',
+            avatar_url: null
+          }
+        }]);
+      }
+    } catch (error) {
+      console.error('Failed to load participants:', error);
+      toast.error('Failed to load session participants');
+    }
+  };
+
   const handleAction = async (actionType: string) => {
+    console.log('🎯 ActiveSessionCard handleAction called:', actionType);
+    
+    // Special handling for end action - open completion flow
+    if (actionType === 'end') {
+      console.log('🏁 Opening completion flow for session:', session.id);
+      setShowCompletionFlow(true);
+      return;
+    }
+
     try {
       const action = actions.find(a => a.type === actionType);
       if (!action) return;
@@ -46,6 +106,14 @@ export function ActiveSessionCard({ session, onRefresh }: ActiveSessionCardProps
       console.error('Action failed:', error);
       toast.error('Action failed. Please try again.');
     }
+  };
+
+  const handleCompletionSuccess = () => {
+    setShowCompletionFlow(false);
+    if (onRefresh) {
+      onRefresh();
+    }
+    toast.success('Session completed successfully!');
   };
 
   const handleViewSession = () => {
@@ -181,6 +249,15 @@ export function ActiveSessionCard({ session, onRefresh }: ActiveSessionCardProps
           </p>
         )}
       </CardContent>
+
+      {/* Completion Flow Dialog */}
+      <CompletionFlow
+        open={showCompletionFlow}
+        onOpenChange={setShowCompletionFlow}
+        session={session}
+        participants={participants}
+        onComplete={handleCompletionSuccess}
+      />
     </Card>
   );
 }

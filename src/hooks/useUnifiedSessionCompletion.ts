@@ -72,24 +72,38 @@ export function useUnifiedSessionCompletion() {
     winningTeam?: string[],
     completionData: CompletionData = {}
   ): Promise<CompletionResult> => {
+    console.log('🔄 useUnifiedSessionCompletion.completeSession called', {
+      sessionId,
+      winnerId,
+      winningTeam,
+      completionData
+    });
+
     if (!user) {
+      console.log('❌ User not authenticated');
       return { success: false, error: 'User not authenticated' };
     }
 
     // Validate first
+    console.log('🔍 Validating session completion...');
     const validation = await validateCompletion(sessionId, winnerId);
     if (!validation.valid) {
+      console.log('❌ Validation failed:', validation.error);
       return { success: false, error: validation.error };
     }
+    console.log('✅ Validation passed:', validation);
 
     setIsCompleting(true);
     try {
+      console.log('🚀 Calling complete_session_unified RPC...');
       const { data, error } = await supabase.rpc('complete_session_unified', {
         session_id_param: sessionId,
         winner_id_param: winnerId || null,
-        winning_team_param: winningTeam ? JSON.stringify(winningTeam) : null,
+        winning_team_param: winningTeam || null,
         completion_data: completionData as any
       });
+
+      console.log('📋 RPC Response:', { data, error });
 
       if (error) {
         console.error('Completion error:', error);

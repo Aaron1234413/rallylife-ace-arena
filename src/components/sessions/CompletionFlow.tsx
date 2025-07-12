@@ -60,7 +60,18 @@ export function CompletionFlow({
   };
 
   const handleComplete = async () => {
+    console.log('🏁 Starting session completion...', {
+      sessionId: session.id,
+      selectedWinner,
+      isDraw,
+      sessionType: session.session_type
+    });
+    
     setStep('confirm');
+    
+    // Calculate session duration from start time to now
+    const startTime = new Date(session.start_time || session.created_at);
+    const sessionDurationMinutes = Math.max(1, Math.floor((Date.now() - startTime.getTime()) / (1000 * 60)));
     
     const result = await completeSession(
       session.id,
@@ -68,9 +79,11 @@ export function CompletionFlow({
       undefined,
       {
         platform_fee_rate: 0.1,
-        session_duration_minutes: 60
+        session_duration_minutes: sessionDurationMinutes
       }
     );
+
+    console.log('🏁 Completion result:', result);
 
     if (result.success) {
       onComplete();
@@ -114,7 +127,9 @@ export function CompletionFlow({
                   <CardContent className="p-3">
                     <div className="flex items-center justify-between">
                       <div>
-                        <div className="font-medium">{participant.user_id}</div>
+                        <div className="font-medium">
+                          {participant.profiles?.full_name || participant.user_id}
+                        </div>
                         {participant.stakes_contributed > 0 && (
                           <div className="text-xs text-muted-foreground flex items-center gap-1">
                             <Coins className="h-3 w-3" />
@@ -148,7 +163,7 @@ export function CompletionFlow({
               <AlertDescription>
                 {isDraw 
                   ? "Draw declared - all stakes will be refunded to participants"
-                  : `${selectedParticipant?.user_id} selected as winner`
+                  : `${selectedParticipant?.profiles?.full_name || selectedParticipant?.user_id} selected as winner`
                 }
               </AlertDescription>
             </Alert>
