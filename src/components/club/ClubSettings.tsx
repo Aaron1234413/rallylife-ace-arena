@@ -22,6 +22,7 @@ import {
 import { Club, useClubs } from '@/hooks/useClubs';
 import { toast } from 'sonner';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
 import { useClubSubscription } from '@/hooks/useClubSubscription';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
 import { useTierEnforcement } from '@/hooks/useTierEnforcement';
@@ -44,7 +45,7 @@ interface ClubSettingsProps {
 
 export function ClubSettings({ club, onSettingsUpdate, onNavigateToEconomics }: ClubSettingsProps) {
   const { user } = useAuth();
-  const { updateClub } = useClubs();
+  const { updateClub, deleteClub } = useClubs();
   const { subscription, usage, updateUsageTracking, upgradeSubscription, openCustomerPortal } = useClubSubscription(club.id);
   const { tiers } = useSubscriptionTiers();
   const [formData, setFormData] = useState({
@@ -178,11 +179,22 @@ export function ClubSettings({ club, onSettingsUpdate, onNavigateToEconomics }: 
   };
 
   const handleDelete = async () => {
-    // Mock delete functionality
-    await new Promise(resolve => setTimeout(resolve, 1000));
-    toast.success('Club deleted successfully');
-    // Would redirect to dashboard in real implementation
-    console.log('Deleting club:', club.id);
+    if (!user || user.id !== club.owner_id) {
+      toast.error('Only the club owner can delete the club');
+      return;
+    }
+
+    setIsUpdating(true);
+    try {
+      await deleteClub(club.id);
+      // Navigation will happen automatically in the deleteClub function
+    } catch (error) {
+      console.error('Error deleting club:', error);
+      toast.error('Failed to delete club. Please try again.');
+    } finally {
+      setIsUpdating(false);
+      setShowDeleteConfirm(false);
+    }
   };
 
   const hasChanges = 
@@ -539,9 +551,10 @@ export function ClubSettings({ club, onSettingsUpdate, onNavigateToEconomics }: 
                         <Button
                           size="sm"
                           onClick={handleDelete}
+                          disabled={isUpdating}
                           className="bg-red-600 hover:bg-red-700"
                         >
-                          Yes, Delete Club
+                          {isUpdating ? 'Deleting...' : 'Yes, Delete Club'}
                         </Button>
                       </div>
                     </div>

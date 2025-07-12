@@ -246,6 +246,32 @@ export function useClubs() {
     }
   };
 
+  const deleteClub = async (clubId: string) => {
+    if (!user) throw new Error('User not authenticated');
+
+    try {
+      const { error } = await supabase
+        .from('clubs')
+        .delete()
+        .eq('id', clubId)
+        .eq('owner_id', user.id); // Only allow deletion by owner
+
+      if (error) throw error;
+
+      toast.success('Club deleted successfully');
+      
+      // Navigate back to dashboard
+      window.location.href = '/dashboard';
+      
+      await fetchMyClubs();
+      await fetchPublicClubs();
+    } catch (error) {
+      console.error('Error deleting club:', error);
+      toast.error('Failed to delete club');
+      throw error;
+    }
+  };
+
   const joinClub = async (clubId: string) => {
     if (!user) throw new Error('User not authenticated');
 
@@ -777,6 +803,7 @@ export function useClubs() {
     clubActivities,
     loading,
     createClub,
+    deleteClub,
     joinClub,
     leaveClub,
     refreshData,

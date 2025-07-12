@@ -21,6 +21,7 @@ import { OperatingHoursEditor, OperatingHours } from './OperatingHoursEditor';
 import { useClubs } from '@/hooks/useClubs';
 import { useSubscriptionTiers } from '@/hooks/useSubscriptionTiers';
 import { LocationInput } from '@/components/ui/location-input';
+import { toast } from 'sonner';
 
 interface ClubCreationWizardProps {
   onComplete: () => void;
@@ -75,7 +76,7 @@ export function ClubCreationWizard({ onComplete, onCancel }: ClubCreationWizardP
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
-  const { createClub } = useClubs();
+  const { createClub, myClubs } = useClubs();
   const { getTierLimits } = useSubscriptionTiers();
 
   const validateCurrentStep = (): boolean => {
@@ -137,6 +138,19 @@ export function ClubCreationWizard({ onComplete, onCancel }: ClubCreationWizardP
 
     setIsCreating(true);
     try {
+      // Check current club count against subscription limits
+      const currentUserClubs = myClubs.length; // Get current owned clubs count
+      const tierLimits = getTierLimits(formData.subscriptionTier);
+      const maxClubsAllowed = formData.subscriptionTier === 'community' ? 1 : 
+                            formData.subscriptionTier === 'core' ? 3 :
+                            formData.subscriptionTier === 'plus' ? 10 : 999; // pro = unlimited
+
+      if (currentUserClubs >= maxClubsAllowed) {
+        toast.error(`Your ${formData.subscriptionTier} plan allows up to ${maxClubsAllowed} club${maxClubsAllowed > 1 ? 's' : ''}. Upgrade to create more clubs.`);
+        setIsCreating(false);
+        return;
+      }
+
       await createClub({
         name: formData.name.trim(),
         description: formData.description.trim() || undefined,
@@ -151,6 +165,7 @@ export function ClubCreationWizard({ onComplete, onCancel }: ClubCreationWizardP
       onComplete();
     } catch (error) {
       console.error('Failed to create club:', error);
+      toast.error('Failed to create club. Please try again.');
     } finally {
       setIsCreating(false);
     }
