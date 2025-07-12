@@ -2370,7 +2370,15 @@ export type Database = {
           lifetime_earned?: number
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "coach_tokens_coach_id_fkey"
+            columns: ["coach_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       coaching_challenges: {
         Row: {
@@ -3882,6 +3890,13 @@ export type Database = {
             referencedRelation: "avatar_items"
             referencedColumns: ["id"]
           },
+          {
+            foreignKeyName: "player_avatar_equipped_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
         ]
       }
       player_avatar_items: {
@@ -3912,6 +3927,13 @@ export type Database = {
             columns: ["avatar_item_id"]
             isOneToOne: false
             referencedRelation: "avatar_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "player_avatar_items_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
         ]
@@ -4001,7 +4023,15 @@ export type Database = {
           player_id?: string
           updated_at?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "player_hp_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       player_profiles: {
         Row: {
@@ -4235,7 +4265,15 @@ export type Database = {
           updated_at?: string
           xp_to_next_level?: number
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "player_xp_player_id_fkey"
+            columns: ["player_id"]
+            isOneToOne: true
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       profiles: {
         Row: {
