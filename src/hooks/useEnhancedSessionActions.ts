@@ -97,11 +97,10 @@ export function useEnhancedSessionActions() {
     try {
       switch (action.type) {
         case 'start':
-          // Call start session RPC
+          // Call start session RPC with correct parameters
           const { data: startData, error: startError } = await supabase
             .rpc('start_session', {
-              session_id_param: sessionId,
-              starter_id_param: user.id
+              session_id_param: sessionId
             });
 
           if (startError) throw startError;
@@ -140,25 +139,46 @@ export function useEnhancedSessionActions() {
           }
 
         case 'end':
-          // Navigate to completion modal/flow
-          toast.success('Opening session completion...');
-          // This should open a completion modal instead of directly completing
-          return true;
+          // Call complete session RPC
+          const { data: completeData, error: completeError } = await supabase
+            .rpc('complete_session', {
+              session_id_param: sessionId,
+              winner_id_param: null
+            });
+
+          if (completeError) throw completeError;
+          
+          if (completeData && typeof completeData === 'object' && 'success' in completeData && completeData.success) {
+            toast.success('Session completed successfully!');
+            return true;
+          } else {
+            const errorMessage = typeof completeData === 'object' && 'message' in completeData 
+              ? String(completeData.message) 
+              : 'Failed to complete session';
+            toast.error(errorMessage);
+            return false;
+          };
 
         case 'join':
-          // Handle join session logic
-          const { error: joinError } = await supabase
-            .from('session_participants')
-            .insert({
-              session_id: sessionId,
-              user_id: user.id,
-              status: 'joined',
-              joined_at: new Date().toISOString()
+          // Use join_session RPC function for proper token handling
+          const { data: joinData, error: joinError } = await supabase
+            .rpc('join_session', {
+              session_id_param: sessionId,
+              user_id_param: user.id
             });
 
           if (joinError) throw joinError;
-          toast.success('Successfully joined session!');
-          return true;
+          
+          if (joinData && typeof joinData === 'object' && 'success' in joinData && joinData.success) {
+            toast.success('Successfully joined session!');
+            return true;
+          } else {
+            const errorMessage = typeof joinData === 'object' && 'error' in joinData 
+              ? String(joinData.error) 
+              : 'Failed to join session';
+            toast.error(errorMessage);
+            return false;
+          }
 
         case 'edit':
           // Navigate to edit page

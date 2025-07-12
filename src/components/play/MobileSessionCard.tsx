@@ -28,6 +28,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { toast } from 'sonner';
+import { useEnhancedSessionActions } from '@/hooks/useEnhancedSessionActions';
 
 interface MobileSessionCardProps {
   session: any;
@@ -72,6 +73,7 @@ export const MobileSessionCard: React.FC<MobileSessionCardProps> = ({
   regularTokens,
   distance
 }) => {
+  const { executeAction, loading } = useEnhancedSessionActions();
   const TypeIcon = getTypeIcon(session.session_type || session.type);
   const sessionType = session.session_type || session.type;
   const isCreator = user && session.creator_id === user.id;
@@ -237,13 +239,16 @@ export const MobileSessionCard: React.FC<MobileSessionCardProps> = ({
         <div className="p-4">
           {isCreator ? (
             <div className="space-y-2">
-              {isFull && session.status === 'waiting' && onStartSession ? (
+              {isFull && session.status === 'waiting' ? (
                 <Button 
-                  onClick={() => onStartSession(session.id)}
-                  disabled={isStarting}
+                  onClick={() => executeAction(
+                    { id: 'start', type: 'start', label: 'Start Session', icon: '▶️', variant: 'default', loadingText: 'Starting...' },
+                    session.id
+                  )}
+                  disabled={loading === 'start'}
                   className="w-full bg-green-600 hover:bg-green-700 text-white"
                 >
-                  {isStarting ? (
+                  {loading === 'start' ? (
                     <div className="flex items-center justify-center gap-2">
                       <Loader2 className="w-4 h-4 animate-spin" />
                       Starting Session...

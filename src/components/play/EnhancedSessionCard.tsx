@@ -15,6 +15,7 @@ import {
   Play
 } from 'lucide-react';
 import { CancelSessionDialog } from '@/components/sessions/CancelSessionDialog';
+import { useEnhancedSessionActions } from '@/hooks/useEnhancedSessionActions';
 
 interface Session {
   id: string;
@@ -56,6 +57,7 @@ export function EnhancedSessionCard({
   currentUserId
 }: EnhancedSessionCardProps) {
   const [showCancelDialog, setShowCancelDialog] = React.useState(false);
+  const { executeAction, loading } = useEnhancedSessionActions();
   const getTypeIcon = (type: string) => {
     switch (type) {
       case 'match': return Trophy;
@@ -175,9 +177,14 @@ export function EnhancedSessionCard({
                   <Button 
                     size="sm" 
                     className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                    onClick={() => executeAction(
+                      { id: 'start', type: 'start', label: 'Start Session', icon: '▶️', variant: 'default', loadingText: 'Starting...' },
+                      session.id
+                    )}
+                    disabled={loading === 'start'}
                   >
                     <Play className="h-3 w-3 mr-1" />
-                    Start Session
+                    {loading === 'start' ? 'Starting...' : 'Start Session'}
                   </Button>
                 ) : (
                   <Button 
