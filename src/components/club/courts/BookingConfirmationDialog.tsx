@@ -12,7 +12,7 @@ import {
   AlertTriangle,
   CheckCircle
 } from 'lucide-react';
-import { format, addHours, parse } from 'date-fns';
+import { format, addHours } from 'date-fns';
 import { PricingBreakdown } from '@/components/ui/PricingBreakdown';
 import { calculateCourtPricing, calculateServicePricing, calculateTotalPricing, type PricingBreakdown as PricingData } from '@/utils/pricing';
 import { supabase } from '@/integrations/supabase/client';
@@ -66,41 +66,14 @@ export function BookingConfirmationDialog({
 
   if (!bookingDetails) return null;
 
-  // Safely destructure with defaults and guards
-  const {
-    court,
-    date: bookingDate,
-    startTime = '00:00',
-    duration,
-    selectedServices = [],
-    bookingType = 'personal',
-    notes
-  } = bookingDetails;
+  const { court, date, startTime, duration, selectedServices, bookingType, notes } = bookingDetails;
 
-  // Ensure all required fields exist
-  if (!court || !bookingDate) return null;
+  // Calculate end time
+  const [hours, minutes] = startTime.split(':').map(Number);
+  const endTime = `${(hours + duration).toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 
-  // Ensure duration is a valid number
-  const safeDuration = duration || 1;
-  const safeDate = bookingDate ?? new Date();
-
-  // Calculate end time using date-fns
-  let endTime = '00:00';
-  try {
-    // Parse the start time and add duration hours
-    const startDate = parse(startTime, 'HH:mm', safeDate);
-    const endDate = addHours(startDate, safeDuration);
-    endTime = format(endDate, 'HH:mm');
-  } catch (error) {
-    console.warn('Error calculating end time:', error);
-    // Fallback to manual calculation if date parsing fails
-    const [hours = 0, minutes = 0] = startTime.split(':').map(Number);
-    const totalHours = hours + safeDuration;
-    endTime = `${totalHours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
-  }
-
-  // Calculate pricing with safe values
-  const courtPricing = calculateCourtPricing(court, safeDuration);
+  // Calculate pricing
+  const courtPricing = calculateCourtPricing(court, duration);
   const servicesPricing = selectedServices.map(service => calculateServicePricing(service));
   const totalServicesPricing = calculateTotalPricing(servicesPricing);
   const totalPricing = calculateTotalPricing([courtPricing, totalServicesPricing]);
@@ -125,10 +98,10 @@ export function BookingConfirmationDialog({
       const bookingData = {
         court_id: court.id,
         club_id: clubId,
-        booking_date: format(safeDate, 'yyyy-MM-dd'),
+        booking_date: format(date, 'yyyy-MM-dd'),
         start_time: startTime,
         end_time: endTime,
-        duration_hours: safeDuration,
+        duration_hours: duration,
         base_amount: courtPricing.money,
         convenience_fee: courtPricing.convenienceFee / 100,
         total_amount: totalPricing.money,
@@ -164,27 +137,16 @@ export function BookingConfirmationDialog({
     }
   };
 
-  /**
-   * Only reset internal state when the dialog actually closes,
-   * but propagate *any* open/close event back to the parent.
-   */
-  const handleDialogOpenChange = (nextOpen: boolean) => {
-    if (!nextOpen) {
-      setTermsAccepted(false);
-      setFormErrors([]);
-      setIsProcessing(false);
-    }
-    onOpenChange(nextOpen);
+  const handleClose = () => {
+    setTermsAccepted(false);
+    setFormErrors([]);
+    setIsProcessing(false);
+    onOpenChange(false);
   };
 
   return (
-    <Dialog open={open} onOpenChange={handleDialogOpenChange}>
-      <DialogContent 
-        className="max-w-2xl max-h-[90vh] overflow-y-auto"
-        onPointerDownOutside={(e) => {
-          e.preventDefault();
-        }}
-      >
+    <Dialog open={open} onOpenChange={handleClose}>
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <CheckCircle className="h-5 w-5 text-tennis-green-primary" />
@@ -210,14 +172,14 @@ export function BookingConfirmationDialog({
               {/* Date and Time */}
               <div className="flex items-center gap-3">
                 <Calendar className="h-4 w-4 text-tennis-green-medium" />
-                <span>{format(safeDate, 'EEEE, MMMM d, yyyy')}</span>
+                <span>{format(date, 'EEEE, MMMM d, yyyy')}</span>
               </div>
 
               <div className="flex items-center gap-3">
                 <Clock className="h-4 w-4 text-tennis-green-medium" />
                 <span>{startTime} - {endTime}</span>
                 <Badge variant="secondary">
-                  {safeDuration === 1 ? '1 hour' : `${safeDuration} hours`}
+                  {duration === 1 ? '1 hour' : `${duration} hours`}
                 </Badge>
               </div>
 
@@ -275,7 +237,7 @@ export function BookingConfirmationDialog({
             {/* Court Cost */}
             <PricingBreakdown 
               pricing={courtPricing}
-              title={`Court Booking (${safeDuration}h)`}
+              title={`Court Booking (${duration}h)`}
               className="bg-blue-50/50"
             />
 

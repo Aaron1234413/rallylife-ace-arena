@@ -4,10 +4,9 @@ import { Badge } from '@/components/ui/badge';
 import { Card, CardContent } from '@/components/ui/card';
 import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { CheckCircle, AlertCircle, Clock, Coins, DollarSign, Zap, ArrowRight } from 'lucide-react';
+import { CheckCircle, AlertCircle, Clock, Coins, DollarSign } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { calculateCourtPricing } from '@/utils/pricing';
-import { toast } from 'sonner';
 
 interface Court {
   id: string;
@@ -62,7 +61,6 @@ export function InteractiveTimeGrid({
   const [selectedSlot, setSelectedSlot] = useState<TimeSlotSelection | null>(null);
   const [duration, setDuration] = useState<number>(1);
   const [hoveredSlot, setHoveredSlot] = useState<{ courtId: string; time: string } | null>(null);
-  const [isUpdatingFromSlotClick, setIsUpdatingFromSlotClick] = useState(false);
 
   useEffect(() => {
     // Clear selection when date changes
@@ -109,9 +107,6 @@ export function InteractiveTimeGrid({
   const handleSlotClick = (courtId: string, time: string) => {
     if (isSlotBooked(courtId, time)) return;
 
-    console.log('Slot clicked:', { courtId, time, currentDuration: duration });
-
-    const court = courts.find(c => c.id === courtId);
     const newSelection = { courtId, startTime: time, duration };
     
     // Check if the full duration is available
@@ -127,64 +122,29 @@ export function InteractiveTimeGrid({
       }
       
       if (maxDuration === 0) {
-        toast.error('This time slot is not available for the selected duration');
         return; // No availability
       }
       
-      console.log('Auto-adjusting duration from', duration, 'to', maxDuration);
-      
-      // Prevent duration change handler from clearing selection
-      setIsUpdatingFromSlotClick(true);
-      
-      // Update duration state but don't trigger onChange handler for select
       setDuration(maxDuration);
       newSelection.duration = maxDuration;
-      toast.info(`Duration adjusted to ${maxDuration} ${maxDuration === 1 ? 'hour' : 'hours'} based on availability`);
     }
     
-    console.log('Setting selected slot:', newSelection);
     setSelectedSlot(newSelection);
     onSelectionChange(newSelection);
-    
-    // Reset the flag after selection is set
-    setIsUpdatingFromSlotClick(false);
-    
-    // Show success toast with clear next step
-    const endTime = `${(parseInt(time.split(':')[0]) + newSelection.duration).toString().padStart(2, '0')}:00`;
-    toast.success(
-      `${court?.name} selected for ${time} - ${endTime}. Click "BOOK THIS SLOT" to continue.`,
-      {
-        duration: 4000,
-        action: {
-          label: 'Book Now',
-          onClick: () => handleBookClick(),
-        },
-      }
-    );
   };
 
   const handleDurationChange = (newDuration: number) => {
-    console.log('Duration change triggered:', { newDuration, isUpdatingFromSlotClick });
-    
     setDuration(newDuration);
-    
-    // If we're updating from a slot click, don't interfere with the selection
-    if (isUpdatingFromSlotClick) {
-      console.log('Ignoring duration change as it was triggered by slot click');
-      return;
-    }
     
     if (selectedSlot) {
       if (isSlotAvailable(selectedSlot.courtId, selectedSlot.startTime, newDuration)) {
         const updatedSelection = { ...selectedSlot, duration: newDuration };
         setSelectedSlot(updatedSelection);
         onSelectionChange(updatedSelection);
-        toast.success(`Duration updated to ${newDuration} ${newDuration === 1 ? 'hour' : 'hours'}`);
       } else {
-        // Duration not available, clear selection and notify user
+        // Duration not available, clear selection
         setSelectedSlot(null);
         onSelectionChange(null);
-        toast.error(`${newDuration} ${newDuration === 1 ? 'hour' : 'hours'} is not available for this slot. Please select a different duration or time slot.`);
       }
     }
   };
@@ -254,82 +214,46 @@ export function InteractiveTimeGrid({
               </SelectContent>
             </Select>
             
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* Prominent Booking Panel - Appears when slot is selected */}
-      {selectedSlot && (
-        <Card className="border-2 border-tennis-green-primary bg-gradient-to-r from-tennis-green-bg/30 to-tennis-green-primary/10 animate-fade-in shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-4">
-                <div className="flex items-center gap-2 bg-tennis-green-primary/10 px-3 py-2 rounded-lg">
-                  <Zap className="h-5 w-5 text-tennis-green-primary animate-pulse" />
-                  <span className="font-semibold text-tennis-green-dark">
-                    Slot Selected!
+            {selectedSlot && (
+              <div className="flex items-center gap-4 ml-auto">
+                <div className="flex items-center gap-2 text-sm">
+                  <Clock className="h-4 w-4 text-tennis-green-medium" />
+                  <span className="text-tennis-green-dark font-medium">
+                    {selectedSlot.startTime} - {
+                      `${(parseInt(selectedSlot.startTime.split(':')[0]) + selectedSlot.duration).toString().padStart(2, '0')}:00`
+                    }
                   </span>
                 </div>
                 
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <Clock className="h-4 w-4 text-tennis-green-medium" />
-                    <span className="font-medium text-tennis-green-dark">
-                      {courts.find(c => c.id === selectedSlot.courtId)?.name} - {selectedSlot.startTime} to {
-                        `${(parseInt(selectedSlot.startTime.split(':')[0]) + selectedSlot.duration).toString().padStart(2, '0')}:00`
-                      }
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1">
+                    <Coins className="h-4 w-4 text-emerald-500" />
+                    <span className="text-sm font-medium">
+                      {calculatePricing(selectedSlot.courtId, selectedSlot.duration).tokens} tokens
                     </span>
                   </div>
                   
-                  <div className="flex items-center gap-4 text-sm">
+                  {calculatePricing(selectedSlot.courtId, selectedSlot.duration).totalAmount > 0 && (
                     <div className="flex items-center gap-1">
-                      <Coins className="h-4 w-4 text-emerald-500" />
-                      <span className="font-medium">
-                        {calculatePricing(selectedSlot.courtId, selectedSlot.duration).tokens} tokens
+                      <DollarSign className="h-4 w-4 text-green-500" />
+                      <span className="text-sm font-medium">
+                        ${(calculatePricing(selectedSlot.courtId, selectedSlot.duration).totalAmount / 100).toFixed(2)}
                       </span>
                     </div>
-                    
-                    {calculatePricing(selectedSlot.courtId, selectedSlot.duration).totalAmount > 0 && (
-                      <div className="flex items-center gap-1">
-                        <DollarSign className="h-4 w-4 text-green-500" />
-                        <span className="font-medium">
-                          ${(calculatePricing(selectedSlot.courtId, selectedSlot.duration).totalAmount / 100).toFixed(2)}
-                        </span>
-                      </div>
-                    )}
-                    
-                    <Badge variant="outline" className="bg-white/50">
-                      {selectedSlot.duration} {selectedSlot.duration === 1 ? 'hour' : 'hours'}
-                    </Badge>
-                  </div>
+                  )}
                 </div>
-              </div>
-              
-              <div className="flex items-center gap-3">
-                <Button 
-                  variant="outline"
-                  onClick={() => {
-                    setSelectedSlot(null);
-                    onSelectionChange(null);
-                  }}
-                  className="border-tennis-green-medium text-tennis-green-medium hover:bg-tennis-green-bg"
-                >
-                  Clear Selection
-                </Button>
                 
                 <Button 
                   onClick={handleBookClick}
-                  size="lg"
-                  className="bg-tennis-green-primary hover:bg-tennis-green-medium text-white shadow-lg hover:shadow-xl transition-all duration-200 font-semibold px-8 animate-pulse hover:animate-none"
+                  className="bg-tennis-green-primary hover:bg-tennis-green-medium"
                 >
-                  <ArrowRight className="h-5 w-5 mr-2" />
-                  BOOK THIS SLOT
+                  Book Now
                 </Button>
               </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
+            )}
+          </div>
+        </CardContent>
+      </Card>
 
       {/* Time Grid */}
       <div className="overflow-x-auto">
@@ -396,11 +320,7 @@ export function InteractiveTimeGrid({
                             !isAvailable && "opacity-40 cursor-not-allowed",
                             isAvailable && !isSelected && !isHovered && "hover:bg-tennis-green-bg hover:border-tennis-green-medium"
                           )}
-                          onClick={(e: React.MouseEvent) => {
-                            e.preventDefault();
-                            e.stopPropagation();
-                            handleSlotClick(court.id, time);
-                          }}
+                          onClick={() => handleSlotClick(court.id, time)}
                           onMouseEnter={() => handleSlotHover(court.id, time)}
                           onMouseLeave={handleSlotLeave}
                           disabled={!isAvailable}
