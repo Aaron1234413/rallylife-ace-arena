@@ -99,6 +99,45 @@ export function useSessionCompletion() {
     setIsCompleting(true);
 
     try {
+      // Use the proper database RPC function for completing sessions
+      const { data, error } = await supabase
+        .rpc('complete_session', {
+          session_id_param: sessionId,
+          winner_id_param: completionData.winner_data.winner_id || null
+        });
+
+      if (error) throw error;
+
+      if (data && typeof data === 'object' && data !== null && 'success' in data && data.success) {
+        toast.success('Session completed successfully!');
+        return true;
+      } else {
+        const errorMessage = typeof data === 'object' && data !== null && 'message' in data 
+          ? String(data.message) 
+          : 'Failed to complete session';
+        toast.error(errorMessage);
+        return false;
+      }
+    } catch (error) {
+      console.error('Error completing session:', error);
+      toast.error('Failed to complete session');
+      return false;
+    } finally {
+      setIsCompleting(false);
+    }
+  };
+
+  // Remove the manual reward processing since the RPC handles it
+  const legacyCompleteSession = async (
+    sessionId: string,
+    participants: any[],
+    completionData: SessionCompletionData
+  ): Promise<boolean> => {
+    if (!user) return false;
+
+    setIsCompleting(true);
+
+    try {
       // Calculate rewards for all participants
       const rewards = calculateRewards(participants, completionData);
       
@@ -201,20 +240,28 @@ export function useSessionCompletion() {
     if (!user) return false;
 
     try {
-      const { error } = await supabase
-        .from('sessions')
-        .update({
-          status: 'active',
-          session_started_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', sessionId)
-        .eq('creator_id', user.id);
+      // Use the proper database RPC function for starting sessions
+      const { data, error } = await supabase
+        .rpc('start_session', {
+          session_id_param: sessionId,
+          starter_id_param: user.id
+        });
 
       if (error) throw error;
-      return true;
+      
+      if (data && typeof data === 'object' && data !== null && 'success' in data && data.success) {
+        toast.success('Session started successfully!');
+        return true;
+      } else {
+        const errorMessage = typeof data === 'object' && data !== null && 'message' in data 
+          ? String(data.message) 
+          : 'Failed to start session';
+        toast.error(errorMessage);
+        return false;
+      }
     } catch (error) {
       console.error('Error starting session:', error);
+      toast.error('Failed to start session');
       return false;
     }
   };

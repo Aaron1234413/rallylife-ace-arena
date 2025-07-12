@@ -75,8 +75,10 @@ export function EnhancedSessionCard({
 
   const TypeIcon = getTypeIcon(session.session_type);
   const hasInsufficientTokens = session.stakes_amount > 0 && userBalance < session.stakes_amount;
-  const spotsFilled = (session.participant_count || 0) / session.max_players;
-  const isAlmostFull = spotsFilled >= 0.75;
+  const participantCount = session.participant_count || 0;
+  const spotsFilled = participantCount / session.max_players;
+  const isFull = participantCount >= session.max_players;
+  const isAlmostFull = spotsFilled >= 0.75 && !isFull;
   const isCreator = currentUserId && session.creator_id === currentUserId;
 
   return (
@@ -127,13 +129,17 @@ export function EnhancedSessionCard({
             <div className="flex items-center gap-2">
               <Users className="h-4 w-4 text-muted-foreground" />
               <span className="text-sm">
-                {session.participant_count || 0}/{session.max_players} players
+                {participantCount}/{session.max_players} players
               </span>
-              {isAlmostFull && (
+              {isFull ? (
+                <Badge variant="destructive" className="text-xs">
+                  Full
+                </Badge>
+              ) : isAlmostFull ? (
                 <Badge variant="secondary" className="text-xs">
                   Almost Full
                 </Badge>
-              )}
+              ) : null}
             </div>
             {session.format && (
               <Badge variant="outline" className="text-xs">
@@ -178,6 +184,10 @@ export function EnhancedSessionCard({
             ) : session.user_joined ? (
               <Button variant="secondary" size="sm" disabled className="w-full">
                 Already Joined
+              </Button>
+            ) : isFull ? (
+              <Button variant="outline" size="sm" disabled className="w-full">
+                Session Full
               </Button>
             ) : hasInsufficientTokens ? (
               <Button variant="outline" size="sm" disabled className="w-full text-destructive border-destructive">

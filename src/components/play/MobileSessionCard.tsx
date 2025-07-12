@@ -71,6 +71,8 @@ export const MobileSessionCard: React.FC<MobileSessionCardProps> = ({
   const TypeIcon = getTypeIcon(session.session_type || session.type);
   const sessionType = session.session_type || session.type;
   const isCreator = user && session.creator_id === user.id;
+  const participantCount = session.participant_count || 0;
+  const isFull = participantCount >= session.max_players;
   const hasStakes = session.stakes_amount > 0;
   const hasInsufficientTokens = hasStakes && regularTokens < session.stakes_amount;
   const tokensShort = hasInsufficientTokens ? session.stakes_amount - regularTokens : 0;
@@ -165,11 +167,11 @@ export const MobileSessionCard: React.FC<MobileSessionCardProps> = ({
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className="text-center">
-                <div className="text-lg font-bold text-gray-900">
-                  {session.participant_count || 0}
+                <div className={`text-lg font-bold ${isFull ? 'text-red-600' : 'text-gray-900'}`}>
+                  {participantCount}
                 </div>
                 <div className="text-xs text-gray-500">
-                  of {session.max_players}
+                  of {session.max_players} {isFull && '(Full)'}
                 </div>
               </div>
               {session.format && (
@@ -233,6 +235,13 @@ export const MobileSessionCard: React.FC<MobileSessionCardProps> = ({
             <Badge variant="secondary" className="w-full justify-center py-2">
               You created this session
             </Badge>
+          ) : isFull ? (
+            <Button 
+              disabled
+              className="w-full bg-gray-100 text-gray-400 hover:bg-gray-100"
+            >
+              Session Full
+            </Button>
           ) : hasInsufficientTokens ? (
             <Button 
               disabled

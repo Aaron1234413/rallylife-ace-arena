@@ -40,9 +40,16 @@ export function SessionCard({
   const [showActiveView, setShowActiveView] = useState(false);
   const [currentParticipants, setCurrentParticipants] = useState(participants);
 
+  // Update participants when props change
+  useEffect(() => {
+    setCurrentParticipants(participants);
+  }, [participants]);
+
   const isCreator = user?.id === session.creator_id;
   const hasJoined = currentParticipants.some(p => p.user_id === user?.id);
-  const canJoin = !hasJoined && currentParticipants.length < session.max_players;
+  const participantCount = currentParticipants.length;
+  const isFull = participantCount >= session.max_players;
+  const canJoin = !hasJoined && !isFull;
   const isWaitingOrActive = session.status === 'waiting' || session.status === 'active';
 
   // Auto-show active view for creators and participants when session is active
@@ -147,7 +154,8 @@ export function SessionCard({
           <div className="flex items-center gap-2 mb-3">
             <Users className="h-4 w-4" />
             <span className="text-sm font-medium">
-              Participants ({currentParticipants.length}/{session.max_players})
+              Participants ({participantCount}/{session.max_players})
+              {isFull && <span className="text-destructive ml-1">(Full)</span>}
             </span>
           </div>
           
@@ -211,9 +219,9 @@ export function SessionCard({
             </Button>
           )}
           
-          {!canJoin && !isCreator && !hasJoined && (
+          {isFull && !isCreator && !hasJoined && (
             <div className="flex-1 text-center py-2 text-sm text-muted-foreground">
-              Session full
+              Session Full
             </div>
           )}
         </div>
@@ -226,7 +234,7 @@ export function SessionCard({
           {session.session_type === 'challenge' && (
             <p>• HP reduction applies to all participants</p>
           )}
-          <p>• {currentParticipants.length < 2 ? 'Need at least 2 players to start' : 'Ready to start'}</p>
+          <p>• {participantCount < 2 ? 'Need at least 2 players to start' : isFull ? 'Session Full - Ready to start' : 'Ready to start'}</p>
         </div>
       </CardContent>
     </Card>
