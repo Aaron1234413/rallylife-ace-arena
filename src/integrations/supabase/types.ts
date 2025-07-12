@@ -4542,6 +4542,45 @@ export type Database = {
           },
         ]
       }
+      reward_transactions: {
+        Row: {
+          after_value: number | null
+          amount: number
+          before_value: number | null
+          calculation_data: Json | null
+          created_at: string | null
+          created_by: string | null
+          id: string
+          participant_id: string
+          session_id: string
+          transaction_type: string
+        }
+        Insert: {
+          after_value?: number | null
+          amount: number
+          before_value?: number | null
+          calculation_data?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          participant_id: string
+          session_id: string
+          transaction_type: string
+        }
+        Update: {
+          after_value?: number | null
+          amount?: number
+          before_value?: number | null
+          calculation_data?: Json | null
+          created_at?: string | null
+          created_by?: string | null
+          id?: string
+          participant_id?: string
+          session_id?: string
+          transaction_type?: string
+        }
+        Relationships: []
+      }
       saved_places: {
         Row: {
           address: string
@@ -6112,6 +6151,15 @@ export type Database = {
             }
         Returns: Json
       }
+      complete_session_unified: {
+        Args: {
+          session_id_param: string
+          winner_id_param?: string
+          winning_team_param?: Json
+          completion_data?: Json
+        }
+        Returns: Json
+      }
       complete_session_with_hp: {
         Args:
           | {
@@ -6715,6 +6763,18 @@ export type Database = {
       get_quiz_difficulty_for_level: {
         Args: { player_level: number }
         Returns: string[]
+      }
+      get_session_reward_audit: {
+        Args: { session_id_param: string }
+        Returns: {
+          participant_name: string
+          transaction_type: string
+          amount: number
+          before_value: number
+          after_value: number
+          calculation_data: Json
+          created_at: string
+        }[]
       }
       get_skill_matched_players: {
         Args: {
@@ -8479,6 +8539,10 @@ export type Database = {
       user_has_conversation_access: {
         Args: { conversation_id_param: string; user_id_param: string }
         Returns: boolean
+      }
+      validate_session_completion: {
+        Args: { session_id_param: string; winner_id_param?: string }
+        Returns: Json
       }
     }
     Enums: {

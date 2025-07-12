@@ -31,6 +31,7 @@ import { SessionActionButton } from './SessionActionButton';
 import { SessionStatusIndicator, SessionProgressIndicator } from './SessionStatusIndicator';
 import { useSessionCompletion } from '@/hooks/useSessionCompletion';
 import { useSessionRealTime } from '@/hooks/useRealTimeSessionManager';
+import { CompletionFlow } from './CompletionFlow';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -68,6 +69,7 @@ export function SessionCard({
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<SessionError | null>(null);
   const [completionData, setCompletionData] = useState<any>(null);
+  const [showCompletionFlow, setShowCompletionFlow] = useState(false);
 
   // Update participants when props change
   useEffect(() => {
@@ -211,6 +213,12 @@ export function SessionCard({
   };
 
   const handleEnhancedActionClick = async (action: any) => {
+    // Special handling for end action - open completion flow instead of direct completion
+    if (action.type === 'end') {
+      setShowCompletionFlow(true);
+      return true;
+    }
+    
     const success = await executeAction(action, session.id);
     if (success && onRefresh) {
       onRefresh();
@@ -511,6 +519,17 @@ export function SessionCard({
         </div>
       </CardContent>
     </Card>
+    
+    <CompletionFlow
+      open={showCompletionFlow}
+      onOpenChange={setShowCompletionFlow}
+      session={session}
+      participants={currentParticipants}
+      onComplete={() => {
+        onRefresh?.();
+        setShowCompletionFlow(false);
+      }}
+    />
     </div>
   );
 }
