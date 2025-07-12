@@ -9,6 +9,9 @@ interface SessionUpdatePayload {
   old?: any;
 }
 
+let globalChannel: any = null;
+let globalCallbacks: Set<() => void> = new Set();
+
 export function useSessionAutomation(onSessionUpdate?: () => void) {
   const { user } = useAuth();
 
@@ -70,136 +73,153 @@ export function useSessionAutomation(onSessionUpdate?: () => void) {
   useEffect(() => {
     if (!user) return;
 
-    // Create unique channel name to avoid conflicts
-    const channelName = `session-updates-${user.id}`;
-    
-    const channel = supabase
-      .channel(channelName)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'sessions'
-        },
-        (payload) => {
-          console.log('Session update received:', payload);
-          
-          // Trigger UI refresh when sessions change
-          onSessionUpdate?.();
-          
-          // Show notifications for session state changes
-          if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
-            const sessionData = payload.new || payload.old;
-            handleSessionUpdateNotification(sessionData, payload.eventType);
+    // Add callback to global set
+    if (onSessionUpdate) {
+      globalCallbacks.add(onSessionUpdate);
+    }
+
+    // Only create one global channel subscription
+    if (!globalChannel) {
+      const channelName = `session-updates-global`;
+      
+      globalChannel = supabase
+        .channel(channelName)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'sessions'
+          },
+          (payload) => {
+            console.log('Session update received:', payload);
+            
+            // Trigger all registered UI refresh callbacks
+            globalCallbacks.forEach(callback => callback());
+            
+            // Show notifications for session state changes
+            if (payload.eventType === 'UPDATE' || payload.eventType === 'INSERT' || payload.eventType === 'DELETE') {
+              const sessionData = payload.new || payload.old;
+              handleSessionUpdateNotification(sessionData, payload.eventType);
+            }
           }
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'session_participants'
-        },
-        async (payload) => {
-          console.log('Session participant update received:', payload);
-          
-          // Trigger UI refresh when participants change
-          onSessionUpdate?.();
-          
-          if (payload.eventType === 'INSERT') {
-            const participant = payload.new as any;
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'session_participants'
+          },
+          async (payload) => {
+            console.log('Session participant update received:', payload);
             
-            // Get session details to check if it's now full
-            const { data: session } = await supabase
-              .from('sessions')
-              .select('*')
-              .eq('id', participant.session_id)
-              .single();
+            // Trigger all registered UI refresh callbacks
+            globalCallbacks.forEach(callback => callback());
             
-            if (session && session.creator_id === user.id) {
-              // Count current participants
-              const { count } = await supabase
-                .from('session_participants')
-                .select('*', { count: 'exact', head: true })
-                .eq('session_id', participant.session_id);
+            if (payload.eventType === 'INSERT') {
+              const participant = payload.new as any;
               
-              const participantCount = count || 0;
-              const isFull = participantCount >= session.max_players;
+              // Get session details to check if it's now full
+              const { data: session } = await supabase
+                .from('sessions')
+                .select('*')
+                .eq('id', participant.session_id)
+                .single();
               
-              // Show notification when session becomes full
-              if (isFull && (session.status === 'waiting' || session.status === 'open')) {
-                toast.success(
-                  `🎾 Session Full! Your ${session.session_type} session is ready to start.`,
-                  {
-                    duration: 8000,
-                    action: {
-                      label: 'Start Now',
-                      onClick: async () => {
-                        try {
-                          const { data, error } = await supabase
-                            .rpc('start_session', {
-                              session_id_param: session.id
-                            });
-                          
-                          if (error) {
+              if (session && session.creator_id === user.id) {
+                // Count current participants
+                const { count } = await supabase
+                  .from('session_participants')
+                  .select('*', { count: 'exact', head: true })
+                  .eq('session_id', participant.session_id);
+                
+                const participantCount = count || 0;
+                const isFull = participantCount >= session.max_players;
+                
+                // Show notification when session becomes full
+                if (isFull && (session.status === 'waiting' || session.status === 'open')) {
+                  toast.success(
+                    `🎾 Session Full! Your ${session.session_type} session is ready to start.`,
+                    {
+                      duration: 8000,
+                      action: {
+                        label: 'Start Now',
+                        onClick: async () => {
+                          try {
+                            const { data, error } = await supabase
+                              .rpc('start_session', {
+                                session_id_param: session.id
+                              });
+                            
+                            if (error) {
+                              console.error('Start session error:', error);
+                              toast.error('Failed to start session');
+                            } else if (data && typeof data === 'object' && 'success' in data && data.success) {
+                              toast.success('Session started successfully!');
+                              // Trigger all callbacks after successful start
+                              globalCallbacks.forEach(callback => callback());
+                            } else {
+                              toast.error('Failed to start session');
+                            }
+                          } catch (error) {
                             console.error('Start session error:', error);
                             toast.error('Failed to start session');
-                          } else if (data && typeof data === 'object' && 'success' in data && data.success) {
-                            toast.success('Session started successfully!');
-                            onSessionUpdate?.(); // Refresh UI after successful start
-                          } else {
-                            toast.error('Failed to start session');
                           }
-                        } catch (error) {
-                          console.error('Start session error:', error);
-                          toast.error('Failed to start session');
                         }
                       }
                     }
-                  }
-                );
-              } else if (!isFull) {
-                // Notify about new participant joining
-                toast.info(`👋 New player joined your ${session.session_type} session (${participantCount}/${session.max_players})`, {
+                  );
+                } else if (!isFull) {
+                  // Notify about new participant joining
+                  toast.info(`👋 New player joined your ${session.session_type} session (${participantCount}/${session.max_players})`, {
+                    duration: 3000
+                  });
+                }
+              }
+            } else if (payload.eventType === 'DELETE') {
+              const participant = payload.old as any;
+              
+              // Get session details to notify about participant leaving
+              const { data: session } = await supabase
+                .from('sessions')
+                .select('*')
+                .eq('id', participant.session_id)
+                .single();
+              
+              if (session && session.creator_id === user.id) {
+                // Count remaining participants
+                const { count } = await supabase
+                  .from('session_participants')
+                  .select('*', { count: 'exact', head: true })
+                  .eq('session_id', participant.session_id);
+                
+                const participantCount = count || 0;
+                
+                toast.info(`👋 Player left your ${session.session_type} session (${participantCount}/${session.max_players})`, {
                   duration: 3000
                 });
               }
             }
-          } else if (payload.eventType === 'DELETE') {
-            const participant = payload.old as any;
-            
-            // Get session details to notify about participant leaving
-            const { data: session } = await supabase
-              .from('sessions')
-              .select('*')
-              .eq('id', participant.session_id)
-              .single();
-            
-            if (session && session.creator_id === user.id) {
-              // Count remaining participants
-              const { count } = await supabase
-                .from('session_participants')
-                .select('*', { count: 'exact', head: true })
-                .eq('session_id', participant.session_id);
-              
-              const participantCount = count || 0;
-              
-              toast.info(`👋 Player left your ${session.session_type} session (${participantCount}/${session.max_players})`, {
-                duration: 3000
-              });
-            }
           }
-        }
-      )
-      .subscribe((status) => {
-        console.log('Real-time subscription status:', status);
-      });
+        )
+        .subscribe((status) => {
+          console.log('Real-time subscription status:', status);
+        });
+    }
 
     return () => {
-      console.log('Cleaning up real-time subscription');
-      supabase.removeChannel(channel);
+      // Remove callback from global set
+      if (onSessionUpdate) {
+        globalCallbacks.delete(onSessionUpdate);
+      }
+
+      // Only cleanup global channel when no callbacks remain
+      if (globalCallbacks.size === 0 && globalChannel) {
+        console.log('Cleaning up global real-time subscription');
+        supabase.removeChannel(globalChannel);
+        globalChannel = null;
+      }
     };
   }, [user, onSessionUpdate]);
 
