@@ -94,16 +94,6 @@ export default function Landing() {
               </CRTMonitor>
             </div>
             
-            {/* How It Works Section - Now positioned after Live Stats */}
-            <div className="animate-fade-in-up" style={{ animationDelay: '0.4s' }}>
-              <HowItWorks 
-                steps={[
-                  "Log Play & Training → Earn HP, XP & tokens",
-                  "Join Clubs & Events → Wager tokens in tournaments",
-                  "Shop & Level Up → Unlock gear, drills & feedback"
-                ]}
-              />
-            </div>
             
             {/* Main CTA in Gaming Style - Mobile Optimized with Shorter Text */}
             <div className="pb-4 md:pb-8 px-2 md:px-0">
