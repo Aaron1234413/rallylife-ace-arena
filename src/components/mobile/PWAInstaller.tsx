@@ -8,7 +8,16 @@ import { Badge } from '@/components/ui/badge';
 export function PWAInstaller() {
   const { isInstallable, isInstalled, isOnline, installApp } = usePWA();
 
-  if (isInstalled || !isInstallable) {
+  // Don't show installer if:
+  // 1. App is already installed
+  // 2. App is not installable
+  // 3. Already running in standalone mode (PWA)
+  // 4. Running on desktop (screen width > 1024px)
+  const isStandalone = window.matchMedia('(display-mode: standalone)').matches || 
+                      (window.navigator as any).standalone === true;
+  const isDesktop = window.innerWidth > 1024;
+  
+  if (isInstalled || !isInstallable || isStandalone || isDesktop) {
     return null;
   }
 
