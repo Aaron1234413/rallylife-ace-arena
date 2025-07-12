@@ -118,17 +118,18 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
       console.log('Sessions fetched:', sessionsData?.length, 'sessions');
       console.log('Sample session:', sessionsData?.[0]);
 
-      // Get participant counts and user participation status
+      // Get participant data with profiles, counts, and user participation status
       const sessionsWithCounts = await Promise.all(
         (sessionsData || []).map(async (session) => {
-          const [participantCount, userParticipation] = await Promise.all([
-            getParticipantCount(session.id),
+          const [participants, userParticipation] = await Promise.all([
+            getSessionParticipants(session.id),
             getUserParticipationStatus(session.id)
           ]);
 
           return {
             ...session,
-            participant_count: participantCount,
+            participants: participants,
+            participant_count: participants.length,
             user_has_joined: userParticipation,
             // Ensure arrays are properly typed
             winning_team: Array.isArray(session.winning_team) ? session.winning_team : 
