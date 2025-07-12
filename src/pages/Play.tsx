@@ -409,7 +409,7 @@ const Play = () => {
                      <SessionCard
                        key={session.id}
                         session={{...session, status: 'waiting'}}
-                       participants={[]}
+                       participants={session.participants || []}
                        onJoin={handleJoinSession}
                        onRefresh={refreshSessions}
                        isJoining={isJoining(session.id)}
@@ -467,7 +467,7 @@ const Play = () => {
                      <SessionCard
                        key={session.id}
                        session={{...fullSession, status: 'waiting'}}
-                       participants={[]}
+                       participants={fullSession.participants || []}
                        onJoin={handleJoinSession}
                        onRefresh={refreshSessions}
                        isJoining={isJoining(session.id)}
@@ -513,7 +513,7 @@ const Play = () => {
                        <SessionCard
                          key={session.id}
                          session={{...session, status: 'waiting'}}
-                         participants={[]}
+                         participants={session.participants || []}
                          onJoin={handleJoinSession}
                          onRefresh={refreshSessions}
                          isJoining={isJoining(session.id)}
@@ -558,7 +558,7 @@ const Play = () => {
                    <SessionCard
                      key={session.id}
                      session={{...session, status: 'waiting'}}
-                     participants={[]}
+                     participants={session.participants || []}
                      onJoin={handleJoinSession}
                      onRefresh={refreshSessions}
                      isJoining={isJoining(session.id)}
