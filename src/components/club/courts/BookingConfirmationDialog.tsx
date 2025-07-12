@@ -68,12 +68,15 @@ export function BookingConfirmationDialog({
 
   const { court, date, startTime, duration, selectedServices, bookingType, notes } = bookingDetails;
 
+  // Ensure duration is a valid number
+  const safeDuration = duration || 1;
+
   // Calculate end time
   const [hours, minutes] = startTime.split(':').map(Number);
-  const endTime = `${(hours + duration).toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
+  const endTime = `${(hours + safeDuration).toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`;
 
   // Calculate pricing
-  const courtPricing = calculateCourtPricing(court, duration);
+  const courtPricing = calculateCourtPricing(court, safeDuration);
   const servicesPricing = selectedServices.map(service => calculateServicePricing(service));
   const totalServicesPricing = calculateTotalPricing(servicesPricing);
   const totalPricing = calculateTotalPricing([courtPricing, totalServicesPricing]);
@@ -101,7 +104,7 @@ export function BookingConfirmationDialog({
         booking_date: format(date, 'yyyy-MM-dd'),
         start_time: startTime,
         end_time: endTime,
-        duration_hours: duration,
+        duration_hours: safeDuration,
         base_amount: courtPricing.money,
         convenience_fee: courtPricing.convenienceFee / 100,
         total_amount: totalPricing.money,
@@ -179,7 +182,7 @@ export function BookingConfirmationDialog({
                 <Clock className="h-4 w-4 text-tennis-green-medium" />
                 <span>{startTime} - {endTime}</span>
                 <Badge variant="secondary">
-                  {duration === 1 ? '1 hour' : `${duration} hours`}
+                  {safeDuration === 1 ? '1 hour' : `${safeDuration} hours`}
                 </Badge>
               </div>
 
@@ -237,7 +240,7 @@ export function BookingConfirmationDialog({
             {/* Court Cost */}
             <PricingBreakdown 
               pricing={courtPricing}
-              title={`Court Booking (${duration}h)`}
+              title={`Court Booking (${safeDuration}h)`}
               className="bg-blue-50/50"
             />
 
