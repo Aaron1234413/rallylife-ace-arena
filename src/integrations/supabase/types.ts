@@ -5992,6 +5992,18 @@ export type Database = {
         Args: { level: number }
         Returns: number
       }
+      can_end_session: {
+        Args: { session_id_param: string; user_id_param?: string }
+        Returns: boolean
+      }
+      can_pause_session: {
+        Args: { session_id_param: string; user_id_param?: string }
+        Returns: boolean
+      }
+      can_start_session: {
+        Args: { session_id_param: string; user_id_param?: string }
+        Returns: boolean
+      }
       cancel_court_booking: {
         Args: { booking_id: string }
         Returns: Json
@@ -6293,6 +6305,15 @@ export type Database = {
       enablelongtransactions: {
         Args: Record<PropertyKey, never>
         Returns: string
+      }
+      end_session: {
+        Args: {
+          session_id_param: string
+          winner_id_param?: string
+          completion_data?: Json
+          user_id_param?: string
+        }
+        Returns: Json
       }
       end_session_with_hp_calculation: {
         Args: {
@@ -6954,7 +6975,7 @@ export type Database = {
         Returns: unknown
       }
       pause_session: {
-        Args: { session_id_param: string; user_id_param: string }
+        Args: { session_id_param: string; user_id_param?: string }
         Returns: Json
       }
       pgis_asflatgeobuf_finalfn: {

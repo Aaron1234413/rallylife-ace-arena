@@ -22,12 +22,15 @@ import {
 import { UnifiedSession } from '@/hooks/useUnifiedSessions';
 import { useAuth } from '@/hooks/useAuth';
 import { useEnhancedSessionActions } from '@/hooks/useEnhancedSessionActions';
+import { useSessionPermissions } from '@/hooks/useSessionPermissions';
 import { SessionActiveView } from './SessionActiveView';
 import { SessionCompletionView } from './SessionCompletionView';
 import { SessionErrorBoundary } from './SessionErrorBoundary';
 import { SessionLoadingSkeleton } from './SessionLoadingSkeleton';
 import { SessionActionButton } from './SessionActionButton';
+import { SessionStatusIndicator, SessionProgressIndicator } from './SessionStatusIndicator';
 import { useSessionCompletion } from '@/hooks/useSessionCompletion';
+import { useSessionRealTime } from '@/hooks/useRealTimeSessionManager';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
 
@@ -58,6 +61,8 @@ export function SessionCard({
   const { user } = useAuth();
   const { startSession, completeSession } = useSessionCompletion();
   const { getSessionActions, executeAction, loading } = useEnhancedSessionActions();
+  const permissions = useSessionPermissions(session);
+  const { isSubscribed } = useSessionRealTime(session.id);
   const [currentView, setCurrentView] = useState<SessionView>('card');
   const [currentParticipants, setCurrentParticipants] = useState(participants);
   const [isLoading, setIsLoading] = useState(false);
