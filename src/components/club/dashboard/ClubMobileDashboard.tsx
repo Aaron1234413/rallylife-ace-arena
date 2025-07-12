@@ -19,6 +19,7 @@ import {
 } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useClubs } from '@/hooks/useClubs';
+import { useRealTimeClubActivity } from '@/hooks/useRealTimeClubActivity';
 import { formatDistanceToNow } from 'date-fns';
 import { ClubInvitationManager } from '../ClubInvitationManager';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
@@ -40,18 +41,8 @@ export function ClubMobileDashboard({ club, isMember, onNavigateToTab }: ClubMob
   const [loading, setLoading] = useState(true);
   const [showInviteDialog, setShowInviteDialog] = useState(false);
 
-  // Mock activity data for now
-  const clubActivities = [
-    {
-      id: '1',
-      activity_type: 'member_joined',
-      created_at: new Date().toISOString(),
-      profiles: {
-        full_name: 'John Doe',
-        avatar_url: null
-      }
-    }
-  ];
+  // Use real club activity data from the hook
+  const { activities: clubActivities } = useRealTimeClubActivity(club.id);
 
   useEffect(() => {
     const loadData = async () => {
@@ -207,17 +198,17 @@ export function ClubMobileDashboard({ club, isMember, onNavigateToTab }: ClubMob
               {clubActivities.slice(0, 5).map((activity) => (
                 <div key={activity.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
                   <Avatar className="h-8 w-8">
-                    <AvatarImage src={activity.profiles?.avatar_url || undefined} />
+                    <AvatarImage src={activity.user?.avatar_url || undefined} />
                     <AvatarFallback className="bg-tennis-green-primary text-white text-xs">
-                      {activity.profiles?.full_name?.substring(0, 2).toUpperCase() || 'U'}
+                      {activity.user?.full_name?.substring(0, 2).toUpperCase() || 'U'}
                     </AvatarFallback>
                   </Avatar>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-medium text-gray-900 truncate">
-                      {activity.profiles?.full_name || 'Unknown User'}
+                      {activity.user?.full_name || 'Unknown User'}
                     </p>
                     <p className="text-xs text-gray-600">
-                      {activity.activity_type.replace('_', ' ')}
+                      {activity.activity_type.replace(/_/g, ' ')}
                     </p>
                   </div>
                   <div className="text-xs text-gray-500">

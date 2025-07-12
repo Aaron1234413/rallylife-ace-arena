@@ -82,7 +82,7 @@ export function useSessionManager(options: SessionManagerOptions | string = {}) 
           current_participants: 2,
           status: 'upcoming',
           creator_id: user.id,
-          creator_name: 'John Doe',
+          creator_name: user.user_metadata?.full_name || user.email || 'Unknown User',
           skill_level: 'advanced',
           session_type: sessionType === 'all' ? 'practice' : sessionType,
           club_id: clubId,

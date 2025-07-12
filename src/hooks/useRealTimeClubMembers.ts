@@ -135,6 +135,7 @@ export function useRealTimeClubMembers(clubId: string) {
       // Optimistically update local state
       setMembers(prev => prev.filter(member => member.id !== memberId));
 
+      // Member count will be automatically updated by database trigger
       return true;
     } catch (error) {
       console.error('Error removing member:', error);

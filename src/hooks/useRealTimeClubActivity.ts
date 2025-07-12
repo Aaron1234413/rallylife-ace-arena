@@ -152,8 +152,10 @@ export function useRealTimeClubActivity(clubId: string) {
   };
 
   // Common activity logging functions
-  const logMemberJoined = (memberName: string) => 
-    logActivity('member_joined', { member_name: memberName });
+  const logMemberJoined = async (memberName?: string) => {
+    const userName = memberName || user?.user_metadata?.full_name || user?.email || 'New Member';
+    return logActivity('member_joined', { member_name: userName });
+  };
 
   const logCourtBooked = (courtName: string, bookingTime: string) => 
     logActivity('court_booked', { court_name: courtName, booking_time: bookingTime });
