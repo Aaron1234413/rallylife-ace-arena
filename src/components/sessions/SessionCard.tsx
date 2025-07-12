@@ -148,13 +148,24 @@ export function SessionCard({
     setError(null);
     
     try {
-      const success = await startSession(sessionId);
+      // Use the enhanced session actions for consistency
+      const startAction = {
+        id: 'start',
+        type: 'start' as const,
+        label: 'Start Session',
+        icon: '▶️',
+        variant: 'default' as const,
+        loadingText: 'Starting...'
+      };
+      
+      const success = await executeAction(startAction, sessionId);
       if (success) {
+        // Auto-switch to active view after successful start
         setCurrentView('active');
         if (onRefresh) {
           onRefresh();
         }
-        toast.success('Session started successfully!');
+        // Don't duplicate toast - executeAction already shows it
       } else {
         setError({ message: 'Failed to start session', action: 'retry' });
       }
@@ -174,19 +185,24 @@ export function SessionCard({
     setError(null);
     
     try {
-      const success = await completeSession(sessionId, currentParticipants, {
-        duration_seconds: completionData.duration_seconds,
-        winner_data: completionData.winner_data,
-        ended_at: completionData.ended_at
-      });
+      // Use the enhanced session actions for consistency
+      const endAction = {
+        id: 'end',
+        type: 'end' as const,
+        label: 'End Session',
+        icon: '🏁',
+        variant: 'destructive' as const,
+        loadingText: 'Ending...'
+      };
       
+      const success = await executeAction(endAction, sessionId);
       if (success) {
         setCompletionData(completionData);
         setCurrentView('completion');
         if (onRefresh) {
           onRefresh();
         }
-        toast.success('Session completed successfully!');
+        // Don't duplicate toast - executeAction already shows it
       } else {
         setError({ message: 'Failed to complete session', action: 'retry' });
       }

@@ -314,29 +314,30 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     }
   };
 
-  // Start a session (update status)
+  // Start a session (use standardized RPC)
   const startSession = async (sessionId: string): Promise<boolean> => {
     if (!user) return false;
 
     try {
-      // Validate state transition
-      await executeSessionAction('start', sessionId, 'active');
-      
-      const { error } = await supabase
-        .from('sessions')
-        .update({ 
-          status: 'active',
-          session_started_at: new Date().toISOString(),
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', sessionId)
-        .eq('creator_id', user.id);
+      // Use the standardized start_session RPC for consistency
+      const { data, error } = await supabase
+        .rpc('start_session', {
+          session_id_param: sessionId,
+          starter_id_param: user.id
+        });
 
       if (error) throw error;
 
-      toast.success('Session started!');
-      await fetchSessions();
-      return true;
+      const result = data as { success?: boolean; message?: string; error?: string };
+      if (result?.success) {
+        toast.success(result.message || 'Session started successfully!');
+        await fetchSessions(); // Refresh to get updated status
+        return true;
+      } else {
+        const errorMessage = result?.error || 'Failed to start session';
+        toast.error(errorMessage);
+        return false;
+      }
     } catch (error) {
       console.error('Error starting session:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to start session');
@@ -344,31 +345,32 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     }
   };
 
-  // End/Complete a session
+  // End/Complete a session (use standardized RPC)
   const completeSession = async (sessionId: string, completionData: any): Promise<boolean> => {
     if (!user) return false;
 
     try {
-      // Validate state transition
-      await executeSessionAction('complete', sessionId, 'completed');
-      
-      const { error } = await supabase
-        .from('sessions')
-        .update({
-          status: 'completed',
-          completed_at: new Date().toISOString(),
-          session_ended_at: new Date().toISOString(),
-          session_result: completionData,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', sessionId)
-        .eq('creator_id', user.id);
+      // Use the standardized end_session RPC for consistency
+      const { data, error } = await supabase
+        .rpc('end_session', {
+          session_id_param: sessionId,
+          winner_id_param: completionData?.winner_id || null,
+          completion_data: completionData || null,
+          user_id_param: user.id
+        });
 
       if (error) throw error;
 
-      toast.success('Session completed!');
-      await fetchSessions();
-      return true;
+      const result = data as { success?: boolean; message?: string; error?: string };
+      if (result?.success) {
+        toast.success(result.message || 'Session completed successfully!');
+        await fetchSessions(); // Refresh to get updated status
+        return true;
+      } else {
+        const errorMessage = result?.error || 'Failed to complete session';
+        toast.error(errorMessage);
+        return false;
+      }
     } catch (error) {
       console.error('Error completing session:', error);
       toast.error(error instanceof Error ? error.message : 'Failed to complete session');
