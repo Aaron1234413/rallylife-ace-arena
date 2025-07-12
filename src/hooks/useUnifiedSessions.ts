@@ -2,6 +2,12 @@ import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { 
+  sessionStateMachine, 
+  validateStatusTransition, 
+  checkAutoTriggers,
+  canModifySession 
+} from './useSessionStateMachine';
 
 export interface UnifiedSession {
   id: string;
@@ -66,6 +72,8 @@ interface UseUnifiedSessionsOptions {
   filterUserSessions?: boolean;
 }
 
+// Using shared session state machine from useSessionStateMachine
+
 export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
   const { user } = useAuth();
   const { clubId, includeNonClubSessions = false, filterUserSessions = false } = options;
@@ -73,6 +81,49 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
   const [sessions, setSessions] = useState<UnifiedSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [joining, setJoining] = useState<Record<string, boolean>>({});
+
+  // Using shared state machine validation functions
+
+  const executeSessionAction = async (action: string, sessionId: string, targetStatus: string): Promise<boolean> => {
+    const session = sessions.find(s => s.id === sessionId);
+    if (!session) {
+      throw new Error('Session not found');
+    }
+
+    // Validate transition before executing
+    if (!validateStatusTransition(session.status || 'open', targetStatus)) {
+      throw new Error(`Cannot transition from ${session.status} to ${targetStatus}. Invalid state transition.`);
+    }
+
+    return true; // Validation passed
+  };
+
+  const processAutoTriggers = async (sessionsToProcess: UnifiedSession[]): Promise<UnifiedSession[]> => {
+    const processedSessions = [...sessionsToProcess];
+    
+    for (let i = 0; i < processedSessions.length; i++) {
+      const session = processedSessions[i];
+      const autoTriggerStatus = checkAutoTriggers(session);
+      
+      if (autoTriggerStatus && session.creator_id === user?.id) {
+        // Only auto-trigger for sessions owned by current user
+        console.log(`Processing auto-trigger for session ${session.id}: ${session.status} -> ${autoTriggerStatus}`);
+        
+        // Trigger notification for auto-start eligibility
+        if (autoTriggerStatus === 'active' && (session.status === 'open' || session.status === 'waiting')) {
+          toast.success(`Session "${session.session_type}" is ready to start! All players have joined.`, {
+            duration: 8000,
+            action: {
+              label: 'Start Now',
+              onClick: () => startSession(session.id)
+            }
+          });
+        }
+      }
+    }
+    
+    return processedSessions;
+  };
 
   // Fetch sessions with proper filtering
   const fetchSessions = async () => {
@@ -138,7 +189,9 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
         })
       );
 
-      setSessions(sessionsWithCounts);
+      // Process auto-triggers and update sessions
+      const processedSessions = await processAutoTriggers(sessionsWithCounts);
+      setSessions(processedSessions);
     } catch (error) {
       console.error('Error fetching sessions:', error);
       toast.error('Failed to load sessions');
@@ -266,6 +319,9 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     if (!user) return false;
 
     try {
+      // Validate state transition
+      await executeSessionAction('start', sessionId, 'active');
+      
       const { error } = await supabase
         .from('sessions')
         .update({ 
@@ -283,7 +339,7 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
       return true;
     } catch (error) {
       console.error('Error starting session:', error);
-      toast.error('Failed to start session');
+      toast.error(error instanceof Error ? error.message : 'Failed to start session');
       return false;
     }
   };
@@ -293,6 +349,9 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     if (!user) return false;
 
     try {
+      // Validate state transition
+      await executeSessionAction('complete', sessionId, 'completed');
+      
       const { error } = await supabase
         .from('sessions')
         .update({
@@ -312,7 +371,7 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
       return true;
     } catch (error) {
       console.error('Error completing session:', error);
-      toast.error('Failed to complete session');
+      toast.error(error instanceof Error ? error.message : 'Failed to complete session');
       return false;
     }
   };
@@ -490,6 +549,11 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
     startSession,
     completeSession,
     cancelSession,
-    refreshSessions: fetchSessions
+    refreshSessions: fetchSessions,
+    // State machine functions
+    validateStatusTransition,
+    checkAutoTriggers,
+    executeSessionAction,
+    sessionStateMachine
   };
 }

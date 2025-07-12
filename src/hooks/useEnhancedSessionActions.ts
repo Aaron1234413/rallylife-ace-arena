@@ -3,6 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
 import { toast } from 'sonner';
+import { 
+  sessionStateMachine, 
+  validateStatusTransition,
+  canModifySession 
+} from './useSessionStateMachine';
 
 export interface SessionAction {
   id: string;
@@ -13,23 +18,14 @@ export interface SessionAction {
   loadingText: string;
 }
 
+// Using shared session state machine from useSessionStateMachine
+
 export function useEnhancedSessionActions() {
   const [loading, setLoading] = useState<string | null>(null);
   const navigate = useNavigate();
   const { user } = useAuth();
 
-  // Status validation logic
-  const validateStatusTransition = (currentStatus: string, newStatus: string): boolean => {
-    const validTransitions = {
-      'open': ['active', 'cancelled'],
-      'waiting': ['active', 'cancelled'], // Allow waiting -> active transition
-      'active': ['completed', 'cancelled', 'paused'],  
-      'paused': ['active', 'cancelled', 'completed'],
-      'completed': [], // final state
-      'cancelled': [] // final state
-    };
-    return validTransitions[currentStatus]?.includes(newStatus) || false;
-  };
+  // Using shared state machine validation from useSessionStateMachine
 
   // Get session by ID for validation
   const getSessionById = async (sessionId: string) => {
@@ -341,6 +337,7 @@ export function useEnhancedSessionActions() {
     executeAction,
     loading,
     checkAutoStatusUpdate,
-    validateStatusTransition
+    validateStatusTransition,
+    sessionStateMachine
   };
 }
