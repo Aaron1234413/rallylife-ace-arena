@@ -48,15 +48,15 @@ export function useEnhancedSessionActions() {
       });
     }
 
-    // Pause action for creators during active sessions
-    if (isCreator && session.status === 'active') {
+    // Pause/Resume action for creators during active/paused sessions
+    if (isCreator && (session.status === 'active' || session.status === 'paused')) {
       actions.push({
         id: 'pause',
         type: 'pause',
-        label: 'Pause Session',
-        icon: '⏸️',
+        label: session.status === 'active' ? 'Pause Session' : 'Resume Session',
+        icon: session.status === 'active' ? '⏸️' : '▶️',
         variant: 'secondary',
-        loadingText: 'Pausing...'
+        loadingText: session.status === 'active' ? 'Pausing...' : 'Resuming...'
       });
     }
 
@@ -118,19 +118,26 @@ export function useEnhancedSessionActions() {
           }
 
         case 'pause':
-          // Update session status to paused
-          const { error: pauseError } = await supabase
-            .from('sessions')
-            .update({ 
-              status: 'paused',
-              updated_at: new Date().toISOString()
-            })
-            .eq('id', sessionId)
-            .eq('creator_id', user.id);
+          // Call pause session RPC
+          const { data: pauseData, error: pauseError } = await supabase
+            .rpc('pause_session', {
+              session_id_param: sessionId,
+              user_id_param: user.id
+            });
 
           if (pauseError) throw pauseError;
-          toast.success('Session paused');
-          return true;
+          
+          if (pauseData && typeof pauseData === 'object' && 'success' in pauseData && pauseData.success) {
+            const newStatus = pauseData.new_status === 'paused' ? 'Session paused' : 'Session resumed';
+            toast.success(newStatus);
+            return true;
+          } else {
+            const errorMessage = typeof pauseData === 'object' && 'message' in pauseData 
+              ? String(pauseData.message) 
+              : 'Failed to pause/resume session';
+            toast.error(errorMessage);
+            return false;
+          }
 
         case 'end':
           // Navigate to completion modal/flow

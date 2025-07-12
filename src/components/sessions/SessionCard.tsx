@@ -77,6 +77,7 @@ export function SessionCard({
   const sessionState = {
     waiting: session.status === 'waiting',
     active: session.status === 'active', 
+    paused: session.status === 'paused',
     completed: session.status === 'completed',
     cancelled: session.status === 'cancelled'
   };
@@ -91,6 +92,8 @@ export function SessionCard({
       }
     } else if (sessionState.active && (isCreator || hasJoined)) {
       setCurrentView('active');
+    } else if (sessionState.paused && (isCreator || hasJoined)) {
+      setCurrentView('active'); // Show active view for paused sessions too
     } else {
       setCurrentView('card');
     }
@@ -214,6 +217,8 @@ export function SessionCard({
       return { color: 'success', icon: CheckCircle, text: 'Completed' };
     } else if (sessionState.active) {
       return { color: 'info', icon: Activity, text: 'Active' };
+    } else if (sessionState.paused) {
+      return { color: 'warning', icon: AlertCircle, text: 'Paused' };
     } else if (sessionState.waiting) {
       return { color: 'warning', icon: Clock, text: 'Waiting' };
     } else if (sessionState.cancelled) {
@@ -305,8 +310,9 @@ export function SessionCard({
         isLoading && "opacity-60 pointer-events-none",
         sessionState.completed && "border-green-200 bg-gradient-to-br from-green-50/30 to-emerald-50/20",
         sessionState.active && "border-blue-200 bg-gradient-to-br from-blue-50/30 to-cyan-50/20 animate-pulse",
+        sessionState.paused && "border-yellow-200 bg-gradient-to-br from-yellow-50/30 to-amber-50/20",
         sessionState.cancelled && "border-red-200 bg-gradient-to-br from-red-50/30 to-rose-50/20",
-        !sessionState.completed && !sessionState.active && !sessionState.cancelled && "hover:border-primary/30"
+        !sessionState.completed && !sessionState.active && !sessionState.paused && !sessionState.cancelled && "hover:border-primary/30"
       )}>
         <CardHeader>
           <div className="flex items-center justify-between">

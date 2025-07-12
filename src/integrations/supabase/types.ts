@@ -6953,6 +6953,10 @@ export type Database = {
         Args: { "": unknown }
         Returns: unknown
       }
+      pause_session: {
+        Args: { session_id_param: string; user_id_param: string }
+        Returns: Json
+      }
       pgis_asflatgeobuf_finalfn: {
         Args: { "": unknown }
         Returns: string
@@ -8327,7 +8331,7 @@ export type Database = {
       start_session: {
         Args:
           | { session_id_param: string }
-          | { session_id_param: string; starter_id_param: string }
+          | { session_id_param: string; starter_id_param?: string }
         Returns: Json
       }
       start_session_with_tracking: {
