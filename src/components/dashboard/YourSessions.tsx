@@ -10,15 +10,18 @@ import {
   Plus,
   Users,
   BookOpen,
-  Trophy
+  Trophy,
+  Activity
 } from 'lucide-react';
 import { useCourtBooking, CourtBooking } from '@/hooks/useCourtBooking';
 import { useClubServices, ServiceBooking } from '@/hooks/useClubServices';
 import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
-import { useStandardSessionFetch } from '@/hooks/useStandardSessionFetch';
+import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
+import { useEnhancedSessionActions } from '@/hooks/useEnhancedSessionActions';
 import { useNavigate } from 'react-router-dom';
 import { format, isFuture, isToday, isTomorrow } from 'date-fns';
+import { SessionCard } from '@/components/sessions/SessionCard';
 
 export function YourSessions() {
   const { user } = useAuth();
@@ -29,10 +32,11 @@ export function YourSessions() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
 
-  // Use standardized session fetching for game sessions
-  const { mySessions, loading: sessionsLoading } = useStandardSessionFetch({
+  // Use unified sessions for game sessions
+  const { sessions, loading: sessionsLoading, refreshSessions } = useUnifiedSessions({
     filterUserSessions: true
   });
+  const { executeAction } = useEnhancedSessionActions();
 
   useEffect(() => {
     if (user) {
@@ -126,9 +130,9 @@ export function YourSessions() {
     );
   }
 
-  const totalSessions = courtBookings.length + serviceBookings.length;
+  const totalSessions = courtBookings.length + serviceBookings.length + (sessions?.length || 0);
 
-  if (totalSessions === 0) {
+  if (totalSessions === 0 && !sessionsLoading) {
     return (
       <Card>
         <CardHeader>
@@ -169,6 +173,53 @@ export function YourSessions() {
       </CardHeader>
       <CardContent>
         <div className="space-y-3">
+          {/* Active Game Sessions */}
+          {sessions?.map((session) => (
+            <div 
+              key={`session-${session.id}`} 
+              className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+              onClick={() => navigate(`/play?session=${session.id}`)}
+            >
+              <div className="flex-shrink-0">
+                <div className="w-12 h-12 bg-green-100 rounded-lg flex items-center justify-center">
+                  <Activity className="h-5 w-5 text-green-600" />
+                </div>
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="font-medium truncate">
+                    {session.session_type}
+                  </span>
+                  <Badge 
+                    variant={session.status === 'active' ? 'default' : 'outline'} 
+                    className="text-xs"
+                  >
+                    {session.status}
+                  </Badge>
+                  <Badge variant="secondary" className="text-xs bg-green-100 text-green-800">
+                    Game Session
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center gap-4 text-sm text-gray-600">
+                  <div className="flex items-center gap-1">
+                    <MapPin className="h-3 w-3" />
+                    <span className="truncate">{session.location}</span>
+                  </div>
+                  <div className="flex items-center gap-1">
+                    <Users className="h-3 w-3" />
+                    <span>{session.participant_count || 0}/{session.max_players}</span>
+                  </div>
+                </div>
+              </div>
+              
+              <Badge className="text-xs">
+                {getDateLabel(session.created_at)}
+              </Badge>
+            </div>
+          ))}
+
           {/* Court Bookings */}
           {courtBookings.map((booking) => {
             const club = getClubForBooking(booking);

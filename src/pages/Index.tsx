@@ -22,7 +22,8 @@ import {
   Crown,
   Sparkles,
   TrendingUp,
-  Gamepad2
+  Gamepad2,
+  Activity
 } from 'lucide-react';
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { PlayerVitalsHero, EnhancedQuickActions } from "@/components/dashboard/player";
@@ -32,6 +33,8 @@ import { CoachInteractionPanel } from "@/components/coach/dashboard/CoachInterac
 import { MobileActionPanel } from "@/components/dashboard/mobile";
 
 import { YourSessions } from "@/components/dashboard/YourSessions";
+import { ActiveSessionCard } from "@/components/dashboard/ActiveSessionCard";
+import { useUnifiedSessions } from "@/hooks/useUnifiedSessions";
 import { useCoachCXP } from "@/hooks/useCoachCXP";
 import { useCoachTokens } from "@/hooks/useCoachTokens";
 import { useCoachCRP } from "@/hooks/useCoachCRP";
@@ -58,6 +61,11 @@ const Index = () => {
   const { equippedItems, loading: avatarLoading, initializeAvatar, checkLevelUnlocks } = usePlayerAvatar();
   const { checkAllAchievements } = usePlayerAchievements();
   
+  // Session hooks for live dashboard integration
+  const { sessions: activeSessions, loading: activeSessionsLoading, refreshSessions } = useUnifiedSessions({
+    filterUserSessions: true
+  });
+
   // Coach-specific hooks
   const { cxpData, loading: cxpLoading, addCXP, initializeCXP } = useCoachCXP();
   const { tokenData: coachTokenData, loading: coachTokensLoading, addTokens: addCoachTokens } = useCoachTokens();
@@ -536,6 +544,28 @@ const Index = () => {
             <ErrorBoundary fallbackTitle="Sessions Error">
               <YourSessions />
             </ErrorBoundary>
+
+            {/* Active Sessions Dashboard Widget */}
+            {activeSessions?.filter(s => s.status === 'active' || s.status === 'waiting' || s.status === 'open').length > 0 && (
+              <ErrorBoundary fallbackTitle="Active Sessions Error">
+                <div className="space-y-4">
+                  <h3 className="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                    <Activity className="h-5 w-5 text-green-600" />
+                    Active Sessions
+                  </h3>
+                  {activeSessions
+                    .filter(s => s.status === 'active' || s.status === 'waiting' || s.status === 'open')
+                    .slice(0, 2) // Show max 2 active sessions
+                    .map(session => (
+                      <ActiveSessionCard 
+                        key={session.id} 
+                        session={session} 
+                        onRefresh={refreshSessions}
+                      />
+                    ))}
+                </div>
+              </ErrorBoundary>
+            )}
           </>
         )}
 
