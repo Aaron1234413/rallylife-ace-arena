@@ -125,8 +125,8 @@ export function SessionCompletionView({
   return (
     <div className="w-full max-w-4xl mx-auto space-y-6">
       {/* Header with Winner Announcement */}
-      <Card className="relative overflow-hidden">
-        <div className="absolute inset-0 bg-gradient-to-r from-yellow-50 via-yellow-100 to-orange-50" />
+      <Card className="relative overflow-hidden animate-fade-in border-2 border-yellow-200 shadow-xl">
+        <div className="absolute inset-0 bg-gradient-to-r from-yellow-50 via-yellow-100 to-orange-50 animate-pulse" />
         <CardHeader className="relative">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-4">
@@ -271,6 +271,9 @@ export function SessionCompletionView({
                     status={isWinner ? "Winner" : "Participant"}
                     variant={isWinner ? "success" : "info"}
                     icon={isWinner ? Trophy : Target}
+                    animated={true}
+                    pulse={isWinner}
+                    size="md"
                   />
                 </div>
               );
@@ -288,7 +291,7 @@ export function SessionCompletionView({
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="text-center p-4 rounded-lg bg-muted/50">
               <div className="flex items-center justify-center gap-1 text-lg font-bold">
                 <Users className="h-5 w-5 text-blue-600" />

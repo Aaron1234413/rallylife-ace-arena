@@ -258,6 +258,9 @@ export function SessionActiveView({
                 status={isRunning ? "Active" : "Waiting"} 
                 variant={isRunning ? "success" : "warning"}
                 icon={isRunning ? Activity : Circle}
+                animated={true}
+                pulse={isRunning}
+                size="lg"
               />
               {session.stakes_amount > 0 && (
                 <Badge variant="outline" className="gap-1">
@@ -339,7 +342,7 @@ export function SessionActiveView({
               </span>
             </div>
             
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-2 gap-3">
               {enhancedParticipants.map((participant) => (
                 <div key={participant.id} className={cn(
                   "flex items-center gap-3 p-3 rounded-lg border transition-all duration-300",
@@ -378,7 +381,9 @@ export function SessionActiveView({
                           participant.status === 'ready' ? 'info' :
                           participant.status === 'waiting' ? 'warning' : 'error'
                         }
-                        className="text-xs"
+                        size="sm"
+                        animated={true}
+                        pulse={participant.status === 'active'}
                       />
                       
                       <Badge 

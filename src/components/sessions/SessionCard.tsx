@@ -23,6 +23,8 @@ import { UnifiedSession } from '@/hooks/useUnifiedSessions';
 import { useAuth } from '@/hooks/useAuth';
 import { SessionActiveView } from './SessionActiveView';
 import { SessionCompletionView } from './SessionCompletionView';
+import { SessionErrorBoundary } from './SessionErrorBoundary';
+import { SessionLoadingSkeleton } from './SessionLoadingSkeleton';
 import { useSessionCompletion } from '@/hooks/useSessionCompletion';
 import { cn } from '@/lib/utils';
 import { toast } from 'sonner';
@@ -222,46 +224,59 @@ export function SessionCard({
 
   const statusInfo = getStatusInfo();
 
+  // Show loading skeleton while transitioning
+  if (isLoading && (currentView === 'active' || currentView === 'completion')) {
+    return (
+      <div className="w-full animate-fade-in">
+        <SessionLoadingSkeleton variant={currentView} />
+      </div>
+    );
+  }
+
   // Show completion view for completed sessions
   if (currentView === 'completion' && completionData) {
     return (
-      <div className="w-full animate-fade-in">
-        <SessionCompletionView
-          session={session}
-          participants={currentParticipants}
-          completionData={completionData}
-          onReturnToSessions={handleReturnToCard}
-        />
-      </div>
+      <SessionErrorBoundary onReset={handleReturnToCard}>
+        <div className="w-full animate-fade-in">
+          <SessionCompletionView
+            session={session}
+            participants={currentParticipants}
+            completionData={completionData}
+            onReturnToSessions={handleReturnToCard}
+          />
+        </div>
+      </SessionErrorBoundary>
     );
   }
 
   // Show active view for ongoing sessions if user is involved
   if (currentView === 'active' && (isCreator || hasJoined)) {
     return (
-      <div className="w-full animate-fade-in">
-        <div className="mb-4">
-          <Button 
-            onClick={handleReturnToCard} 
-            variant="ghost" 
-            size="sm" 
-            className="gap-2"
-          >
-            <ArrowLeft className="h-4 w-4" />
-            Back to Overview
-          </Button>
+      <SessionErrorBoundary onReset={handleReturnToCard}>
+        <div className="w-full animate-fade-in">
+          <div className="mb-4">
+            <Button 
+              onClick={handleReturnToCard} 
+              variant="ghost" 
+              size="sm" 
+              className="gap-2 hover:bg-muted/50 transition-colors"
+            >
+              <ArrowLeft className="h-4 w-4" />
+              Back to Overview
+            </Button>
+          </div>
+          <SessionActiveView
+            session={session}
+            participants={currentParticipants}
+            onStartSession={handleStartSession}
+            onEndSession={handleCompleteSession}
+            onRefresh={() => {
+              onRefresh?.();
+              setCurrentParticipants(participants);
+            }}
+          />
         </div>
-        <SessionActiveView
-          session={session}
-          participants={currentParticipants}
-          onStartSession={handleStartSession}
-          onEndSession={handleCompleteSession}
-          onRefresh={() => {
-            onRefresh?.();
-            setCurrentParticipants(participants);
-          }}
-        />
-      </div>
+      </SessionErrorBoundary>
     );
   }
 
@@ -286,21 +301,22 @@ export function SessionCard({
       )}
 
       <Card className={cn(
-        "w-full transition-all duration-300",
-        isLoading && "opacity-60",
-        sessionState.completed && "border-green-200 bg-green-50/30",
-        sessionState.active && "border-blue-200 bg-blue-50/30",
-        sessionState.cancelled && "border-red-200 bg-red-50/30"
+        "w-full transition-all duration-500 hover:shadow-lg group",
+        isLoading && "opacity-60 pointer-events-none",
+        sessionState.completed && "border-green-200 bg-gradient-to-br from-green-50/30 to-emerald-50/20",
+        sessionState.active && "border-blue-200 bg-gradient-to-br from-blue-50/30 to-cyan-50/20 animate-pulse",
+        sessionState.cancelled && "border-red-200 bg-gradient-to-br from-red-50/30 to-rose-50/20",
+        !sessionState.completed && !sessionState.active && !sessionState.cancelled && "hover:border-primary/30"
       )}>
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
               <div className={cn(
-                "p-2 rounded-lg transition-all duration-300",
-                sessionState.completed ? "bg-gradient-to-br from-green-500 to-emerald-600" :
-                sessionState.active ? "bg-gradient-to-br from-blue-500 to-cyan-600" :
-                sessionState.cancelled ? "bg-gradient-to-br from-red-500 to-rose-600" :
-                "bg-gradient-to-br from-gray-500 to-slate-600"
+                "p-2 rounded-lg transition-all duration-500 group-hover:scale-110 group-hover:shadow-lg",
+                sessionState.completed ? "bg-gradient-to-br from-green-500 to-emerald-600 shadow-green-200" :
+                sessionState.active ? "bg-gradient-to-br from-blue-500 to-cyan-600 shadow-blue-200 animate-pulse" :
+                sessionState.cancelled ? "bg-gradient-to-br from-red-500 to-rose-600 shadow-red-200" :
+                "bg-gradient-to-br from-primary to-primary/80 shadow-primary/20"
               )}>
                 <Trophy className="h-5 w-5 text-white" />
               </div>
@@ -320,6 +336,9 @@ export function SessionCard({
                 status={statusInfo.text}
                 variant={statusInfo.color as any}
                 icon={statusInfo.icon}
+                animated={true}
+                pulse={sessionState.active}
+                size="md"
               />
               {session.stakes_amount > 0 && (
                 <Badge variant="outline" className="gap-1">
