@@ -217,16 +217,15 @@ export function SignupForm() {
             )}
           </Button>
           
-          <div className="text-center pt-2">
-            <div className="text-sm text-gray-600">
-              Already have an account?{' '}
-              <Link 
-                to="/auth/login" 
-                className="text-tennis-green-dark hover:text-tennis-green-medium font-medium transition-colors"
-              >
-                Sign in
-              </Link>
-            </div>
+          <div className="text-center pt-4">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => navigate('/auth/login')}
+              className="w-full h-12 text-tennis-green-dark hover:text-tennis-green-medium hover:bg-tennis-green-light/20 font-medium transition-colors"
+            >
+              Already a RAKO? Click here to sign back in
+            </Button>
           </div>
         </form>
       </CardContent>

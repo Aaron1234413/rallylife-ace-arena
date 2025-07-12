@@ -30,12 +30,13 @@ export default function Auth() {
   const renderForm = () => {
     const path = location.pathname;
     
-    if (path === '/auth/signup') {
-      return <SignupForm />;
+    if (path === '/auth/login') {
+      return <LoginForm />;
     } else if (path === '/auth/forgot-password') {
       return <ForgotPasswordForm />;
     } else {
-      return <LoginForm />;
+      // Default to signup form
+      return <SignupForm />;
     }
   };
 

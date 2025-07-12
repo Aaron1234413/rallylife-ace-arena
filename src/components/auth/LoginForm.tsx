@@ -94,15 +94,17 @@ export function LoginForm() {
             >
               Forgot your password?
             </Link>
-            <div className="text-sm text-gray-600">
-              Don't have an account?{' '}
-              <Link 
-                to="/auth/signup" 
-                className="text-tennis-green-dark hover:text-tennis-green-medium font-medium transition-colors"
-              >
-                Sign up
-              </Link>
-            </div>
+          </div>
+          
+          <div className="text-center pt-2">
+            <Button
+              type="button"
+              variant="ghost"
+              onClick={() => navigate('/auth')}
+              className="w-full h-12 text-tennis-green-dark hover:text-tennis-green-medium hover:bg-tennis-green-light/20 font-medium transition-colors"
+            >
+              New to RAKO? Click here to join
+            </Button>
           </div>
         </form>
       </CardContent>
