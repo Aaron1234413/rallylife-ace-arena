@@ -47,7 +47,6 @@ import { SessionCreationDialog } from '@/components/sessions/SessionCreationDial
 import { SessionErrorWrapper } from '@/components/sessions/SessionErrorWrapper';
 import { SessionListSkeleton } from '@/components/sessions/SessionSkeletons';
 import { SessionLoadingState } from '@/components/sessions/SessionLoadingState';
-import { RealTimeStatus } from '@/components/sessions/RealTimeStatus';
 
 const Play = () => {
   const { user } = useAuth();
@@ -70,10 +69,7 @@ const Play = () => {
     joining,
     joinSession,
     cancelSession,
-    refreshSessions,
-    isRealTimeConnected,
-    realTimeStatus,
-    isRealTimeHealthy
+    refreshSessions
   } = useStandardSessionFetch({
     includeNonClubSessions: true
   });
@@ -322,14 +318,7 @@ const Play = () => {
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
         <div className="container mx-auto px-4 py-4">
           <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold">Play Tennis</h1>
-              <RealTimeStatus 
-                isConnected={isRealTimeConnected}
-                connectionStatus={realTimeStatus}
-                isHealthy={isRealTimeHealthy}
-              />
-            </div>
+            <h1 className="text-2xl font-bold">Play Tennis</h1>
             <div className="flex items-center gap-2">
               <Button
                 variant="outline"
