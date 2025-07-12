@@ -34,8 +34,10 @@ interface MobileSessionCardProps {
   user: any;
   onJoinSession: (sessionId: string) => void;
   onDeleteSession: (sessionId: string) => void;
+  onStartSession?: (sessionId: string) => void;
   isJoining: boolean;
   isDeleting: boolean;
+  isStarting?: boolean;
   regularTokens: number;
   distance?: number;
 }
@@ -63,8 +65,10 @@ export const MobileSessionCard: React.FC<MobileSessionCardProps> = ({
   user,
   onJoinSession,
   onDeleteSession,
+  onStartSession,
   isJoining,
   isDeleting,
+  isStarting = false,
   regularTokens,
   distance
 }) => {
@@ -232,9 +236,31 @@ export const MobileSessionCard: React.FC<MobileSessionCardProps> = ({
         {/* Action Section */}
         <div className="p-4">
           {isCreator ? (
-            <Badge variant="secondary" className="w-full justify-center py-2">
-              You created this session
-            </Badge>
+            <div className="space-y-2">
+              {isFull && session.status === 'waiting' && onStartSession ? (
+                <Button 
+                  onClick={() => onStartSession(session.id)}
+                  disabled={isStarting}
+                  className="w-full bg-green-600 hover:bg-green-700 text-white"
+                >
+                  {isStarting ? (
+                    <div className="flex items-center justify-center gap-2">
+                      <Loader2 className="w-4 h-4 animate-spin" />
+                      Starting Session...
+                    </div>
+                  ) : (
+                    <div className="flex items-center justify-center gap-2">
+                      <span>Start Session</span>
+                      <ChevronRight className="w-4 h-4" />
+                    </div>
+                  )}
+                </Button>
+              ) : (
+                <Badge variant="secondary" className="w-full justify-center py-2">
+                  You created this session
+                </Badge>
+              )}
+            </div>
           ) : isFull ? (
             <Button 
               disabled

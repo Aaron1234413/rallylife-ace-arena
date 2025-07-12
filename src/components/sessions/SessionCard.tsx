@@ -400,6 +400,23 @@ export function SessionCard({
 
         {/* Enhanced Action Buttons */}
         <div className="flex gap-2 pt-2">
+          {/* Start Session Button - For creators when session is full */}
+          {isCreator && isFull && sessionState.waiting && (
+            <Button 
+              onClick={() => handleStartSession(session.id)}
+              disabled={isLoading}
+              className="flex-1 gap-2 bg-green-600 hover:bg-green-700 text-white"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Play className="h-4 w-4" />
+              )}
+              Start Session
+            </Button>
+          )}
+
+          {/* Join Button - For non-creators who can join */}
           {showJoinButton && canJoin && !sessionState.completed && !sessionState.cancelled && (
             <Button 
               onClick={handleJoinSession}
@@ -415,7 +432,8 @@ export function SessionCard({
             </Button>
           )}
           
-          {(isCreator || hasJoined) && !sessionState.completed && !sessionState.cancelled && (
+          {/* Session Management Button - For creators and participants */}
+          {(isCreator || hasJoined) && !sessionState.completed && !sessionState.cancelled && !isCreator && (
             <Button 
               onClick={() => handleViewTransition('active')}
               variant="outline"
@@ -431,6 +449,24 @@ export function SessionCard({
             </Button>
           )}
 
+          {/* Creator Management Button - For creators only */}
+          {isCreator && !sessionState.completed && !sessionState.cancelled && !(isFull && sessionState.waiting) && (
+            <Button 
+              onClick={() => handleViewTransition('active')}
+              variant="outline"
+              disabled={isLoading}
+              className="flex-1 gap-2"
+            >
+              {isLoading ? (
+                <Loader2 className="h-4 w-4 animate-spin" />
+              ) : (
+                <Activity className="h-4 w-4" />
+              )}
+              {sessionState.active ? 'Manage Active Session' : 'Session Controls'}
+            </Button>
+          )}
+
+          {/* View Results Button - For completed sessions */}
           {sessionState.completed && (isCreator || hasJoined) && (
             <Button 
               onClick={() => handleViewTransition('completion')}
@@ -442,12 +478,14 @@ export function SessionCard({
             </Button>
           )}
           
+          {/* Full Session Message - For non-creators/non-participants */}
           {isFull && !isCreator && !hasJoined && !sessionState.completed && (
             <div className="flex-1 text-center py-2 text-sm text-muted-foreground">
               Session Full
             </div>
           )}
 
+          {/* Cancelled Session Message */}
           {sessionState.cancelled && (
             <div className="flex-1 text-center py-2 text-sm text-muted-foreground">
               Session Cancelled

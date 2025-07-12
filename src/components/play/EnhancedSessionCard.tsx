@@ -11,7 +11,8 @@ import {
   Gamepad2,
   Coins,
   Calendar,
-  Trash2
+  Trash2,
+  Play
 } from 'lucide-react';
 import { CancelSessionDialog } from '@/components/sessions/CancelSessionDialog';
 
@@ -170,16 +171,26 @@ export function EnhancedSessionCard({
           <div className="pt-2">
             {isCreator ? (
               <div className="flex gap-2">
-                <Button 
-                  variant="outline" 
-                  size="sm" 
-                  onClick={() => setShowCancelDialog(true)}
-                  disabled={isCancelling}
-                  className="flex-1"
-                >
-                  <Trash2 className="h-3 w-3 mr-1" />
-                  {isCancelling ? 'Cancelling...' : 'Delete Session'}
-                </Button>
+                {isFull && session.status === 'waiting' ? (
+                  <Button 
+                    size="sm" 
+                    className="flex-1 bg-green-600 hover:bg-green-700 text-white"
+                  >
+                    <Play className="h-3 w-3 mr-1" />
+                    Start Session
+                  </Button>
+                ) : (
+                  <Button 
+                    variant="outline" 
+                    size="sm" 
+                    onClick={() => setShowCancelDialog(true)}
+                    disabled={isCancelling}
+                    className="flex-1"
+                  >
+                    <Trash2 className="h-3 w-3 mr-1" />
+                    {isCancelling ? 'Cancelling...' : 'Delete Session'}
+                  </Button>
+                )}
               </div>
             ) : session.user_joined ? (
               <Button variant="secondary" size="sm" disabled className="w-full">
