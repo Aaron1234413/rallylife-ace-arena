@@ -350,11 +350,40 @@ export function useUnifiedSessions(options: UseUnifiedSessionsOptions = {}) {
 
       if (error) throw error;
 
+      // Automatically add the creator as the first participant
+      const { error: participantError } = await supabase
+        .from('session_participants')
+        .insert({
+          session_id: data.id,
+          user_id: user.id,
+          status: 'joined',
+          joined_at: new Date().toISOString()
+        });
+
+      if (participantError) {
+        console.error('Error adding creator as participant:', participantError);
+        // Don't throw error here - session was created successfully
+      }
+
       const newSession: UnifiedSession = {
         ...data,
-        participant_count: 0,
-        user_has_joined: false,
-        participants: [],
+        participant_count: 1, // Creator is now a participant
+        user_has_joined: true, // Creator has automatically joined
+        participants: [{
+          id: `${data.id}_${user.id}`,
+          session_id: data.id,
+          user_id: user.id,
+          role: 'creator',
+          joined_at: new Date().toISOString(),
+          payment_status: 'paid',
+          attendance_status: 'registered',
+          tokens_paid: 0,
+          money_paid: 0,
+          user: {
+            full_name: user.user_metadata?.full_name || user.email || 'Unknown',
+            avatar_url: user.user_metadata?.avatar_url
+          }
+        }],
         // Ensure arrays are properly typed
         winning_team: Array.isArray(data.winning_team) ? 
                      (data.winning_team as string[]) : 

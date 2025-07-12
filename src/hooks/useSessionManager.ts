@@ -139,6 +139,20 @@ export function useSessionManager(options: SessionManagerOptions | string = {}) 
       throw new Error(`Failed to create session: ${error.message}`);
     }
     
+    // Automatically add the creator as the first participant
+    const { error: participantError } = await supabase
+      .from('session_participants')
+      .insert({
+        session_id: data.id,
+        user_id: user.id,
+        status: 'joined',
+        joined_at: new Date().toISOString()
+      });
+
+    if (participantError) {
+      console.error('Error adding creator as participant:', participantError);
+    }
+    
     console.log('Session created successfully:', data);
     
     // Convert database format to our Session interface
@@ -150,7 +164,7 @@ export function useSessionManager(options: SessionManagerOptions | string = {}) 
       end_time: sessionData.end_time || new Date(Date.now() + 2 * 60 * 60 * 1000).toISOString(),
       location: data.location,
       max_participants: data.max_players,
-      current_participants: 0,
+      current_participants: 1, // Creator is automatically added as participant
       status: 'upcoming',
       creator_id: data.creator_id,
       session_type: data.session_type,
