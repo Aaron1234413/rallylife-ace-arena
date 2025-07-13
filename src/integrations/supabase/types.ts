@@ -6190,19 +6190,12 @@ export type Database = {
         Returns: Json
       }
       complete_session_unified: {
-        Args:
-          | {
-              session_id_param: string
-              winner_id_param?: string
-              winning_team_param?: string[]
-              completion_data?: Json
-            }
-          | {
-              session_id_param: string
-              winner_id_param?: string
-              winning_team_param?: Json
-              completion_data?: Json
-            }
+        Args: {
+          session_id_param: string
+          winner_id_param?: string
+          winning_team_param?: string[]
+          completion_data?: Json
+        }
         Returns: Json
       }
       complete_session_with_hp: {
