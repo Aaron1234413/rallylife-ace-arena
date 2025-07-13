@@ -1,4 +1,6 @@
 
+import { calculateXPGain, calculateHPLoss, calculateAdjustedStake, canPlayersStake } from './gameEconomics';
+
 export interface RewardCalculation {
   winXP: number;
   winHP: number;
@@ -59,39 +61,57 @@ export const calculateSkillLevelMultiplier = (playerSkill: string, opponentSkill
 };
 
 export const calculateSessionRewards = (
-  sessionType: 'social' | 'competitive' | 'training',
+  sessionType: 'social' | 'competitive' | 'training' | 'match',
   playerLevel: number,
   opponentLevel: number,
   isWinner: boolean,
   stakesAmount: number = 0,
   sessionDuration: number = 60
 ): RewardCalculation => {
-  // Import the new level-balanced functions
-  const { calculateXPGain, calculateHPLoss, calculateAdjustedStake, canPlayersStake } = require('./gameEconomics');
+  // Map match sessions to competitive for reward calculations
+  const rewardSessionType = sessionType === 'match' ? 'competitive' : sessionType;
   
   // Calculate XP with level balancing
-  const xpGained = calculateXPGain(sessionType, playerLevel, opponentLevel, isWinner);
+  const xpGained = calculateXPGain({
+    sessionType: rewardSessionType,
+    playerLevel,
+    opponentLevel,
+    isWinner,
+    sessionDuration
+  });
   
   // Calculate HP loss with level balancing
-  const hpLoss = calculateHPLoss(sessionType, playerLevel, opponentLevel, 'medium', sessionDuration);
+  const hpLoss = calculateHPLoss({
+    sessionType: rewardSessionType,
+    playerLevel,
+    opponentLevel,
+    sessionDuration,
+    isWinner
+  });
   
   // Calculate token rewards based on session type
   let tokenRewards = 0;
-  if (sessionType === 'training') {
+  if (rewardSessionType === 'training') {
     tokenRewards = BASE_SESSION_REWARDS.training.coach_fee;
   } else if (stakesAmount > 0 && canPlayersStake(playerLevel, opponentLevel)) {
-    const adjustedStake = calculateAdjustedStake(stakesAmount, playerLevel, opponentLevel);
-    if (sessionType === 'competitive') {
+    const adjustedStakeResult = calculateAdjustedStake({
+      baseStake: stakesAmount,
+      playerLevel,
+      opponentLevel
+    });
+    const adjustedStake = adjustedStakeResult.playerStake;
+    if (rewardSessionType === 'competitive' || sessionType === 'match') {
       // 10% rake, 90% to winner
       tokenRewards = isWinner ? Math.floor(adjustedStake * 0.9) : 0;
-    } else if (sessionType === 'social') {
+    } else if (rewardSessionType === 'social') {
       // 10% rake, 90% distributed, max 20 token stakes
       const cappedStake = Math.min(adjustedStake, 20);
       tokenRewards = isWinner ? Math.floor(cappedStake * 0.9) : 0;
     }
   } else {
     // Base participation rewards when no stakes
-    tokenRewards = BASE_SESSION_REWARDS[sessionType]?.base_tokens || 0;
+    const baseRewards = BASE_SESSION_REWARDS[rewardSessionType as keyof typeof BASE_SESSION_REWARDS];
+    tokenRewards = baseRewards && 'base_tokens' in baseRewards ? baseRewards.base_tokens : 0;
   }
   
   const levelMultiplier = calculateLevelDifferenceMultiplier(playerLevel, opponentLevel);
