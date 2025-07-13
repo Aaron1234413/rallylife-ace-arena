@@ -90,6 +90,7 @@ export function ActiveSessionCard({ session, onRefresh }: ActiveSessionCardProps
     // Special handling for end action - open completion flow
     if (actionType === 'end') {
       console.log('🏁 Opening completion flow for session:', session.id);
+      await loadParticipants(); // Ensure we have latest participants
       setShowCompletionFlow(true);
       return;
     }

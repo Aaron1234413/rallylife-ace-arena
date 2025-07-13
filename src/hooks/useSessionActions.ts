@@ -25,7 +25,7 @@ export const useSessionActions = () => {
       sessionId
     ),
     end: (sessionId: string) => enhancedExecuteAction(
-      { id: 'end', type: 'end', label: 'End', icon: 'square', variant: 'destructive' as const, loadingText: 'Ending...' }, 
+      { id: 'end', type: 'end', label: 'End Session', icon: 'square', variant: 'destructive' as const, loadingText: 'Preparing completion...' }, 
       sessionId
     ),
     pause: (sessionId: string) => enhancedExecuteAction(

@@ -171,7 +171,7 @@ export function useEnhancedSessionActions() {
     return actions;
   };
 
-  const executeAction = async (action: SessionAction, sessionId: string, clubId?: string) => {
+  const executeAction = async (action: SessionAction, sessionId: string, clubId?: string): Promise<boolean> => {
     if (!user) {
       toast.error('Please sign in to continue');
       return false;
@@ -228,29 +228,11 @@ export function useEnhancedSessionActions() {
           }
 
         case 'end':
-          // Call standardized end_session RPC
-          const { data: endData, error: endError } = await supabase
-            .rpc('end_session', {
-              session_id_param: sessionId,
-              winner_id_param: null,
-              completion_data: null,
-              user_id_param: user.id
-            });
-
-          if (endError) {
-            console.error('End session error:', endError);
-            throw new Error(endError.message || 'Failed to end session');
-          }
-          
-          const endResult = endData as { success?: boolean; message?: string; error?: string };
-          if (endResult?.success) {
-            toast.success(endResult.message || 'Session completed successfully!');
-            return true;
-          } else {
-            const errorMessage = endResult?.error || 'Failed to end session';
-            toast.error(errorMessage);
-            return false;
-          }
+          // Don't end session directly - this should trigger completion flow
+          // Return false to indicate no immediate action, but UI should handle
+          toast.info('Opening completion flow to select winner...');
+          // The caller should check for 'end' action type and open completion flow
+          return false;
 
         case 'join':
           // Get current session state for validation
