@@ -185,32 +185,13 @@ export function SessionCard({
     setError(null);
     
     try {
-      // Use the enhanced session actions for consistency
-      const endAction = {
-        id: 'end',
-        type: 'end' as const,
-        label: 'End Session',
-        icon: '🏁',
-        variant: 'destructive' as const,
-        loadingText: 'Ending...'
-      };
-      
-      const success = await executeAction(endAction, sessionId);
-      if (success) {
-        setCompletionData(completionData);
-        setCurrentView('completion');
-        if (onRefresh) {
-          onRefresh();
-        }
-        // Don't duplicate toast - executeAction already shows it
-      } else {
-        setError({ message: 'Failed to complete session', action: 'retry' });
-      }
-      return success;
+      // For SessionActiveView compatibility - but we prefer to use CompletionFlow
+      // If this is called, trigger the completion flow instead
+      console.log('🏁 handleCompleteSession called, opening completion flow...');
+      setShowCompletionFlow(true);
+      return true;
     } catch (error) {
-      console.error('Error completing session:', error);
-      setError({ message: 'Error completing session', action: 'retry' });
-      toast.error('Failed to complete session');
+      console.error('Error opening completion flow:', error);
       return false;
     } finally {
       setIsLoading(false);
