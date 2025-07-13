@@ -239,7 +239,7 @@ export function useUnifiedSessionCompletion() {
       console.log('🔍 Fetching session data...');
       const { data: session, error: sessionError } = await supabase
         .from('sessions')
-        .select('session_type, title')
+        .select('session_type')
         .eq('id', sessionId)
         .single();
 
