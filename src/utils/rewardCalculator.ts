@@ -91,29 +91,25 @@ export const calculateSessionRewards = (
       isWinner
     });
     
-    // Calculate token rewards based on session type
+    // Calculate token rewards based on session type - Winner gets 90%, Rako keeps 10%
     let tokenRewards = 0;
-    if (rewardSessionType === 'training') {
-      tokenRewards = BASE_SESSION_REWARDS.training.coach_fee;
-    } else if (stakesAmount > 0 && canPlayersStake(playerLevel, opponentLevel)) {
+    if (stakesAmount > 0 && canPlayersStake(playerLevel, opponentLevel)) {
       const adjustedStakeResult = calculateAdjustedStake({
         baseStake: stakesAmount,
         playerLevel,
         opponentLevel
       });
       const adjustedStake = adjustedStakeResult.playerStake;
-      if (rewardSessionType === 'competitive' || sessionType === 'match') {
-        // 10% rake, 90% to winner
-        tokenRewards = isWinner ? Math.floor(adjustedStake * 0.9) : 0;
-      } else if (rewardSessionType === 'social') {
-        // 10% rake, 90% distributed, max 20 token stakes
-        const cappedStake = Math.min(adjustedStake, 20);
-        tokenRewards = isWinner ? Math.floor(cappedStake * 0.9) : 0;
-      }
+      // For all session types: 90% to winner, 10% to Rako
+      tokenRewards = isWinner ? Math.floor(adjustedStake * 0.9) : 0;
     } else {
       // Base participation rewards when no stakes
       const baseRewards = BASE_SESSION_REWARDS[rewardSessionType as keyof typeof BASE_SESSION_REWARDS];
       tokenRewards = baseRewards && 'base_tokens' in baseRewards ? baseRewards.base_tokens : 0;
+      // Apply 90% winner, 10% rake to base rewards too
+      if (rewardSessionType !== 'training') {
+        tokenRewards = isWinner ? Math.floor(tokenRewards * 0.9) : 0;
+      }
     }
     
     const levelMultiplier = calculateLevelDifferenceMultiplier(playerLevel, opponentLevel);

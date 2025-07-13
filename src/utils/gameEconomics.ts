@@ -36,7 +36,8 @@ export const LEVEL_BALANCE = {
 // Token economics with rake system
 export const TOKEN_RAKE = {
   competitive: { rako: 0.1, winner: 0.9 },
-  social: { rako: 0.1, max_stake: 20 }
+  social: { rako: 0.1, winner: 0.9 },
+  training: { rako: 0.1, winner: 0.9 }
 } as const;
 
 // Token value configuration
@@ -116,37 +117,36 @@ export function calculateXPGain(params: XPCalculationParams): number {
   
   let xp = Math.floor(Math.random() * (baseXP.max - baseXP.min + 1)) + baseXP.min;
   
-  // Base XP adjustment by session type
+  // XP calculation based on session type and level difference
   if (sessionType === 'competitive') {
-    xp = isWinner ? Math.floor(xp * 1.5) : xp; // Winners get 50% bonus
+    // For competitive: lower level gets more XP
+    if (opponentLevel && playerLevel !== opponentLevel) {
+      if (playerLevel < opponentLevel) {
+        // Lower level player gets bonus XP
+        const levelDiff = opponentLevel - playerLevel;
+        xp = Math.floor(xp * (1.0 + (levelDiff * 0.2))); // 20% bonus per level difference
+      } else {
+        // Higher level player gets reduced XP
+        const levelDiff = playerLevel - opponentLevel;
+        xp = Math.floor(xp * Math.max(0.5, 1.0 - (levelDiff * 0.1))); // 10% reduction per level, min 50%
+      }
+    }
+    xp = isWinner ? Math.floor(xp * 1.3) : Math.floor(xp * 0.8); // Winners get 30% bonus, losers get 80%
+  } else if (sessionType === 'social') {
+    // For social: everyone gets the same amount regardless of level or outcome
+    xp = Math.floor((baseXP.min + baseXP.max) / 2); // Average of range
+  } else if (sessionType === 'training') {
+    // For training: XP increases with time
+    const timeMultiplier = 1.0 + ((sessionDuration - 30) / 30) * 0.3; // 30% increase per 30min over base
+    xp = Math.floor(xp * Math.max(0.8, timeMultiplier)); // Min 80% of base XP
   } else if (sessionType === 'wellbeing') {
     xp = Math.floor(xp * 0.6); // Reduced XP for wellbeing
   }
   
-  // Level difference multiplier (only for competitive sessions with opponent)
-  if (opponentLevel && sessionType === 'competitive') {
-    const category = getLevelDifferenceCategory(playerLevel, opponentLevel);
-    const isPlayerHigherLevel = playerLevel > opponentLevel;
-    
-    if (isPlayerHigherLevel) {
-      xp = Math.floor(xp * LEVEL_BALANCE.xp_multipliers[category].higher);
-    } else if (playerLevel < opponentLevel) {
-      xp = Math.floor(xp * LEVEL_BALANCE.xp_multipliers[category].lower);
-    }
-  }
-  
-  // Duration multiplier (longer sessions = more XP)
-  let durationMultiplier = 1.0;
-  if (sessionDuration > 60) {
-    durationMultiplier = 1.0 + ((sessionDuration - 60) / 60) * 0.2; // 20% bonus per hour over 1 hour
-  } else if (sessionDuration < 30) {
-    durationMultiplier = 0.7; // Reduced XP for very short sessions
-  }
-  
   // Team game modifier
-  const teamMultiplier = isTeamGame ? 0.8 : 1.0; // Slight reduction for team games
+  const teamMultiplier = isTeamGame ? 0.9 : 1.0; // Slight reduction for team games
   
-  const finalXP = Math.round(xp * durationMultiplier * teamMultiplier);
+  const finalXP = Math.round(xp * teamMultiplier);
   return Math.max(1, finalXP); // Minimum 1 XP
 }
 
@@ -179,51 +179,25 @@ export interface StakingEligibilityParams {
 export function calculateHPLoss(params: HPCalculationParams): number {
   const { sessionType, playerLevel, opponentLevel, sessionDuration, isWinner } = params;
   
-  // Map session types
-  const mappedType = sessionType === 'wellbeing' ? 'training' : sessionType;
-  const baseLoss = HP_LOSS[mappedType as keyof typeof HP_LOSS];
-  
-  if (!baseLoss) {
-    return 5; // Fallback for unknown types
+  if (sessionType === 'wellbeing') {
+    // Wellbeing sessions restore HP
+    return -Math.floor(Math.random() * 3 + 2); // Restore 2-4 HP
   }
   
-  let hpLoss = Math.floor(Math.random() * (baseLoss.max - baseLoss.min + 1)) + baseLoss.min;
+  // Start with base HP loss calculation based on time
+  let hpLoss = Math.floor(sessionDuration / 15); // 1 HP per 15 minutes
+  hpLoss = Math.max(1, hpLoss); // Minimum 1 HP loss
   
-  // Base HP adjustment by session type
-  if (sessionType === 'competitive') {
-    hpLoss = isWinner ? Math.floor(hpLoss * 0.7) : hpLoss; // Winners lose 30% less HP
-  } else if (sessionType === 'social') {
-    hpLoss = Math.floor(hpLoss * 0.5); // Social sessions are less exhausting
-  } else if (sessionType === 'wellbeing') {
-    return -Math.abs(hpLoss); // Wellbeing sessions restore HP (negative loss = gain)
+  // Higher level players lose less HP (more efficient)
+  if (sessionType === 'competitive' || sessionType === 'training' || sessionType === 'social') {
+    const levelReduction = Math.floor(playerLevel / 3); // 1 HP reduction per 3 levels
+    hpLoss = Math.max(1, hpLoss - levelReduction);
   }
   
-  // Level-based HP reduction: higher level players are more efficient
-  const levelReduction = Math.min(3, Math.floor((playerLevel - 1) * 0.2)); // Max 3 HP reduction from level
-  hpLoss = Math.max(1, hpLoss - levelReduction);
+  // Cap at maximum 10 HP loss
+  hpLoss = Math.min(10, hpLoss);
   
-  // Opponent level consideration (playing higher level = less HP loss due to learning)
-  if (opponentLevel && sessionType === 'competitive') {
-    const levelDiff = opponentLevel - playerLevel;
-    if (levelDiff > 0) {
-      // Playing against higher level: less HP loss (learning experience)
-      const learningReduction = Math.min(2, Math.floor(levelDiff * 0.3));
-      hpLoss = Math.max(1, hpLoss - learningReduction);
-    }
-  }
-  
-  // Duration adjustment
-  let durationMultiplier = 1.0;
-  if (sessionDuration > 90) {
-    durationMultiplier = 1.2; // More exhausting for longer sessions
-  } else if (sessionDuration < 30) {
-    durationMultiplier = 0.7; // Less exhausting for short sessions
-  }
-  
-  const finalHP = Math.round(hpLoss * durationMultiplier);
-  
-  // Cap at maximum 10 HP loss, minimum 1 HP loss (except for wellbeing which can restore)
-  return Math.min(10, Math.max(1, finalHP));
+  return hpLoss;
 }
 
 /**
@@ -358,14 +332,14 @@ export function canPlayersStakeAdvanced(params: StakingEligibilityParams): {
 }
 
 /**
- * Calculate token distribution for competitive matches
+ * Calculate token distribution for competitive, social, and training sessions
  */
-export function calculateCompetitiveTokens(stakeAmount: number, isWinner: boolean): {
+export function calculateSessionTokens(sessionType: 'competitive' | 'social' | 'training', stakeAmount: number, isWinner: boolean): {
   playerTokens: number;
   rakoTokens: number;
 } {
-  const rakoTokens = Math.floor(stakeAmount * TOKEN_RAKE.competitive.rako);
-  const playerTokens = isWinner ? Math.floor(stakeAmount * TOKEN_RAKE.competitive.winner) : 0;
+  const rakoTokens = Math.floor(stakeAmount * TOKEN_RAKE[sessionType].rako);
+  const playerTokens = isWinner ? Math.floor(stakeAmount * TOKEN_RAKE[sessionType].winner) : 0;
   
   return { playerTokens, rakoTokens };
 }
@@ -378,7 +352,7 @@ export function calculateSocialTokens(stakeAmount: number): {
   rakoTokens: number;
   cappedStake: number;
 } {
-  const cappedStake = Math.min(stakeAmount, TOKEN_RAKE.social.max_stake);
+  const cappedStake = Math.min(stakeAmount, 20); // Max 20 tokens for social stakes
   const rakoTokens = Math.floor(cappedStake * TOKEN_RAKE.social.rako);
   const playerTokens = cappedStake - rakoTokens;
   
