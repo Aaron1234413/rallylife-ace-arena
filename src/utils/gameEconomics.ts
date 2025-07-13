@@ -91,92 +91,270 @@ export function canPlayersStake(playerLevel: number, opponentLevel: number): boo
   return Math.abs(playerLevel - opponentLevel) <= LEVEL_BALANCE.max_stake_level_difference;
 }
 
-/**
- * Calculate XP gain with level balancing
- */
-export function calculateXPGain(
-  activityType: 'social' | 'competitive' | 'training',
-  playerLevel: number,
-  opponentLevel: number,
-  isWinner: boolean = true
-): number {
-  const baseXP = XP_RANGES[activityType];
-  let xp = Math.floor(Math.random() * (baseXP.max - baseXP.min + 1)) + baseXP.min;
-  
-  // Training sessions don't get level modifiers
-  if (activityType === 'training') {
-    return xp;
-  }
-  
-  const category = getLevelDifferenceCategory(playerLevel, opponentLevel);
-  const isPlayerHigherLevel = playerLevel > opponentLevel;
-  
-  // Apply level-based multipliers
-  if (isPlayerHigherLevel) {
-    xp = Math.floor(xp * LEVEL_BALANCE.xp_multipliers[category].higher);
-  } else if (playerLevel < opponentLevel) {
-    xp = Math.floor(xp * LEVEL_BALANCE.xp_multipliers[category].lower);
-  }
-  
-  return Math.max(1, xp); // Minimum 1 XP
+export interface XPCalculationParams {
+  sessionType: 'competitive' | 'social' | 'training' | 'wellbeing';
+  playerLevel: number;
+  opponentLevel?: number;
+  isWinner: boolean;
+  sessionDuration: number; // in minutes
+  isTeamGame?: boolean;
 }
 
 /**
- * Calculate HP loss based on activity type, intensity, and level difference
+ * Calculate XP gain based on session type, level difference, and performance
  */
-export function calculateHPLoss(
-  activityType: 'social' | 'competitive' | 'training',
-  playerLevel: number,
-  opponentLevel: number,
-  intensity: 'low' | 'medium' | 'high' | 'extreme' = 'medium',
-  duration?: number
-): number {
-  const baseLoss = HP_LOSS[activityType];
-  let hpLoss = Math.floor(Math.random() * (baseLoss.max - baseLoss.min + 1)) + baseLoss.min;
+export function calculateXPGain(params: XPCalculationParams): number {
+  const { sessionType, playerLevel, opponentLevel, isWinner, sessionDuration, isTeamGame } = params;
   
-  // Adjust for intensity
-  const intensityMultiplier = {
-    low: 0.7,
-    medium: 1.0,
-    high: 1.3,
-    extreme: 1.6
-  };
+  // Map session types
+  const mappedType = sessionType === 'wellbeing' ? 'training' : sessionType;
+  const baseXP = XP_RANGES[mappedType as keyof typeof XP_RANGES];
   
-  hpLoss = Math.floor(hpLoss * intensityMultiplier[intensity]);
+  if (!baseXP) {
+    return 25; // Fallback for unknown types
+  }
   
-  // Level-based HP reduction for fighting lower level opponents
-  if (playerLevel > opponentLevel) {
-    const levelDiff = playerLevel - opponentLevel;
-    if (levelDiff >= 6) {
-      hpLoss -= LEVEL_BALANCE.hp_reductions.large_diff;
-    } else if (levelDiff >= 3) {
-      hpLoss -= LEVEL_BALANCE.hp_reductions.moderate_diff;
+  let xp = Math.floor(Math.random() * (baseXP.max - baseXP.min + 1)) + baseXP.min;
+  
+  // Base XP adjustment by session type
+  if (sessionType === 'competitive') {
+    xp = isWinner ? Math.floor(xp * 1.5) : xp; // Winners get 50% bonus
+  } else if (sessionType === 'wellbeing') {
+    xp = Math.floor(xp * 0.6); // Reduced XP for wellbeing
+  }
+  
+  // Level difference multiplier (only for competitive sessions with opponent)
+  if (opponentLevel && sessionType === 'competitive') {
+    const category = getLevelDifferenceCategory(playerLevel, opponentLevel);
+    const isPlayerHigherLevel = playerLevel > opponentLevel;
+    
+    if (isPlayerHigherLevel) {
+      xp = Math.floor(xp * LEVEL_BALANCE.xp_multipliers[category].higher);
+    } else if (playerLevel < opponentLevel) {
+      xp = Math.floor(xp * LEVEL_BALANCE.xp_multipliers[category].lower);
     }
   }
   
-  // Adjust for duration (if provided in minutes)
-  if (duration) {
-    const durationMultiplier = Math.min(1 + (duration - 60) / 120, 2); // Max 2x for very long sessions
-    hpLoss = Math.floor(hpLoss * durationMultiplier);
+  // Duration multiplier (longer sessions = more XP)
+  let durationMultiplier = 1.0;
+  if (sessionDuration > 60) {
+    durationMultiplier = 1.0 + ((sessionDuration - 60) / 60) * 0.2; // 20% bonus per hour over 1 hour
+  } else if (sessionDuration < 30) {
+    durationMultiplier = 0.7; // Reduced XP for very short sessions
   }
   
-  return Math.max(1, hpLoss); // Minimum 1 HP loss
+  // Team game modifier
+  const teamMultiplier = isTeamGame ? 0.8 : 1.0; // Slight reduction for team games
+  
+  const finalXP = Math.round(xp * durationMultiplier * teamMultiplier);
+  return Math.max(1, finalXP); // Minimum 1 XP
+}
+
+export interface HPCalculationParams {
+  sessionType: 'competitive' | 'social' | 'training' | 'wellbeing';
+  playerLevel: number;
+  opponentLevel?: number;
+  sessionDuration: number; // in minutes
+  isWinner?: boolean;
+}
+
+export interface StakeCalculationParams {
+  playerLevel: number;
+  opponentLevel: number;
+  baseStake: number;
+}
+
+export interface StakingEligibilityParams {
+  playerLevel: number;
+  playerTokens: number;
+  opponentLevel: number;
+  opponentTokens: number;
+  requestedStake: number;
 }
 
 /**
- * Calculate adjusted stake amount based on level difference
+ * Calculate HP loss based on session type, level difference, and performance
+ * Higher level players lose less HP compared to lower level players. Max 10 HP loss.
  */
-export function calculateAdjustedStake(
-  originalStake: number,
-  playerLevel: number,
-  opponentLevel: number
-): number {
-  if (!canPlayersStake(playerLevel, opponentLevel)) {
-    return 0; // Can't stake
+export function calculateHPLoss(params: HPCalculationParams): number {
+  const { sessionType, playerLevel, opponentLevel, sessionDuration, isWinner } = params;
+  
+  // Map session types
+  const mappedType = sessionType === 'wellbeing' ? 'training' : sessionType;
+  const baseLoss = HP_LOSS[mappedType as keyof typeof HP_LOSS];
+  
+  if (!baseLoss) {
+    return 5; // Fallback for unknown types
   }
   
-  const category = getLevelDifferenceCategory(playerLevel, opponentLevel);
-  return Math.floor(originalStake * LEVEL_BALANCE.stake_adjustments[category]);
+  let hpLoss = Math.floor(Math.random() * (baseLoss.max - baseLoss.min + 1)) + baseLoss.min;
+  
+  // Base HP adjustment by session type
+  if (sessionType === 'competitive') {
+    hpLoss = isWinner ? Math.floor(hpLoss * 0.7) : hpLoss; // Winners lose 30% less HP
+  } else if (sessionType === 'social') {
+    hpLoss = Math.floor(hpLoss * 0.5); // Social sessions are less exhausting
+  } else if (sessionType === 'wellbeing') {
+    return -Math.abs(hpLoss); // Wellbeing sessions restore HP (negative loss = gain)
+  }
+  
+  // Level-based HP reduction: higher level players are more efficient
+  const levelReduction = Math.min(3, Math.floor((playerLevel - 1) * 0.2)); // Max 3 HP reduction from level
+  hpLoss = Math.max(1, hpLoss - levelReduction);
+  
+  // Opponent level consideration (playing higher level = less HP loss due to learning)
+  if (opponentLevel && sessionType === 'competitive') {
+    const levelDiff = opponentLevel - playerLevel;
+    if (levelDiff > 0) {
+      // Playing against higher level: less HP loss (learning experience)
+      const learningReduction = Math.min(2, Math.floor(levelDiff * 0.3));
+      hpLoss = Math.max(1, hpLoss - learningReduction);
+    }
+  }
+  
+  // Duration adjustment
+  let durationMultiplier = 1.0;
+  if (sessionDuration > 90) {
+    durationMultiplier = 1.2; // More exhausting for longer sessions
+  } else if (sessionDuration < 30) {
+    durationMultiplier = 0.7; // Less exhausting for short sessions
+  }
+  
+  const finalHP = Math.round(hpLoss * durationMultiplier);
+  
+  // Cap at maximum 10 HP loss, minimum 1 HP loss (except for wellbeing which can restore)
+  return Math.min(10, Math.max(1, finalHP));
+}
+
+/**
+ * Calculate adjusted stake based on level difference to balance fairness
+ */
+export function calculateAdjustedStake(params: StakeCalculationParams): {
+  playerStake: number;
+  opponentStake: number;
+  multiplier: number;
+} {
+  const { playerLevel, opponentLevel, baseStake } = params;
+  
+  const levelDiff = Math.abs(playerLevel - opponentLevel);
+  
+  if (levelDiff <= 1) {
+    // Equal or close levels: equal stakes
+    return {
+      playerStake: baseStake,
+      opponentStake: baseStake,
+      multiplier: 1.0
+    };
+  }
+  
+  // Determine who is higher level
+  const isPlayerHigher = playerLevel > opponentLevel;
+  
+  // Calculate adjustment factor (higher level player stakes more)
+  const adjustmentFactor = 1 + (levelDiff * 0.15); // 15% more per level difference
+  const maxAdjustment = 2.0; // Cap at 2x stake difference
+  
+  const finalAdjustment = Math.min(maxAdjustment, adjustmentFactor);
+  
+  let playerStake: number;
+  let opponentStake: number;
+  
+  if (isPlayerHigher) {
+    playerStake = Math.round(baseStake * finalAdjustment);
+    opponentStake = baseStake;
+  } else {
+    playerStake = baseStake;
+    opponentStake = Math.round(baseStake * finalAdjustment);
+  }
+  
+  return {
+    playerStake,
+    opponentStake,
+    multiplier: finalAdjustment
+  };
+}
+
+/**
+ * Validate if players can participate in staking (enhanced version)
+ */
+export function canPlayersStakeAdvanced(params: StakingEligibilityParams): {
+  canStake: boolean;
+  reason?: string;
+  suggestedMaxStake?: number;
+} {
+  const { playerLevel, playerTokens, opponentLevel, opponentTokens, requestedStake } = params;
+  
+  // Minimum level requirement for staking
+  const MIN_LEVEL_FOR_STAKING = 3;
+  if (playerLevel < MIN_LEVEL_FOR_STAKING || opponentLevel < MIN_LEVEL_FOR_STAKING) {
+    return {
+      canStake: false,
+      reason: `Players must be at least level ${MIN_LEVEL_FOR_STAKING} to participate in staking`
+    };
+  }
+  
+  // Maximum level difference for staking
+  const MAX_LEVEL_DIFF = 10;
+  const levelDiff = Math.abs(playerLevel - opponentLevel);
+  if (levelDiff > MAX_LEVEL_DIFF) {
+    return {
+      canStake: false,
+      reason: `Level difference too large (${levelDiff}). Maximum allowed: ${MAX_LEVEL_DIFF}`
+    };
+  }
+  
+  // Calculate adjusted stakes
+  const { playerStake, opponentStake } = calculateAdjustedStake({
+    playerLevel,
+    opponentLevel,
+    baseStake: requestedStake
+  });
+  
+  // Check if players have enough tokens
+  if (playerTokens < playerStake) {
+    return {
+      canStake: false,
+      reason: `Insufficient tokens. You need ${playerStake} tokens but have ${playerTokens}`,
+      suggestedMaxStake: Math.floor(playerTokens / (playerStake / requestedStake))
+    };
+  }
+  
+  if (opponentTokens < opponentStake) {
+    return {
+      canStake: false,
+      reason: `Opponent has insufficient tokens. They need ${opponentStake} tokens but have ${opponentTokens}`,
+      suggestedMaxStake: Math.floor(opponentTokens / (opponentStake / requestedStake))
+    };
+  }
+  
+  // Minimum stake validation
+  const MIN_STAKE = 10;
+  if (requestedStake < MIN_STAKE) {
+    return {
+      canStake: false,
+      reason: `Minimum stake is ${MIN_STAKE} tokens`
+    };
+  }
+  
+  // Maximum stake based on player levels and token balance
+  const maxStakeByLevel = Math.min(playerLevel, opponentLevel) * 50; // 50 tokens per level
+  const maxStakeByBalance = Math.min(
+    Math.floor(playerTokens * 0.3), // Max 30% of tokens
+    Math.floor(opponentTokens * 0.3)
+  );
+  const maxStake = Math.min(maxStakeByLevel, maxStakeByBalance);
+  
+  if (requestedStake > maxStake) {
+    return {
+      canStake: false,
+      reason: `Stake too high. Maximum allowed: ${maxStake} tokens`,
+      suggestedMaxStake: maxStake
+    };
+  }
+  
+  return {
+    canStake: true
+  };
 }
 
 /**
