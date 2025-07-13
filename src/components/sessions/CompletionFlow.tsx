@@ -42,20 +42,39 @@ export function CompletionFlow({
   } = useUnifiedSessionCompletion();
 
   useEffect(() => {
+    console.log('🎯 CompletionFlow Effect Triggered:', {
+      open,
+      step,
+      selectedWinner,
+      isDraw,
+      hasRewardPreview: !!rewardPreview
+    });
+    
     if (open && step === 'preview' && (selectedWinner || isDraw)) {
+      console.log('🔄 Loading reward preview...');
       loadRewardPreview();
     }
   }, [step, selectedWinner, isDraw, open]);
 
   const loadRewardPreview = async () => {
+    console.group('💰 Loading Reward Preview');
+    console.log('📋 Preview State:', {
+      sessionId: session.id,
+      selectedWinner,
+      isDraw,
+      sessionType: session.session_type,
+      participantCount: participants.length
+    });
+    
     setIsLoadingPreview(true);
     setCompletionError(null);
     
     try {
       const preview = await previewRewards(session.id, isDraw ? undefined : selectedWinner || undefined);
+      console.log('✅ Preview loaded successfully:', preview);
       setRewardPreview(preview);
     } catch (error) {
-      console.error('Failed to load reward preview:', error);
+      console.error('❌ Preview loading failed:', error);
       toast({
         title: "Preview Error",
         description: "Failed to calculate rewards. Please try again.",
@@ -64,27 +83,46 @@ export function CompletionFlow({
       setStep('select');
     } finally {
       setIsLoadingPreview(false);
+      console.groupEnd();
     }
   };
 
   const handleSelectWinner = (participantId: string) => {
+    console.log('🏆 Winner Selected:', {
+      participantId,
+      previousWinner: selectedWinner,
+      previousIsDraw: isDraw,
+      timestamp: new Date().toISOString()
+    });
+    
     setSelectedWinner(participantId);
     setIsDraw(false);
     setStep('preview');
   };
 
   const handleDeclareSDraw = () => {
+    console.log('🤝 Draw Declared:', {
+      previousWinner: selectedWinner,
+      previousIsDraw: isDraw,
+      timestamp: new Date().toISOString()
+    });
+    
     setSelectedWinner(null);
     setIsDraw(true);
     setStep('preview');
   };
 
   const handleComplete = async () => {
-    console.log('🏁 Starting session completion...', {
+    console.group('🏁 Starting Session Completion Process');
+    console.log('📋 Completion State:', {
       sessionId: session.id,
       selectedWinner,
       isDraw,
-      sessionType: session.session_type
+      sessionType: session.session_type,
+      sessionTitle: session.title,
+      participantCount: participants.length,
+      rewardPreview,
+      timestamp: new Date().toISOString()
     });
     
     setStep('confirm');
@@ -93,21 +131,35 @@ export function CompletionFlow({
     try {
       // Calculate session duration from start time to now
       const startTime = new Date(session.start_time || session.created_at);
-      const sessionDurationMinutes = Math.max(1, Math.floor((Date.now() - startTime.getTime()) / (1000 * 60)));
+      const endTime = Date.now();
+      const sessionDurationMinutes = Math.max(1, Math.floor((endTime - startTime.getTime()) / (1000 * 60)));
+      
+      console.log('⏱️ Session Duration Calculation:', {
+        startTime: startTime.toISOString(),
+        endTime: new Date(endTime).toISOString(),
+        durationMs: endTime - startTime.getTime(),
+        durationMinutes: sessionDurationMinutes
+      });
+      
+      
+      const completionData = {
+        platform_fee_rate: 0.1,
+        session_duration_minutes: sessionDurationMinutes
+      };
+      
+      console.log('🚀 Calling completeSession with data:', completionData);
       
       const result = await completeSession(
         session.id,
         isDraw ? undefined : selectedWinner || undefined,
         undefined,
-        {
-          platform_fee_rate: 0.1,
-          session_duration_minutes: sessionDurationMinutes
-        }
+        completionData
       );
 
-      console.log('🏁 Completion result:', result);
+      console.log('📊 Final completion result received:', result);
 
       if (result.success) {
+        console.log('🎉 Session completion successful!');
         toast({
           title: "Session Completed!",
           description: "Rewards have been distributed to participants.",
@@ -118,6 +170,12 @@ export function CompletionFlow({
       } else {
         // Handle database/business logic errors
         const errorMessage = result.error || 'Failed to complete session';
+        console.error('❌ Completion failed - Business Logic Error:', {
+          error: errorMessage,
+          rollback: result.rollback,
+          fullResult: result
+        });
+        
         setCompletionError(errorMessage);
         setStep('error');
         
@@ -129,7 +187,10 @@ export function CompletionFlow({
       }
     } catch (error) {
       // Handle network/unexpected errors
-      console.error('Session completion error:', error);
+      console.error('💥 Completion failed - Network/Exception:', {
+        error: error instanceof Error ? error.message : error,
+        stack: error instanceof Error ? error.stack : undefined
+      });
       const errorMessage = error instanceof Error ? error.message : 'An unexpected error occurred';
       setCompletionError(errorMessage);
       setStep('error');
@@ -139,10 +200,13 @@ export function CompletionFlow({
         description: "Network error. Please check your connection and try again.",
         variant: "destructive"
       });
+    } finally {
+      console.groupEnd();
     }
   };
 
   const resetState = () => {
+    console.log('🔄 Resetting completion flow state');
     setStep('select');
     setSelectedWinner(null);
     setIsDraw(false);
@@ -151,6 +215,7 @@ export function CompletionFlow({
   };
 
   const handleRetry = () => {
+    console.log('🔄 Retrying completion flow');
     setCompletionError(null);
     setStep('preview');
   };
