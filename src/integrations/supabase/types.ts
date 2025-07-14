@@ -5719,6 +5719,84 @@ export type Database = {
         }
         Relationships: []
       }
+      unified_court_bookings: {
+        Row: {
+          base_amount: number | null
+          club_id: string | null
+          convenience_fee: number | null
+          court_id: string | null
+          created_at: string | null
+          end_datetime: string | null
+          id: string | null
+          notes: string | null
+          payment_method: string | null
+          payment_status: string | null
+          player_id: string | null
+          start_datetime: string | null
+          status: string | null
+          stripe_session_id: string | null
+          total_amount: number | null
+          total_cost_money: number | null
+          total_cost_tokens: number | null
+          updated_at: string | null
+        }
+        Insert: {
+          base_amount?: number | null
+          club_id?: string | null
+          convenience_fee?: number | null
+          court_id?: string | null
+          created_at?: string | null
+          end_datetime?: never
+          id?: string | null
+          notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          player_id?: never
+          start_datetime?: never
+          status?: string | null
+          stripe_session_id?: string | null
+          total_amount?: number | null
+          total_cost_money?: never
+          total_cost_tokens?: never
+          updated_at?: string | null
+        }
+        Update: {
+          base_amount?: number | null
+          club_id?: string | null
+          convenience_fee?: number | null
+          court_id?: string | null
+          created_at?: string | null
+          end_datetime?: never
+          id?: string | null
+          notes?: string | null
+          payment_method?: string | null
+          payment_status?: string | null
+          player_id?: never
+          start_datetime?: never
+          status?: string | null
+          stripe_session_id?: string | null
+          total_amount?: number | null
+          total_cost_money?: never
+          total_cost_tokens?: never
+          updated_at?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "club_court_bookings_club_id_fkey"
+            columns: ["club_id"]
+            isOneToOne: false
+            referencedRelation: "clubs"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "club_court_bookings_court_id_fkey"
+            columns: ["court_id"]
+            isOneToOne: false
+            referencedRelation: "club_courts"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       _postgis_deprecate: {
