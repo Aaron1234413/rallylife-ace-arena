@@ -1000,11 +1000,14 @@ export type Database = {
           notes: string | null
           payment_method: string
           payment_status: string
+          player_id: string | null
           start_time: string
           status: string
           stripe_session_id: string | null
           tokens_used: number
           total_amount: number | null
+          total_cost_money: number | null
+          total_cost_tokens: number | null
           updated_at: string
           user_id: string
         }
@@ -1020,11 +1023,14 @@ export type Database = {
           notes?: string | null
           payment_method?: string
           payment_status?: string
+          player_id?: string | null
           start_time: string
           status?: string
           stripe_session_id?: string | null
           tokens_used?: number
           total_amount?: number | null
+          total_cost_money?: number | null
+          total_cost_tokens?: number | null
           updated_at?: string
           user_id: string
         }
@@ -1040,11 +1046,14 @@ export type Database = {
           notes?: string | null
           payment_method?: string
           payment_status?: string
+          player_id?: string | null
           start_time?: string
           status?: string
           stripe_session_id?: string | null
           tokens_used?: number
           total_amount?: number | null
+          total_cost_money?: number | null
+          total_cost_tokens?: number | null
           updated_at?: string
           user_id?: string
         }
