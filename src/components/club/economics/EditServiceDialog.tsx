@@ -143,16 +143,16 @@ export function EditServiceDialog({
               />
             </div>
             <div>
-              <Label htmlFor="price_usd">USD Price (cents)</Label>
+              <Label htmlFor="price_usd">USD Price</Label>
               <Input
                 id="price_usd"
                 type="number"
                 value={formData.price_usd}
                 onChange={(e) => setFormData({ ...formData, price_usd: parseInt(e.target.value) || 0 })}
-                placeholder="2500"
+                placeholder="25"
               />
               <p className="text-xs text-muted-foreground mt-1">
-                ${(formData.price_usd / 100).toFixed(2)}
+                ${formData.price_usd.toFixed(2)}
               </p>
             </div>
           </div>

@@ -189,7 +189,7 @@ export function AvailableServicesWidget({
                       <div className="flex items-center gap-1 text-sm">
                         <DollarSign className="h-4 w-4 text-green-500" />
                         <span className="font-medium text-tennis-green-dark">
-                          ${service.price_usd}
+                          ${service.price_usd.toFixed(2)}
                         </span>
                       </div>
                     )}
@@ -220,7 +220,7 @@ export function AvailableServicesWidget({
                   <h4 className="font-medium mb-3 text-tennis-green-dark">Payment Options</h4>
                   <HybridPaymentSelector
                     tokenPrice={service.price_tokens}
-                    usdPrice={service.price_usd ? service.price_usd * 100 : 0} // Convert to cents
+                    usdPrice={service.price_usd || 0} // Already in dollars
                     onPaymentChange={(payment) => setPaymentMethod({ tokens: payment.tokens, cash: payment.usd })}
                     disabled={false}
                   />

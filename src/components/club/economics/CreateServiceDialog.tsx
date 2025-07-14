@@ -179,7 +179,7 @@ export function CreateServiceDialog({ open, onOpenChange, club }: CreateServiceD
               <div>
                 <Label htmlFor="price_usd" className="flex items-center gap-2">
                   <DollarSign className="h-4 w-4 text-green-500" />
-                  USD Price (cents)
+                  USD Price
                 </Label>
                 <Input
                   id="price_usd"
@@ -187,11 +187,11 @@ export function CreateServiceDialog({ open, onOpenChange, club }: CreateServiceD
                   value={formData.price_usd}
                   onChange={(e) => setFormData({ ...formData, price_usd: parseInt(e.target.value) || 0 })}
                   min="0"
-                  step="50"
-                  placeholder="0"
+                  step="1"
+                  placeholder="25"
                 />
                 <p className="text-xs text-gray-500 mt-1">
-                  Enter in cents (e.g., 2500 = $25.00)
+                  Enter in dollars (e.g., 25 = $25.00)
                 </p>
               </div>
             </div>
@@ -213,14 +213,14 @@ export function CreateServiceDialog({ open, onOpenChange, club }: CreateServiceD
             {(formData.price_tokens > 0 && formData.price_usd > 0) && (
               <div className="p-3 bg-blue-50 rounded-lg border border-blue-200">
                 <p className="text-sm text-blue-700">
-                  <strong>Token Equivalent:</strong> {formData.price_tokens} tokens = ${(formData.price_tokens / 100).toFixed(2)}
+                  <strong>Token Equivalent:</strong> {formData.price_tokens} tokens
                 </p>
                 <p className="text-sm text-blue-700">
-                  <strong>USD Price:</strong> ${(formData.price_usd / 100).toFixed(2)}
+                  <strong>USD Price:</strong> ${formData.price_usd.toFixed(2)}
                 </p>
-                {formData.price_usd > formData.price_tokens && (
+                {formData.price_usd > (formData.price_tokens / 100) && (
                   <p className="text-xs text-blue-600 mt-1">
-                    💡 Token price is {((1 - formData.price_tokens / formData.price_usd) * 100).toFixed(1)}% cheaper - encourages token usage!
+                    💡 Token price is {((1 - (formData.price_tokens / 100) / formData.price_usd) * 100).toFixed(1)}% cheaper - encourages token usage!
                   </p>
                 )}
               </div>

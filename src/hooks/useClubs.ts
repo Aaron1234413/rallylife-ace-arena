@@ -270,25 +270,9 @@ export function useClubs() {
   const joinClub = async (clubId: string) => {
     if (!user) throw new Error('User not authenticated');
 
-    try {
-      const { error } = await supabase
-        .from('club_memberships')
-        .insert({
-          club_id: clubId,
-          user_id: user.id,
-          role: 'member',
-          status: 'active',
-        });
-
-      if (error) throw error;
-
-      toast.success('Successfully joined club!');
-      await fetchMyClubs();
-    } catch (error) {
-      console.error('Error joining club:', error);
-      toast.error('Failed to join club');
-      throw error;
-    }
+    // All clubs are now invitation-only
+    toast.error('This club requires an invitation to join. Please contact a club member or owner for an invitation.');
+    throw new Error('Club is invitation-only');
   };
 
   const leaveClub = async (clubId: string) => {

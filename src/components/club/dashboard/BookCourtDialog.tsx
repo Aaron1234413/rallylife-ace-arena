@@ -250,7 +250,7 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts, pre
           const { error: serviceError } = await supabase.rpc('book_club_service', {
             service_id_param: serviceId,
             tokens_to_use: service.price_tokens,
-            cash_amount_cents: service.price_usd * 100
+            cash_amount_cents: service.price_usd // Already in dollars, no conversion needed
           });
 
           if (serviceError) throw serviceError;
@@ -513,7 +513,7 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts, pre
               <Label className="text-sm font-medium">Payment Method</Label>
               <HybridPaymentSelector
                 tokenPrice={totalCost.tokens}
-                usdPrice={totalCost.money * 100} // Convert to cents
+                usdPrice={totalCost.money} // Already in dollars
                 onPaymentChange={(payment) => 
                   setFormData(prev => ({
                     ...prev,

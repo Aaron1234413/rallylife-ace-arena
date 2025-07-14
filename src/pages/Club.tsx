@@ -189,12 +189,9 @@ export default function Club() {
                           Owner
                         </Badge>
                       )}
-                      <Badge variant={club.is_public ? "default" : "secondary"} className="px-2 py-1 text-xs">
-                        {club.is_public ? (
-                          <><Globe className="h-3 w-3 mr-1" />Public</>
-                        ) : (
-                          <><Lock className="h-3 w-3 mr-1" />Private</>
-                        )}
+                      <Badge variant="secondary" className="px-2 py-1 text-xs">
+                        <Lock className="h-3 w-3 mr-1" />
+                        Private
                       </Badge>
                     </div>
                   </div>

@@ -51,7 +51,7 @@ export function CreateOpenSessionDialog({
     skill_level_min: 1,
     skill_level_max: 7,
     requires_approval: false,
-    is_public: true,
+    is_public: false, // All sessions are private to club members
     session_notes: '',
     payment_method: 'tokens' as const,
     cost_per_person_tokens: 0,
@@ -141,7 +141,7 @@ export function CreateOpenSessionDialog({
         skill_level_min: 1,
         skill_level_max: 7,
         requires_approval: false,
-        is_public: true,
+        is_public: false, // All sessions are private to club members
         session_notes: '',
         payment_method: 'tokens',
         cost_per_person_tokens: 0,

@@ -33,17 +33,8 @@ export function ClubProfile({ club, isPreview = false }: ClubProfileProps) {
   const isOwner = user?.id === club.owner_id;
 
   const handleQuickJoin = async () => {
-    if (!club.is_public) {
-      setShowJoinDialog(true);
-      return;
-    }
-
-    try {
-      await joinClub(club.id);
-      toast.success('Successfully joined club!');
-    } catch (error) {
-      // Error handled by hook
-    }
+    // All clubs are invitation-only now
+    setShowJoinDialog(true);
   };
 
   return (
@@ -66,12 +57,9 @@ export function ClubProfile({ club, isPreview = false }: ClubProfileProps) {
                   {club.name}
                 </h1>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Badge variant={club.is_public ? "default" : "secondary"}>
-                    {club.is_public ? (
-                      <><Globe className="h-3 w-3 mr-1" />Public</>
-                    ) : (
-                      <><Lock className="h-3 w-3 mr-1" />Private</>
-                    )}
+                  <Badge variant="secondary">
+                    <Lock className="h-3 w-3 mr-1" />
+                    Private
                   </Badge>
                   {isOwner && (
                     <Badge className="bg-amber-100 text-amber-800 border-amber-200">
@@ -104,7 +92,7 @@ export function ClubProfile({ club, isPreview = false }: ClubProfileProps) {
               {!isMember && !isPreview && (
                 <Button onClick={handleQuickJoin} className="flex items-center gap-2">
                   <UserPlus className="h-4 w-4" />
-                  {club.is_public ? 'Join Club' : 'Request to Join'}
+                  Request Invitation
                 </Button>
               )}
             </div>
@@ -194,15 +182,15 @@ export function ClubProfile({ club, isPreview = false }: ClubProfileProps) {
           <div className="space-y-4">
             <div className="flex items-center justify-between py-2 border-b">
               <span className="font-medium">Visibility</span>
-              <Badge variant={club.is_public ? "default" : "secondary"}>
-                {club.is_public ? 'Public' : 'Private'}
+              <Badge variant="secondary">
+                Private
               </Badge>
             </div>
             
             <div className="flex items-center justify-between py-2 border-b">
               <span className="font-medium">Join Policy</span>
               <span className="text-gray-600">
-                {club.is_public ? 'Anyone can join' : 'Invitation only'}
+                Invitation only
               </span>
             </div>
             
