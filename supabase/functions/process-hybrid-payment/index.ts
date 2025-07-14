@@ -20,6 +20,10 @@ serve(async (req) => {
   try {
     logStep("Function started");
 
+    const stripeKey = Deno.env.get("STRIPE_SECRET_KEY");
+    if (!stripeKey) throw new Error("STRIPE_SECRET_KEY is not set");
+    logStep("Stripe key validated");
+
     const supabaseClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
       Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
@@ -83,7 +87,7 @@ serve(async (req) => {
     // Process cash payment if needed
     let paymentResult = null;
     if (cash_amount > 0) {
-      const stripe = new Stripe(Deno.env.get("STRIPE_SECRET_KEY") || "", {
+      const stripe = new Stripe(stripeKey, {
         apiVersion: "2023-10-16",
       });
 
