@@ -2,13 +2,17 @@ import { useState } from "react";
 import { SessionDiscoveryTabs } from "@/components/play/SessionDiscoveryTabs";
 import { SessionFlowManager } from "@/components/play/SessionFlowManager";
 import { SessionHistoryTimeline } from "@/components/play/SessionHistoryTimeline";
-import { SessionCreationModal } from "@/components/play/SessionCreationModal";
+import { SessionCreationFlow } from "@/components/play/SessionCreationFlow";
 import { SessionCompletionFlow } from "@/components/play/SessionCompletionFlow";
+import { ActiveMatchCard } from "@/components/play/ActiveMatchCard";
+import { QuickStatsCard } from "@/components/play/QuickStatsCard";
+import { RecentActivityCard } from "@/components/play/RecentActivityCard";
+import { PlayerStatusCard } from "@/components/play/PlayerStatusCard";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Play, History, TrendingUp, Users, Clock, Star } from "lucide-react";
+import { Play, History, TrendingUp, Users, Clock, Star, Plus, Search, Calendar, Trophy, Target, Zap } from "lucide-react";
 
 export function PlayMockup() {
   const [currentView, setCurrentView] = useState<"dashboard" | "session" | "discovery" | "history">("dashboard");
@@ -59,161 +63,140 @@ export function PlayMockup() {
 
   const renderDashboard = () => (
     <div className="space-y-6">
-      {/* Header with Quick Stats */}
+      {/* Mobile-First Header */}
       <div className="text-center space-y-4">
         <div>
-          <h1 className="text-3xl font-bold">Ready to Play?</h1>
-          <p className="text-muted-foreground">Find players, courts, and start your session</p>
-        </div>
-        
-        <div className="flex justify-center gap-4">
-          <div className="text-center">
-            <div className="flex items-center gap-1 justify-center">
-              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
-              <span className="text-lg font-bold">{userStats.currentRating}</span>
-            </div>
-            <div className="text-xs text-muted-foreground">Rating</div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-green-600">{userStats.winRate}%</div>
-            <div className="text-xs text-muted-foreground">Win Rate</div>
-          </div>
-          <div className="text-center">
-            <div className="text-lg font-bold text-blue-600">{userStats.currentStreak}</div>
-            <div className="text-xs text-muted-foreground">Streak</div>
-          </div>
+          <h1 className="text-2xl md:text-3xl font-bold">Ready to Play?</h1>
+          <p className="text-muted-foreground text-sm md:text-base">Find players, courts, and start your session</p>
         </div>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+      {/* Quick Action Cards - Mobile First Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card 
-          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50"
+          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50 transition-all"
           onClick={() => setCurrentView("discovery")}
         >
-          <CardContent className="p-6 text-center">
-            <Play className="w-12 h-12 mx-auto mb-3 text-primary" />
-            <h3 className="font-semibold mb-2">Find Match</h3>
-            <p className="text-sm text-muted-foreground">Join available sessions nearby</p>
+          <CardContent className="p-4 text-center">
+            <Search className="w-8 h-8 mx-auto mb-2 text-primary" />
+            <h3 className="font-semibold text-sm">Find Match</h3>
+            <p className="text-xs text-muted-foreground hidden md:block">Join sessions</p>
           </CardContent>
         </Card>
 
         <Card 
-          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50"
+          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50 transition-all"
           onClick={() => setShowCreateModal(true)}
         >
-          <CardContent className="p-6 text-center">
-            <Users className="w-12 h-12 mx-auto mb-3 text-primary" />
-            <h3 className="font-semibold mb-2">Create Session</h3>
-            <p className="text-sm text-muted-foreground">Start your own tennis session</p>
+          <CardContent className="p-4 text-center">
+            <Plus className="w-8 h-8 mx-auto mb-2 text-primary" />
+            <h3 className="font-semibold text-sm">Create</h3>
+            <p className="text-xs text-muted-foreground hidden md:block">New session</p>
           </CardContent>
         </Card>
 
         <Card 
-          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50"
+          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50 transition-all"
           onClick={() => setCurrentView("history")}
         >
-          <CardContent className="p-6 text-center">
-            <History className="w-12 h-12 mx-auto mb-3 text-primary" />
-            <h3 className="font-semibold mb-2">Session History</h3>
-            <p className="text-sm text-muted-foreground">View past sessions and stats</p>
+          <CardContent className="p-4 text-center">
+            <Calendar className="w-8 h-8 mx-auto mb-2 text-primary" />
+            <h3 className="font-semibold text-sm">History</h3>
+            <p className="text-xs text-muted-foreground hidden md:block">Past sessions</p>
+          </CardContent>
+        </Card>
+
+        <Card 
+          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50 transition-all"
+          onClick={() => console.log("View tournaments")}
+        >
+          <CardContent className="p-4 text-center">
+            <Trophy className="w-8 h-8 mx-auto mb-2 text-primary" />
+            <h3 className="font-semibold text-sm">Tournaments</h3>
+            <p className="text-xs text-muted-foreground hidden md:block">Competitions</p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Active Sessions */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="w-5 h-5" />
-            Active Sessions
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            <div 
-              className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted/70 transition-colors"
-              onClick={() => handleJoinSession("active-session-1")}
-            >
-              <div>
-                <p className="font-medium">Singles vs Alex Johnson</p>
-                <p className="text-sm text-muted-foreground">Set 2 • 4-3</p>
-              </div>
-              <Badge variant="secondary">In Progress</Badge>
-            </div>
-            <div className="text-center py-8 text-muted-foreground">
-              <p>No other active sessions</p>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Mobile-First Layout: Single column on mobile, side-by-side on desktop */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Main Content */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Active Matches */}
+          <ActiveMatchCard 
+            onJoinMatch={handleJoinSession}
+            onResumeMatch={handleJoinSession}
+          />
 
-      {/* Performance Overview */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <TrendingUp className="w-5 h-5" />
-            This Week's Progress
-          </CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-4">
-            <div className="flex justify-between items-center">
-              <span>Weekly Goal</span>
-              <span className="font-medium">{userStats.weeklyGoal}% complete</span>
-            </div>
-            <div className="w-full bg-muted rounded-full h-2">
-              <div 
-                className="bg-primary h-2 rounded-full transition-all duration-300" 
-                style={{ width: `${userStats.weeklyGoal}%` }}
-              />
-            </div>
-            <div className="grid grid-cols-2 gap-4 text-sm">
-              <div>
-                <div className="font-medium">Sessions this week</div>
-                <div className="text-muted-foreground">3 of 4 completed</div>
-              </div>
-              <div>
-                <div className="font-medium">Hours played</div>
-                <div className="text-muted-foreground">4.5 hours</div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+          {/* Recent Activity */}
+          <RecentActivityCard 
+            onViewHistory={() => setCurrentView("history")}
+          />
+        </div>
 
-      {/* Recent Activity Quick View */}
+        {/* Right Column - Stats & Profile */}
+        <div className="space-y-6">
+          {/* Player Status */}
+          <PlayerStatusCard 
+            onEditProfile={() => console.log("Edit profile")}
+            onViewAchievements={() => console.log("View achievements")}
+          />
+
+          {/* Quick Stats */}
+          <QuickStatsCard 
+            onViewFullStats={() => console.log("View full stats")}
+          />
+        </div>
+      </div>
+
+      {/* Featured Sessions - Mobile Optimized */}
       <Card>
         <CardHeader>
-          <div className="flex justify-between items-center">
-            <CardTitle>Recent Sessions</CardTitle>
-            <Button 
-              variant="outline" 
-              size="sm"
-              onClick={() => setCurrentView("history")}
-            >
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <Zap className="w-5 h-5" />
+              Featured Sessions
+            </CardTitle>
+            <Button variant="ghost" size="sm" onClick={() => setCurrentView("discovery")}>
               View All
             </Button>
           </div>
         </CardHeader>
         <CardContent>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="font-medium">Won vs Sarah Chen</p>
-                <p className="text-sm text-muted-foreground">Yesterday • 6-4, 6-2</p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="p-4 border rounded-lg bg-gradient-to-r from-blue-500/10 to-purple-500/10 cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <h4 className="font-medium">Singles Tournament</h4>
+                  <p className="text-sm text-muted-foreground">Today 6:00 PM</p>
+                </div>
+                <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">
+                  8 players
+                </Badge>
               </div>
-              <div className="text-right">
-                <Badge className="bg-green-500/10 text-green-500 border-green-500/20">+85 XP</Badge>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Target className="w-4 h-4" />
+                <span>4.0+ Rating</span>
+                <span>•</span>
+                <span>$25 entry</span>
               </div>
             </div>
-            <div className="flex items-center justify-between p-3 border rounded-lg">
-              <div>
-                <p className="font-medium">Practice Session</p>
-                <p className="text-sm text-muted-foreground">2 days ago • 45 minutes</p>
+
+            <div className="p-4 border rounded-lg bg-gradient-to-r from-green-500/10 to-blue-500/10 cursor-pointer hover:bg-muted/50 transition-colors">
+              <div className="flex items-start justify-between mb-2">
+                <div>
+                  <h4 className="font-medium">Doubles Match</h4>
+                  <p className="text-sm text-muted-foreground">Tomorrow 10:00 AM</p>
+                </div>
+                <Badge className="bg-green-500/10 text-green-500 border-green-500/20">
+                  2 spots left
+                </Badge>
               </div>
-              <div className="text-right">
-                <Badge className="bg-blue-500/10 text-blue-500 border-blue-500/20">+25 XP</Badge>
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Users className="w-4 h-4" />
+                <span>Open Level</span>
+                <span>•</span>
+                <span>Free</span>
               </div>
             </div>
           </div>
@@ -264,7 +247,7 @@ export function PlayMockup() {
       )}
 
       {/* Modals */}
-      <SessionCreationModal
+      <SessionCreationFlow
         open={showCreateModal}
         onOpenChange={setShowCreateModal}
         onCreateSession={handleCreateSession}
