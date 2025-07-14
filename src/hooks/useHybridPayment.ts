@@ -12,8 +12,8 @@ export interface PaymentOption {
 }
 
 interface HybridPaymentProps {
-  itemCost: number;
-  itemCashPrice: number;
+  itemCost: number; // in tokens
+  itemCashPrice?: number; // optional override, otherwise calculated from tokens
   availableTokens: number;
   tokenToUSDRate?: number; // Default: 0.01 ($0.01 per token)
 }
@@ -28,6 +28,9 @@ export function useHybridPayment({
   const paymentOptions = useMemo(() => {
     const options: PaymentOption[] = [];
     
+    // Calculate cash equivalent if not provided
+    const cashPrice = itemCashPrice ?? (itemCost * tokenToUSDRate);
+    
     // Option 1: Tokens Only
     const tokensOnly: PaymentOption = {
       type: 'tokens_only',
@@ -37,7 +40,7 @@ export function useHybridPayment({
       tokensToUse: itemCost,
       cashRequired: 0,
       totalCostUSD: 0,
-      savings: itemCashPrice // Full savings since no cash spent
+      savings: cashPrice // Full savings since no cash spent
     };
     options.push(tokensOnly);
     
@@ -48,8 +51,8 @@ export function useHybridPayment({
       tokensRequired: 0,
       tokensAvailable: availableTokens,
       tokensToUse: 0,
-      cashRequired: itemCashPrice,
-      totalCostUSD: itemCashPrice
+      cashRequired: cashPrice,
+      totalCostUSD: cashPrice
     };
     options.push(cashOnly);
     

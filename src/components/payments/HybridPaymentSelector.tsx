@@ -11,7 +11,7 @@ import {
 
 interface HybridPaymentSelectorProps {
   tokenPrice: number;
-  usdPrice: number; // in cents
+  usdPrice: number; // in actual dollars (not cents)
   onPaymentChange: (payment: { tokens: number; usd: number }) => void;
   disabled?: boolean;
   preview?: boolean;
@@ -28,11 +28,11 @@ export function HybridPaymentSelector({
   
   // Calculate payment split
   const tokensToUse = Math.round((tokenPercentage / 100) * tokenPrice);
-  const usdToUse = Math.round(((100 - tokenPercentage) / 100) * usdPrice);
+  const usdToUse = ((100 - tokenPercentage) / 100) * usdPrice; // Keep as dollars
   
-  // Conversion rate: $1 = 100 tokens
-  const tokenValue = tokensToUse / 100; // Convert to dollars
-  const usdValue = usdToUse / 100; // Convert to dollars
+  // Conversion rate: $0.01 per token ($1 = 100 tokens)
+  const tokenValue = tokensToUse * 0.01; // Convert tokens to dollars
+  const usdValue = usdToUse; // Already in dollars
   
   useEffect(() => {
     if (!disabled && !preview) {
@@ -56,8 +56,8 @@ export function HybridPaymentSelector({
               <div className="text-xs font-medium">{option.label}</div>
               <div className="text-xs text-gray-500">
                 {option.percentage === 100 ? `${tokenPrice} tokens` :
-                 option.percentage === 0 ? `$${(usdPrice / 100).toFixed(2)}` :
-                 `${Math.round(tokenPrice / 2)} tokens + $${(usdPrice / 200).toFixed(2)}`}
+                 option.percentage === 0 ? `$${usdPrice.toFixed(2)}` :
+                 `${Math.round(tokenPrice / 2)} tokens + $${(usdPrice / 2).toFixed(2)}`}
               </div>
             </div>
           ))}
@@ -148,11 +148,11 @@ export function HybridPaymentSelector({
           </div>
 
           {/* Savings Indicator */}
-          {tokenPercentage > 0 && tokenPrice < usdPrice && (
+          {tokenPercentage > 0 && (tokenPrice * 0.01) < usdPrice && (
             <div className="p-2 bg-emerald-50 border border-emerald-200 rounded-lg">
               <p className="text-xs text-emerald-700">
-                💡 Using tokens saves you ${((usdPrice - tokenPrice) / 100 * tokenPercentage / 100).toFixed(2)} 
-                ({(((usdPrice - tokenPrice) / usdPrice) * 100).toFixed(1)}% discount)
+                💡 Using tokens saves you ${((usdPrice - (tokenPrice * 0.01)) * tokenPercentage / 100).toFixed(2)} 
+                ({(((usdPrice - (tokenPrice * 0.01)) / usdPrice) * 100).toFixed(1)}% discount)
               </p>
             </div>
           )}

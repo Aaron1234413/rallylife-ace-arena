@@ -210,7 +210,7 @@ export function ServicePricingManager({ club, canManage }: ServicePricingManager
                 </div>
                 <div className="flex items-center gap-2 text-sm">
                   <DollarSign className="h-4 w-4 text-green-500" />
-                  <span className="text-tennis-green-dark">${(service.price_usd || 0).toFixed(2)}</span>
+                  <span className="text-tennis-green-dark">${(service.price_tokens * 0.01).toFixed(2)}</span>
                 </div>
               </div>
 
@@ -219,7 +219,7 @@ export function ServicePricingManager({ club, canManage }: ServicePricingManager
                   <p className="text-sm font-medium text-blue-900 mb-2">Payment Options:</p>
                   <HybridPaymentSelector
                     tokenPrice={service.price_tokens}
-                    usdPrice={service.price_usd || 0} // Already in dollars
+                    usdPrice={service.price_tokens * 0.01} // Convert tokens to USD at $0.01 per token
                     onPaymentChange={() => {}}
                     disabled={true}
                     preview={true}

@@ -513,7 +513,7 @@ export function BookCourtDialog({ open, onOpenChange, courtId, date, courts, pre
               <Label className="text-sm font-medium">Payment Method</Label>
               <HybridPaymentSelector
                 tokenPrice={totalCost.tokens}
-                usdPrice={totalCost.money} // Already in dollars
+                usdPrice={totalCost.tokens * 0.01} // Convert tokens to USD at $0.01 per token
                 onPaymentChange={(payment) => 
                   setFormData(prev => ({
                     ...prev,
