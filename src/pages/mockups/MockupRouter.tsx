@@ -3,6 +3,7 @@ import { PlayMockup } from "./PlayMockup";
 import { FeedMockup } from "./FeedMockup";
 import { TrainingMockup } from "./TrainingMockup";
 import { ClubsMockup } from "./ClubsMockup";
+import { ClubDetailMockup } from "./ClubDetailMockup";
 import { ProfileMockup } from "./ProfileMockup";
 
 export function MockupRouter() {
@@ -14,6 +15,7 @@ export function MockupRouter() {
         <Route path="feed" element={<FeedMockup />} />
         <Route path="training" element={<TrainingMockup />} />
         <Route path="clubs" element={<ClubsMockup />} />
+        <Route path="club-detail" element={<ClubDetailMockup />} />
         <Route path="profile" element={<ProfileMockup />} />
         <Route path="*" element={<div>Mockup not found</div>} />
       </Routes>

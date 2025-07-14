@@ -119,8 +119,10 @@ export function ClubsMockup() {
                     </div>
                   </div>
                 </div>
-                <Button className="w-full mt-4" variant="outline">
-                  Manage Club
+                <Button className="w-full mt-4" variant="outline" asChild>
+                  <a href="/mockups/club-detail">
+                    View New Design
+                  </a>
                 </Button>
               </CardContent>
             </Card>
