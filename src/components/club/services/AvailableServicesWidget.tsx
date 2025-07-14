@@ -78,7 +78,10 @@ export function AvailableServicesWidget({
       return;
     }
 
-    const bookingId = await bookService(service.id, paymentMethod.tokens, paymentMethod.cash);
+    // Convert cash to cents for the API
+    const cashAmountCents = Math.round(paymentMethod.cash * 100);
+    
+    const bookingId = await bookService(service.id, paymentMethod.tokens, cashAmountCents);
     
     if (bookingId) {
       toast.success(`Successfully booked ${service.name}!`);
