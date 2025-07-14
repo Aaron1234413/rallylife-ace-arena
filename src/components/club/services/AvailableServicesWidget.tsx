@@ -32,7 +32,7 @@ export function AvailableServicesWidget({
   compact = false 
 }: AvailableServicesWidgetProps) {
   const { services, bookings, loading, bookService } = useClubServices(clubId);
-  const { regularTokens, loading: tokensLoading } = usePlayerTokens();
+  const { regularTokens, loading: tokensLoading, refreshTokens } = usePlayerTokens();
   const [selectedService, setSelectedService] = useState<ClubService | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<{ tokens: number; cash: number }>({ tokens: 0, cash: 0 });
 
@@ -59,8 +59,22 @@ export function AvailableServicesWidget({
   };
 
   const handleBookService = async (service: ClubService) => {
+    // Enhanced validation
     if (!paymentMethod.tokens && !paymentMethod.cash) {
       toast.error('Please select a payment method');
+      return;
+    }
+
+    // Check if user has sufficient tokens if trying to use tokens
+    if (paymentMethod.tokens > regularTokens) {
+      toast.error(`Insufficient tokens! You need ${paymentMethod.tokens} tokens but only have ${regularTokens}.`);
+      return;
+    }
+
+    // Check if payment covers the service cost
+    const totalPaymentValue = paymentMethod.tokens + (paymentMethod.cash / 0.01); // Convert cash back to token equivalent
+    if (totalPaymentValue < service.price_tokens) {
+      toast.error('Payment amount does not cover the service cost');
       return;
     }
 
@@ -70,6 +84,8 @@ export function AvailableServicesWidget({
       toast.success(`Successfully booked ${service.name}!`);
       setSelectedService(null);
       setPaymentMethod({ tokens: 0, cash: 0 });
+      // Refresh token balance to show updated amount
+      refreshTokens();
     }
   };
 
@@ -223,6 +239,7 @@ export function AvailableServicesWidget({
                     availableTokens={regularTokens}
                     onPaymentChange={(payment) => setPaymentMethod({ tokens: payment.tokens, cash: payment.usd })}
                     disabled={tokensLoading}
+                    onRefreshTokens={refreshTokens}
                   />
                   <div className="flex gap-2 mt-4">
                     <Button

@@ -10,7 +10,10 @@ import {
   DollarSign,
   Shuffle,
   AlertTriangle,
-  Info
+  Info,
+  RefreshCw,
+  CheckCircle,
+  XCircle
 } from 'lucide-react';
 
 interface InteractiveHybridPaymentSelectorProps {
@@ -18,13 +21,15 @@ interface InteractiveHybridPaymentSelectorProps {
   availableTokens: number; // User's current token balance
   onPaymentChange: (payment: { tokens: number; usd: number }) => void;
   disabled?: boolean;
+  onRefreshTokens?: () => void; // Optional callback to refresh token balance
 }
 
 export function InteractiveHybridPaymentSelector({ 
   serviceTokenCost, 
   availableTokens,
   onPaymentChange, 
-  disabled = false
+  disabled = false,
+  onRefreshTokens
 }: InteractiveHybridPaymentSelectorProps) {
   const [tokensToUse, setTokensToUse] = useState(Math.min(availableTokens, serviceTokenCost));
   
@@ -40,9 +45,13 @@ export function InteractiveHybridPaymentSelector({
   const totalUSDCost = serviceTokenCost * TOKEN_TO_USD_RATE;
   const savings = tokensToUse * TOKEN_TO_USD_RATE;
   
-  // Validation
-  const isValidPayment = tokensToUse <= availableTokens && tokensToUse <= serviceTokenCost;
+  // Enhanced validation and status
+  const isValidPayment = tokensToUse <= availableTokens && tokensToUse <= serviceTokenCost && tokensToUse >= 0;
   const hasInsufficientTokens = availableTokens < serviceTokenCost;
+  const tokenShortage = Math.max(0, serviceTokenCost - availableTokens);
+  const canAffordWithTokens = availableTokens >= serviceTokenCost;
+  const isOverspending = tokensToUse > availableTokens;
+  const paymentStatus = isValidPayment ? 'valid' : isOverspending ? 'overspend' : 'invalid';
   
   // Update parent component when payment changes
   useEffect(() => {
@@ -106,16 +115,63 @@ export function InteractiveHybridPaymentSelector({
       </CardHeader>
       
       <CardContent className="space-y-4">
-        {/* Token Balance Warning */}
-        {hasInsufficientTokens && (
-          <Alert className="border-amber-200 bg-amber-50">
-            <AlertTriangle className="h-4 w-4 text-amber-600" />
-            <AlertDescription className="text-amber-700">
-              You have {availableTokens} tokens, but this service costs {serviceTokenCost} tokens. 
-              You'll need to pay the difference in cash.
-            </AlertDescription>
-          </Alert>
-        )}
+        {/* Enhanced Token Balance Status */}
+        <div className={`p-3 rounded-lg border transition-colors ${
+          canAffordWithTokens 
+            ? 'bg-emerald-50 border-emerald-200' 
+            : 'bg-amber-50 border-amber-200'
+        }`}>
+          <div className="flex items-center justify-between mb-2">
+            <div className="flex items-center gap-2">
+              {canAffordWithTokens ? (
+                <CheckCircle className="h-4 w-4 text-emerald-600" />
+              ) : (
+                <AlertTriangle className="h-4 w-4 text-amber-600" />
+              )}
+              <span className={`text-sm font-medium ${
+                canAffordWithTokens ? 'text-emerald-900' : 'text-amber-900'
+              }`}>
+                Token Balance Status
+              </span>
+            </div>
+            {onRefreshTokens && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onRefreshTokens}
+                className="h-6 w-6 p-0 hover-scale"
+              >
+                <RefreshCw className="h-3 w-3" />
+              </Button>
+            )}
+          </div>
+          
+          <div className="space-y-1">
+            <div className="flex items-center justify-between text-sm">
+              <span className={canAffordWithTokens ? 'text-emerald-700' : 'text-amber-700'}>
+                Available: {availableTokens} tokens
+              </span>
+              <span className={canAffordWithTokens ? 'text-emerald-700' : 'text-amber-700'}>
+                Required: {serviceTokenCost} tokens
+              </span>
+            </div>
+            
+            {!canAffordWithTokens && (
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-amber-700">Shortage:</span>
+                <span className="font-medium text-amber-800">
+                  {tokenShortage} tokens (${(tokenShortage * TOKEN_TO_USD_RATE).toFixed(2)} cash needed)
+                </span>
+              </div>
+            )}
+            
+            {canAffordWithTokens && (
+              <div className="text-sm text-emerald-700">
+                ✅ You can pay entirely with tokens and save ${totalUSDCost.toFixed(2)}!
+              </div>
+            )}
+          </div>
+        </div>
 
         {/* Service Cost Info */}
         <div className="p-3 bg-blue-50 border border-blue-200 rounded-lg">
@@ -148,16 +204,32 @@ export function InteractiveHybridPaymentSelector({
           ))}
         </div>
 
-        {/* Token Amount Input */}
+        {/* Enhanced Token Amount Input */}
         <div className="space-y-3">
           <div className="flex items-center justify-between">
             <label className="text-sm font-medium flex items-center gap-2">
               <Coins className="h-4 w-4 text-emerald-500" />
               Tokens to Use
+              {paymentStatus === 'valid' && (
+                <CheckCircle className="h-3 w-3 text-emerald-500" />
+              )}
+              {paymentStatus === 'overspend' && (
+                <XCircle className="h-3 w-3 text-red-500" />
+              )}
             </label>
-            <Badge variant="secondary" className="text-xs">
-              Available: {availableTokens}
-            </Badge>
+            <div className="flex items-center gap-2">
+              <Badge 
+                variant={canAffordWithTokens ? "default" : "secondary"} 
+                className="text-xs"
+              >
+                Available: {availableTokens}
+              </Badge>
+              {isOverspending && (
+                <Badge variant="destructive" className="text-xs">
+                  Over limit!
+                </Badge>
+              )}
+            </div>
           </div>
           
           <div className="flex gap-3">
@@ -168,7 +240,14 @@ export function InteractiveHybridPaymentSelector({
               min={0}
               max={maxUsableTokens}
               disabled={disabled}
-              className="w-24 text-center"
+              className={`w-24 text-center transition-colors ${
+                paymentStatus === 'overspend' 
+                  ? 'border-red-300 bg-red-50 text-red-700' 
+                  : paymentStatus === 'valid' 
+                    ? 'border-emerald-300 bg-emerald-50' 
+                    : ''
+              }`}
+              placeholder="0"
             />
             <div className="flex-1">
               <Slider
@@ -177,7 +256,9 @@ export function InteractiveHybridPaymentSelector({
                 max={maxUsableTokens}
                 step={1}
                 disabled={disabled}
-                className="w-full"
+                className={`w-full ${
+                  paymentStatus === 'overspend' ? 'opacity-75' : ''
+                }`}
               />
             </div>
           </div>
@@ -234,12 +315,26 @@ export function InteractiveHybridPaymentSelector({
           </div>
         )}
 
-        {/* Validation Error */}
-        {!isValidPayment && tokensToUse > 0 && (
-          <Alert className="border-red-200 bg-red-50">
-            <AlertTriangle className="h-4 w-4 text-red-600" />
+        {/* Enhanced Validation Messages */}
+        {paymentStatus === 'overspend' && (
+          <Alert className="border-red-200 bg-red-50 animate-scale-in">
+            <XCircle className="h-4 w-4 text-red-600" />
             <AlertDescription className="text-red-700">
-              Invalid token amount. You can use at most {maxUsableTokens} tokens.
+              <div className="space-y-1">
+                <div className="font-medium">Insufficient tokens!</div>
+                <div>You're trying to use {tokensToUse} tokens, but you only have {availableTokens} available.</div>
+                <div className="text-sm">Maximum you can use: {maxUsableTokens} tokens</div>
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+        
+        {tokensToUse === 0 && serviceTokenCost > 0 && (
+          <Alert className="border-blue-200 bg-blue-50">
+            <Info className="h-4 w-4 text-blue-600" />
+            <AlertDescription className="text-blue-700">
+              You're paying entirely with cash (${totalUSDCost.toFixed(2)}). 
+              Consider using some tokens to save money!
             </AlertDescription>
           </Alert>
         )}
