@@ -49,6 +49,7 @@ export function ClubDetailMockup() {
   // Business management states
   const [isAddingService, setIsAddingService] = useState(false);
   const [isEditingCourt, setIsEditingCourt] = useState(false);
+  const [showSubscriptionPlans, setShowSubscriptionPlans] = useState(false);
   const [newService, setNewService] = useState({
     name: '',
     type: 'court',
@@ -924,27 +925,426 @@ export function ClubDetailMockup() {
 
               <Card>
                 <CardHeader>
-                  <CardTitle>Subscription</CardTitle>
+                  <CardTitle>Subscription & Analytics</CardTitle>
                 </CardHeader>
                 <CardContent className="space-y-4">
                   <div className="flex items-center justify-between">
                     <span>Current Plan</span>
-                    <Badge>Pro Plan</Badge>
+                    <Badge className="gap-1">
+                      <Crown className="w-3 h-3" />
+                      Pro Plan
+                    </Badge>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Monthly Cost</span>
-                    <span className="font-medium">$99/month</span>
+                    <span className="font-medium">$299/month</span>
                   </div>
                   <div className="flex items-center justify-between">
                     <span>Next Billing</span>
                     <span>Jan 15, 2024</span>
                   </div>
-                  <Button variant="outline" className="w-full">
+                  <Button 
+                    variant="outline" 
+                    className="w-full"
+                    onClick={() => setShowSubscriptionPlans(true)}
+                  >
                     Manage Subscription
                   </Button>
                 </CardContent>
               </Card>
             </div>
+
+            {/* Subscription Plans Dialog */}
+            <Dialog open={showSubscriptionPlans} onOpenChange={setShowSubscriptionPlans}>
+              <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
+                <DialogHeader>
+                  <DialogTitle className="text-2xl">Subscription Plans & Analytics Features</DialogTitle>
+                  <p className="text-muted-foreground">Choose the perfect plan for your club with powerful analytics</p>
+                </DialogHeader>
+                
+                <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 mt-6">
+                  {/* Community Plan */}
+                  <Card className="relative">
+                    <CardHeader className="text-center pb-2">
+                      <div className="flex justify-center mb-2">
+                        <Users className="w-8 h-8 text-blue-500" />
+                      </div>
+                      <CardTitle className="text-xl">Community</CardTitle>
+                      <div className="text-3xl font-bold">Free</div>
+                      <p className="text-sm text-muted-foreground">Perfect for getting started</p>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-2">What's Included:</h4>
+                        <ul className="space-y-1 text-sm">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            50 members max
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            1 coach
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            5,000 tokens/month
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Basic booking system
+                          </li>
+                        </ul>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div>
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4" />
+                          Analytics Features:
+                        </h4>
+                        <ul className="space-y-1 text-sm">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Basic revenue tracking
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Member count
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <X className="w-4 h-4 text-red-500" />
+                            Court utilization
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <X className="w-4 h-4 text-red-500" />
+                            Peak hours analysis
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <X className="w-4 h-4 text-red-500" />
+                            Financial forecasting
+                          </li>
+                        </ul>
+                      </div>
+                      
+                      <Button variant="outline" className="w-full mt-4">
+                        Current Plan
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Core Plan */}
+                  <Card className="relative">
+                    <CardHeader className="text-center pb-2">
+                      <div className="flex justify-center mb-2">
+                        <Zap className="w-8 h-8 text-orange-500" />
+                      </div>
+                      <CardTitle className="text-xl">Core</CardTitle>
+                      <div className="text-3xl font-bold">$49<span className="text-sm font-normal">/month</span></div>
+                      <p className="text-sm text-muted-foreground">Enhanced features for growing clubs</p>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-2">What's Included:</h4>
+                        <ul className="space-y-1 text-sm">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            100 members max
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            3 coaches
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            50,000 tokens/month
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Advanced booking
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Email support
+                          </li>
+                        </ul>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div>
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4" />
+                          Analytics Features:
+                        </h4>
+                        <ul className="space-y-1 text-sm">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Revenue breakdown by service
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Member activity tracking
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Basic court utilization
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Monthly reports
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <X className="w-4 h-4 text-red-500" />
+                            Predictive analytics
+                          </li>
+                        </ul>
+                      </div>
+                      
+                      <Button className="w-full mt-4">
+                        Upgrade to Core
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Plus Plan */}
+                  <Card className="relative border-primary">
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <Badge className="bg-primary">Most Popular</Badge>
+                    </div>
+                    <CardHeader className="text-center pb-2">
+                      <div className="flex justify-center mb-2">
+                        <Star className="w-8 h-8 text-yellow-500" />
+                      </div>
+                      <CardTitle className="text-xl">Plus</CardTitle>
+                      <div className="text-3xl font-bold">$149<span className="text-sm font-normal">/month</span></div>
+                      <p className="text-sm text-muted-foreground">Advanced features with analytics</p>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-2">What's Included:</h4>
+                        <ul className="space-y-1 text-sm">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            300 members max
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            8 coaches
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            150,000 tokens/month
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Token rollover
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Priority support
+                          </li>
+                        </ul>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div>
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4" />
+                          Analytics Features:
+                        </h4>
+                        <ul className="space-y-1 text-sm">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Advanced revenue analytics
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Peak hours optimization
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Member behavior insights
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Pricing recommendations
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Custom dashboards
+                          </li>
+                        </ul>
+                      </div>
+                      
+                      <Button className="w-full mt-4">
+                        Upgrade to Plus
+                      </Button>
+                    </CardContent>
+                  </Card>
+
+                  {/* Pro Plan */}
+                  <Card className="relative border-purple-500">
+                    <div className="absolute -top-3 left-1/2 transform -translate-x-1/2">
+                      <Badge className="bg-purple-500 gap-1">
+                        <Crown className="w-3 h-3" />
+                        Current
+                      </Badge>
+                    </div>
+                    <CardHeader className="text-center pb-2">
+                      <div className="flex justify-center mb-2">
+                        <Crown className="w-8 h-8 text-purple-500" />
+                      </div>
+                      <CardTitle className="text-xl">Pro</CardTitle>
+                      <div className="text-3xl font-bold">$299<span className="text-sm font-normal">/month</span></div>
+                      <p className="text-sm text-muted-foreground">All features with AI insights</p>
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <div>
+                        <h4 className="font-medium mb-2">What's Included:</h4>
+                        <ul className="space-y-1 text-sm">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            500 members max
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            15 coaches
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            300,000 tokens/month
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Token overdraft capability
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Dedicated support
+                          </li>
+                        </ul>
+                      </div>
+                      
+                      <Separator />
+                      
+                      <div>
+                        <h4 className="font-medium mb-2 flex items-center gap-2">
+                          <BarChart3 className="w-4 h-4" />
+                          Analytics Features:
+                        </h4>
+                        <ul className="space-y-1 text-sm">
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            AI-powered forecasting
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Demand prediction
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Dynamic pricing optimization
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            Competition analysis
+                          </li>
+                          <li className="flex items-center gap-2">
+                            <Check className="w-4 h-4 text-green-500" />
+                            ROI optimization alerts
+                          </li>
+                        </ul>
+                      </div>
+                      
+                      <Button variant="secondary" className="w-full mt-4 gap-2">
+                        <Crown className="w-4 h-4" />
+                        Current Plan
+                      </Button>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Analytics Features Comparison */}
+                <div className="mt-8">
+                  <h3 className="text-xl font-bold mb-4">Analytics Features Comparison</h3>
+                  <div className="overflow-x-auto">
+                    <table className="w-full border-collapse">
+                      <thead>
+                        <tr className="border-b">
+                          <th className="text-left p-3 font-medium">Feature</th>
+                          <th className="text-center p-3 font-medium">Community</th>
+                          <th className="text-center p-3 font-medium">Core</th>
+                          <th className="text-center p-3 font-medium">Plus</th>
+                          <th className="text-center p-3 font-medium">Pro</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr className="border-b">
+                          <td className="p-3">Revenue Tracking</td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-3">Court Utilization Reports</td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-3">Peak Hours Analysis</td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-3">Member Behavior Insights</td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-3">Pricing Optimization</td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-3">AI-Powered Forecasting</td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                        </tr>
+                        <tr className="border-b">
+                          <td className="p-3">Competition Analysis</td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><X className="w-4 h-4 text-red-500 mx-auto" /></td>
+                          <td className="text-center p-3"><Check className="w-4 h-4 text-green-500 mx-auto" /></td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+
+                <div className="flex justify-end gap-3 mt-6">
+                  <Button variant="outline" onClick={() => setShowSubscriptionPlans(false)}>
+                    Close
+                  </Button>
+                  <Button>
+                    Contact Sales for Custom Plans
+                  </Button>
+                </div>
+              </DialogContent>
+            </Dialog>
           </TabsContent>
         </Tabs>
       </div>
