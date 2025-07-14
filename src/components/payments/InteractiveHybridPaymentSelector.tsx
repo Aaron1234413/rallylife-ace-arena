@@ -13,7 +13,8 @@ import {
   Info,
   RefreshCw,
   CheckCircle,
-  XCircle
+  XCircle,
+  Loader2
 } from 'lucide-react';
 
 interface InteractiveHybridPaymentSelectorProps {
@@ -22,6 +23,8 @@ interface InteractiveHybridPaymentSelectorProps {
   onPaymentChange: (payment: { tokens: number; usd: number }) => void;
   disabled?: boolean;
   onRefreshTokens?: () => void; // Optional callback to refresh token balance
+  isLoadingTokens?: boolean; // Loading state for token balance
+  error?: string; // Error message to display
 }
 
 export function InteractiveHybridPaymentSelector({ 
@@ -29,7 +32,9 @@ export function InteractiveHybridPaymentSelector({
   availableTokens,
   onPaymentChange, 
   disabled = false,
-  onRefreshTokens
+  onRefreshTokens,
+  isLoadingTokens = false,
+  error
 }: InteractiveHybridPaymentSelectorProps) {
   const [tokensToUse, setTokensToUse] = useState(Math.min(availableTokens, serviceTokenCost));
   
@@ -100,6 +105,32 @@ export function InteractiveHybridPaymentSelector({
     }
   ];
 
+  // Show loading state
+  if (isLoadingTokens) {
+    return (
+      <Card className="animate-fade-in">
+        <CardHeader className="pb-3">
+          <CardTitle className="flex items-center justify-between text-base">
+            <span className="flex items-center gap-2">
+              <Loader2 className="h-4 w-4 text-purple-500 animate-spin" />
+              Loading Payment Options
+            </span>
+            <Badge variant="outline" className="text-xs">
+              Loading...
+            </Badge>
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4">
+            <div className="h-20 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="h-16 bg-gray-100 rounded-lg animate-pulse" />
+            <div className="h-12 bg-gray-100 rounded-lg animate-pulse" />
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <Card className="animate-fade-in">
       <CardHeader className="pb-3">
@@ -115,6 +146,30 @@ export function InteractiveHybridPaymentSelector({
       </CardHeader>
       
       <CardContent className="space-y-4">
+        {/* Error Message */}
+        {error && (
+          <Alert className="border-red-200 bg-red-50">
+            <XCircle className="h-4 w-4 text-red-600" />
+            <AlertDescription className="text-red-700">
+              <div className="space-y-1">
+                <div className="font-medium">Error loading token balance</div>
+                <div>{error}</div>
+                {onRefreshTokens && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    onClick={onRefreshTokens}
+                    className="mt-2 h-7"
+                  >
+                    <RefreshCw className="h-3 w-3 mr-1" />
+                    Try Again
+                  </Button>
+                )}
+              </div>
+            </AlertDescription>
+          </Alert>
+        )}
+
         {/* Enhanced Token Balance Status */}
         <div className={`p-3 rounded-lg border transition-colors ${
           canAffordWithTokens 
@@ -140,8 +195,13 @@ export function InteractiveHybridPaymentSelector({
                 size="sm"
                 onClick={onRefreshTokens}
                 className="h-6 w-6 p-0 hover-scale"
+                disabled={isLoadingTokens}
               >
-                <RefreshCw className="h-3 w-3" />
+                {isLoadingTokens ? (
+                  <Loader2 className="h-3 w-3 animate-spin" />
+                ) : (
+                  <RefreshCw className="h-3 w-3" />
+                )}
               </Button>
             )}
           </div>

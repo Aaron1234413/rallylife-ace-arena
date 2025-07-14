@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
+import { useToast } from '@/hooks/use-toast';
 import { 
   Clock, 
   Users, 
@@ -11,12 +12,14 @@ import {
   BookOpen,
   Trophy,
   Settings,
-  CheckCircle
+  CheckCircle,
+  MapPin,
+  User
 } from 'lucide-react';
 import { useClubServices, ClubService } from '@/hooks/useClubServices';
 import { InteractiveHybridPaymentSelector } from '@/components/payments/InteractiveHybridPaymentSelector';
+import { PaymentConfirmationDialog } from '@/components/payments/PaymentConfirmationDialog';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
-import { toast } from 'sonner';
 
 interface AvailableServicesWidgetProps {
   clubId: string;
@@ -33,8 +36,11 @@ export function AvailableServicesWidget({
 }: AvailableServicesWidgetProps) {
   const { services, bookings, loading, bookService } = useClubServices(clubId);
   const { regularTokens, loading: tokensLoading, refreshTokens } = usePlayerTokens();
+  const { toast } = useToast();
   const [selectedService, setSelectedService] = useState<ClubService | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<{ tokens: number; cash: number }>({ tokens: 0, cash: 0 });
+  const [showConfirmDialog, setShowConfirmDialog] = useState(false);
+  const [isBooking, setIsBooking] = useState(false);
 
   const activeServices = services.filter(service => service.is_active);
 
@@ -58,38 +64,76 @@ export function AvailableServicesWidget({
     }
   };
 
-  const handleBookService = async (service: ClubService) => {
-    // Enhanced validation
-    if (!paymentMethod.tokens && !paymentMethod.cash) {
-      toast.error('Please select a payment method');
-      return;
-    }
-
-    // Check if user has sufficient tokens if trying to use tokens
-    if (paymentMethod.tokens > regularTokens) {
-      toast.error(`Insufficient tokens! You need ${paymentMethod.tokens} tokens but only have ${regularTokens}.`);
-      return;
-    }
-
-    // Check if payment covers the service cost
-    const totalPaymentValue = paymentMethod.tokens + (paymentMethod.cash / 0.01); // Convert cash back to token equivalent
-    if (totalPaymentValue < service.price_tokens) {
-      toast.error('Payment amount does not cover the service cost');
-      return;
-    }
-
-    // Convert cash to cents for the API
-    const cashAmountCents = Math.round(paymentMethod.cash * 100);
+  const handleBookService = async () => {
+    if (!selectedService) return;
     
-    const bookingId = await bookService(service.id, paymentMethod.tokens, cashAmountCents);
+    setIsBooking(true);
     
-    if (bookingId) {
-      toast.success(`Successfully booked ${service.name}!`);
-      setSelectedService(null);
-      setPaymentMethod({ tokens: 0, cash: 0 });
-      // Refresh token balance to show updated amount
-      refreshTokens();
+    try {
+      // Enhanced validation
+      if (!paymentMethod.tokens && !paymentMethod.cash) {
+        toast({
+          title: "Payment Required",
+          description: "Please select a payment method",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Check if user has sufficient tokens if trying to use tokens
+      if (paymentMethod.tokens > regularTokens) {
+        toast({
+          title: "Insufficient Tokens",
+          description: `You need ${paymentMethod.tokens} tokens but only have ${regularTokens}.`,
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Check if payment covers the service cost
+      const totalPaymentValue = paymentMethod.tokens + (paymentMethod.cash / 0.01); // Convert cash back to token equivalent
+      if (totalPaymentValue < selectedService.price_tokens) {
+        toast({
+          title: "Payment Error",
+          description: "Payment amount does not cover the service cost",
+          variant: "destructive"
+        });
+        return;
+      }
+
+      // Convert cash to cents for the API
+      const cashAmountCents = Math.round(paymentMethod.cash * 100);
+      
+      const bookingId = await bookService(selectedService.id, paymentMethod.tokens, cashAmountCents);
+      
+      if (bookingId) {
+        toast({
+          title: "Booking Confirmed",
+          description: `Successfully booked ${selectedService.name}!`,
+        });
+        setSelectedService(null);
+        setPaymentMethod({ tokens: 0, cash: 0 });
+        setShowConfirmDialog(false);
+        // Refresh token balance to show updated amount
+        refreshTokens();
+      } else {
+        throw new Error('Booking failed');
+      }
+    } catch (error) {
+      console.error('Error booking service:', error);
+      toast({
+        title: "Booking Failed",
+        description: "Failed to book service. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsBooking(false);
     }
+  };
+
+  const handleInitiateBooking = (service: ClubService) => {
+    setSelectedService(service);
+    setShowConfirmDialog(true);
   };
 
   if (loading) {
@@ -243,6 +287,7 @@ export function AvailableServicesWidget({
                     onPaymentChange={(payment) => setPaymentMethod({ tokens: payment.tokens, cash: payment.usd })}
                     disabled={tokensLoading}
                     onRefreshTokens={refreshTokens}
+                    isLoadingTokens={tokensLoading}
                   />
                   <div className="flex gap-2 mt-4">
                     <Button
@@ -255,11 +300,11 @@ export function AvailableServicesWidget({
                     </Button>
                     <Button
                       size="sm"
-                      onClick={() => handleBookService(service)}
+                      onClick={() => setShowConfirmDialog(true)}
                       className="flex-1"
-                      disabled={!paymentMethod.tokens && !paymentMethod.cash}
+                      disabled={!paymentMethod.tokens && !paymentMethod.cash || tokensLoading || isBooking}
                     >
-                      Confirm Booking
+                      Continue to Confirm
                     </Button>
                   </div>
                 </div>
@@ -274,6 +319,33 @@ export function AvailableServicesWidget({
               View All Services ({activeServices.length})
             </Button>
           </div>
+        )}
+
+        {/* Payment Confirmation Dialog */}
+        {selectedService && (
+          <PaymentConfirmationDialog
+            open={showConfirmDialog}
+            onClose={() => setShowConfirmDialog(false)}
+            onConfirm={handleBookService}
+            loading={isBooking}
+            paymentBreakdown={{
+              tokens: paymentMethod.tokens,
+              cash: paymentMethod.cash,
+              totalServiceValue: selectedService.price_tokens * 0.01,
+              savings: paymentMethod.tokens * 0.01,
+              savingsPercentage: paymentMethod.tokens > 0 
+                ? (paymentMethod.tokens / selectedService.price_tokens) * 100 
+                : 0
+            }}
+            serviceDetails={{
+              name: selectedService.name,
+              type: selectedService.service_type,
+              organizerName: selectedService.organizer_name,
+              duration: selectedService.duration_minutes || undefined,
+              description: selectedService.description || undefined
+            }}
+            userTokenBalance={regularTokens}
+          />
         )}
       </CardContent>
     </Card>
