@@ -6060,6 +6060,15 @@ export type Database = {
         }
         Returns: string
       }
+      book_service: {
+        Args: {
+          p_service_id: string
+          p_user_id: string
+          p_tokens_to_use: number
+          p_cash_amount_cents: number
+        }
+        Returns: Json
+      }
       box: {
         Args: { "": unknown } | { "": unknown }
         Returns: unknown
