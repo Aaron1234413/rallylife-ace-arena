@@ -26,16 +26,21 @@ export interface ClubService {
 export interface ServiceBooking {
   id: string;
   service_id: string;
-  user_id: string;
+  player_id: string; // Updated to match actual database schema
   club_id: string;
   booking_status: string;
-  payment_method: string;
-  tokens_used: number;
-  cash_amount_cents: number;
-  total_cost_tokens: number;
-  total_cost_usd: number;
+  payment_type: string; // Updated to match actual database schema
+  tokens_paid: number; // Updated to match actual database schema
+  usd_paid: number; // Updated to match actual database schema
+  stripe_payment_intent_id?: string;
+  scheduled_date?: string;
   created_at: string;
   updated_at: string;
+  // Legacy compatibility fields (for existing code)
+  user_id?: string;
+  payment_method?: string;
+  tokens_used?: number;
+  cash_amount_cents?: number;
 }
 
 export function useClubServices(clubId: string) {
@@ -95,16 +100,21 @@ export function useClubServices(clubId: string) {
       const mappedBookings = (data || []).map((booking: any) => ({
         id: booking.id,
         service_id: booking.service_id,
-        user_id: booking.player_id, // Correct field name from schema
+        player_id: booking.player_id,
         club_id: booking.club_id,
         booking_status: booking.booking_status,
+        payment_type: booking.payment_type || 'unknown',
+        tokens_paid: booking.tokens_paid || 0,
+        usd_paid: booking.usd_paid || 0,
+        stripe_payment_intent_id: booking.stripe_payment_intent_id,
+        scheduled_date: booking.scheduled_date,
+        created_at: booking.created_at,
+        updated_at: booking.updated_at,
+        // Legacy compatibility fields
+        user_id: booking.player_id,
         payment_method: booking.payment_type || 'unknown',
         tokens_used: booking.tokens_paid || 0,
-        cash_amount_cents: booking.usd_paid || 0,
-        total_cost_tokens: booking.tokens_paid || 0,
-        total_cost_usd: booking.usd_paid || 0,
-        created_at: booking.created_at,
-        updated_at: booking.updated_at
+        cash_amount_cents: booking.usd_paid || 0
       }));
       
       setBookings(mappedBookings);

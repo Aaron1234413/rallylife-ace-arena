@@ -90,19 +90,21 @@ export function AvailableServicesWidget({
         return;
       }
 
-      // Check if payment covers the service cost
-      const totalPaymentValue = paymentMethod.tokens + (paymentMethod.cash / 0.01); // Convert cash back to token equivalent
-      if (totalPaymentValue < selectedService.price_tokens) {
+      // Convert cash to cents for the API first
+      const cashAmountCents = Math.round(paymentMethod.cash * 100);
+      
+      // Check if payment covers the service cost (both tokens and cash in cents)
+      const totalPaymentValue = paymentMethod.tokens + cashAmountCents;
+      const serviceCostInCents = selectedService.price_tokens + (selectedService.price_usd || 0);
+      
+      if (totalPaymentValue < Math.min(selectedService.price_tokens, serviceCostInCents)) {
         toast({
-          title: "Payment Error",
+          title: "Payment Error", 
           description: "Payment amount does not cover the service cost",
           variant: "destructive"
         });
         return;
       }
-
-      // Convert cash to cents for the API
-      const cashAmountCents = Math.round(paymentMethod.cash * 100);
       
       const bookingId = await bookService(selectedService.id, paymentMethod.tokens, cashAmountCents);
       
