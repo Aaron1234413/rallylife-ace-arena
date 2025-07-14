@@ -7,12 +7,16 @@ import { ProfileMockup } from "./ProfileMockup";
 
 export function MockupRouter() {
   return (
-    <Routes>
-      <Route path="/mockup/play" element={<PlayMockup />} />
-      <Route path="/mockup/feed" element={<FeedMockup />} />
-      <Route path="/mockup/training" element={<TrainingMockup />} />
-      <Route path="/mockup/clubs" element={<ClubsMockup />} />
-      <Route path="/mockup/profile" element={<ProfileMockup />} />
-    </Routes>
+    <div className="container mx-auto p-8">
+      <h1 className="text-2xl font-bold mb-4">Mockup Pages</h1>
+      <Routes>
+        <Route path="play" element={<PlayMockup />} />
+        <Route path="feed" element={<FeedMockup />} />
+        <Route path="training" element={<TrainingMockup />} />
+        <Route path="clubs" element={<ClubsMockup />} />
+        <Route path="profile" element={<ProfileMockup />} />
+        <Route path="*" element={<div>Mockup not found</div>} />
+      </Routes>
+    </div>
   );
 }
