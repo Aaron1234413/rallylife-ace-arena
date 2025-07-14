@@ -192,7 +192,6 @@ export default function Clubs() {
                     club={club}
                     isMember={true}
                     memberRole={getMemberRole(club.id)}
-                    onLeave={leaveClub}
                   />
                 ))}
               </div>

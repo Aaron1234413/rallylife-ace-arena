@@ -13,11 +13,10 @@ interface ClubCardProps {
   club: Club;
   isMember?: boolean;
   memberRole?: string;
-  onJoin?: (clubId: string) => void;
-  onLeave?: (clubId: string) => void;
+  // Remove unused props since all clubs are invitation-only now
 }
 
-export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCardProps) {
+export function ClubCard({ club, isMember, memberRole }: ClubCardProps) {
   const { user } = useAuth();
   const navigate = useNavigate();
   const isOwner = user?.id === club.owner_id;
@@ -28,14 +27,10 @@ export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCa
     }
   };
 
-  const handleActionClick = (e: React.MouseEvent) => {
+  const handleLeaveClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    
-    if (isMember && onLeave && !isOwner) {
-      onLeave(club.id);
-    } else if (!isMember && onJoin) {
-      onJoin(club.id);
-    }
+    // Leave functionality would be handled by parent component
+    console.log('Leave club:', club.id);
   };
 
   const getActionButton = () => {
@@ -47,7 +42,7 @@ export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCa
           onClick={handleCardClick}
           className="w-full"
         >
-          View Club
+          Manage Club
         </Button>
       );
     }
@@ -57,7 +52,7 @@ export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCa
         <Button 
           variant="outline" 
           size="sm"
-          onClick={handleActionClick}
+          onClick={handleLeaveClick}
           className="w-full text-red-600 hover:text-red-700 hover:bg-red-50"
         >
           Leave Club
@@ -66,17 +61,24 @@ export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCa
     }
 
     return (
-      <Badge variant="outline" className="w-full justify-center py-1.5">
-        <Lock className="h-3 w-3 mr-1" />
-        Invitation Required
-      </Badge>
+      <div className="w-full text-center">
+        <Badge variant="outline" className="w-full justify-center py-1.5 mb-1">
+          <Lock className="h-3 w-3 mr-1" />
+          Invitation Only
+        </Badge>
+        <p className="text-xs text-gray-500">
+          Contact a member for an invitation
+        </p>
+      </div>
     );
   };
 
   return (
     <Card 
-      className="hover:shadow-lg transition-all duration-200 cursor-pointer group hover-scale"
-      onClick={handleCardClick}
+      className={`hover:shadow-lg transition-all duration-200 group hover-scale ${
+        isMember ? 'cursor-pointer' : 'cursor-default'
+      }`}
+      onClick={isMember ? handleCardClick : undefined}
     >
       <CardContent className="p-4">
         <div className="space-y-4">
