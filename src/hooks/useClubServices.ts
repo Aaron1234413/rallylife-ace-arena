@@ -166,25 +166,45 @@ export function useClubServices(clubId: string) {
     cashAmountCents: number
   ): Promise<string | null> => {
     try {
-      // Apply 5% RAKO convenience fee to cash payments
       const service = services.find(s => s.id === serviceId);
       if (!service) throw new Error('Service not found');
       
-      const pricing = calculateServicePricing(service);
-      const adjustedCashAmount = cashAmountCents > 0 ? pricing.totalAmount : cashAmountCents;
+      const cashAmount = cashAmountCents / 100; // Convert cents to dollars
       
-      const { data, error } = await supabase.rpc('book_club_service', {
-        service_id_param: serviceId,
-        tokens_to_use: tokensToUse,
-        cash_amount_cents: adjustedCashAmount
+      // Use Stripe checkout for all bookings (handles both token-only and hybrid payments)
+      const { data, error } = await supabase.functions.invoke('create-service-booking-checkout', {
+        body: {
+          service_id: serviceId,
+          service_name: service.name,
+          service_price_tokens: service.price_tokens,
+          service_price_usd: service.price_usd,
+          tokens_used: tokensToUse,
+          cash_amount: cashAmount,
+          total_amount: cashAmount,
+          club_id: service.club_id,
+          scheduled_date: new Date().toISOString().split('T')[0]
+        }
       });
-
-      if (error) throw error;
-
-      toast.success('Service booked successfully');
-      await fetchServices();
-      await fetchUserBookings();
-      return data;
+      
+      if (error) {
+        console.error('Service booking error:', error);
+        toast.error('Failed to book service');
+        throw error;
+      }
+      
+      if (data.payment_url) {
+        // Redirect to Stripe checkout for cash payment
+        window.open(data.payment_url, '_blank');
+        return data.booking_id;
+      } else if (data.success) {
+        // Token-only booking completed
+        toast.success('Service booked successfully with tokens!');
+        await fetchServices();
+        await fetchUserBookings();
+        return data.booking_id;
+      }
+      
+      return null;
     } catch (error) {
       console.error('Error booking service:', error);
       toast.error('Failed to book service');

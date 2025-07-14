@@ -12,6 +12,9 @@ verify_jwt = true
 [functions.process-merchandise-order]
 verify_jwt = true
 
+[functions.create-service-booking-checkout]
+verify_jwt = true
+
 [functions.create-payment]
 verify_jwt = true
 
