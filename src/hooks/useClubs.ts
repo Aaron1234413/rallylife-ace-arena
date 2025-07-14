@@ -77,14 +77,30 @@ export interface ClubActivity {
 
 export function useClubs() {
   const { user } = useAuth();
-  const [clubs, setClubs] = useState<Club[]>([]); // No longer used for public discovery
+  const [clubs, setClubs] = useState<Club[]>([]); // All clubs for discovery
   const [myClubs, setMyClubs] = useState<Club[]>([]);
   const [clubMembers, setClubMembers] = useState<ClubMembership[]>([]);
   const [clubInvitations, setClubInvitations] = useState<ClubInvitation[]>([]);
   const [clubActivities, setClubActivities] = useState<ClubActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Removed fetchPublicClubs - clubs are now private-only and discovered via invitations
+  // Fetch all clubs for discovery (invitation-only joining)
+  const fetchAllClubs = async () => {
+    try {
+      console.log('🏆 [CLUBS] Fetching all clubs for discovery');
+      const { data, error } = await supabase
+        .from('clubs')
+        .select('*')
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      console.log('🏆 [CLUBS] All clubs fetched:', data?.length || 0, 'clubs');
+      setClubs((data || []) as Club[]);
+    } catch (error) {
+      console.error('🏆 [CLUBS] Error fetching all clubs:', error);
+      toast.error('Failed to load clubs directory');
+    }
+  };
 
   const fetchMyClubs = async () => {
     if (!user) return;
@@ -298,7 +314,7 @@ export function useClubs() {
 
   const refreshData = async () => {
     setLoading(true);
-    await fetchMyClubs(); // Only fetch user's clubs now
+    await Promise.all([fetchAllClubs(), fetchMyClubs()]);
     setLoading(false);
   };
 
@@ -766,7 +782,7 @@ export function useClubs() {
       refreshData();
     } else {
       console.log('🏆 [CLUBS] No user, clearing club data');
-      setClubs([]); // Empty - no public discovery
+      setClubs([]);
       setMyClubs([]);
       setLoading(false);
     }
@@ -779,6 +795,7 @@ export function useClubs() {
     clubInvitations,
     clubActivities,
     loading,
+    fetchAllClubs,
     createClub,
     deleteClub,
     joinClub,

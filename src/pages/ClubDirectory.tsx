@@ -51,10 +51,7 @@ export default function ClubDirectory() {
       return false;
     }
 
-    // Public only filter
-    if (filters.publicOnly && !club.is_public) {
-      return false;
-    }
+                    // Remove public filter since all clubs are private now
 
     return true;
   });
@@ -112,14 +109,14 @@ export default function ClubDirectory() {
               <ArrowLeft className="h-4 w-4" />
               Dashboard
             </Button>
-            <div>
-              <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
-                Club Directory
-              </h1>
-              <p className="text-gray-600">
-                Discover and join tennis clubs in your area
-              </p>
-            </div>
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-bold text-gray-900">
+                    Club Directory
+                  </h1>
+                  <p className="text-gray-600">
+                    Discover tennis clubs - All clubs are private and require invitations to join
+                  </p>
+                </div>
           </div>
         </div>
 
@@ -171,17 +168,9 @@ export default function ClubDirectory() {
                       onChange={(e) => setFilters(prev => ({ ...prev, maxMembers: e.target.value }))}
                     />
                   </div>
-                  <div className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id="publicOnly"
-                      checked={filters.publicOnly}
-                      onChange={(e) => setFilters(prev => ({ ...prev, publicOnly: e.target.checked }))}
-                      className="rounded"
-                    />
-                    <label htmlFor="publicOnly" className="text-sm font-medium">
-                      Public clubs only
-                    </label>
+                  <div className="flex items-center gap-2 text-sm text-gray-500">
+                    <Lock className="h-4 w-4" />
+                    <span>All clubs are private and invitation-only</span>
                   </div>
                 </div>
                 <div className="flex gap-2 mt-4">
@@ -217,12 +206,9 @@ export default function ClubDirectory() {
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
                       <h3 className="font-semibold truncate">{club.name}</h3>
-                      <Badge variant={club.is_public ? "default" : "secondary"} className="text-xs">
-                        {club.is_public ? (
-                          <><Globe className="h-3 w-3 mr-1" />Public</>
-                        ) : (
-                          <><Lock className="h-3 w-3 mr-1" />Private</>
-                        )}
+                      <Badge variant="secondary" className="text-xs">
+                        <Lock className="h-3 w-3 mr-1" />
+                        Invitation Only
                       </Badge>
                     </div>
                     <div className="flex items-center gap-4 text-sm text-gray-600">
@@ -257,27 +243,12 @@ export default function ClubDirectory() {
                   </Button>
                   
                   {!isAlreadyMember(club.id) ? (
-                    club.is_public ? (
-                      <Button
-                        size="sm"
-                        onClick={() => handleJoinClub(club.id)}
-                        className="flex items-center gap-1"
-                      >
-                        <UserPlus className="h-3 w-3" />
-                        Join
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        onClick={() => setSelectedClub(club)}
-                        className="flex items-center gap-1"
-                      >
-                        <UserPlus className="h-3 w-3" />
-                        Request
-                      </Button>
-                    )
+                    <Badge variant="outline" className="px-3 py-1 text-xs">
+                      <Lock className="h-3 w-3 mr-1" />
+                      Invitation Required
+                    </Badge>
                   ) : (
-                    <Badge variant="outline" className="px-3 py-1">
+                    <Badge variant="default" className="px-3 py-1">
                       Member
                     </Badge>
                   )}
@@ -296,7 +267,7 @@ export default function ClubDirectory() {
               <p className="text-sm text-gray-600 mb-4">
                 {searchQuery || Object.values(filters).some(Boolean) 
                   ? 'Try adjusting your search or filters' 
-                  : 'No public clubs available yet'
+                  : 'No clubs available'
                 }
               </p>
               {searchQuery || Object.values(filters).some(Boolean) ? (
@@ -311,18 +282,7 @@ export default function ClubDirectory() {
           </Card>
         )}
 
-        {/* Join Club Dialog */}
-        {selectedClub && (
-          <JoinClubDialog
-            club={selectedClub}
-            open={!!selectedClub}
-            onOpenChange={() => setSelectedClub(null)}
-            onJoined={() => {
-              setSelectedClub(null);
-              toast.success('Join request sent!');
-            }}
-          />
-        )}
+        {/* Note: Join Club Dialog removed since all clubs are invitation-only */}
       </div>
     </div>
   );
