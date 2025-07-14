@@ -23,7 +23,7 @@ export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCa
   const isOwner = user?.id === club.owner_id;
 
   const handleCardClick = () => {
-    if (isMember || club.is_public) {
+    if (isMember) {
       navigate(`/club/${club.id}`);
     }
   };
@@ -66,13 +66,10 @@ export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCa
     }
 
     return (
-      <Button 
-        size="sm"
-        onClick={handleActionClick}
-        className="w-full"
-      >
-        Join Club
-      </Button>
+      <Badge variant="outline" className="w-full justify-center py-1.5">
+        <Lock className="h-3 w-3 mr-1" />
+        Invitation Required
+      </Badge>
     );
   };
 
@@ -103,12 +100,9 @@ export function ClubCard({ club, isMember, memberRole, onJoin, onLeave }: ClubCa
               </div>
               
               <div className="flex items-center gap-2 flex-wrap">
-                <Badge variant={club.is_public ? "default" : "secondary"} className="text-xs px-2 py-1">
-                  {club.is_public ? (
-                    <><Globe className="h-3 w-3 mr-1" />Public</>
-                  ) : (
-                    <><Lock className="h-3 w-3 mr-1" />Private</>
-                  )}
+                <Badge variant="secondary" className="text-xs px-2 py-1">
+                  <Lock className="h-3 w-3 mr-1" />
+                  Private
                 </Badge>
                 
                 {memberRole && (

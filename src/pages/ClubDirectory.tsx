@@ -30,8 +30,7 @@ export default function ClubDirectory() {
   const [showFilters, setShowFilters] = useState(false);
   const [filters, setFilters] = useState({
     minMembers: '',
-    maxMembers: '',
-    publicOnly: false
+    maxMembers: ''
   });
   const [selectedClub, setSelectedClub] = useState<any>(null);
 
@@ -72,8 +71,7 @@ export default function ClubDirectory() {
   const resetFilters = () => {
     setFilters({
       minMembers: '',
-      maxMembers: '',
-      publicOnly: false
+      maxMembers: ''
     });
   };
 
@@ -140,7 +138,7 @@ export default function ClubDirectory() {
               >
                 <Filter className="h-4 w-4" />
                 Filters
-                {(filters.minMembers || filters.maxMembers || filters.publicOnly) && (
+                {(filters.minMembers || filters.maxMembers) && (
                   <Badge variant="secondary" className="ml-2">Active</Badge>
                 )}
               </Button>
