@@ -1,40 +1,122 @@
+import { useState } from "react";
+import { SessionDiscoveryTabs } from "@/components/play/SessionDiscoveryTabs";
+import { SessionFlowManager } from "@/components/play/SessionFlowManager";
+import { SessionHistoryTimeline } from "@/components/play/SessionHistoryTimeline";
+import { SessionCreationModal } from "@/components/play/SessionCreationModal";
+import { SessionCompletionFlow } from "@/components/play/SessionCompletionFlow";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { MapPin, Clock, Users, Play, Calendar, Trophy } from "lucide-react";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Play, History, TrendingUp, Users, Clock, Star } from "lucide-react";
 
 export function PlayMockup() {
-  return (
-    <div className="container mx-auto p-4 space-y-6">
-      {/* Header */}
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl font-bold">Ready to Play?</h1>
-        <p className="text-muted-foreground">Find players, courts, and start your session</p>
+  const [currentView, setCurrentView] = useState<"dashboard" | "session" | "discovery" | "history">("dashboard");
+  const [activeSessionId, setActiveSessionId] = useState<string | null>(null);
+  const [showCreateModal, setShowCreateModal] = useState(false);
+  const [showCompletionFlow, setShowCompletionFlow] = useState(false);
+  const [completedSessionData, setCompletedSessionData] = useState<any>(null);
+  const [userStats, setUserStats] = useState({
+    currentRating: 4.2,
+    totalSessions: 23,
+    winRate: 68,
+    weeklyGoal: 75,
+    currentStreak: 5
+  });
+
+  const handleJoinSession = (sessionId: string) => {
+    setActiveSessionId(sessionId);
+    setCurrentView("session");
+  };
+
+  const handleCreateSession = (sessionData: any) => {
+    // In a real app, this would create the session
+    console.log("Creating session:", sessionData);
+    setCurrentView("dashboard");
+  };
+
+  const handleEndSession = (sessionData: any) => {
+    setCompletedSessionData(sessionData);
+    setShowCompletionFlow(true);
+  };
+
+  const handleCompleteSession = () => {
+    setActiveSessionId(null);
+    setCurrentView("dashboard");
+    setShowCompletionFlow(false);
+    // Update stats
+    setUserStats(prev => ({
+      ...prev,
+      totalSessions: prev.totalSessions + 1,
+      currentStreak: prev.currentStreak + 1
+    }));
+  };
+
+  const handleBackToLobby = () => {
+    setActiveSessionId(null);
+    setCurrentView("dashboard");
+  };
+
+  const renderDashboard = () => (
+    <div className="space-y-6">
+      {/* Header with Quick Stats */}
+      <div className="text-center space-y-4">
+        <div>
+          <h1 className="text-3xl font-bold">Ready to Play?</h1>
+          <p className="text-muted-foreground">Find players, courts, and start your session</p>
+        </div>
+        
+        <div className="flex justify-center gap-4">
+          <div className="text-center">
+            <div className="flex items-center gap-1 justify-center">
+              <Star className="w-4 h-4 fill-yellow-400 text-yellow-400" />
+              <span className="text-lg font-bold">{userStats.currentRating}</span>
+            </div>
+            <div className="text-xs text-muted-foreground">Rating</div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-green-600">{userStats.winRate}%</div>
+            <div className="text-xs text-muted-foreground">Win Rate</div>
+          </div>
+          <div className="text-center">
+            <div className="text-lg font-bold text-blue-600">{userStats.currentStreak}</div>
+            <div className="text-xs text-muted-foreground">Streak</div>
+          </div>
+        </div>
       </div>
 
-      {/* Quick Play Actions */}
+      {/* Quick Actions */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <Card className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50">
+        <Card 
+          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50"
+          onClick={() => setCurrentView("discovery")}
+        >
           <CardContent className="p-6 text-center">
             <Play className="w-12 h-12 mx-auto mb-3 text-primary" />
-            <h3 className="font-semibold mb-2">Quick Match</h3>
-            <p className="text-sm text-muted-foreground">Find available players nearby</p>
+            <h3 className="font-semibold mb-2">Find Match</h3>
+            <p className="text-sm text-muted-foreground">Join available sessions nearby</p>
           </CardContent>
         </Card>
 
-        <Card className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50">
+        <Card 
+          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50"
+          onClick={() => setShowCreateModal(true)}
+        >
           <CardContent className="p-6 text-center">
-            <Calendar className="w-12 h-12 mx-auto mb-3 text-primary" />
-            <h3 className="font-semibold mb-2">Schedule Session</h3>
-            <p className="text-sm text-muted-foreground">Plan your next tennis session</p>
+            <Users className="w-12 h-12 mx-auto mb-3 text-primary" />
+            <h3 className="font-semibold mb-2">Create Session</h3>
+            <p className="text-sm text-muted-foreground">Start your own tennis session</p>
           </CardContent>
         </Card>
 
-        <Card className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50">
+        <Card 
+          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50"
+          onClick={() => setCurrentView("history")}
+        >
           <CardContent className="p-6 text-center">
-            <Trophy className="w-12 h-12 mx-auto mb-3 text-primary" />
-            <h3 className="font-semibold mb-2">Practice Solo</h3>
-            <p className="text-sm text-muted-foreground">Track individual training</p>
+            <History className="w-12 h-12 mx-auto mb-3 text-primary" />
+            <h3 className="font-semibold mb-2">Session History</h3>
+            <p className="text-sm text-muted-foreground">View past sessions and stats</p>
           </CardContent>
         </Card>
       </div>
@@ -49,7 +131,10 @@ export function PlayMockup() {
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
-            <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+            <div 
+              className="flex items-center justify-between p-3 bg-muted/50 rounded-lg cursor-pointer hover:bg-muted/70 transition-colors"
+              onClick={() => handleJoinSession("active-session-1")}
+            >
               <div>
                 <p className="font-medium">Singles vs Alex Johnson</p>
                 <p className="text-sm text-muted-foreground">Set 2 • 4-3</p>
@@ -63,47 +148,53 @@ export function PlayMockup() {
         </CardContent>
       </Card>
 
-      {/* Nearby Venues */}
+      {/* Performance Overview */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <MapPin className="w-5 h-5" />
-            Nearby Courts
+            <TrendingUp className="w-5 h-5" />
+            This Week's Progress
           </CardTitle>
         </CardHeader>
         <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div className="p-4 border rounded-lg">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-medium">Central Tennis Club</h4>
-                <Badge variant="outline">0.8 mi</Badge>
-              </div>
-              <p className="text-sm text-muted-foreground mb-3">6 courts available • $25/hour</p>
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">3 players looking to play</span>
-              </div>
+          <div className="space-y-4">
+            <div className="flex justify-between items-center">
+              <span>Weekly Goal</span>
+              <span className="font-medium">{userStats.weeklyGoal}% complete</span>
             </div>
-
-            <div className="p-4 border rounded-lg">
-              <div className="flex justify-between items-start mb-2">
-                <h4 className="font-medium">Riverside Courts</h4>
-                <Badge variant="outline">1.2 mi</Badge>
+            <div className="w-full bg-muted rounded-full h-2">
+              <div 
+                className="bg-primary h-2 rounded-full transition-all duration-300" 
+                style={{ width: `${userStats.weeklyGoal}%` }}
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4 text-sm">
+              <div>
+                <div className="font-medium">Sessions this week</div>
+                <div className="text-muted-foreground">3 of 4 completed</div>
               </div>
-              <p className="text-sm text-muted-foreground mb-3">4 courts available • $20/hour</p>
-              <div className="flex items-center gap-2">
-                <Users className="w-4 h-4 text-muted-foreground" />
-                <span className="text-sm">1 player looking to play</span>
+              <div>
+                <div className="font-medium">Hours played</div>
+                <div className="text-muted-foreground">4.5 hours</div>
               </div>
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {/* Recent Activity */}
+      {/* Recent Activity Quick View */}
       <Card>
         <CardHeader>
-          <CardTitle>Recent Sessions</CardTitle>
+          <div className="flex justify-between items-center">
+            <CardTitle>Recent Sessions</CardTitle>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setCurrentView("history")}
+            >
+              View All
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <div className="space-y-3">
@@ -128,6 +219,63 @@ export function PlayMockup() {
           </div>
         </CardContent>
       </Card>
+    </div>
+  );
+
+  return (
+    <div className="container mx-auto p-4">
+      {/* Navigation */}
+      <div className="mb-6">
+        <div className="flex items-center gap-2 mb-4">
+          {currentView !== "dashboard" && (
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={() => setCurrentView("dashboard")}
+            >
+              ← Back to Dashboard
+            </Button>
+          )}
+        </div>
+      </div>
+
+      {/* Main Content */}
+      {currentView === "dashboard" && renderDashboard()}
+      
+      {currentView === "discovery" && (
+        <SessionDiscoveryTabs 
+          onJoinSession={handleJoinSession}
+          onCreateSession={() => setShowCreateModal(true)}
+        />
+      )}
+      
+      {currentView === "session" && activeSessionId && (
+        <SessionFlowManager
+          sessionId={activeSessionId}
+          onEndSession={handleEndSession}
+          onBackToLobby={handleBackToLobby}
+        />
+      )}
+      
+      {currentView === "history" && (
+        <SessionHistoryTimeline 
+          onViewSession={(sessionId) => console.log("View session:", sessionId)}
+        />
+      )}
+
+      {/* Modals */}
+      <SessionCreationModal
+        open={showCreateModal}
+        onOpenChange={setShowCreateModal}
+        onCreateSession={handleCreateSession}
+      />
+
+      <SessionCompletionFlow
+        open={showCompletionFlow}
+        onOpenChange={setShowCompletionFlow}
+        sessionData={completedSessionData}
+        onComplete={handleCompleteSession}
+      />
     </div>
   );
 }
