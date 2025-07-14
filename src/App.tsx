@@ -44,6 +44,7 @@ import EditSession from "@/pages/EditSession";
 import Club from "@/pages/Club";
 import Clubs from "@/pages/Clubs";
 import JoinClub from "@/pages/JoinClub";
+import { MockupRouter } from "@/pages/mockups/MockupRouter";
 
 
 const queryClient = new QueryClient();
@@ -92,6 +93,10 @@ function AppWithGuide() {
           <Route path="/club/:clubId/sessions/create" element={<ProtectedRoute><CreateSession /></ProtectedRoute>} />
           <Route path="/join/:inviteCode" element={<ProtectedRoute><JoinClub /></ProtectedRoute>} />
           <Route path="/join-club/:linkSlug" element={<ProtectedRoute><JoinClub /></ProtectedRoute>} />
+          
+          {/* Mockup Routes */}
+          <Route path="/mockup/*" element={<MockupRouter />} />
+          
           <Route path="*" element={<NotFound />} />
         </Routes>
       </AppLayout>
