@@ -28,13 +28,34 @@ import {
   User,
   Target,
   BarChart3,
-  Coins
+  Coins,
+  Plus,
+  Edit,
+  Check,
+  ArrowRight,
+  ChevronRight,
+  CheckCircle,
+  X
 } from "lucide-react";
 
 export function ClubDetailMockup() {
+  // Time-first booking flow states
+  const [bookingStep, setBookingStep] = useState<'time' | 'services' | 'payment' | 'confirmation'>('time');
   const [selectedDate, setSelectedDate] = useState<Date | undefined>(new Date());
   const [selectedTime, setSelectedTime] = useState<string>("");
   const [selectedService, setSelectedService] = useState<string>("");
+  const [paymentMethod, setPaymentMethod] = useState<'tokens' | 'money'>('tokens');
+  
+  // Business management states
+  const [isAddingService, setIsAddingService] = useState(false);
+  const [isEditingCourt, setIsEditingCourt] = useState(false);
+  const [newService, setNewService] = useState({
+    name: '',
+    type: 'court',
+    duration: 60,
+    price: { tokens: 100, money: 25 },
+    description: ''
+  });
 
   // Mock data for time slots
   const timeSlots = [
@@ -135,222 +156,301 @@ export function ClubDetailMockup() {
             <TabsTrigger value="settings">Settings</TabsTrigger>
           </TabsList>
 
-          {/* Book & Play Tab - NEW UNIFIED INTERFACE */}
+          {/* Book & Play Tab - TIME-FIRST FLOW */}
           <TabsContent value="book-play" className="space-y-6">
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-              
-              {/* Left Column - Time Selection */}
-              <div className="lg:col-span-2 space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <CalendarIcon className="w-5 h-5" />
-                      Select Date & Time
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-6">
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                      {/* Calendar */}
-                      <div>
-                        <Label className="text-sm font-medium mb-2 block">Choose Date</Label>
-                        <Calendar
-                          mode="single"
-                          selected={selectedDate}
-                          onSelect={setSelectedDate}
-                          className="rounded-md border pointer-events-auto"
-                        />
-                      </div>
-
-                      {/* Time Slots */}
-                      <div>
-                        <Label className="text-sm font-medium mb-2 block">Available Times</Label>
-                        <div className="grid grid-cols-2 gap-2 max-h-[300px] overflow-y-auto">
-                          {timeSlots.map((slot) => (
-                            <Button
-                              key={slot.time}
-                              variant={selectedTime === slot.time ? "default" : slot.available ? "outline" : "secondary"}
-                              disabled={!slot.available}
-                              onClick={() => setSelectedTime(slot.time)}
-                              className="flex flex-col h-auto p-3 text-left"
-                            >
-                              <span className="font-medium">{slot.time}</span>
-                              <span className="text-xs opacity-70">{slot.court}</span>
-                            </Button>
-                          ))}
-                        </div>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-
-                {/* Services Selection */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="flex items-center gap-2">
-                      <Zap className="w-5 h-5" />
-                      Choose Service
-                    </CardTitle>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      {services.map((service) => (
-                        <div
-                          key={service.id}
-                          onClick={() => setSelectedService(service.id)}
-                          className={`p-4 border rounded-lg cursor-pointer transition-all hover:shadow-md ${
-                            selectedService === service.id ? 'border-primary bg-primary/5' : 'border-border'
-                          }`}
-                        >
-                          <div className="flex items-start justify-between mb-2">
-                            <h3 className="font-medium">{service.name}</h3>
-                            <Badge variant={service.type === 'court' ? 'secondary' : 'outline'}>
-                              {service.type}
-                            </Badge>
-                          </div>
-                          <p className="text-sm text-muted-foreground mb-3">{service.description}</p>
-                          <div className="flex items-center justify-between text-sm">
-                            <span className="flex items-center gap-1">
-                              <Clock className="w-4 h-4" />
-                              {service.duration}min
-                            </span>
-                            <div className="flex items-center gap-2">
-                              <span className="flex items-center gap-1">
-                                <Coins className="w-4 h-4 text-primary" />
-                                {service.price.tokens}
-                              </span>
-                              <span className="text-muted-foreground">or</span>
-                              <span className="flex items-center gap-1">
-                                <DollarSign className="w-4 h-4 text-green-500" />
-                                {service.price.money}
-                              </span>
-                            </div>
-                          </div>
-                        </div>
-                      ))}
-                    </div>
-                  </CardContent>
-                </Card>
+            {/* Progress Indicator */}
+            <div className="flex items-center justify-center space-x-4">
+              <div className={`flex items-center gap-2 ${bookingStep === 'time' ? 'text-primary' : 'text-muted-foreground'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${bookingStep === 'time' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                  1
+                </div>
+                <span className="text-sm font-medium">When?</span>
               </div>
-
-              {/* Right Column - Booking Summary */}
-              <div className="space-y-6">
-                <Card>
-                  <CardHeader>
-                    <CardTitle>Booking Summary</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    {selectedDate && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Date</span>
-                        <span className="font-medium">{selectedDate.toLocaleDateString()}</span>
-                      </div>
-                    )}
-                    {selectedTime && (
-                      <div className="flex items-center justify-between">
-                        <span className="text-sm text-muted-foreground">Time</span>
-                        <span className="font-medium">{selectedTime}</span>
-                      </div>
-                    )}
-                    {selectedService && (
-                      <div className="space-y-2">
-                        <div className="flex items-center justify-between">
-                          <span className="text-sm text-muted-foreground">Service</span>
-                          <span className="font-medium text-right">{services.find(s => s.id === selectedService)?.name}</span>
-                        </div>
-                        <Separator />
-                        <div className="space-y-2">
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm">Token Payment</span>
-                            <span className="font-medium flex items-center gap-1">
-                              <Coins className="w-4 h-4 text-primary" />
-                              {services.find(s => s.id === selectedService)?.price.tokens}
-                            </span>
-                          </div>
-                          <div className="flex items-center justify-between">
-                            <span className="text-sm">Money Payment</span>
-                            <span className="font-medium flex items-center gap-1">
-                              <DollarSign className="w-4 h-4 text-green-500" />
-                              {services.find(s => s.id === selectedService)?.price.money}
-                            </span>
-                          </div>
-                        </div>
-                      </div>
-                    )}
-                    
-                    <Separator />
-                    
-                    <Dialog>
-                      <DialogTrigger asChild>
-                        <Button 
-                          className="w-full" 
-                          disabled={!selectedDate || !selectedTime || !selectedService}
-                        >
-                          Book Now
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent>
-                        <DialogHeader>
-                          <DialogTitle>Confirm Booking</DialogTitle>
-                        </DialogHeader>
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <h4 className="font-medium">Booking Details</h4>
-                            <div className="space-y-1 text-sm">
-                              <p>Date: {selectedDate?.toLocaleDateString()}</p>
-                              <p>Time: {selectedTime}</p>
-                              <p>Service: {services.find(s => s.id === selectedService)?.name}</p>
-                            </div>
-                          </div>
-                          
-                          <div className="space-y-2">
-                            <h4 className="font-medium">Payment Method</h4>
-                            <Select>
-                              <SelectTrigger>
-                                <SelectValue placeholder="Choose payment method" />
-                              </SelectTrigger>
-                              <SelectContent>
-                                <SelectItem value="tokens">
-                                  Pay with Tokens ({services.find(s => s.id === selectedService)?.price.tokens})
-                                </SelectItem>
-                                <SelectItem value="money">
-                                  Pay with Money (${services.find(s => s.id === selectedService)?.price.money})
-                                </SelectItem>
-                              </SelectContent>
-                            </Select>
-                          </div>
-                          
-                          <Button className="w-full">Confirm Booking</Button>
-                        </div>
-                      </DialogContent>
-                    </Dialog>
-                  </CardContent>
-                </Card>
-
-                {/* Quick Stats */}
-                <Card>
-                  <CardHeader>
-                    <CardTitle className="text-lg">Quick Stats</CardTitle>
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Your Tokens</span>
-                      <span className="font-bold flex items-center gap-1">
-                        <Coins className="w-4 h-4 text-primary" />
-                        1,250
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">This Month</span>
-                      <span className="font-medium">8 bookings</span>
-                    </div>
-                    <div className="flex items-center justify-between">
-                      <span className="text-sm text-muted-foreground">Next Booking</span>
-                      <span className="font-medium text-right">Tomorrow<br/>2:00 PM</span>
-                    </div>
-                  </CardContent>
-                </Card>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <div className={`flex items-center gap-2 ${bookingStep === 'services' ? 'text-primary' : 'text-muted-foreground'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${bookingStep === 'services' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                  2
+                </div>
+                <span className="text-sm font-medium">What?</span>
+              </div>
+              <ChevronRight className="w-4 h-4 text-muted-foreground" />
+              <div className={`flex items-center gap-2 ${bookingStep === 'payment' ? 'text-primary' : 'text-muted-foreground'}`}>
+                <div className={`w-8 h-8 rounded-full flex items-center justify-center ${bookingStep === 'payment' ? 'bg-primary text-primary-foreground' : 'bg-muted'}`}>
+                  3
+                </div>
+                <span className="text-sm font-medium">Pay</span>
               </div>
             </div>
+
+            {/* Step 1: Time Selection */}
+            {bookingStep === 'time' && (
+              <Card>
+                <CardHeader className="text-center">
+                  <CardTitle className="text-3xl">When do you want to play?</CardTitle>
+                  <p className="text-muted-foreground">Choose your preferred date and time</p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+                    {/* Date Selection */}
+                    <div className="flex flex-col items-center">
+                      <Label className="text-lg font-medium mb-4">Pick a Date</Label>
+                      <Calendar
+                        mode="single"
+                        selected={selectedDate}
+                        onSelect={setSelectedDate}
+                        className="rounded-md border pointer-events-auto"
+                      />
+                    </div>
+
+                    {/* Time Selection */}
+                    <div>
+                      <Label className="text-lg font-medium mb-4 block text-center">Available Times</Label>
+                      <div className="grid grid-cols-2 gap-3 max-h-[400px] overflow-y-auto">
+                        {timeSlots.map((slot) => (
+                          <Button
+                            key={slot.time}
+                            variant={selectedTime === slot.time ? "default" : slot.available ? "outline" : "secondary"}
+                            disabled={!slot.available}
+                            onClick={() => setSelectedTime(slot.time)}
+                            className="flex flex-col h-auto p-4 text-left"
+                          >
+                            <span className="font-bold text-lg">{slot.time}</span>
+                            <span className="text-sm opacity-70">{slot.court}</span>
+                            {!slot.available && <span className="text-xs text-red-500">Booked</span>}
+                          </Button>
+                        ))}
+                      </div>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-center pt-6">
+                    <Button 
+                      size="lg" 
+                      className="px-8"
+                      disabled={!selectedDate || !selectedTime}
+                      onClick={() => setBookingStep('services')}
+                    >
+                      Next: Choose What to Play
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 2: Service Selection */}
+            {bookingStep === 'services' && (
+              <Card>
+                <CardHeader className="text-center">
+                  <CardTitle className="text-3xl">What's available at {selectedTime}?</CardTitle>
+                  <p className="text-muted-foreground">
+                    {selectedDate?.toLocaleDateString()} at {selectedTime}
+                  </p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {services.map((service) => (
+                      <div
+                        key={service.id}
+                        onClick={() => setSelectedService(service.id)}
+                        className={`p-6 border-2 rounded-xl cursor-pointer transition-all hover:shadow-lg ${
+                          selectedService === service.id 
+                            ? 'border-primary bg-primary/10 shadow-md' 
+                            : 'border-border hover:border-primary/50'
+                        }`}
+                      >
+                        <div className="flex items-start justify-between mb-3">
+                          <h3 className="text-xl font-semibold">{service.name}</h3>
+                          <Badge 
+                            variant={service.type === 'court' ? 'secondary' : 'outline'}
+                            className="text-sm"
+                          >
+                            {service.type}
+                          </Badge>
+                        </div>
+                        <p className="text-muted-foreground mb-4">{service.description}</p>
+                        <div className="flex items-center justify-between">
+                          <span className="flex items-center gap-2 text-lg">
+                            <Clock className="w-5 h-5" />
+                            {service.duration} min
+                          </span>
+                          <div className="flex items-center gap-3">
+                            <span className="flex items-center gap-1 font-semibold">
+                              <Coins className="w-5 h-5 text-primary" />
+                              {service.price.tokens}
+                            </span>
+                            <span className="text-muted-foreground">or</span>
+                            <span className="flex items-center gap-1 font-semibold">
+                              <DollarSign className="w-5 h-5 text-green-500" />
+                              ${service.price.money}
+                            </span>
+                          </div>
+                        </div>
+                        {selectedService === service.id && (
+                          <div className="mt-4 p-3 bg-primary/20 rounded-lg flex items-center gap-2">
+                            <CheckCircle className="w-5 h-5 text-primary" />
+                            <span className="font-medium text-primary">Selected!</span>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div className="flex justify-between items-center pt-6">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setBookingStep('time')}
+                      className="px-6"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back
+                    </Button>
+                    <Button 
+                      size="lg" 
+                      className="px-8"
+                      disabled={!selectedService}
+                      onClick={() => setBookingStep('payment')}
+                    >
+                      Next: Payment
+                      <ArrowRight className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 3: Payment */}
+            {bookingStep === 'payment' && (
+              <Card>
+                <CardHeader className="text-center">
+                  <CardTitle className="text-3xl">Almost there!</CardTitle>
+                  <p className="text-muted-foreground">Choose your payment method</p>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {/* Booking Summary */}
+                  <div className="bg-muted/50 p-6 rounded-xl">
+                    <h3 className="text-lg font-semibold mb-4">Booking Summary</h3>
+                    <div className="space-y-3">
+                      <div className="flex justify-between">
+                        <span>Date & Time:</span>
+                        <span className="font-medium">{selectedDate?.toLocaleDateString()} at {selectedTime}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Service:</span>
+                        <span className="font-medium">{services.find(s => s.id === selectedService)?.name}</span>
+                      </div>
+                      <div className="flex justify-between">
+                        <span>Duration:</span>
+                        <span className="font-medium">{services.find(s => s.id === selectedService)?.duration} minutes</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Payment Methods */}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div
+                      onClick={() => setPaymentMethod('tokens')}
+                      className={`p-6 border-2 rounded-xl cursor-pointer transition-all ${
+                        paymentMethod === 'tokens' 
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <Coins className="w-8 h-8 text-primary" />
+                        <div>
+                          <h3 className="text-lg font-semibold">Pay with Tokens</h3>
+                          <p className="text-sm text-muted-foreground">Use your club tokens</p>
+                        </div>
+                      </div>
+                      <div className="text-2xl font-bold text-primary">
+                        {services.find(s => s.id === selectedService)?.price.tokens} tokens
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">You have 1,250 tokens</p>
+                    </div>
+
+                    <div
+                      onClick={() => setPaymentMethod('money')}
+                      className={`p-6 border-2 rounded-xl cursor-pointer transition-all ${
+                        paymentMethod === 'money' 
+                          ? 'border-primary bg-primary/10' 
+                          : 'border-border hover:border-primary/50'
+                      }`}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <CreditCard className="w-8 h-8 text-green-500" />
+                        <div>
+                          <h3 className="text-lg font-semibold">Pay with Money</h3>
+                          <p className="text-sm text-muted-foreground">Credit/Debit card</p>
+                        </div>
+                      </div>
+                      <div className="text-2xl font-bold text-green-500">
+                        ${services.find(s => s.id === selectedService)?.price.money}
+                      </div>
+                      <p className="text-sm text-muted-foreground mt-2">Secure payment via Stripe</p>
+                    </div>
+                  </div>
+
+                  <div className="flex justify-between items-center pt-6">
+                    <Button 
+                      variant="outline" 
+                      onClick={() => setBookingStep('services')}
+                      className="px-6"
+                    >
+                      <ArrowLeft className="w-4 h-4 mr-2" />
+                      Back
+                    </Button>
+                    <Button 
+                      size="lg" 
+                      className="px-8"
+                      onClick={() => setBookingStep('confirmation')}
+                    >
+                      Confirm Booking
+                      <Check className="w-4 h-4 ml-2" />
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Step 4: Confirmation */}
+            {bookingStep === 'confirmation' && (
+              <Card>
+                <CardContent className="text-center py-12">
+                  <CheckCircle className="w-20 h-20 text-green-500 mx-auto mb-6" />
+                  <h2 className="text-3xl font-bold mb-4">Booking Confirmed!</h2>
+                  <p className="text-muted-foreground mb-8">
+                    Your booking for {selectedDate?.toLocaleDateString()} at {selectedTime} has been confirmed.
+                  </p>
+                  
+                  <div className="bg-muted/50 p-6 rounded-xl max-w-md mx-auto mb-8">
+                    <h3 className="font-semibold mb-3">Booking Details</h3>
+                    <div className="space-y-2 text-sm">
+                      <p><strong>Service:</strong> {services.find(s => s.id === selectedService)?.name}</p>
+                      <p><strong>Date:</strong> {selectedDate?.toLocaleDateString()}</p>
+                      <p><strong>Time:</strong> {selectedTime}</p>
+                      <p><strong>Payment:</strong> {paymentMethod === 'tokens' ? `${services.find(s => s.id === selectedService)?.price.tokens} tokens` : `$${services.find(s => s.id === selectedService)?.price.money}`}</p>
+                    </div>
+                  </div>
+
+                  <div className="flex gap-4 justify-center">
+                    <Button 
+                      onClick={() => {
+                        setBookingStep('time');
+                        setSelectedTime('');
+                        setSelectedService('');
+                      }}
+                      className="px-8"
+                    >
+                      Book Another Session
+                    </Button>
+                    <Button variant="outline" className="px-8">
+                      View My Bookings
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
           </TabsContent>
 
           {/* Members Tab */}
@@ -520,25 +620,274 @@ export function ClubDetailMockup() {
               </Card>
             </div>
 
-            {/* Service Performance */}
+            {/* Service Management */}
             <Card>
               <CardHeader>
-                <CardTitle>Service Performance</CardTitle>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Service Management</CardTitle>
+                  <Dialog open={isAddingService} onOpenChange={setIsAddingService}>
+                    <DialogTrigger asChild>
+                      <Button className="gap-2">
+                        <Plus className="w-4 h-4" />
+                        Add Service
+                      </Button>
+                    </DialogTrigger>
+                    <DialogContent className="max-w-md">
+                      <DialogHeader>
+                        <DialogTitle>Add New Service</DialogTitle>
+                      </DialogHeader>
+                      <div className="space-y-4">
+                        <div className="space-y-2">
+                          <Label htmlFor="serviceName">Service Name</Label>
+                          <Input 
+                            id="serviceName" 
+                            value={newService.name}
+                            onChange={(e) => setNewService({...newService, name: e.target.value})}
+                            placeholder="e.g., Private Coaching Session"
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="serviceType">Service Type</Label>
+                          <Select 
+                            value={newService.type} 
+                            onValueChange={(value) => setNewService({...newService, type: value})}
+                          >
+                            <SelectTrigger>
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="court">Court Booking</SelectItem>
+                              <SelectItem value="coaching">Coaching Service</SelectItem>
+                              <SelectItem value="event">Event/Tournament</SelectItem>
+                              <SelectItem value="equipment">Equipment Rental</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </div>
+                        <div className="grid grid-cols-2 gap-4">
+                          <div className="space-y-2">
+                            <Label htmlFor="duration">Duration (min)</Label>
+                            <Input 
+                              id="duration" 
+                              type="number"
+                              value={newService.duration}
+                              onChange={(e) => setNewService({...newService, duration: parseInt(e.target.value)})}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor="tokens">Token Price</Label>
+                            <Input 
+                              id="tokens" 
+                              type="number"
+                              value={newService.price.tokens}
+                              onChange={(e) => setNewService({
+                                ...newService, 
+                                price: {...newService.price, tokens: parseInt(e.target.value)}
+                              })}
+                            />
+                          </div>
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="money">Money Price ($)</Label>
+                          <Input 
+                            id="money" 
+                            type="number"
+                            value={newService.price.money}
+                            onChange={(e) => setNewService({
+                              ...newService, 
+                              price: {...newService.price, money: parseInt(e.target.value)}
+                            })}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor="description">Description</Label>
+                          <Input 
+                            id="description" 
+                            value={newService.description}
+                            onChange={(e) => setNewService({...newService, description: e.target.value})}
+                            placeholder="Brief description of the service"
+                          />
+                        </div>
+                        <div className="flex gap-2">
+                          <Button 
+                            className="flex-1"
+                            onClick={() => {
+                              // In real app, would save to database
+                              setIsAddingService(false);
+                              setNewService({
+                                name: '',
+                                type: 'court',
+                                duration: 60,
+                                price: { tokens: 100, money: 25 },
+                                description: ''
+                              });
+                            }}
+                          >
+                            Add Service
+                          </Button>
+                          <Button 
+                            variant="outline" 
+                            onClick={() => setIsAddingService(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </div>
+                      </div>
+                    </DialogContent>
+                  </Dialog>
+                </div>
               </CardHeader>
               <CardContent>
                 <div className="space-y-4">
                   {services.map((service) => (
-                    <div key={service.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <h4 className="font-medium">{service.name}</h4>
+                    <div key={service.id} className="flex items-center justify-between p-4 border rounded-lg">
+                      <div className="flex-1">
+                        <div className="flex items-center gap-3 mb-2">
+                          <h4 className="font-medium">{service.name}</h4>
+                          <Badge variant={service.type === 'court' ? 'secondary' : 'outline'}>
+                            {service.type}
+                          </Badge>
+                        </div>
                         <p className="text-sm text-muted-foreground">{service.description}</p>
+                        <div className="flex items-center gap-4 mt-2 text-sm">
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-4 h-4" />
+                            {service.duration}min
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Coins className="w-4 h-4 text-primary" />
+                            {service.price.tokens}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <DollarSign className="w-4 h-4 text-green-500" />
+                            ${service.price.money}
+                          </span>
+                        </div>
                       </div>
-                      <div className="text-right">
-                        <p className="font-medium">85% utilization</p>
-                        <p className="text-sm text-muted-foreground">142 bookings</p>
+                      <div className="flex items-center gap-2">
+                        <div className="text-right mr-4">
+                          <p className="font-medium">85% utilization</p>
+                          <p className="text-sm text-muted-foreground">142 bookings</p>
+                        </div>
+                        <Button variant="outline" size="sm" className="gap-1">
+                          <Edit className="w-4 h-4" />
+                          Edit
+                        </Button>
                       </div>
                     </div>
                   ))}
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Court Availability Management */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <CardTitle>Court Availability</CardTitle>
+                  <Button variant="outline" className="gap-2">
+                    <Settings className="w-4 h-4" />
+                    Manage Hours
+                  </Button>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-7 gap-2 text-center">
+                    <div className="font-medium">Time</div>
+                    <div className="font-medium">Mon</div>
+                    <div className="font-medium">Tue</div>
+                    <div className="font-medium">Wed</div>
+                    <div className="font-medium">Thu</div>
+                    <div className="font-medium">Fri</div>
+                    <div className="font-medium">Sat</div>
+                  </div>
+                  
+                  {['08:00', '10:00', '12:00', '14:00', '16:00', '18:00'].map((time) => (
+                    <div key={time} className="grid grid-cols-7 gap-2 text-center">
+                      <div className="font-medium">{time}</div>
+                      {[1,2,3,4,5,6].map((day) => (
+                        <div 
+                          key={day}
+                          className="h-8 bg-green-100 border border-green-300 rounded cursor-pointer hover:bg-green-200 flex items-center justify-center text-xs"
+                        >
+                          Available
+                        </div>
+                      ))}
+                    </div>
+                  ))}
+                </div>
+                <div className="mt-6 p-4 bg-muted/50 rounded-lg">
+                  <h4 className="font-medium mb-2">Quick Actions</h4>
+                  <div className="flex gap-2">
+                    <Button variant="outline" size="sm">Block Time Slot</Button>
+                    <Button variant="outline" size="sm">Set Maintenance Window</Button>
+                    <Button variant="outline" size="sm">Bulk Edit Hours</Button>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Pricing Management */}
+            <Card>
+              <CardHeader>
+                <CardTitle>Pricing Management</CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-6">
+                <div>
+                  <h4 className="font-medium mb-3">Dynamic Pricing Rules</h4>
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">Peak Hours (6PM - 8PM)</p>
+                        <p className="text-sm text-muted-foreground">+25% price increase</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">Active</Badge>
+                        <Button variant="outline" size="sm">Edit</Button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">Weekend Premium</p>
+                        <p className="text-sm text-muted-foreground">+15% on Sat/Sun</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="secondary">Active</Badge>
+                        <Button variant="outline" size="sm">Edit</Button>
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <p className="font-medium">Early Bird Discount</p>
+                        <p className="text-sm text-muted-foreground">-10% before 10AM</p>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <Badge variant="outline">Inactive</Badge>
+                        <Button variant="outline" size="sm">Edit</Button>
+                      </div>
+                    </div>
+                  </div>
+                  <Button className="w-full mt-4 gap-2">
+                    <Plus className="w-4 h-4" />
+                    Add Pricing Rule
+                  </Button>
+                </div>
+
+                <Separator />
+
+                <div>
+                  <h4 className="font-medium mb-3">Token Exchange Rate</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label>1 Token = $</Label>
+                      <Input type="number" defaultValue="0.25" step="0.01" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label>Minimum Token Purchase</Label>
+                      <Input type="number" defaultValue="100" />
+                    </div>
+                  </div>
+                  <Button className="mt-4">Update Exchange Rate</Button>
                 </div>
               </CardContent>
             </Card>
