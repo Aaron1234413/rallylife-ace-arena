@@ -10,8 +10,8 @@ export interface Club {
   logo_url: string | null;
   location: string | null;
   owner_id: string;
-  is_public: boolean; // Always false now, kept for compatibility
-  is_private: boolean; // Always true
+  is_public: boolean;
+  is_private?: boolean;
   member_count: number;
   created_at: string;
   updated_at: string;
@@ -77,14 +77,30 @@ export interface ClubActivity {
 
 export function useClubs() {
   const { user } = useAuth();
-  const [clubs, setClubs] = useState<Club[]>([]); // No longer used for public discovery
+  const [clubs, setClubs] = useState<Club[]>([]);
   const [myClubs, setMyClubs] = useState<Club[]>([]);
   const [clubMembers, setClubMembers] = useState<ClubMembership[]>([]);
   const [clubInvitations, setClubInvitations] = useState<ClubInvitation[]>([]);
   const [clubActivities, setClubActivities] = useState<ClubActivity[]>([]);
   const [loading, setLoading] = useState(true);
 
-  // Removed fetchPublicClubs - clubs are now private-only and discovered via invitations
+  const fetchPublicClubs = async () => {
+    try {
+      console.log('🏆 [CLUBS] Fetching public clubs...');
+      const { data, error } = await supabase
+        .from('clubs')
+        .select('*')
+        .eq('is_public', true)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      console.log('🏆 [CLUBS] Public clubs fetched:', data?.length || 0, 'clubs');
+      setClubs((data || []) as Club[]);
+    } catch (error) {
+      console.error('🏆 [CLUBS] Error fetching public clubs:', error);
+      toast.error('Failed to load clubs');
+    }
+  };
 
   const fetchMyClubs = async () => {
     if (!user) return;
@@ -128,6 +144,7 @@ export function useClubs() {
     name: string;
     description?: string;
     location?: string;
+    is_public?: boolean;
     court_count?: number;
     coach_slots?: number;
     operating_hours?: any;
@@ -139,16 +156,16 @@ export function useClubs() {
     console.log('Current user:', user.id);
 
     try {
-      // Create the club - Always private now
-      console.log('Inserting private club...');
+      // Create the club first - Default to private
+      console.log('Inserting club...');
       const { data: club, error: clubError } = await supabase
         .from('clubs')
         .insert({
           name: clubData.name,
           description: clubData.description,
           location: clubData.location,
-          is_public: false, // Always false - enforced by constraint
-          is_private: true, // Always true
+          is_public: clubData.is_public || false, // Default to private
+          is_private: true, // Always private by default
           owner_id: user.id,
           court_count: clubData.court_count || 1,
           coach_slots: clubData.coach_slots || 1,
@@ -171,7 +188,7 @@ export function useClubs() {
         throw clubError;
       }
 
-      console.log('Private club created successfully:', club);
+      console.log('Club created successfully:', club);
 
       // Create the owner membership (with duplicate check)
       console.log('Creating owner membership...');
@@ -215,8 +232,11 @@ export function useClubs() {
 
       console.log('Membership created successfully');
 
-      toast.success('Private club created successfully!');
+      toast.success('Club created successfully!');
       await fetchMyClubs();
+      if (clubData.is_public) {
+        await fetchPublicClubs();
+      }
       
       return club;
     } catch (error) {
@@ -244,6 +264,7 @@ export function useClubs() {
       window.location.href = '/dashboard';
       
       await fetchMyClubs();
+      await fetchPublicClubs();
     } catch (error) {
       console.error('Error deleting club:', error);
       toast.error('Failed to delete club');
@@ -268,6 +289,7 @@ export function useClubs() {
 
       toast.success('Successfully joined club!');
       await fetchMyClubs();
+      await fetchPublicClubs();
     } catch (error) {
       console.error('Error joining club:', error);
       toast.error('Failed to join club');
@@ -289,6 +311,7 @@ export function useClubs() {
 
       toast.success('Successfully left club');
       await fetchMyClubs();
+      await fetchPublicClubs();
     } catch (error) {
       console.error('Error leaving club:', error);
       toast.error('Failed to leave club');
@@ -298,7 +321,7 @@ export function useClubs() {
 
   const refreshData = async () => {
     setLoading(true);
-    await fetchMyClubs(); // Only fetch user's clubs now
+    await Promise.all([fetchPublicClubs(), fetchMyClubs()]);
     setLoading(false);
   };
 
@@ -766,7 +789,7 @@ export function useClubs() {
       refreshData();
     } else {
       console.log('🏆 [CLUBS] No user, clearing club data');
-      setClubs([]); // Empty - no public discovery
+      setClubs([]);
       setMyClubs([]);
       setLoading(false);
     }

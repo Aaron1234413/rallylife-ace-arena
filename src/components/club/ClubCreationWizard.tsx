@@ -33,6 +33,7 @@ interface ClubFormData {
   name: string;
   description: string;
   location: string;
+  isPublic: boolean;
   
   // Operational Details
   courtCount: number;
@@ -67,6 +68,7 @@ export function ClubCreationWizard({ onComplete, onCancel }: ClubCreationWizardP
     name: '',
     description: '',
     location: '',
+    isPublic: true,
     courtCount: 2,
     coachSlots: 1,
     operatingHours: DEFAULT_OPERATING_HOURS,
@@ -153,6 +155,7 @@ export function ClubCreationWizard({ onComplete, onCancel }: ClubCreationWizardP
         name: formData.name.trim(),
         description: formData.description.trim() || undefined,
         location: formData.location.trim() || undefined,
+        is_public: formData.isPublic,
         court_count: formData.courtCount,
         coach_slots: formData.coachSlots,
         operating_hours: formData.operatingHours,
@@ -282,14 +285,22 @@ export function ClubCreationWizard({ onComplete, onCancel }: ClubCreationWizardP
                 </div>
 
                 <div className="space-y-3">
-                  <div className="bg-primary/10 p-4 rounded-lg">
+                  <div className="bg-tennis-green-bg/30 p-4 rounded-lg">
                     <div className="flex items-start gap-3">
-                      <Users className="h-5 w-5 text-primary mt-0.5" />
+                      <input
+                        type="checkbox"
+                        id="isPublic"
+                        checked={formData.isPublic}
+                        onChange={(e) => updateFormData({ isPublic: e.target.checked })}
+                        className="rounded mt-0.5"
+                      />
                       <div className="flex-1">
-                        <h4 className="text-sm font-medium">Private Club</h4>
+                        <label htmlFor="isPublic" className="text-sm font-medium cursor-pointer">
+                          Make this club public
+                        </label>
                         <p className="text-xs text-muted-foreground mt-1">
-                          All clubs are private and invitation-only. Members join through invitations 
-                          or shareable links that you create.
+                          Public clubs are visible to all users and can be joined by anyone. 
+                          Private clubs require invitations.
                         </p>
                       </div>
                     </div>
@@ -393,7 +404,11 @@ export function ClubCreationWizard({ onComplete, onCancel }: ClubCreationWizardP
                     <CardTitle className="flex items-center gap-2">
                       <Building className="h-5 w-5" />
                       {formData.name}
-                      <Badge variant="secondary">Private</Badge>
+                      {formData.isPublic ? (
+                        <Badge variant="default">Public</Badge>
+                      ) : (
+                        <Badge variant="secondary">Private</Badge>
+                      )}
                     </CardTitle>
                     {formData.description && (
                       <p className="text-sm text-muted-foreground">{formData.description}</p>

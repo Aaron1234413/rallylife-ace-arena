@@ -1,14 +1,21 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { 
   Search, 
+  Filter,
   Plus,
   Users,
   Crown,
-  ArrowLeft
+  ArrowLeft,
+  Calendar,
+  TrendingUp,
+  CheckCircle,
+  Info
 } from 'lucide-react';
 import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
@@ -18,30 +25,58 @@ import { ClubCreationWizard } from '@/components/club/ClubCreationWizard';
 export default function Clubs() {
   const navigate = useNavigate();
   const { user } = useAuth();
-  const { myClubs, loading, leaveClub } = useClubs();
+  const { clubs, myClubs, loading, joinClub, leaveClub, createClub } = useClubs();
   const [searchQuery, setSearchQuery] = useState('');
+  const [showFilters, setShowFilters] = useState(false);
+  const [filters, setFilters] = useState({
+    minMembers: '',
+    maxMembers: '',
+    publicOnly: false
+  });
   const [showCreateDialog, setShowCreateDialog] = useState(false);
 
-  // Filter my clubs based on search only (no public discovery)
-  const filteredClubs = myClubs.filter(club => {
-    // Search filter for my clubs only
-    const searchLower = searchQuery.toLowerCase();
-    if (searchQuery && !(
-      club.name.toLowerCase().includes(searchLower) ||
-      club.description?.toLowerCase().includes(searchLower) ||
-      club.location?.toLowerCase().includes(searchLower)
-    )) {
+  // Filter clubs based on search and filters
+  const filteredClubs = clubs.filter(club => {
+    // Search filter
+    if (searchQuery && !club.name.toLowerCase().includes(searchQuery.toLowerCase()) && 
+        !club.description?.toLowerCase().includes(searchQuery.toLowerCase())) {
+      return false;
+    }
+
+    // Member count filters
+    if (filters.minMembers && club.member_count < parseInt(filters.minMembers)) {
+      return false;
+    }
+    if (filters.maxMembers && club.member_count > parseInt(filters.maxMembers)) {
+      return false;
+    }
+
+    // Public only filter
+    if (filters.publicOnly && !club.is_public) {
       return false;
     }
 
     return true;
   });
 
+  const isAlreadyMember = (clubId: string) => {
+    return myClubs.some(club => club.id === clubId);
+  };
+
   const getMemberRole = (clubId: string) => {
     const club = myClubs.find(c => c.id === clubId);
     if (!club) return undefined;
     return user?.id === club.owner_id ? 'owner' : 'member';
   };
+
+  const resetFilters = () => {
+    setFilters({
+      minMembers: '',
+      maxMembers: '',
+      publicOnly: false
+    });
+  };
+
 
   if (loading) {
     return (
@@ -80,7 +115,7 @@ export default function Clubs() {
                 Tennis Clubs
               </h1>
               <p className="text-lg text-tennis-green-medium leading-relaxed max-w-2xl">
-                Manage your club memberships and create private clubs. Join through invitations only.
+                Discover clubs, manage memberships, and connect with fellow tennis players
               </p>
             </div>
           </div>
@@ -96,8 +131,22 @@ export default function Clubs() {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid gap-4 sm:grid-cols-2 mb-6">
+        <div className="grid gap-4 sm:grid-cols-3 mb-6">
           <Card className="hover-scale animate-fade-in">
+            <CardContent className="p-4">
+              <div className="flex items-center gap-3">
+                <div className="p-2 bg-gradient-to-br from-tennis-green-primary/10 to-tennis-green-primary/5 rounded-lg">
+                  <Users className="h-5 w-5 text-tennis-green-primary" />
+                </div>
+                <div>
+                  <p className="text-sm text-tennis-green-medium font-medium">Total Clubs</p>
+                  <p className="text-2xl font-bold text-tennis-green-dark">{clubs.length}</p>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card className="hover-scale animate-fade-in" style={{ animationDelay: '0.1s' }}>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-gradient-to-br from-amber-500/10 to-amber-500/5 rounded-lg">
@@ -111,110 +160,189 @@ export default function Clubs() {
             </CardContent>
           </Card>
           
-          <Card className="hover-scale animate-fade-in" style={{ animationDelay: '0.1s' }}>
+          <Card className="hover-scale animate-fade-in" style={{ animationDelay: '0.2s' }}>
             <CardContent className="p-4">
               <div className="flex items-center gap-3">
-                <div className="p-2 bg-gradient-to-br from-tennis-green-primary/10 to-tennis-green-primary/5 rounded-lg">
-                  <Users className="h-5 w-5 text-tennis-green-primary" />
+                <div className="p-2 bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 rounded-lg">
+                  <TrendingUp className="h-5 w-5 text-emerald-600" />
                 </div>
                 <div>
-                  <p className="text-sm text-tennis-green-medium font-medium">Invitation Only</p>
-                  <p className="text-lg font-semibold text-tennis-green-dark">Private Access</p>
+                  <p className="text-sm text-tennis-green-medium font-medium">Available</p>
+                  <p className="text-2xl font-bold text-tennis-green-dark">
+                    {clubs.filter(c => c.is_public && !isAlreadyMember(c.id)).length}
+                  </p>
                 </div>
               </div>
             </CardContent>
           </Card>
         </div>
 
-        {/* My Clubs Section */}
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-xl font-semibold text-tennis-green-dark">My Clubs</h2>
-              <p className="text-sm text-tennis-green-medium">
-                Private clubs you're a member of ({myClubs.length})
-              </p>
-            </div>
-          </div>
+        {/* Tabs */}
+        <Tabs defaultValue="discover" className="space-y-6">
+          <TabsList className="grid w-full grid-cols-2 h-11 p-1">
+            <TabsTrigger value="discover" className="text-sm font-medium">Discover Clubs</TabsTrigger>
+            <TabsTrigger value="my-clubs" className="text-sm font-medium">My Clubs</TabsTrigger>
+          </TabsList>
 
-          {/* Search My Clubs */}
-          {myClubs.length > 0 && (
+          <TabsContent value="discover" className="space-y-6">
+            {/* Search and Filters */}
             <Card className="shadow-sm">
               <CardContent className="p-4">
                 <div className="flex flex-col sm:flex-row gap-4">
                   <div className="flex-1 relative">
                     <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                     <Input
-                      placeholder="Search your clubs by name or description..."
+                      placeholder="Search clubs by name or description..."
                       value={searchQuery}
                       onChange={(e) => setSearchQuery(e.target.value)}
                       className="pl-10 h-10"
                     />
                   </div>
-                </div>
-              </CardContent>
-            </Card>
-          )}
-
-          {/* Clubs Grid */}
-          {myClubs.length === 0 ? (
-            <Card>
-              <CardContent className="p-8 text-center">
-                <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                <h3 className="font-medium mb-2 text-tennis-green-dark">No clubs joined yet</h3>
-                <p className="text-sm text-tennis-green-medium mb-4">
-                  Create a new club or join through an invitation to get started
-                </p>
-                <div className="flex gap-3 justify-center">
-                  <Button onClick={() => setShowCreateDialog(true)}>
-                    <Plus className="h-4 w-4 mr-2" />
-                    Create Club
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center gap-2 h-10 px-4"
+                  >
+                    <Filter className="h-4 w-4" />
+                    Filters
+                    {(filters.minMembers || filters.maxMembers || filters.publicOnly) && (
+                      <Badge variant="secondary" className="ml-2">Active</Badge>
+                    )}
                   </Button>
                 </div>
+
+                {/* Filters Panel */}
+                {showFilters && (
+                  <div className="mt-4 p-4 border rounded-lg bg-tennis-green-bg/30">
+                    <div className="grid gap-4 sm:grid-cols-3">
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-tennis-green-dark">Min Members</label>
+                        <Input
+                          type="number"
+                          placeholder="0"
+                          value={filters.minMembers}
+                          onChange={(e) => setFilters(prev => ({ ...prev, minMembers: e.target.value }))}
+                        />
+                      </div>
+                      <div>
+                        <label className="block text-sm font-medium mb-1 text-tennis-green-dark">Max Members</label>
+                        <Input
+                          type="number"
+                          placeholder="100"
+                          value={filters.maxMembers}
+                          onChange={(e) => setFilters(prev => ({ ...prev, maxMembers: e.target.value }))}
+                        />
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <input
+                          type="checkbox"
+                          id="publicOnly"
+                          checked={filters.publicOnly}
+                          onChange={(e) => setFilters(prev => ({ ...prev, publicOnly: e.target.checked }))}
+                          className="rounded"
+                        />
+                        <label htmlFor="publicOnly" className="text-sm font-medium text-tennis-green-dark">
+                          Public clubs only
+                        </label>
+                      </div>
+                    </div>
+                    <div className="flex gap-2 mt-4">
+                      <Button size="sm" onClick={resetFilters} variant="outline">
+                        Clear Filters
+                      </Button>
+                    </div>
+                  </div>
+                )}
               </CardContent>
             </Card>
-          ) : (
-            <div className="space-y-4">
-              {/* Results Summary */}
-              {searchQuery && (
-                <div className="flex items-center justify-between py-1">
-                  <p className="text-tennis-green-medium font-medium">
-                    {filteredClubs.length} club{filteredClubs.length !== 1 ? 's' : ''} found
-                    {searchQuery && ` for "${searchQuery}"`}
-                  </p>
-                </div>
-              )}
 
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredClubs.map((club) => (
-                  <ClubCard
-                    key={club.id}
-                    club={club}
-                    isMember={true}
-                    memberRole={getMemberRole(club.id)}
-                    onLeave={leaveClub}
-                  />
-                ))}
-              </div>
-
-              {/* Empty Search State */}
-              {filteredClubs.length === 0 && searchQuery && (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <Search className="h-12 w-12 mx-auto mb-4 text-gray-400" />
-                    <h3 className="font-medium mb-2 text-tennis-green-dark">No clubs found</h3>
-                    <p className="text-sm text-tennis-green-medium mb-4">
-                      No clubs match your search for "{searchQuery}"
-                    </p>
-                    <Button onClick={() => setSearchQuery('')} variant="outline">
-                      Clear Search
-                    </Button>
-                  </CardContent>
-                </Card>
-              )}
+            {/* Results Summary */}
+            <div className="flex items-center justify-between py-1">
+              <p className="text-tennis-green-medium font-medium">
+                {filteredClubs.length} club{filteredClubs.length !== 1 ? 's' : ''} found
+                {searchQuery && ` for "${searchQuery}"`}
+              </p>
             </div>
-          )}
-        </div>
+
+            {/* Clubs Grid */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredClubs.map((club) => (
+                <ClubCard
+                  key={club.id}
+                  club={club}
+                  isMember={isAlreadyMember(club.id)}
+                  memberRole={getMemberRole(club.id)}
+                  onJoin={joinClub}
+                />
+              ))}
+            </div>
+
+            {/* Empty State */}
+            {filteredClubs.length === 0 && (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <h3 className="font-medium mb-2 text-tennis-green-dark">No clubs found</h3>
+                  <p className="text-sm text-tennis-green-medium mb-4">
+                    {searchQuery || Object.values(filters).some(Boolean) 
+                      ? 'Try adjusting your search or filters' 
+                      : 'No public clubs available yet'
+                    }
+                  </p>
+                  {searchQuery || Object.values(filters).some(Boolean) ? (
+                    <Button onClick={() => {
+                      setSearchQuery('');
+                      resetFilters();
+                    }}>
+                      Clear Search & Filters
+                    </Button>
+                  ) : null}
+                </CardContent>
+              </Card>
+            )}
+          </TabsContent>
+
+          <TabsContent value="my-clubs" className="space-y-6">
+            {myClubs.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <Users className="h-12 w-12 mx-auto mb-4 text-gray-400" />
+                  <h3 className="font-medium mb-2 text-tennis-green-dark">No clubs joined yet</h3>
+                  <p className="text-sm text-tennis-green-medium mb-4">
+                    Join clubs to connect with other tennis players and access exclusive features
+                  </p>
+                  <Button>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Browse Clubs
+                  </Button>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="space-y-6">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h2 className="text-lg font-semibold text-tennis-green-dark">My Clubs</h2>
+                    <p className="text-sm text-tennis-green-medium">
+                      Clubs you&apos;re a member of ({myClubs.length})
+                    </p>
+                  </div>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                  {myClubs.map((club) => (
+                    <ClubCard
+                      key={club.id}
+                      club={club}
+                      isMember={true}
+                      memberRole={getMemberRole(club.id)}
+                      onLeave={leaveClub}
+                    />
+                  ))}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
 
         {/* Create Club Wizard */}
         {showCreateDialog && (
