@@ -283,12 +283,43 @@ export function useConsolidatedCourtBookings(clubId?: string) {
       // Get court information for pricing
       const { data: court, error: courtError } = await supabase
         .from('club_courts')
-        .select('hourly_rate_tokens, hourly_rate_money')
+        .select('hourly_rate_tokens, hourly_rate_money, name')
         .eq('id', bookingData.court_id)
         .single();
 
       if (courtError) throw courtError;
 
+      // Handle hybrid/token payments through process-hybrid-payment edge function
+      if (bookingData.payment_method === 'hybrid' || bookingData.payment_method === 'tokens') {
+        const { data: paymentResult, error: paymentError } = await supabase.functions.invoke(
+          'process-hybrid-payment',
+          {
+            body: {
+              service_type: 'court_booking',
+              service_details: {
+                court_name: court.name,
+                date: bookingData.booking_date,
+                time: `${bookingData.start_time} - ${bookingData.end_time}`,
+                court_id: bookingData.court_id
+              },
+              total_amount: (bookingData.tokens_used || 0) + (bookingData.cash_amount || 0),
+              tokens_to_use: bookingData.tokens_used || 0,
+              cash_amount: bookingData.cash_amount || 0,
+              club_id: clubId
+            }
+          }
+        );
+
+        if (paymentError) throw new Error(`Payment processing failed: ${paymentError.message}`);
+
+        // If cash payment required, redirect to Stripe
+        if (paymentResult.payment_url) {
+          window.open(paymentResult.payment_url, '_blank');
+          toast.success('Tokens processed! Complete cash payment in the new tab.');
+        }
+      }
+
+      // Create the booking record
       const booking: ClubCourtBookingInsert = {
         club_id: clubId,
         court_id: bookingData.court_id,
@@ -297,9 +328,9 @@ export function useConsolidatedCourtBookings(clubId?: string) {
         booking_date: bookingData.booking_date,
         start_time: bookingData.start_time,
         end_time: bookingData.end_time,
-        status: 'confirmed',
+        status: bookingData.payment_method === 'tokens' ? 'confirmed' : 'pending',
         payment_method: bookingData.payment_method,
-        payment_status: 'paid',
+        payment_status: bookingData.payment_method === 'tokens' ? 'paid' : 'pending',
         tokens_used: bookingData.tokens_used || 0,
         total_cost_tokens: bookingData.tokens_used || 0,
         total_cost_money: bookingData.cash_amount || 0,
@@ -337,7 +368,15 @@ export function useConsolidatedCourtBookings(clubId?: string) {
       };
 
       setBookings(prev => [...prev, newBooking]);
-      toast.success('Court booking created successfully!');
+      
+      if (bookingData.payment_method === 'tokens') {
+        toast.success('Court booking created and paid with tokens!');
+      } else if (bookingData.payment_method === 'hybrid') {
+        toast.success('Booking created! Complete payment to confirm.');
+      } else {
+        toast.success('Court booking created successfully!');
+      }
+      
       return newBooking;
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to create booking';
