@@ -14,7 +14,8 @@ import {
   CheckCircle
 } from 'lucide-react';
 import { useClubServices, ClubService } from '@/hooks/useClubServices';
-import { HybridPaymentSelector } from '@/components/payments/HybridPaymentSelector';
+import { InteractiveHybridPaymentSelector } from '@/components/payments/InteractiveHybridPaymentSelector';
+import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { toast } from 'sonner';
 
 interface AvailableServicesWidgetProps {
@@ -31,6 +32,7 @@ export function AvailableServicesWidget({
   compact = false 
 }: AvailableServicesWidgetProps) {
   const { services, bookings, loading, bookService } = useClubServices(clubId);
+  const { regularTokens, loading: tokensLoading } = usePlayerTokens();
   const [selectedService, setSelectedService] = useState<ClubService | null>(null);
   const [paymentMethod, setPaymentMethod] = useState<{ tokens: number; cash: number }>({ tokens: 0, cash: 0 });
 
@@ -216,11 +218,11 @@ export function AvailableServicesWidget({
               {selectedService?.id === service.id && (
                 <div className="mt-4 pt-4 border-t">
                   <h4 className="font-medium mb-3 text-tennis-green-dark">Payment Options</h4>
-                  <HybridPaymentSelector
-                    tokenPrice={service.price_tokens}
-                    usdPrice={service.price_tokens * 0.01} // Convert tokens to USD at $0.01 per token
+                  <InteractiveHybridPaymentSelector
+                    serviceTokenCost={service.price_tokens}
+                    availableTokens={regularTokens}
                     onPaymentChange={(payment) => setPaymentMethod({ tokens: payment.tokens, cash: payment.usd })}
-                    disabled={false}
+                    disabled={tokensLoading}
                   />
                   <div className="flex gap-2 mt-4">
                     <Button
