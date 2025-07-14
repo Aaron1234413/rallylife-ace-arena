@@ -12,7 +12,7 @@ import {
   Coins
 } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
-import { useCourtBookings } from '@/hooks/useCourtBookings';
+import { useConsolidatedCourtBookings } from '@/hooks/useConsolidatedCourtBookings';
 import { useAuth } from '@/hooks/useAuth';
 import { formatDistanceToNow, format } from 'date-fns';
 import { toast } from 'sonner';
@@ -24,7 +24,7 @@ interface MyClubBookingsProps {
 
 export function MyClubBookings({ club }: MyClubBookingsProps) {
   const { user } = useAuth();
-  const { fetchUserBookings, cancelBooking } = useCourtBookings();
+  const { fetchUserBookings, cancelBooking } = useConsolidatedCourtBookings();
   const [bookings, setBookings] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 

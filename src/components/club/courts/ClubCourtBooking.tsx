@@ -19,8 +19,9 @@ import {
   Users
 } from 'lucide-react';
 import { Club } from '@/hooks/useClubs';
-import { useCourtBookings } from '@/hooks/useCourtBookings';
-import { useRealTimeCourtBookings } from '@/hooks/useRealTimeCourtBookings';
+import { useConsolidatedCourtBookings } from '@/hooks/useConsolidatedCourtBookings';
+import { useHybridPayment } from '@/hooks/useHybridPayment';
+import { useTokenRedemption } from '@/hooks/useTokenRedemption';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -36,16 +37,18 @@ interface ClubCourtBookingProps {
 
 export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
   const { user } = useAuth();
-  const { createBooking, getAvailableTimeSlots } = useCourtBookings(club.id);
-  const { bookings, getAvailableSlots, loading: bookingsLoading } = useRealTimeCourtBookings(club.id);
+  const { createBooking, getAvailableTimeSlots, getAvailableSlots, bookings, loading: bookingsLoading } = useConsolidatedCourtBookings(club.id);
+  const { calculateRedemption, validateRedemption } = useTokenRedemption(club.id);
   
   const [courts, setCourts] = useState<ClubCourt[]>([]);
   const [selectedDate, setSelectedDate] = useState<Date>();
   const [selectedCourt, setSelectedCourt] = useState('');
   const [selectedTime, setSelectedTime] = useState('');
   const [duration, setDuration] = useState('1');
-  const [paymentMethod, setPaymentMethod] = useState('tokens');
+  const [paymentMethod, setPaymentMethod] = useState<'tokens' | 'hybrid' | 'stripe'>('tokens');
   const [notes, setNotes] = useState('');
+  const [tokensToUse, setTokensToUse] = useState(0);
+  const [cashAmount, setCashAmount] = useState(0);
   const [isBooking, setIsBooking] = useState(false);
   const [availableSlots, setAvailableSlots] = useState<Array<{start: Date, end: Date, time: string}>>([]);
   const [loadingSlots, setLoadingSlots] = useState(false);
@@ -163,14 +166,13 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
       
       await createBooking({
         court_id: selectedCourt,
-        player_id: user.id,
-        start_datetime: startDateTime.toISOString(),
-        end_datetime: endDateTime.toISOString(),
-        total_cost_tokens: paymentMethod === 'tokens' ? cost.tokens : 0,
-        total_cost_money: paymentMethod === 'money' ? cost.money : 0,
+        booking_date: selectedDate.toISOString().split('T')[0],
+        start_time: selectedTime,
+        end_time: `${startDateTime.getHours() + parseFloat(duration)}:${startDateTime.getMinutes().toString().padStart(2, '0')}`,
         payment_method: paymentMethod,
-        notes: notes || null,
-        status: 'confirmed'
+        tokens_used: paymentMethod === 'tokens' ? cost.tokens : tokensToUse,
+        cash_amount: paymentMethod === 'stripe' ? cost.money : cashAmount,
+        notes: notes || undefined
       });
       
       // Reset form
@@ -308,7 +310,7 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
             {/* Payment Method */}
             <div className="space-y-2">
               <label className="text-sm font-medium">Payment Method</label>
-              <Select value={paymentMethod} onValueChange={setPaymentMethod}>
+              <Select value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'tokens' | 'hybrid' | 'stripe')}>
                 <SelectTrigger>
                   <SelectValue />
                 </SelectTrigger>
@@ -319,10 +321,17 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
                       Tokens ({calculateCost().tokens})
                     </div>
                   </SelectItem>
-                  <SelectItem value="money">
+                  <SelectItem value="hybrid">
+                    <div className="flex items-center gap-2">
+                      <Coins className="h-4 w-4" />
+                      <DollarSign className="h-4 w-4" />
+                      Hybrid (Tokens + Cash)
+                    </div>
+                  </SelectItem>
+                  <SelectItem value="stripe">
                     <div className="flex items-center gap-2">
                       <DollarSign className="h-4 w-4" />
-                      Cash (${calculateCost().money.toFixed(2)})
+                      Credit Card (${calculateCost().money.toFixed(2)})
                     </div>
                   </SelectItem>
                 </SelectContent>

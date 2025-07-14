@@ -9,7 +9,7 @@ import {
   ChevronRight,
   Plus
 } from 'lucide-react';
-import { useCourtBooking, CourtBooking } from '@/hooks/useCourtBooking';
+import { useConsolidatedCourtBookings, CourtBooking } from '@/hooks/useConsolidatedCourtBookings';
 import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
 import { useNavigate } from 'react-router-dom';
@@ -18,7 +18,7 @@ import { format, isFuture, isToday, isTomorrow } from 'date-fns';
 export function UpcomingCourtBookings() {
   const { user } = useAuth();
   const { myClubs } = useClubs();
-  const { getUserBookings } = useCourtBooking();
+  const { fetchUserBookings } = useConsolidatedCourtBookings();
   const [bookings, setBookings] = useState<CourtBooking[]>([]);
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
@@ -30,8 +30,10 @@ export function UpcomingCourtBookings() {
   }, [user]);
 
   const loadBookings = async () => {
+    if (!user) return;
+    
     try {
-      const userBookings = await getUserBookings();
+      const userBookings = await fetchUserBookings(user.id);
       // Filter for upcoming bookings only
       const upcoming = userBookings.filter(booking => 
         booking.status === 'confirmed' && isFuture(new Date(booking.start_datetime))
@@ -56,7 +58,7 @@ export function UpcomingCourtBookings() {
   const getClubForBooking = (booking: CourtBooking) => {
     // Find the club that contains this court
     return myClubs.find(club => 
-      club.id === booking.court?.club_id
+      club.id === booking.club_id
     );
   };
 
@@ -167,7 +169,7 @@ export function UpcomingCourtBookings() {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2 mb-1">
                     <span className="font-medium truncate">
-                      {booking.court?.name}
+                      {booking.club_courts?.name || 'Court'}
                     </span>
                     <Badge variant="outline" className="text-xs">
                       {getDateLabel(booking.start_datetime)}
