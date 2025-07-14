@@ -213,7 +213,7 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
         </p>
       </div>
 
-      <div className="grid gap-6 lg:grid-cols-2">
+      <div className="grid gap-6 xl:grid-cols-2">
         {/* Booking Form */}
         <Card>
           <CardHeader>
@@ -277,17 +277,28 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
                 onValueChange={setSelectedTime}
                 disabled={!selectedDate || !selectedCourt || loadingSlots}
               >
-                <SelectTrigger>
+                <SelectTrigger className="h-12">
                   <SelectValue placeholder={loadingSlots ? "Loading..." : "Choose time slot"} />
                 </SelectTrigger>
-                <SelectContent>
-                  {availableSlots.map((slot) => (
-                    <SelectItem key={slot.time} value={slot.time}>
-                      {slot.time}
-                    </SelectItem>
-                  ))}
+                <SelectContent className="max-h-60">
+                  {availableSlots.length > 0 ? (
+                    availableSlots.map((slot) => (
+                      <SelectItem key={slot.time} value={slot.time} className="h-10">
+                        {slot.time}
+                      </SelectItem>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-sm text-muted-foreground">
+                      {loadingSlots ? "Loading available times..." : "No available time slots"}
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
+              {selectedDate && selectedCourt && availableSlots.length === 0 && !loadingSlots && (
+                <p className="text-xs text-muted-foreground">
+                  No available slots for this date. Try selecting a different date.
+                </p>
+              )}
             </div>
 
             {/* Duration Selection */}
@@ -311,27 +322,27 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
             <div className="space-y-2">
               <label className="text-sm font-medium">Payment Method</label>
               <Select value={paymentMethod} onValueChange={(value) => setPaymentMethod(value as 'tokens' | 'hybrid' | 'stripe')}>
-                <SelectTrigger>
+                <SelectTrigger className="h-12">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="tokens">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 py-1">
                       <Coins className="h-4 w-4" />
-                      Tokens ({calculateCost().tokens})
+                      <span className="text-sm">Tokens ({calculateCost().tokens})</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="hybrid">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 py-1">
                       <Coins className="h-4 w-4" />
                       <DollarSign className="h-4 w-4" />
-                      Hybrid (Tokens + Cash)
+                      <span className="text-sm">Hybrid (Tokens + Cash)</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="stripe">
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 py-1">
                       <DollarSign className="h-4 w-4" />
-                      Credit Card (${calculateCost().money.toFixed(2)})
+                      <span className="text-sm">Credit Card (${calculateCost().money.toFixed(2)})</span>
                     </div>
                   </SelectItem>
                 </SelectContent>
@@ -393,18 +404,18 @@ export function ClubCourtBooking({ club, canBook }: ClubCourtBookingProps) {
                 )}
                 
                 <div className="flex items-center justify-between text-sm">
-                  <div className="flex items-center gap-4">
+                  <div className="flex flex-col sm:flex-row items-start sm:items-center gap-2 sm:gap-4">
                     <span className="flex items-center gap-1">
                       <MapPin className="h-3 w-3" />
-                      {court.surface_type}
+                      <span className="text-xs sm:text-sm">{court.surface_type}</span>
                     </span>
                     <span className="flex items-center gap-1">
                       <Coins className="h-3 w-3" />
-                      {court.hourly_rate_tokens} tokens/hr
+                      <span className="text-xs sm:text-sm">{court.hourly_rate_tokens} tokens/hr</span>
                     </span>
                     <span className="flex items-center gap-1">
                       <DollarSign className="h-3 w-3" />
-                      ${court.hourly_rate_money}/hr
+                      <span className="text-xs sm:text-sm">${court.hourly_rate_money}/hr</span>
                     </span>
                   </div>
                 </div>

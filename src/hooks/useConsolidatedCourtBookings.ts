@@ -62,6 +62,13 @@ export function useConsolidatedCourtBookings(clubId?: string) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  // Initialize data on mount and when clubId changes
+  useEffect(() => {
+    if (clubId) {
+      fetchBookings();
+    }
+  }, [clubId]);
+
   const fetchBookings = async () => {
     if (!clubId) return;
     
