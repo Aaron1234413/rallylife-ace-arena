@@ -95,7 +95,7 @@ function AppWithGuide() {
           <Route path="/join-club/:linkSlug" element={<ProtectedRoute><JoinClub /></ProtectedRoute>} />
           
           {/* Mockup Routes */}
-          <Route path="/mockup/*" element={<MockupRouter />} />
+          <Route path="/mockups/*" element={<MockupRouter />} />
           
           <Route path="*" element={<NotFound />} />
         </Routes>
