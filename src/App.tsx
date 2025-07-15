@@ -37,7 +37,7 @@ import StartSocialPlay from "@/pages/StartSocialPlay";
 import JoinSocialPlay from "@/pages/JoinSocialPlay";
 import CoachDashboard from "@/pages/CoachDashboard";
 import { MockDashboard } from "@/pages/MockDashboard";
-import PlayMockup from "@/pages/PlayMockup";
+import { PlayMockup } from "@/pages/mockups/PlayMockup";
 import Sessions from "@/pages/Sessions";
 import CreateSession from "@/pages/CreateSession";
 import EditSession from "@/pages/EditSession";
