@@ -20,11 +20,6 @@ export function SessionCompletionFlow({ open, onOpenChange, sessionData, onCompl
   const [notes, setNotes] = useState("");
   const [opponentRating, setOpponentRating] = useState(0);
 
-  // Return early if sessionData is null to prevent errors
-  if (!sessionData) {
-    return null;
-  }
-
   const handleNextStep = () => {
     switch (step) {
       case "summary":

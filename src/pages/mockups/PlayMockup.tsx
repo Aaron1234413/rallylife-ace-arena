@@ -63,112 +63,57 @@ export function PlayMockup() {
 
   const renderDashboard = () => (
     <div className="space-y-6">
-      {/* Enhanced Header with Player Status */}
-      <div className="relative overflow-hidden bg-gradient-to-r from-primary/10 via-blue-500/5 to-purple-500/10 rounded-2xl p-6 border border-primary/20">
-        <div className="absolute inset-0 bg-grid-pattern opacity-5"></div>
-        <div className="relative">
-          <div className="flex items-center justify-between mb-4">
-            <div>
-              <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-primary to-blue-600 bg-clip-text text-transparent">
-                Ready to Dominate? 🎾
-              </h1>
-              <p className="text-muted-foreground text-sm md:text-base">
-                Find players, courts, and start your journey to victory
-              </p>
-            </div>
-            <div className="text-right">
-              <div className="flex items-center gap-2 mb-1">
-                <Star className="w-5 h-5 fill-yellow-400 text-yellow-400" />
-                <span className="text-xl font-bold">{userStats.currentRating}</span>
-                <Badge variant="secondary" className="bg-green-500/10 text-green-500 border-green-500/20">
-                  +0.3
-                </Badge>
-              </div>
-              <p className="text-xs text-muted-foreground">Current Rating</p>
-            </div>
-          </div>
-          
-          {/* Quick Stats Bar */}
-          <div className="grid grid-cols-4 gap-4 mt-4">
-            <div className="text-center">
-              <div className="font-bold text-lg">{userStats.totalSessions}</div>
-              <div className="text-xs text-muted-foreground">Sessions</div>
-            </div>
-            <div className="text-center">
-              <div className="font-bold text-lg text-green-600">{userStats.winRate}%</div>
-              <div className="text-xs text-muted-foreground">Win Rate</div>
-            </div>
-            <div className="text-center">
-              <div className="font-bold text-lg text-orange-500">{userStats.currentStreak}</div>
-              <div className="text-xs text-muted-foreground">Streak</div>
-            </div>
-            <div className="text-center">
-              <div className="font-bold text-lg text-purple-600">#{userStats.weeklyGoal}</div>
-              <div className="text-xs text-muted-foreground">Weekly Goal</div>
-            </div>
-          </div>
+      {/* Mobile-First Header */}
+      <div className="text-center space-y-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">Ready to Play?</h1>
+          <p className="text-muted-foreground text-sm md:text-base">Find players, courts, and start your session</p>
         </div>
       </div>
 
-      {/* Enhanced Quick Action Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      {/* Quick Action Cards - Mobile First Grid */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
         <Card 
-          className="group hover-scale cursor-pointer border-primary/20 hover:border-primary/50 transition-all duration-300 hover:shadow-lg relative overflow-hidden"
+          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50 transition-all"
           onClick={() => setCurrentView("discovery")}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <CardContent className="p-6 text-center relative">
-            <div className="w-12 h-12 mx-auto mb-3 bg-blue-500/10 rounded-xl flex items-center justify-center group-hover:bg-blue-500/20 transition-colors">
-              <Search className="w-6 h-6 text-blue-600" />
-            </div>
-            <h3 className="font-semibold text-sm mb-1">Find Match</h3>
-            <p className="text-xs text-muted-foreground">Join live sessions</p>
-            <Badge variant="secondary" className="mt-2 text-xs">23 active</Badge>
+          <CardContent className="p-4 text-center">
+            <Search className="w-8 h-8 mx-auto mb-2 text-primary" />
+            <h3 className="font-semibold text-sm">Find Match</h3>
+            <p className="text-xs text-muted-foreground hidden md:block">Join sessions</p>
           </CardContent>
         </Card>
 
         <Card 
-          className="group hover-scale cursor-pointer border-primary/20 hover:border-primary/50 transition-all duration-300 hover:shadow-lg relative overflow-hidden"
+          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50 transition-all"
           onClick={() => setShowCreateModal(true)}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-green-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <CardContent className="p-6 text-center relative">
-            <div className="w-12 h-12 mx-auto mb-3 bg-green-500/10 rounded-xl flex items-center justify-center group-hover:bg-green-500/20 transition-colors">
-              <Plus className="w-6 h-6 text-green-600" />
-            </div>
-            <h3 className="font-semibold text-sm mb-1">Create Session</h3>
-            <p className="text-xs text-muted-foreground">Start your own</p>
-            <Badge variant="secondary" className="mt-2 text-xs">Quick setup</Badge>
+          <CardContent className="p-4 text-center">
+            <Plus className="w-8 h-8 mx-auto mb-2 text-primary" />
+            <h3 className="font-semibold text-sm">Create</h3>
+            <p className="text-xs text-muted-foreground hidden md:block">New session</p>
           </CardContent>
         </Card>
 
         <Card 
-          className="group hover-scale cursor-pointer border-primary/20 hover:border-primary/50 transition-all duration-300 hover:shadow-lg relative overflow-hidden"
+          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50 transition-all"
           onClick={() => setCurrentView("history")}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-purple-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <CardContent className="p-6 text-center relative">
-            <div className="w-12 h-12 mx-auto mb-3 bg-purple-500/10 rounded-xl flex items-center justify-center group-hover:bg-purple-500/20 transition-colors">
-              <History className="w-6 h-6 text-purple-600" />
-            </div>
-            <h3 className="font-semibold text-sm mb-1">Match History</h3>
-            <p className="text-xs text-muted-foreground">Track progress</p>
-            <Badge variant="secondary" className="mt-2 text-xs">{userStats.totalSessions} matches</Badge>
+          <CardContent className="p-4 text-center">
+            <Calendar className="w-8 h-8 mx-auto mb-2 text-primary" />
+            <h3 className="font-semibold text-sm">History</h3>
+            <p className="text-xs text-muted-foreground hidden md:block">Past sessions</p>
           </CardContent>
         </Card>
 
         <Card 
-          className="group hover-scale cursor-pointer border-primary/20 hover:border-primary/50 transition-all duration-300 hover:shadow-lg relative overflow-hidden"
+          className="hover-scale cursor-pointer border-primary/20 hover:border-primary/50 transition-all"
           onClick={() => console.log("View tournaments")}
         >
-          <div className="absolute inset-0 bg-gradient-to-br from-yellow-500/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity"></div>
-          <CardContent className="p-6 text-center relative">
-            <div className="w-12 h-12 mx-auto mb-3 bg-yellow-500/10 rounded-xl flex items-center justify-center group-hover:bg-yellow-500/20 transition-colors">
-              <Trophy className="w-6 h-6 text-yellow-600" />
-            </div>
-            <h3 className="font-semibold text-sm mb-1">Tournaments</h3>
-            <p className="text-xs text-muted-foreground">Compete & win</p>
-            <Badge variant="secondary" className="mt-2 text-xs">3 upcoming</Badge>
+          <CardContent className="p-4 text-center">
+            <Trophy className="w-8 h-8 mx-auto mb-2 text-primary" />
+            <h3 className="font-semibold text-sm">Tournaments</h3>
+            <p className="text-xs text-muted-foreground hidden md:block">Competitions</p>
           </CardContent>
         </Card>
       </div>
