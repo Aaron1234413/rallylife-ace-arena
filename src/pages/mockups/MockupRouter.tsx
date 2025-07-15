@@ -2,7 +2,7 @@ import { Routes, Route } from "react-router-dom";
 import { PlayMockup } from "./PlayMockup";
 import { FeedMockup } from "./FeedMockup";
 import { TrainingMockup } from "./TrainingMockup";
-import { ClubsMockup } from "./ClubsMockup";
+import { ClubsMockup } from "../ClubsNew";
 import { ClubDetailMockup } from "./ClubDetailMockup";
 import { ProfileMockup } from "./ProfileMockup";
 

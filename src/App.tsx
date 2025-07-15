@@ -42,7 +42,7 @@ import Sessions from "@/pages/Sessions";
 import CreateSession from "@/pages/CreateSession";
 import EditSession from "@/pages/EditSession";
 import Club from "@/pages/Club";
-import Clubs from "@/pages/Clubs";
+import Clubs from "@/pages/ClubsOld";
 import JoinClub from "@/pages/JoinClub";
 import { MockupRouter } from "@/pages/mockups/MockupRouter";
 
