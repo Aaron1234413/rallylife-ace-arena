@@ -24,7 +24,8 @@ import {
   Play,
   ChevronRight,
   Check,
-  UserPlus
+  UserPlus,
+  Coins
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -49,7 +50,8 @@ export function SessionCreationFlow({ open, onOpenChange, onCreateSession }: Ses
     courtType: "",
     isPrivate: false,
     entryFee: "",
-    prizePool: ""
+    prizePool: "",
+    tokenWager: ""
   });
 
   const sessionTypes = [
@@ -121,7 +123,8 @@ export function SessionCreationFlow({ open, onOpenChange, onCreateSession }: Ses
         courtType: "",
         isPrivate: false,
         entryFee: "",
-        prizePool: ""
+        prizePool: "",
+        tokenWager: ""
       });
     }
   };
@@ -422,7 +425,7 @@ export function SessionCreationFlow({ open, onOpenChange, onCreateSession }: Ses
       </Card>
 
       <div className="space-y-4">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
             <Label htmlFor="entryFee">Entry Fee (Optional)</Label>
             <div className="relative">
@@ -449,6 +452,21 @@ export function SessionCreationFlow({ open, onOpenChange, onCreateSession }: Ses
                 className="pl-10"
                 value={sessionData.prizePool}
                 onChange={(e) => setSessionData({ ...sessionData, prizePool: e.target.value })}
+              />
+            </div>
+          </div>
+
+          <div>
+            <Label htmlFor="tokenWager">Token Wager (Optional)</Label>
+            <div className="relative">
+              <Coins className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+              <Input
+                id="tokenWager"
+                type="number"
+                placeholder="0"
+                className="pl-10"
+                value={sessionData.tokenWager}
+                onChange={(e) => setSessionData({ ...sessionData, tokenWager: e.target.value })}
               />
             </div>
           </div>

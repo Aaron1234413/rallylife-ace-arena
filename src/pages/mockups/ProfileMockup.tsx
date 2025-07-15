@@ -4,6 +4,8 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { Progress } from "@/components/ui/progress";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { PlayerStatusCard } from "@/components/play/PlayerStatusCard";
+import { QuickStatsCard } from "@/components/play/QuickStatsCard";
 import { 
   User, Trophy, Target, Clock, TrendingUp, Calendar, 
   MapPin, Edit, Settings, Star, Medal, Award
@@ -12,80 +14,72 @@ import {
 export function ProfileMockup() {
   return (
     <div className="container mx-auto p-4 space-y-6">
-      {/* Profile Header */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="flex flex-col md:flex-row items-start gap-6">
-            <div className="flex items-center gap-4">
-              <Avatar className="w-24 h-24">
-                <AvatarImage src="/placeholder-avatar.jpg" />
-                <AvatarFallback>JD</AvatarFallback>
-              </Avatar>
-              <div>
-                <h1 className="text-3xl font-bold">John Doe</h1>
-                <p className="text-muted-foreground mb-2">Tennis Enthusiast</p>
-                <div className="flex items-center gap-2 text-sm text-muted-foreground mb-2">
-                  <MapPin className="w-4 h-4" />
-                  <span>San Francisco, CA</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Badge variant="secondary" className="bg-primary/10 text-primary">
-                    Level 8
-                  </Badge>
-                  <Badge variant="outline">2,340 XP</Badge>
-                </div>
-              </div>
-            </div>
-            
-            <div className="flex-1 grid grid-cols-2 md:grid-cols-4 gap-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold text-green-600">76%</div>
-                <p className="text-sm text-muted-foreground">Win Rate</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-blue-600">142</div>
-                <p className="text-sm text-muted-foreground">Matches</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-purple-600">28h</div>
-                <p className="text-sm text-muted-foreground">Play Time</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold text-orange-600">23</div>
-                <p className="text-sm text-muted-foreground">Achievements</p>
-              </div>
-            </div>
-            
-            <div className="flex gap-2">
-              <Button variant="outline" size="sm">
-                <Edit className="w-4 h-4 mr-2" />
-                Edit Profile
-              </Button>
-              <Button variant="outline" size="sm">
-                <Settings className="w-4 h-4" />
-              </Button>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Header */}
+      <div className="text-center space-y-4">
+        <div>
+          <h1 className="text-2xl md:text-3xl font-bold">Player Profile</h1>
+          <p className="text-muted-foreground text-sm md:text-base">Your tennis journey and progress</p>
+        </div>
+      </div>
 
-      {/* Level Progress */}
-      <Card>
-        <CardContent className="p-6">
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <h3 className="text-lg font-semibold">Level Progress</h3>
-              <span className="text-sm text-muted-foreground">160 XP to next level</span>
-            </div>
-            <Progress value={68} className="h-3" />
-            <div className="flex justify-between text-sm text-muted-foreground">
-              <span>Level 8</span>
-              <span>2,340 / 2,500 XP</span>
-              <span>Level 9</span>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
+      {/* Main Content Layout */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        {/* Left Column - Profile & Details */}
+        <div className="lg:col-span-2 space-y-6">
+          {/* Player Status Card */}
+          <PlayerStatusCard 
+            onEditProfile={() => console.log("Edit profile")}
+            onViewAchievements={() => console.log("View achievements")}
+          />
+
+          {/* Level Progress */}
+          <Card>
+            <CardContent className="p-6">
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <h3 className="text-lg font-semibold">Level Progress</h3>
+                  <span className="text-sm text-muted-foreground">160 XP to next level</span>
+                </div>
+                <Progress value={68} className="h-3" />
+                <div className="flex justify-between text-sm text-muted-foreground">
+                  <span>Level 8</span>
+                  <span>2,340 / 2,500 XP</span>
+                  <span>Level 9</span>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Right Column - Stats */}
+        <div className="space-y-6">
+          {/* Quick Stats Card */}
+          <QuickStatsCard 
+            onViewFullStats={() => console.log("View full stats")}
+          />
+
+          {/* Recent Activity Summary */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-sm">This Week</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-3">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Matches Played</span>
+                <span className="font-medium">3</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Hours Played</span>
+                <span className="font-medium">4.5h</span>
+              </div>
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-muted-foreground">Win Rate</span>
+                <span className="font-medium text-green-500">67%</span>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
 
       {/* Tabs */}
       <Tabs defaultValue="stats" className="w-full">
