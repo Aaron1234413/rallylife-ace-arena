@@ -45,8 +45,12 @@ export function SessionCompletionFlow({ open, onOpenChange, sessionData, onCompl
   };
 
   const calculateRewards = () => {
+    if (!sessionData) {
+      return { xp: 0, tokens: 0, ratingChange: 0 };
+    }
+    
     const baseXP = 50;
-    const durationBonus = Math.floor(sessionData.duration / 60) * 5;
+    const durationBonus = Math.floor((sessionData.duration ?? 0) / 60) * 5;
     const resultBonus = sessionData.winner === "player1" ? 30 : 15;
     const ratingBonus = rating >= 4 ? 20 : 10;
     
@@ -57,7 +61,7 @@ export function SessionCompletionFlow({ open, onOpenChange, sessionData, onCompl
     };
   };
 
-  const rewards = calculateRewards();
+  const rewards = sessionData ? calculateRewards() : { xp: 0, tokens: 0, ratingChange: 0 };
 
   const renderSummaryStep = () => (
     <div className="space-y-6">

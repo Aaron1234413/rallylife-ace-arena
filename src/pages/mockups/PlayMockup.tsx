@@ -253,12 +253,14 @@ export function PlayMockup() {
         onCreateSession={handleCreateSession}
       />
 
-      <SessionCompletionFlow
-        open={showCompletionFlow}
-        onOpenChange={setShowCompletionFlow}
-        sessionData={completedSessionData}
-        onComplete={handleCompleteSession}
-      />
+      {completedSessionData && (
+        <SessionCompletionFlow
+          open={showCompletionFlow}
+          onOpenChange={setShowCompletionFlow}
+          sessionData={completedSessionData}
+          onComplete={handleCompleteSession}
+        />
+      )}
     </div>
   );
 }
