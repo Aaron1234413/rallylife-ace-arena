@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -23,14 +23,11 @@ interface HPActivity {
   created_at: string;
 }
 
-export function usePlayerHP() {
+export function usePlayerHP(dashboardTrigger?: number) {
   const { user } = useAuth();
   const [hpData, setHpData] = useState<PlayerHP | null>(null);
   const [activities, setActivities] = useState<HPActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const channelRef = useRef<any>(null);
-  const subscriptionInitialized = useRef(false);
-  const isSubscribed = useRef(false);
 
   const fetchHP = async () => {
     if (!user) return;
@@ -141,16 +138,6 @@ export function usePlayerHP() {
     console.log('HP data refresh completed');
   };
 
-  const cleanupChannel = () => {
-    if (channelRef.current) {
-      console.log('Cleaning up HP channel subscription');
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-      subscriptionInitialized.current = false;
-      isSubscribed.current = false;
-    }
-  };
-
   useEffect(() => {
     if (user) {
       const loadData = async () => {
@@ -161,63 +148,20 @@ export function usePlayerHP() {
       };
 
       loadData();
-
-      // Clean up any existing channel first
-      cleanupChannel();
-
-      // Set up new real-time subscription
-      const channelName = `hp-updates-${user.id}-${Date.now()}`;
-      const channel = supabase.channel(channelName);
-      
-      channel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'player_hp',
-            filter: `player_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('HP real-time update received:', payload);
-            fetchHP();
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'hp_activities',
-            filter: `player_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('HP activity real-time update received:', payload);
-            fetchActivities();
-          }
-        );
-
-      channel.subscribe((status) => {
-        console.log('HP Channel subscription status:', status);
-        if (status === 'SUBSCRIBED') {
-          subscriptionInitialized.current = true;
-          isSubscribed.current = true;
-        }
-      });
-
-      channelRef.current = channel;
-
-      return () => {
-        cleanupChannel();
-      };
     } else {
-      // Clean up when no user
-      cleanupChannel();
       setHpData(null);
       setActivities([]);
       setLoading(false);
     }
   }, [user]);
+
+  // React to dashboard subscription updates
+  useEffect(() => {
+    if (dashboardTrigger && user) {
+      fetchHP();
+      fetchActivities();
+    }
+  }, [dashboardTrigger, user]);
 
   return {
     hpData,

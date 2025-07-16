@@ -14,7 +14,7 @@ export interface RecentActivityItem {
   createdAt: Date;
 }
 
-export function useRecentActivity(limit: number = 10) {
+export function useRecentActivity(limit: number = 10, dashboardTrigger?: number) {
   const { user } = useAuth();
   const [activities, setActivities] = useState<RecentActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -140,80 +140,12 @@ export function useRecentActivity(limit: number = 10) {
     fetchRecentActivity();
   }, [user, limit]);
 
-  // Set up real-time subscriptions for updates
+  // React to dashboard subscription updates
   useEffect(() => {
-    if (!user) return;
-
-    const timestamp = Date.now();
-    const channels = [
-      supabase
-        .channel(`activity_logs_changes_${user.id}_${timestamp}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'activity_logs',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => fetchRecentActivity()
-        ),
-      supabase
-        .channel(`xp_activities_changes_${user.id}_${timestamp}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'xp_activities',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => fetchRecentActivity()
-        ),
-      supabase
-        .channel(`hp_activities_changes_${user.id}_${timestamp}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'hp_activities',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => fetchRecentActivity()
-        ),
-      supabase
-        .channel(`challenges_changes_${user.id}_${timestamp}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'challenges',
-            filter: `challenger_id=eq.${user.id}`
-          },
-          () => fetchRecentActivity()
-        ),
-      supabase
-        .channel(`challenged_changes_${user.id}_${timestamp}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'challenges',
-            filter: `challenged_id=eq.${user.id}`
-          },
-          () => fetchRecentActivity()
-        )
-    ];
-
-    channels.forEach(channel => channel.subscribe());
-
-    return () => {
-      channels.forEach(channel => supabase.removeChannel(channel));
-    };
-  }, [user]);
+    if (dashboardTrigger && user) {
+      fetchRecentActivity();
+    }
+  }, [dashboardTrigger, user]);
 
   return {
     activities,

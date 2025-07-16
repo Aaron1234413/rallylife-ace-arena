@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
@@ -65,14 +65,11 @@ export interface TokenTransaction {
   created_at: string;
 }
 
-export function usePlayerTokens() {
+export function usePlayerTokens(dashboardTrigger?: number) {
   const { user } = useAuth();
   const [tokenData, setTokenData] = useState<PlayerTokens | null>(null);
   const [transactions, setTransactions] = useState<TokenTransaction[]>([]);
   const [loading, setLoading] = useState(true);
-  const channelRef = useRef<any>(null);
-  const subscriptionInitialized = useRef(false);
-  const isSubscribed = useRef(false);
 
   const fetchTokens = async () => {
     if (!user) return;
@@ -196,16 +193,6 @@ export function usePlayerTokens() {
     }
   };
 
-  const cleanupChannel = () => {
-    if (channelRef.current) {
-      console.log('Cleaning up token channel subscription');
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-      subscriptionInitialized.current = false;
-      isSubscribed.current = false;
-    }
-  };
-
   useEffect(() => {
     if (user) {
       const loadData = async () => {
@@ -216,61 +203,20 @@ export function usePlayerTokens() {
       };
 
       loadData();
-
-      // Clean up any existing channel first
-      cleanupChannel();
-
-      const channelName = `tokens-${user.id}-${Date.now()}`;
-      const channel = supabase.channel(channelName);
-      
-      channel
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${user.id}`
-          },
-          () => {
-            console.log('Token balance updated');
-            fetchTokens();
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'token_transactions',
-            filter: `user_id=eq.${user.id}`
-          },
-          () => {
-            console.log('Token transaction added');
-            fetchTransactions();
-          }
-        );
-
-      channel.subscribe((status) => {
-        console.log('Token Channel subscription status:', status);
-        if (status === 'SUBSCRIBED') {
-          subscriptionInitialized.current = true;
-          isSubscribed.current = true;
-        }
-      });
-
-      channelRef.current = channel;
-
-      return () => {
-        cleanupChannel();
-      };
     } else {
-      cleanupChannel();
       setTokenData(null);
       setTransactions([]);
       setLoading(false);
     }
   }, [user]);
+
+  // React to dashboard subscription updates
+  useEffect(() => {
+    if (dashboardTrigger && user) {
+      fetchTokens();
+      fetchTransactions();
+    }
+  }, [dashboardTrigger, user]);
 
   return {
     tokenData,
