@@ -13,7 +13,7 @@ import {
 import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
 import { ClubCard } from '@/components/clubs/ClubCard';
-import { ClubCreationWizard } from '@/components/club/ClubCreationWizard';
+// import { ClubCreationWizard } from '@/components/club/ClubCreationWizard'; // Archived for MVP
 
 export default function Clubs() {
   const navigate = useNavigate();
@@ -215,15 +215,22 @@ export default function Clubs() {
           )}
         </div>
 
-        {/* Create Club Wizard */}
+        {/* Archived club creation - replaced with MVP message */}
         {showCreateDialog && (
-          <ClubCreationWizard
-            onComplete={() => {
-              setShowCreateDialog(false);
-              // Note: Navigation will be handled by the wizard itself
-            }}
-            onCancel={() => setShowCreateDialog(false)}
-          />
+          <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+            <div className="bg-white p-8 rounded-lg shadow-lg max-w-md mx-4">
+              <h2 className="text-xl font-bold text-tennis-green-dark mb-4">Club Creation Coming Soon</h2>
+              <p className="text-gray-700 mb-4">
+                Club creation features will be available in a future update.
+              </p>
+              <button 
+                onClick={() => setShowCreateDialog(false)}
+                className="px-4 py-2 bg-tennis-green-primary text-white rounded-lg hover:bg-tennis-green-medium transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
         )}
       </div>
     </div>

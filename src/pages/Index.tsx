@@ -27,17 +27,19 @@ import {
 } from 'lucide-react';
 import { WelcomeBanner } from "@/components/dashboard/WelcomeBanner";
 import { PlayerVitalsHero, EnhancedQuickActions } from "@/components/dashboard/player";
-import { CoachOverviewCards } from "@/components/coach/dashboard/CoachOverviewCards";
-import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickActions";
-import { CoachInteractionPanel } from "@/components/coach/dashboard/CoachInteractionPanel";
+// Archived coach imports - removed for MVP
+// import { CoachOverviewCards } from "@/components/coach/dashboard/CoachOverviewCards";
+// import { CoachQuickActions } from "@/components/coach/dashboard/CoachQuickActions";
+// import { CoachInteractionPanel } from "@/components/coach/dashboard/CoachInteractionPanel";
 import { MobileActionPanel } from "@/components/dashboard/mobile";
 
 import { YourSessions } from "@/components/dashboard/YourSessions";
 import { ActiveSessionCard } from "@/components/dashboard/ActiveSessionCard";
 import { useUnifiedSessions } from "@/hooks/useUnifiedSessions";
-import { useCoachCXP } from "@/hooks/useCoachCXP";
-import { useCoachTokens } from "@/hooks/useCoachTokens";
-import { useCoachCRP } from "@/hooks/useCoachCRP";
+// Archived coach hooks - removed for MVP  
+// import { useCoachCXP } from "@/hooks/useCoachCXP";
+// import { useCoachTokens } from "@/hooks/useCoachTokens";
+// import { useCoachCRP } from "@/hooks/useCoachCRP";
 import ErrorBoundary from "@/components/ErrorBoundary";
 import { useLocation, useNavigate } from "react-router-dom";
 import { toast } from "sonner";
@@ -66,10 +68,10 @@ const Index = () => {
     filterUserSessions: true
   });
 
-  // Coach-specific hooks
-  const { cxpData, loading: cxpLoading, addCXP, initializeCXP } = useCoachCXP();
-  const { tokenData: coachTokenData, loading: coachTokensLoading, addTokens: addCoachTokens } = useCoachTokens();
-  const { crpData, isLoading: crpLoading, initializeCRP } = useCoachCRP();
+  // Archived coach hooks - removed for MVP
+  // const { cxpData, loading: cxpLoading, addCXP, initializeCXP } = useCoachCXP();
+  // const { tokenData: coachTokenData, loading: coachTokensLoading, addTokens: addCoachTokens } = useCoachTokens();
+  // const { crpData, isLoading: crpLoading, initializeCRP } = useCoachCRP();
 
   // Derive user role flags from profile
   const isPlayer = profile?.role === 'player';
@@ -173,17 +175,19 @@ const Index = () => {
               console.log('🏠 [INDEX] Initializing avatar...');
               await initializeAvatar();
             }
-          } else if (profile.role === 'coach') {
-            // Initialize coach data with error handling (tokens handled by DB trigger)
-            if (!cxpData) {
-              console.log('🏠 [INDEX] Initializing coach CXP...');
-              await initializeCXP();
-            }
-            if (!crpData) {
-              console.log('🏠 [INDEX] Initializing coach CRP...');
-              await initializeCRP();
-            }
-          }
+          } 
+          // Archived coach initialization - removed for MVP
+          // else if (profile.role === 'coach') {
+          //   // Initialize coach data with error handling (tokens handled by DB trigger)
+          //   if (!cxpData) {
+          //     console.log('🏠 [INDEX] Initializing coach CXP...');
+          //     await initializeCXP();
+          //   }
+          //   if (!crpData) {
+          //     console.log('🏠 [INDEX] Initializing coach CRP...');
+          //     await initializeCRP();
+          //   }
+          // }
           
           setDataInitialized(true);
           console.log('🏠 [INDEX] Data initialization completed successfully');
@@ -569,41 +573,17 @@ const Index = () => {
           </>
         )}
 
-        {/* Coach-specific content - Streamlined Dashboard */}
+        {/* Archived coach content - removed for MVP */}
         {isCoach && (
-          <>
-            {/* Header Section */}
-            <div className="text-center mb-6">
-              <h1 className="text-2xl sm:text-3xl font-bold text-tennis-green-dark">
-                Coach Dashboard 🎾
-              </h1>
-              <p className="text-tennis-green-medium mt-2">
-                Manage your coaching practice and track your professional growth
-              </p>
-            </div>
-
-            {/* Coach Overview Cards - Similar to Player Vitals */}
-            <ErrorBoundary fallbackTitle="Coach Overview Error">
-              <CoachOverviewCards
-                cxpData={cxpData}
-                tokenData={coachTokenData}
-                crpData={crpData}
-                cxpLoading={cxpLoading}
-                tokensLoading={coachTokensLoading}
-                crpLoading={crpLoading}
-              />
-            </ErrorBoundary>
-
-            {/* Coach Quick Actions - Essential daily actions */}
-            <ErrorBoundary fallbackTitle="Coach Actions Error">
-              <CoachQuickActions />
-            </ErrorBoundary>
-
-            {/* Coach Interaction Panel - Focused coaching tools */}
-            <ErrorBoundary fallbackTitle="Coach Interaction Error">
-              <CoachInteractionPanel />
-            </ErrorBoundary>
-          </>
+          <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+            <h2 className="text-2xl font-bold text-tennis-green-dark mb-4">Coach Dashboard Coming Soon</h2>
+            <p className="text-gray-700 mb-4">
+              Coach features are being enhanced and will be available in a future update.
+            </p>
+            <p className="text-tennis-green-medium">
+              For now, please use the player features available in the MVP.
+            </p>
+          </div>
         )}
 
         {/* Fallback content if no role is detected */}

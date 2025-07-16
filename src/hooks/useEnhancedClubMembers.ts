@@ -1,7 +1,17 @@
 import { useState, useEffect, useMemo } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from './useAuth';
-import { SearchFilters } from '@/components/club/MemberSearchFilter';
+// import { SearchFilters } from '@/components/club/MemberSearchFilter'; // Archived for MVP
+interface SearchFilters {
+  searchTerm: string;
+  utrRange: [number, number];
+  ustaRange: [number, number];
+  showOnlyLookingToPlay: boolean;
+  location: string;
+  roleFilter: string;
+  statusFilter: string;
+  sortBy: string;
+}
 
 export interface EnhancedMember {
   id: string;
@@ -32,7 +42,10 @@ export function useEnhancedClubMembers(clubId: string) {
     utrRange: [1, 16.5],
     ustaRange: [1, 7],
     showOnlyLookingToPlay: false,
-    location: ''
+    location: '',
+    roleFilter: 'all',
+    statusFilter: 'active',
+    sortBy: 'joined_at'
   });
 
   const fetchMembers = async () => {

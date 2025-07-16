@@ -1,7 +1,16 @@
 import { useState } from 'react';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { useAcademyProgressDB } from '@/hooks/useAcademyProgressDB';
-import { QuizQuestion } from '@/components/academy/QuizInterface';
+// import { QuizQuestion } from '@/components/academy/QuizInterface'; // Archived for MVP
+interface QuizQuestion {
+  id: string;
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  difficulty: 'easy' | 'medium' | 'hard';
+  category: string;
+  explanation?: string;
+}
 import { getTodaysTopic } from '@/utils/TopicRotationSystem';
 
 // Expanded Quiz Question Bank with 50+ questions

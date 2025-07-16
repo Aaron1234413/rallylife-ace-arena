@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { AcademyDashboard } from '@/components/academy/AcademyDashboard';
-import { AcademyOnboarding } from '@/components/academy/AcademyOnboarding';
-import { DailyQuiz } from '@/components/academy/DailyQuiz';
+// Archived academy imports - moved to archive folder
+// import { AcademyDashboard } from '@/components/academy/AcademyDashboard';
+// import { AcademyOnboarding } from '@/components/academy/AcademyOnboarding';
+// import { DailyQuiz } from '@/components/academy/DailyQuiz';
 import { useAcademyProgressDB } from '@/hooks/useAcademyProgressDB';
 
 const Academy = () => {
@@ -46,15 +47,12 @@ const Academy = () => {
   }
 
   if (activeView === 'onboarding') {
-    return <AcademyOnboarding onComplete={handleOnboardingComplete} />;
+    return <div>Academy Onboarding Component Archived</div>;
   }
 
   if (activeView === 'quiz') {
     return (
-      <DailyQuiz
-        onBack={handleBackToDashboard}
-        playerLevel={progress?.level}
-      />
+      <div>Daily Quiz Component Archived</div>
     );
   }
 
@@ -73,10 +71,7 @@ const Academy = () => {
   }
 
   return (
-    <AcademyDashboard
-      progress={progress}
-      onStartQuiz={handleStartQuiz}
-    />
+    <div>Academy Dashboard Component Archived</div>
   );
 };
 

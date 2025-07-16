@@ -18,7 +18,7 @@ import {
 } from 'lucide-react';
 import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
-import { JoinClubDialog } from '@/components/club/JoinClubDialog';
+// import { JoinClubDialog } from '@/components/club/JoinClubDialog'; // Archived for MVP
 import { formatDistanceToNow } from 'date-fns';
 import { toast } from 'sonner';
 

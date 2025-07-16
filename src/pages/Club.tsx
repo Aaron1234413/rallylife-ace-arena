@@ -23,12 +23,13 @@ import { useClubs } from '@/hooks/useClubs';
 import { useAuth } from '@/hooks/useAuth';
 import { toast } from 'sonner';
 import { formatDistanceToNow } from 'date-fns';
-import { ClubMobileDashboard } from '@/components/club/dashboard/ClubMobileDashboard';
-import { SimplifiedClubNav } from '@/components/club/navigation/SimplifiedClubNav';
-import { MembersListSimple } from '@/components/club/MembersListSimple';
-import { CourtBooking } from '@/components/club/dashboard/CourtBooking';
-import { ClubEconomics } from '@/components/club/economics/ClubEconomics';
-import { ClubSettings } from '@/components/club/ClubSettings';
+// Archived club imports - removed for MVP
+// import { ClubMobileDashboard } from '@/components/club/dashboard/ClubMobileDashboard';
+// import { SimplifiedClubNav } from '@/components/club/navigation/SimplifiedClubNav';  
+// import { MembersListSimple } from '@/components/club/MembersListSimple';
+// import { CourtBooking } from '@/components/club/dashboard/CourtBooking';
+// import { ClubEconomics } from '@/components/club/economics/ClubEconomics';
+// import { ClubSettings } from '@/components/club/ClubSettings';
 
 export default function Club() {
   const { clubId } = useParams<{ clubId: string }>();
@@ -248,59 +249,16 @@ export default function Club() {
             setEconomicsInitialTab('overview');
           }
         }} className="space-y-6">
-          <SimplifiedClubNav
-            activeTab={activeTab}
-            onTabChange={setActiveTab}
-            isMember={isMember}
-            canManageMembers={canManageMembers}
-            canEditClub={canEditClub}
-            isCoach={isCoach}
-            isOwner={isOwner}
-          />
-
-          <TabsContent value="play">
-            <ClubMobileDashboard 
-              club={club} 
-              isMember={isMember} 
-              onNavigateToTab={setActiveTab}
-            />
-          </TabsContent>
-
-
-          <TabsContent value="members">
-            <MembersListSimple 
-              club={club} 
-              canManageMembers={canManageMembers}
-            />
-          </TabsContent>
-
-          <TabsContent value="courts">
-            <CourtBooking 
-              clubId={club.id} 
-              isOwner={isOwner}
-              onNavigateToSettings={() => setActiveTab('settings')}
-            />
-          </TabsContent>
-
-          <TabsContent value="economics">
-            <ClubEconomics 
-              club={club} 
-              isOwner={isOwner} 
-              canManage={canManageMembers || canEditClub}
-              initialTab={economicsInitialTab}
-            />
-          </TabsContent>
-
-          <TabsContent value="settings">
-            <ClubSettings 
-              club={club} 
-              onSettingsUpdate={handleRefresh}
-              onNavigateToEconomics={() => {
-                setEconomicsInitialTab('subscription');
-                setActiveTab('economics');
-              }}
-            />
-          </TabsContent>
+          {/* Archived club components - replaced with MVP message */}
+          <div className="text-center p-8 bg-white rounded-lg shadow-lg">
+            <h2 className="text-2xl font-bold text-tennis-green-dark mb-4">Club Features Coming Soon</h2>
+            <p className="text-gray-700 mb-4">
+              Club management features are being enhanced and will be available in a future update.
+            </p>
+            <p className="text-tennis-green-medium">
+              For now, please use the player features available in the MVP.
+            </p>
+          </div>
 
         </Tabs>
 
