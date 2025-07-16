@@ -16,6 +16,7 @@ const navItems = [
   { icon: Play, label: 'Play', path: '/play' },
   { icon: Trophy, label: 'Leaderboards', path: '/leaderboards' },
   { icon: ShoppingBag, label: 'Store', path: '/store' },
+  { icon: MessageSquare, label: 'Messages', path: '/messages' },
   { icon: User, label: 'Profile', path: '/profile' }
 ];
 
@@ -28,7 +29,7 @@ export function MobileBottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-tennis-green-bg/20 md:hidden z-40">
-      <div className="grid grid-cols-5 py-2">
+      <div className="grid grid-cols-6 py-2">
         {navItems.map(({ icon: Icon, label, path }) => {
           const isActive = location.pathname === path;
           
