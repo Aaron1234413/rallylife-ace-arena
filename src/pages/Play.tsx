@@ -506,7 +506,7 @@ const Play = () => {
             </div>
           </TabsContent>
 
-          {/* Matchmaking Tab */}
+           {/* Matchmaking Tab */}
           <TabsContent value="matchmaking" className="space-y-6">
             <div className="space-y-4">
               <h2 className="text-lg font-semibold">Find Players</h2>
@@ -514,31 +514,45 @@ const Play = () => {
             </div>
 
             {/* Active Matches */}
-            {(activeMatches.length > 0 || pendingMatches.length > 0) && (
-              <div className="space-y-4">
-                <h2 className="text-lg font-semibold">Your Matches</h2>
-                
-                 {/* Pending Matches */}
-                {pendingMatches.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="text-md font-medium text-muted-foreground">Pending Challenges</h3>
-                    {pendingMatches.map((match: any) => (
-                      <MatchCard key={match.id} match={match} />
-                    ))}
-                  </div>
-                )}
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Your Matches</h2>
+              
+              {(activeMatches.length > 0 || pendingMatches.length > 0) ? (
+                <>
+                  {/* Pending Matches */}
+                  {pendingMatches.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-md font-medium text-muted-foreground">Pending Challenges</h3>
+                      {pendingMatches.map((match: any) => (
+                        <MatchCard key={match.id} match={match} variant="challenge" />
+                      ))}
+                    </div>
+                  )}
 
-                {/* Active Matches */}
-                {activeMatches.length > 0 && (
-                  <div className="space-y-3">
-                    <h3 className="text-md font-medium text-muted-foreground">Active Matches</h3>
-                    {activeMatches.map((match: any) => (
-                      <MatchCard key={match.id} match={match} />
-                    ))}
-                  </div>
-                )}
-              </div>
-            )}
+                  {/* Active Matches */}
+                  {activeMatches.length > 0 && (
+                    <div className="space-y-3">
+                      <h3 className="text-md font-medium text-muted-foreground">Active Matches</h3>
+                      {activeMatches.map((match: any) => (
+                        <MatchCard key={match.id} match={match} variant="active" />
+                      ))}
+                    </div>
+                  )}
+                </>
+              ) : (
+                <Card>
+                  <CardContent className="p-8 text-center">
+                    <div className="space-y-4">
+                      <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto" />
+                      <div>
+                        <h3 className="text-lg font-semibold">No Matches Yet</h3>
+                        <p className="text-muted-foreground">Challenge players above to start your first match!</p>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              )}
+            </div>
           </TabsContent>
 
           {/* Nearby Tab */}

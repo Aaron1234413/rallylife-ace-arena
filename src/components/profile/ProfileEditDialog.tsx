@@ -13,6 +13,8 @@ import { Edit, Save, X } from 'lucide-react';
 import { LocationInput } from '@/components/ui/location-input';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
+import { AvailabilityPicker } from './AvailabilityPicker';
+import { StakePreference } from './StakePreference';
 
 interface LocationData {
   address: string;
@@ -40,8 +42,8 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
   const [location, setLocation] = useState<LocationData | null>(null);
   const [utrRating, setUtrRating] = useState(4.0);
   const [ustaRating, setUstaRating] = useState(3.0);
-  const [availability, setAvailability] = useState<any[]>([]);
-  const [stakePreference, setStakePreference] = useState<any>({});
+  const [availability, setAvailability] = useState<Record<string, string[]>>({});
+  const [stakePreference, setStakePreference] = useState<string>('');
 
   useEffect(() => {
     if (profile && open) {
@@ -49,8 +51,8 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
       setLocation(profile.location ? { address: profile.location } : null);
       setUtrRating(profile.utr_rating || 4.0);
       setUstaRating(profile.usta_rating || 3.0);
-      setAvailability(profile.availability || []);
-      setStakePreference(profile.stake_preference || {});
+      setAvailability(profile.availability || {});
+      setStakePreference(profile.stake_preference || '');
     }
   }, [profile, open]);
 
@@ -199,12 +201,11 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
             <Label className="text-base font-medium">
               Weekly Availability
             </Label>
-            <p className="text-xs text-muted-foreground mb-2">
-              Set your preferred times for tennis sessions (coming soon)
-            </p>
-            <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
-              Availability picker will be available in a future update
-            </div>
+            <AvailabilityPicker
+              userId={profile.id}
+              currentAvailability={availability}
+              onAvailabilityUpdate={(newAvailability) => setAvailability(newAvailability)}
+            />
           </div>
 
           {/* Stake Preferences */}
@@ -212,12 +213,11 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
             <Label className="text-base font-medium">
               Match Stake Preferences
             </Label>
-            <p className="text-xs text-muted-foreground mb-2">
-              Configure your preferred stakes for competitive matches (coming soon)
-            </p>
-            <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
-              Stake preferences will be available in a future update
-            </div>
+            <StakePreference
+              userId={profile.id}
+              currentStakePreference={stakePreference}
+              onStakeUpdate={(newStakePreference) => setStakePreference(newStakePreference)}
+            />
           </div>
         </div>
 

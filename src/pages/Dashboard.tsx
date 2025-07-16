@@ -173,49 +173,59 @@ const Dashboard = () => {
           </div>
 
           {/* Active Matches Section */}
-          {(totalPendingChallenges > 0 || totalActiveMatches > 0) && (
-            <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-                  <Gamepad2 className="h-5 w-5" />
-                  Your Matches
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="space-y-4">
-                {totalPendingChallenges > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-tennis-green-bg/50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-tennis-green-dark">Pending Challenges</p>
-                      <p className="text-sm text-tennis-green-dark/70">
-                        {totalPendingChallenges} challenge{totalPendingChallenges !== 1 ? 's' : ''} waiting for response
-                      </p>
-                    </div>
-                    <Button asChild size="sm">
-                      <Link to="/play?tab=matchmaking">
-                        View All
-                      </Link>
-                    </Button>
+          <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
+                <Gamepad2 className="h-5 w-5" />
+                Your Matches
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {totalPendingChallenges > 0 ? (
+                <div className="flex items-center justify-between p-3 bg-tennis-green-bg/50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-tennis-green-dark">Pending Challenges</p>
+                    <p className="text-sm text-tennis-green-dark/70">
+                      {totalPendingChallenges} challenge{totalPendingChallenges !== 1 ? 's' : ''} waiting for response
+                    </p>
                   </div>
-                )}
+                  <Button asChild size="sm" className="bg-tennis-green-primary hover:bg-tennis-green-medium">
+                    <Link to="/play?tab=matchmaking">
+                      View All
+                    </Link>
+                  </Button>
+                </div>
+              ) : null}
 
-                {totalActiveMatches > 0 && (
-                  <div className="flex items-center justify-between p-3 bg-tennis-green-bg/50 rounded-lg">
-                    <div>
-                      <p className="font-medium text-tennis-green-dark">Active Matches</p>
-                      <p className="text-sm text-tennis-green-dark/70">
-                        {totalActiveMatches} ongoing match{totalActiveMatches !== 1 ? 'es' : ''}
-                      </p>
-                    </div>
-                    <Button asChild size="sm">
-                      <Link to="/play?tab=matchmaking">
-                        View All
-                      </Link>
-                    </Button>
+              {totalActiveMatches > 0 ? (
+                <div className="flex items-center justify-between p-3 bg-tennis-green-bg/50 rounded-lg">
+                  <div>
+                    <p className="font-medium text-tennis-green-dark">Active Matches</p>
+                    <p className="text-sm text-tennis-green-dark/70">
+                      {totalActiveMatches} ongoing match{totalActiveMatches !== 1 ? 'es' : ''}
+                    </p>
                   </div>
-                )}
-              </CardContent>
-            </Card>
-          )}
+                  <Button asChild size="sm" className="bg-tennis-green-primary hover:bg-tennis-green-medium">
+                    <Link to="/play?tab=matchmaking">
+                      View All
+                    </Link>
+                  </Button>
+                </div>
+              ) : null}
+
+              {totalPendingChallenges === 0 && totalActiveMatches === 0 && (
+                <div className="text-center py-6">
+                  <Gamepad2 className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                  <p className="text-sm text-tennis-green-dark/70">No active matches</p>
+                  <Button asChild size="sm" variant="outline" className="mt-2 border-tennis-green-medium text-tennis-green-dark hover:bg-tennis-green-light/20">
+                    <Link to="/play?tab=matchmaking">
+                      Find Players
+                    </Link>
+                  </Button>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
           {/* Recent Activity */}
           <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">
