@@ -13,7 +13,7 @@ const iconComponents = {
 };
 
 export function RecentActivity() {
-  const { activities, loading } = useRecentActivity(5);
+  const { activities, loading } = useRecentActivity(2);
 
   return (
     <Card className="relative overflow-hidden bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border-0 shadow-2xl hover:shadow-3xl transition-all duration-300">
