@@ -7596,13 +7596,20 @@ export type Database = {
         Returns: Json
       }
       spend_tokens: {
-        Args: {
-          user_id: string
-          amount: number
-          token_type?: string
-          source?: string
-          description?: string
-        }
+        Args:
+          | {
+              spender_user_id: string
+              token_amount: number
+              transaction_type: string
+              description_text?: string
+            }
+          | {
+              user_id: string
+              amount: number
+              token_type?: string
+              source?: string
+              description?: string
+            }
         Returns: Json
       }
       spheroid_in: {
@@ -8778,6 +8785,10 @@ export type Database = {
       update_club_usage_tracking: {
         Args: { club_id_param: string }
         Returns: undefined
+      }
+      update_daily_streak: {
+        Args: { target_user_id: string }
+        Returns: Json
       }
       update_member_last_seen: {
         Args: { club_id_param: string }
