@@ -2,21 +2,20 @@ import React from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { 
   Home, 
-  Calendar, 
-  Users, 
+  Play, 
   Trophy, 
-  User,
+  ShoppingBag,
   MessageSquare,
-  Map
+  User
 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/hooks/useAuth';
 
 const navItems = [
-  { icon: Home, label: 'Home', path: '/' },
-  { icon: Calendar, label: 'Sessions', path: '/sessions' },
-  { icon: Users, label: 'Clubs', path: '/clubs' },
-  { icon: Trophy, label: 'Play', path: '/play' },
+  { icon: Home, label: 'Dashboard', path: '/dashboard' },
+  { icon: Play, label: 'Play', path: '/play' },
+  { icon: Trophy, label: 'Leaderboards', path: '/leaderboards' },
+  { icon: ShoppingBag, label: 'Store', path: '/store' },
   { icon: MessageSquare, label: 'Messages', path: '/messages' },
   { icon: User, label: 'Profile', path: '/profile' }
 ];

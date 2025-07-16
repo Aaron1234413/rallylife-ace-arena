@@ -5,11 +5,10 @@ import { Button } from '@/components/ui/button';
 import { 
   Home, 
   MessageSquare, 
-  Activity,
+  Trophy,
   LogOut,
-  Users,
   ShoppingBag,
-  Gamepad2,
+  Play,
   User
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
@@ -21,20 +20,16 @@ export function AppNavigation() {
   const location = useLocation();
 
   // MVP navigation items only
-  const primaryRoutes = [
+  const mvpNavItems = [
     { path: '/dashboard', label: 'Dashboard', icon: Home },
-    { path: '/play', label: 'Play', icon: Gamepad2 },
+    { path: '/play', label: 'Play', icon: Play },
+    { path: '/leaderboards', label: 'Leaderboards', icon: Trophy },
+    { path: '/store', label: 'Store', icon: ShoppingBag },
     { path: '/messages', label: 'Messages', icon: MessageSquare },
-    { path: '/store', label: 'Store', icon: ShoppingBag }
-  ];
-
-  // Secondary navigation items
-  const secondaryRoutes = [
-    { path: '/leaderboards', label: 'Leaderboards', icon: Activity },
     { path: '/profile', label: 'Profile', icon: User }
   ];
 
-  const allNavItems = [...primaryRoutes, ...secondaryRoutes];
+  const allNavItems = mvpNavItems;
 
   const isActive = (path: string) => location.pathname === path;
 
