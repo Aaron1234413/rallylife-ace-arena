@@ -4405,7 +4405,9 @@ export type Database = {
           email: string
           experience_tags: string[] | null
           full_name: string | null
+          hp: number | null
           id: string
+          last_hp_update: string | null
           last_login: string | null
           latitude: number | null
           lifetime_tokens_earned: number | null
@@ -4415,6 +4417,7 @@ export type Database = {
           longitude: number | null
           looking_to_play_until: string | null
           manual_level: string | null
+          max_hp: number | null
           onboarding_completed: boolean
           preferences: Json | null
           ready_player_me_url: string | null
@@ -4435,7 +4438,9 @@ export type Database = {
           email: string
           experience_tags?: string[] | null
           full_name?: string | null
+          hp?: number | null
           id: string
+          last_hp_update?: string | null
           last_login?: string | null
           latitude?: number | null
           lifetime_tokens_earned?: number | null
@@ -4445,6 +4450,7 @@ export type Database = {
           longitude?: number | null
           looking_to_play_until?: string | null
           manual_level?: string | null
+          max_hp?: number | null
           onboarding_completed?: boolean
           preferences?: Json | null
           ready_player_me_url?: string | null
@@ -4465,7 +4471,9 @@ export type Database = {
           email?: string
           experience_tags?: string[] | null
           full_name?: string | null
+          hp?: number | null
           id?: string
+          last_hp_update?: string | null
           last_login?: string | null
           latitude?: number | null
           lifetime_tokens_earned?: number | null
@@ -4475,6 +4483,7 @@ export type Database = {
           longitude?: number | null
           looking_to_play_until?: string | null
           manual_level?: string | null
+          max_hp?: number | null
           onboarding_completed?: boolean
           preferences?: Json | null
           ready_player_me_url?: string | null
@@ -6290,6 +6299,10 @@ export type Database = {
         }
         Returns: number
       }
+      calculate_hp_regen: {
+        Args: { user_id: string }
+        Returns: number
+      }
       calculate_level_from_cxp: {
         Args: { total_cxp: number }
         Returns: number
@@ -6602,9 +6615,17 @@ export type Database = {
         }
         Returns: Json
       }
+      daily_login_bonus: {
+        Args: { user_id: string }
+        Returns: number
+      }
       decline_match_invitation: {
         Args: { invitation_id: string }
         Returns: Json
+      }
+      deduct_hp: {
+        Args: { user_id: string; hours_played: number }
+        Returns: number
       }
       disablelongtransactions: {
         Args: Record<PropertyKey, never>
