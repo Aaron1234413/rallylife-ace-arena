@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -45,8 +45,6 @@ interface Session {
 export function useRealTimeSessions(activeTab: string, userId?: string) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
-  const channelsRef = useRef<ReturnType<typeof supabase.channel>[]>([]);
-  const isSubscribedRef = useRef(false);
 
   const fetchSessions = async () => {
     try {
@@ -145,84 +143,41 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
   useEffect(() => {
     if (!userId) return;
 
-    // Only set up subscriptions if not already done
-    if (channelsRef.current.length === 0 && !isSubscribedRef.current) {
-      const existingChannels = supabase.getChannels();
-      const sessionsChannelName = 'sessions-changes';
-      const participantsChannelName = 'participants-changes';
-      
-      const channels: ReturnType<typeof supabase.channel>[] = [];
-      
-      // Check for existing sessions channel
-      const existingSessionsChannel = existingChannels.find(ch => ch.topic === sessionsChannelName);
-      if (existingSessionsChannel && existingSessionsChannel.state === 'joined') {
-        channels.push(existingSessionsChannel);
-        console.log('Reusing existing sessions channel');
-      } else {
-        const sessionsChannel = supabase
-          .channel(sessionsChannelName)
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'sessions'
-            },
-            () => {
-              fetchSessions();
-            }
-          );
-        channels.push(sessionsChannel);
-      }
-
-      // Check for existing participants channel
-      const existingParticipantsChannel = existingChannels.find(ch => ch.topic === participantsChannelName);
-      if (existingParticipantsChannel && existingParticipantsChannel.state === 'joined') {
-        channels.push(existingParticipantsChannel);
-        console.log('Reusing existing participants channel');
-      } else {
-        const participantsChannel = supabase
-          .channel(participantsChannelName)
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'session_participants'
-            },
-            () => {
-              fetchSessions();
-            }
-          );
-        channels.push(participantsChannel);
-      }
-
-      channelsRef.current = channels;
-      
-      // Subscribe to new channels only
-      channels.forEach(channel => {
-        if (channel.state !== 'joined') {
-          channel.subscribe((status) => {
-            console.log(`Real-time sessions channel subscription status: ${status}`);
-          });
+    // Subscribe to sessions table changes
+    const sessionsChannel = supabase
+      .channel('sessions-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'sessions'
+        },
+        () => {
+          fetchSessions();
         }
-      });
-      
-      isSubscribedRef.current = true;
-    }
+      )
+      .subscribe();
+
+    // Subscribe to session_participants table changes
+    const participantsChannel = supabase
+      .channel('participants-changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'session_participants'
+        },
+        () => {
+          fetchSessions();
+        }
+      )
+      .subscribe();
 
     return () => {
-      // Clean up subscriptions
-      if (isSubscribedRef.current && channelsRef.current.length > 0) {
-        console.log('Cleaning up sessions subscriptions');
-        channelsRef.current.forEach(channel => {
-          if (channel.state === 'joined') {
-            channel.unsubscribe();
-          }
-        });
-        channelsRef.current = [];
-        isSubscribedRef.current = false;
-      }
+      supabase.removeChannel(sessionsChannel);
+      supabase.removeChannel(participantsChannel);
     };
   }, [userId, activeTab]);
 

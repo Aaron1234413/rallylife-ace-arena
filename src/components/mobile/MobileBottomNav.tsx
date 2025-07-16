@@ -16,6 +16,7 @@ const navItems = [
   { icon: Play, label: 'Play', path: '/play' },
   { icon: Trophy, label: 'Leaderboards', path: '/leaderboards' },
   { icon: ShoppingBag, label: 'Store', path: '/store' },
+  { icon: MessageSquare, label: 'Messages', path: '/messages' },
   { icon: User, label: 'Profile', path: '/profile' }
 ];
 
@@ -28,7 +29,7 @@ export function MobileBottomNav() {
 
   return (
     <div className="fixed bottom-0 left-0 right-0 bg-white border-t border-tennis-green-bg/20 md:hidden z-40">
-      <div className="grid grid-cols-5 py-3">
+      <div className="grid grid-cols-6 py-2">
         {navItems.map(({ icon: Icon, label, path }) => {
           const isActive = location.pathname === path;
           
@@ -37,18 +38,21 @@ export function MobileBottomNav() {
               key={path}
               onClick={() => navigate(path)}
               className={cn(
-                "flex flex-col items-center py-1 px-1 transition-colors relative",
+                "flex flex-col items-center py-2 px-1 transition-colors",
                 isActive 
                   ? "text-tennis-green-primary" 
                   : "text-tennis-green-medium hover:text-tennis-green-primary"
               )}
             >
               <Icon className={cn(
-                "h-6 w-6",
+                "h-5 w-5 mb-1",
                 isActive && "text-tennis-green-primary"
               )} />
+              <span className="text-xs font-medium leading-none">
+                {label}
+              </span>
               {isActive && (
-                <div className="w-1 h-1 bg-tennis-green-primary rounded-full mt-1" />
+                <div className="w-8 h-0.5 bg-tennis-green-primary rounded-full mt-1" />
               )}
             </button>
           );

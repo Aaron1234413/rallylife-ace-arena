@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { formatDistanceToNow } from 'date-fns';
@@ -18,8 +18,6 @@ export function useRecentActivity(limit: number = 10) {
   const { user } = useAuth();
   const [activities, setActivities] = useState<RecentActivityItem[]>([]);
   const [loading, setLoading] = useState(true);
-  const channelsRef = useRef<ReturnType<typeof supabase.channel>[]>([]);
-  const isSubscribedRef = useRef(false);
 
   const fetchRecentActivity = async () => {
     if (!user) {
@@ -146,75 +144,73 @@ export function useRecentActivity(limit: number = 10) {
   useEffect(() => {
     if (!user) return;
 
-    fetchRecentActivity();
+    const channels = [
+      supabase
+        .channel('activity_logs_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'activity_logs',
+            filter: `player_id=eq.${user.id}`
+          },
+          () => fetchRecentActivity()
+        ),
+      supabase
+        .channel('xp_activities_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'xp_activities',
+            filter: `player_id=eq.${user.id}`
+          },
+          () => fetchRecentActivity()
+        ),
+      supabase
+        .channel('hp_activities_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'hp_activities',
+            filter: `player_id=eq.${user.id}`
+          },
+          () => fetchRecentActivity()
+        ),
+      supabase
+        .channel('challenges_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'challenges',
+            filter: `challenger_id=eq.${user.id}`
+          },
+          () => fetchRecentActivity()
+        ),
+      supabase
+        .channel('challenged_changes')
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'challenges',
+            filter: `challenged_id=eq.${user.id}`
+          },
+          () => fetchRecentActivity()
+        )
+    ];
 
-    // Only set up subscriptions if not already done
-    if (channelsRef.current.length === 0 && !isSubscribedRef.current) {
-      const baseChannelName = `recent_activity_${user.id}`;
-      const existingChannels = supabase.getChannels();
-      
-      const channelConfigs = [
-        { name: `${baseChannelName}_activity_logs`, table: 'activity_logs', filter: `player_id=eq.${user.id}` },
-        { name: `${baseChannelName}_xp_activities`, table: 'xp_activities', filter: `player_id=eq.${user.id}` },
-        { name: `${baseChannelName}_hp_activities`, table: 'hp_activities', filter: `player_id=eq.${user.id}` },
-        { name: `${baseChannelName}_challenges_challenger`, table: 'challenges', filter: `challenger_id=eq.${user.id}` },
-        { name: `${baseChannelName}_challenges_challenged`, table: 'challenges', filter: `challenged_id=eq.${user.id}` }
-      ];
-
-      const channels: ReturnType<typeof supabase.channel>[] = [];
-
-      channelConfigs.forEach(config => {
-        // Check if channel already exists
-        const existingChannel = existingChannels.find(ch => ch.topic === config.name);
-        
-        if (existingChannel && existingChannel.state === 'joined') {
-          // Reuse existing channel
-          channels.push(existingChannel);
-          console.log(`Reusing existing channel: ${config.name}`);
-        } else {
-          // Create new channel
-          const channel = supabase
-            .channel(config.name)
-            .on(
-              'postgres_changes',
-              {
-                event: '*',
-                schema: 'public',
-                table: config.table,
-                filter: config.filter
-              },
-              () => fetchRecentActivity()
-            );
-          channels.push(channel);
-        }
-      });
-
-      channelsRef.current = channels;
-      
-      // Subscribe to all channels
-      channels.forEach(channel => {
-        if (channel.state !== 'joined') {
-          channel.subscribe((status) => {
-            console.log(`Recent activity channel subscription status: ${status}`);
-          });
-        }
-      });
-      
-      isSubscribedRef.current = true;
-    }
+    channels.forEach(channel => channel.subscribe());
 
     return () => {
-      // Clean up subscriptions
-      if (isSubscribedRef.current && channelsRef.current.length > 0) {
-        console.log('Cleaning up recent activity subscriptions');
-        channelsRef.current.forEach(channel => {
-          if (channel.state === 'joined') {
-            channel.unsubscribe();
-          }
-        });
-        channelsRef.current = [];
-        isSubscribedRef.current = false;
-      }
+      channels.forEach(channel => supabase.removeChannel(channel));
     };
   }, [user]);
 

@@ -39,8 +39,7 @@ export interface SimpleCoachLeaderboardEntry {
 export function useCoachLeaderboards() {
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
-  const isSubscribedRef = useRef(false);
+  const channelRef = useRef<any>(null);
 
   // Simplified CXP-based leaderboard for live pulse
   const getCXPLeaderboard = (limit: number = 50, offset: number = 0) => {
@@ -122,66 +121,50 @@ export function useCoachLeaderboards() {
 
   // Real-time subscription for CXP leaderboard
   useEffect(() => {
-    const channelName = 'coach_leaderboard_changes';
-    
-    // Check if channel already exists
-    const existingChannels = supabase.getChannels();
-    const existingChannel = existingChannels.find(ch => ch.topic === channelName);
-    
-    if (existingChannel && existingChannel.state === 'joined') {
-      // Reuse existing channel
-      channelRef.current = existingChannel;
-      console.log('Reusing existing coach leaderboard channel');
-    } else {
-      // Create new channel only if none exists
-      if (!channelRef.current || channelRef.current.state === 'closed') {
-        const channel = supabase
-          .channel(channelName)
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'coach_cxp'
-            },
-            () => {
-              console.log('Coach CXP data changed, refreshing leaderboard...');
-              queryClient.invalidateQueries({ queryKey: ["coach_cxp_leaderboard"] });
-            }
-          )
-          .on(
-            'postgres_changes',
-            {
-              event: '*',
-              schema: 'public',
-              table: 'profiles'
-            },
-            () => {
-              console.log('Profile data changed, refreshing coach leaderboard...');
-              queryClient.invalidateQueries({ queryKey: ["coach_cxp_leaderboard"] });
-            }
-          );
-
-        channelRef.current = channel;
-        
-        // Subscribe only if not already subscribed
-        if (!isSubscribedRef.current) {
-          channel.subscribe((status) => {
-            console.log('Coach leaderboard subscription status:', status);
-            if (status === 'SUBSCRIBED') {
-              isSubscribedRef.current = true;
-            }
-          });
-        }
-      }
+    // Clean up existing channel
+    if (channelRef.current) {
+      supabase.removeChannel(channelRef.current);
     }
+
+    // Create new subscription
+    const channel = supabase
+      .channel('coach_leaderboard_changes')
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'coach_cxp'
+        },
+        () => {
+          console.log('Coach CXP data changed, refreshing leaderboard...');
+          // Invalidate queries to trigger refetch
+          queryClient.invalidateQueries({ queryKey: ["coach_cxp_leaderboard"] });
+        }
+      )
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'profiles'
+        },
+        () => {
+          console.log('Profile data changed, refreshing coach leaderboard...');
+          // Invalidate queries to trigger refetch
+          queryClient.invalidateQueries({ queryKey: ["coach_cxp_leaderboard"] });
+        }
+      )
+      .subscribe((status) => {
+        console.log('Coach leaderboard subscription status:', status);
+      });
+
+    channelRef.current = channel;
 
     // Cleanup on unmount
     return () => {
-      if (channelRef.current && isSubscribedRef.current) {
-        console.log('Cleaning up coach leaderboard subscription');
-        channelRef.current.unsubscribe();
-        isSubscribedRef.current = false;
+      if (channelRef.current) {
+        supabase.removeChannel(channelRef.current);
         channelRef.current = null;
       }
     };
