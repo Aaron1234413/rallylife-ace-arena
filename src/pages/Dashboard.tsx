@@ -6,8 +6,8 @@ import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useMatchmaking } from '@/hooks/useMatchmaking';
-import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { SmartQuickActions } from '@/components/dashboard/SmartQuickActions';
+import { CompactDashboardHeader } from '@/components/dashboard/CompactDashboardHeader';
+import { FloatingQuickActions } from '@/components/dashboard/FloatingQuickActions';
 import { ActiveMatches } from '@/components/dashboard/ActiveMatches';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 const Dashboard = () => {
@@ -40,8 +40,8 @@ const Dashboard = () => {
         </div>
 
         <div className="max-w-6xl mx-auto space-y-6">
-          {/* Player Vitals */}
-          <DashboardHeader 
+          {/* Compact Player Vitals */}
+          <CompactDashboardHeader 
             tokens={tokensLoading ? 0 : regularTokens}
             xp={xpLoading ? 0 : xpData?.current_xp || 0}
             level={xpLoading ? 1 : xpData?.current_level || 1}
@@ -50,8 +50,8 @@ const Dashboard = () => {
             xpToNextLevel={xpLoading ? 0 : xpData?.xp_to_next_level || 0}
           />
 
-          {/* Quick Actions */}
-          <SmartQuickActions />
+          {/* Floating Quick Actions */}
+          <FloatingQuickActions />
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
