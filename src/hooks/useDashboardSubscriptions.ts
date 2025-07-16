@@ -43,19 +43,59 @@ export function useDashboardSubscriptions() {
     return channel;
   };
 
-  // Helper function to safely remove channels
+  // Comprehensive channel cleanup with pattern matching
   const cleanupChannels = () => {
-    const existingChannels = supabase.getChannels();
-    
-    channelsRef.current.forEach(topic => {
-      const channelToRemove = existingChannels.find(ch => ch.topic === topic);
-      if (channelToRemove) {
-        console.log(`Removing channel: ${topic}`);
-        supabase.removeChannel(channelToRemove);
-      }
-    });
-    
-    channelsRef.current = [];
+    try {
+      const existingChannels = supabase.getChannels();
+      console.log(`Found ${existingChannels.length} existing channels, cleaning up dashboard channels...`);
+      
+      // Clean up channels from our current session
+      channelsRef.current.forEach(topic => {
+        const channelToRemove = existingChannels.find(ch => ch.topic === topic);
+        if (channelToRemove) {
+          console.log(`Removing tracked channel: ${topic}`);
+          supabase.removeChannel(channelToRemove);
+        }
+      });
+      
+      // Clean up any orphaned dashboard channels with pattern matching
+      existingChannels.forEach(channel => {
+        const topic = channel.topic;
+        
+        // Pattern matching for dashboard-related channels
+        const isDashboardChannel = 
+          topic.includes('player_hp_') || 
+          topic.includes('player_xp_') || 
+          topic.includes('xp_activities_') ||
+          topic.includes('hp_activities_') ||
+          topic.includes('activity_logs_') ||
+          topic.includes('challenges_challenger_') ||
+          topic.includes('challenges_challenged_') ||
+          topic.includes('token_balances_') ||
+          topic.includes('profiles_') ||
+          topic.includes('tokens-') ||
+          topic.includes('hp-updates-') ||
+          topic.includes('xp-') ||
+          topic.includes('activity_logs_changes_') ||
+          topic.includes('xp_activities_changes_') ||
+          topic.includes('hp_activities_changes_') ||
+          topic.includes('challenges_changes_') ||
+          topic.includes('challenged_changes_');
+          
+        if (isDashboardChannel) {
+          console.log(`Removing orphaned dashboard channel: ${topic}`);
+          supabase.removeChannel(channel);
+        }
+      });
+      
+      channelsRef.current = [];
+      console.log('Dashboard channels cleanup completed');
+      
+    } catch (error) {
+      console.error('Error during channel cleanup:', error);
+      // Force clear the tracking array even if cleanup fails
+      channelsRef.current = [];
+    }
   };
 
   // Trigger data updates
@@ -236,35 +276,40 @@ export function useDashboardSubscriptions() {
     };
   }, [user]);
 
-  // Enhanced cleanup on user change with comprehensive channel removal
+  // Cleanup on component unmount
   useEffect(() => {
     return () => {
-      console.log('User change cleanup - removing all dashboard channels');
-      
-      // Find and remove all channels that could be related to dashboard subscriptions
-      const existingChannels = supabase.getChannels();
-      existingChannels.forEach(channel => {
-        const topic = channel.topic;
-        
-        // Remove channels that match our dashboard patterns
-        if (topic.includes('player_hp_') || 
-            topic.includes('player_xp_') || 
-            topic.includes('xp_activities_') ||
-            topic.includes('hp_activities_') ||
-            topic.includes('activity_logs_') ||
-            topic.includes('challenges_challenger_') ||
-            topic.includes('challenges_challenged_') ||
-            topic.includes('token_balances_') ||
-            topic.includes('profiles_')) {
-          console.log(`Removing dashboard channel: ${topic}`);
-          supabase.removeChannel(channel);
-        }
-      });
-      
-      channelsRef.current = [];
+      console.log('Component unmount - performing comprehensive dashboard cleanup');
+      cleanupChannels();
       subscribedRef.current = false;
     };
   }, []);
+
+  // Enhanced cleanup on user change
+  useEffect(() => {
+    if (!user) {
+      console.log('User logged out - cleaning up all dashboard subscriptions');
+      cleanupChannels();
+      subscribedRef.current = false;
+    }
+  }, [user]);
+
+  // Emergency cleanup function for external use
+  const emergencyCleanup = () => {
+    console.log('Emergency cleanup initiated');
+    try {
+      const allChannels = supabase.getChannels();
+      allChannels.forEach(channel => {
+        console.log(`Force removing channel: ${channel.topic}`);
+        supabase.removeChannel(channel);
+      });
+      channelsRef.current = [];
+      subscribedRef.current = false;
+      console.log('Emergency cleanup completed');
+    } catch (error) {
+      console.error('Error in emergency cleanup:', error);
+    }
+  };
 
   return {
     dashboardData,
@@ -277,6 +322,9 @@ export function useDashboardSubscriptions() {
       triggerUpdate('pendingChallenges');
       triggerUpdate('activeMatches');
       triggerUpdate('profileUpdated');
-    }
+    },
+    emergencyCleanup, // Expose emergency cleanup for debugging
+    isSubscribed: subscribedRef.current,
+    channelCount: () => channelsRef.current.length
   };
 }
