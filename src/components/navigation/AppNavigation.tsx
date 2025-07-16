@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
+import { MessageCenter } from '@/components/messages/MessageCenter';
 
 
 export function AppNavigation() {
@@ -25,7 +26,6 @@ export function AppNavigation() {
     { path: '/play', label: 'Play', icon: Play },
     { path: '/leaderboards', label: 'Leaderboards', icon: Trophy },
     { path: '/store', label: 'Store', icon: ShoppingBag },
-    { path: '/messages', label: 'Messages', icon: MessageSquare },
     { path: '/profile', label: 'Profile', icon: User }
   ];
 
@@ -89,6 +89,7 @@ export function AppNavigation() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+            <MessageCenter />
             <NotificationCenter />
             <Button
               variant="ghost"
@@ -102,7 +103,8 @@ export function AppNavigation() {
           </div>
 
           {/* Mobile Actions */}
-          <div className="md:hidden flex items-center gap-2 flex-shrink-0">
+          <div className="md:hidden flex items-center gap-1 flex-shrink-0">
+            <MessageCenter />
             <NotificationCenter />
             <Button
               variant="ghost"
@@ -112,6 +114,29 @@ export function AppNavigation() {
             >
               <LogOut className="h-4 w-4" />
             </Button>
+          </div>
+        </div>
+
+        {/* Mobile Navigation - Improved Grid */}
+        <div className="md:hidden pb-3 pt-2">
+          <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
+            {allNavItems.slice(0, 6).map((item) => {
+              const Icon = item.icon;
+              return (
+                <Link
+                  key={item.path}
+                  to={item.path}
+                  className={`flex flex-col items-center justify-center p-2 sm:p-3 rounded-xl text-xs font-medium transition-all duration-300 min-h-[55px] sm:min-h-[60px] transform hover:scale-105 ${
+                    isActive(item.path)
+                      ? 'bg-gradient-to-b from-tennis-green-primary to-tennis-green-medium text-white shadow-lg shadow-tennis-green-primary/25'
+                      : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gradient-to-b hover:from-tennis-green-bg/30 hover:to-tennis-green-subtle/20 hover:shadow-md'
+                  }`}
+                >
+                  <Icon className="h-3.5 w-3.5 sm:h-4 sm:w-4 mb-0.5 sm:mb-1" />
+                  <span className="text-center leading-tight text-[10px] sm:text-xs">{item.label}</span>
+                </Link>
+              );
+            })}
           </div>
         </div>
       </div>
