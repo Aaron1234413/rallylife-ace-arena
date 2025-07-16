@@ -2,9 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Input } from '@/components/ui/input';
-import { Progress } from '@/components/ui/progress';
 import { 
   Search, 
   Filter, 
@@ -22,10 +20,8 @@ import {
   Target,
   Award,
   TrendingUp,
-  Timer,
-  Flame
 } from 'lucide-react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import {
   Sheet,
   SheetContent,
@@ -44,39 +40,17 @@ import {
 import { useAuth } from '@/hooks/useAuth';
 import { useStandardSessionFetch } from '@/hooks/useStandardSessionFetch';
 import { useSessionAutomation } from '@/hooks/useSessionAutomation';
-import { usePlayerTokens } from '@/hooks/usePlayerTokens';
-import { usePlayerXP } from '@/hooks/usePlayerXP';
-import { usePlayerHP } from '@/hooks/usePlayerHP';
-import { useMatchHistory } from '@/hooks/useMatchHistory';
-import { useMatchmaking } from '@/hooks/useMatchmaking';
 import { usePlayerDiscovery } from '@/hooks/usePlayerDiscovery';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { SessionCreationDialog } from '@/components/sessions/SessionCreationDialog';
 import { QuickActionsGrid } from '@/components/play/QuickActionsGrid';
-import { ActiveMatches } from '@/components/play/ActiveMatches';
-import { FeaturedSessions } from '@/components/play/FeaturedSessions';
 import { PlayerSuggestions } from '@/components/matchmaking/PlayerSuggestions';
-import { XPDisplay } from '@/components/xp/XPDisplay';
-import { toast } from 'sonner';
 
-// Mock player stats - will be replaced with real data
-const mockPlayerStats = {
-  level: 12,
-  xp: 2850,
-  xpToNext: 3000,
-  tokens: 1240,
-  streak: 7,
-  wins: 34,
-  totalMatches: 52
-};
 
 const Play = () => {
   const { user } = useAuth();
   const isMobile = useIsMobile();
-  const [searchParams, setSearchParams] = useSearchParams();
-  
-  // Get initial tab from URL params or default to "for-you"
-  const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'for-you');
+  const [activeTab, setActiveTab] = useState('for-you');
   
   // Session creation dialog state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -102,24 +76,9 @@ const Play = () => {
   // Enable real-time updates for Play page sessions
   useSessionAutomation(refreshSessions);
   
-  // Player data
-  const { regularTokens, loading: tokensLoading } = usePlayerTokens();
-  const { xpData, loading: xpLoading } = usePlayerXP();
-  const { hpData, loading: hpLoading } = usePlayerHP();
-  const { matchHistory, loading: matchLoading } = useMatchHistory();
-  
   // Matchmaking and discovery
   const { suggestions, loading: discoveryLoading } = usePlayerDiscovery();
 
-  // Handle tab switching from URL parameters
-  React.useEffect(() => {
-    const tabParam = searchParams.get('tab');
-    if (tabParam && ['for-you', 'nearby', 'all'].includes(tabParam)) {
-      setActiveTab(tabParam);
-      // Clear the URL parameter after switching
-      setSearchParams({});
-    }
-  }, [searchParams, setSearchParams]);
 
   // Filter sessions based on current filters
   const filteredSessions = useMemo(() => {
@@ -377,194 +336,80 @@ const Play = () => {
 
       {/* Main content */}
       <div className="container mx-auto px-4 pb-24">
-        {/* Player Stats Display */}
-        <div className="my-6">
-          <Card className="bg-gradient-to-r from-tennis-green-primary to-tennis-green-accent text-white overflow-hidden relative">
-            <CardContent className="p-6">
-              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{xpData?.current_level || mockPlayerStats.level}</div>
-                  <div className="text-sm opacity-90">Level</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{regularTokens || mockPlayerStats.tokens}</div>
-                  <div className="text-sm opacity-90">Tokens</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{hpData?.current_hp || 100}</div>
-                  <div className="text-sm opacity-90">HP</div>
-                </div>
-                <div className="text-center">
-                  <div className="text-2xl font-bold">{matchHistory.matchesWon || mockPlayerStats.wins}</div>
-                  <div className="text-sm opacity-90">Wins</div>
-                </div>
-              </div>
-              
-              {/* XP Progress */}
-              <div className="mt-4">
-                <div className="flex justify-between text-sm mb-1">
-                  <span>XP Progress</span>
-                  <span>{xpData?.current_xp || mockPlayerStats.xp}/{xpData?.xp_to_next_level || mockPlayerStats.xpToNext}</span>
-                </div>
-                <Progress 
-                  value={((xpData?.current_xp || mockPlayerStats.xp) / (xpData?.xp_to_next_level || mockPlayerStats.xpToNext)) * 100} 
-                  className="h-2 bg-white/20"
-                />
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
         {/* Quick Actions Grid */}
-        <div className="mb-6">
+        <div className="my-6">
           <QuickActionsGrid 
             onFindMatch={handleFindMatch}
             onCreateSession={handleCreateSession}
           />
         </div>
 
-        {/* Active Matches & Featured Sessions */}
-        <div className="grid md:grid-cols-2 gap-6 mb-6">
-          <ActiveMatches />
-          <FeaturedSessions />
-        </div>
-
-        {/* Session Discovery Tabs */}
-        <Tabs 
-          value={activeTab} 
-          onValueChange={setActiveTab}
-          className="w-full"
-        >
-          <TabsList className="grid w-full grid-cols-3 mb-6">
-            <TabsTrigger value="for-you" className="flex items-center gap-2">
-              <Star className="h-4 w-4" />
-              For You
-            </TabsTrigger>
-            <TabsTrigger value="nearby" className="flex items-center gap-2">
-              <MapPin className="h-4 w-4" />
-              Nearby
-            </TabsTrigger>
-            <TabsTrigger value="all" className="flex items-center gap-2">
-              <Users className="h-4 w-4" />
-              All Sessions
-            </TabsTrigger>
-          </TabsList>
-
-          {/* For You Tab */}
-          <TabsContent value="for-you" className="space-y-6">
-            <div className="text-center py-4">
-              <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-tennis-green-primary to-tennis-green-accent bg-clip-text text-transparent">
-                ✨ Recommended for You
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                AI-powered matches based on your skill level and preferences
-              </p>
-            </div>
-            
-            {/* Player Suggestions */}
-            {suggestions.length > 0 && (
-              <div className="space-y-4">
-                <h4 className="font-semibold">Recommended Players</h4>
+        {/* Player Suggestions - Show when Find Match is clicked */}
+        {activeTab === 'for-you' && suggestions.length > 0 && (
+          <div className="mb-6">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Star className="h-5 w-5 text-tennis-green-primary" />
+                  Recommended Players
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
                 <PlayerSuggestions />
-              </div>
-            )}
-            
-            {/* Top recommendations */}
-            <div className="space-y-4">
-              {filteredSessions
-                .slice(0, 2)
-                .map((session) => (
-                  <SessionCard key={session.id} session={session} isRecommended={true} />
-                ))}
-            </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
 
-            {/* Section divider */}
-            <div className="flex items-center gap-4 py-2">
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-              <span className="text-sm font-medium text-muted-foreground bg-background px-4">
-                Other Sessions
-              </span>
-              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
-            </div>
-
-            {/* Regular sessions */}
+        {/* Unified Session Feed */}
+        <div className="space-y-6">
+          <div className="text-center py-4">
+            <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-tennis-green-primary to-tennis-green-accent bg-clip-text text-transparent">
+              🎾 Available Sessions
+            </h3>
+            <p className="text-sm text-muted-foreground">
+              Join a session or create your own
+            </p>
+          </div>
+          
+          {sessionsLoading ? (
             <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredSessions.slice(2).map((session) => (
+              {[1, 2, 3, 4, 5, 6].map((i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="h-4 bg-muted rounded" />
+                      <div className="h-3 bg-muted rounded w-3/4" />
+                      <div className="h-3 bg-muted rounded w-1/2" />
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          ) : filteredSessions.length === 0 ? (
+            <Card>
+              <CardContent className="p-8 text-center">
+                <div className="space-y-4">
+                  <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto" />
+                  <div>
+                    <h3 className="text-lg font-semibold">No Sessions Available</h3>
+                    <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
+                  </div>
+                  <Button onClick={() => setShowCreateDialog(true)}>
+                    <Plus className="h-4 w-4 mr-2" />
+                    Create Session
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          ) : (
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredSessions.map((session) => (
                 <SessionCard key={session.id} session={session} />
               ))}
             </div>
-          </TabsContent>
-
-          {/* Nearby Tab */}
-          <TabsContent value="nearby" className="space-y-6">
-            <div className="text-center py-4">
-              <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-tennis-green-accent to-tennis-green-primary bg-clip-text text-transparent">
-                📍 Sessions Near You
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Sessions in your area
-              </p>
-            </div>
-            
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredSessions
-                .filter(session => session.location)
-                .map((session) => (
-                  <SessionCard key={session.id} session={session} />
-                ))}
-            </div>
-          </TabsContent>
-
-          {/* All Sessions Tab */}
-          <TabsContent value="all" className="space-y-6">
-            <div className="text-center py-4">
-              <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-tennis-green-dark to-tennis-green-primary bg-clip-text text-transparent">
-                🎾 All Available Sessions
-              </h3>
-              <p className="text-sm text-muted-foreground">
-                Browse all sessions or use filters to narrow down your search
-              </p>
-            </div>
-            
-            {sessionsLoading ? (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {[1, 2, 3, 4, 5, 6].map((i) => (
-                  <Card key={i} className="animate-pulse">
-                    <CardContent className="p-4">
-                      <div className="space-y-3">
-                        <div className="h-4 bg-muted rounded" />
-                        <div className="h-3 bg-muted rounded w-3/4" />
-                        <div className="h-3 bg-muted rounded w-1/2" />
-                      </div>
-                    </CardContent>
-                  </Card>
-                ))}
-              </div>
-            ) : filteredSessions.length === 0 ? (
-              <Card>
-                <CardContent className="p-8 text-center">
-                  <div className="space-y-4">
-                    <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto" />
-                    <div>
-                      <h3 className="text-lg font-semibold">No Sessions Available</h3>
-                      <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
-                    </div>
-                    <Button onClick={() => setShowCreateDialog(true)}>
-                      <Plus className="h-4 w-4 mr-2" />
-                      Create Session
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-            ) : (
-              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {filteredSessions.map((session) => (
-                  <SessionCard key={session.id} session={session} />
-                ))}
-              </div>
-            )}
-          </TabsContent>
-        </Tabs>
+          )}
+        </div>
       </div>
 
       {/* Session Creation Dialog */}

@@ -30,6 +30,7 @@ import Leaderboards from "@/pages/Leaderboards";
 // import Academy from "@/pages/Academy"; // Archived for MVP
 import { ProtectedMVPRoute } from "@/components/ProtectedMVPRoute";
 import Messages from "@/pages/Messages";
+import History from "@/pages/History";
 // import Scheduling from "@/pages/Scheduling"; // Archived for MVP
 
 import StartMatch from "@/pages/StartMatch";
@@ -72,6 +73,7 @@ function AppWithGuide() {
           {/* MVP Core Routes */}
           <Route path="/dashboard" element={<ProtectedMVPRoute><Dashboard /></ProtectedMVPRoute>} />
           <Route path="/play" element={<ProtectedMVPRoute><Play /></ProtectedMVPRoute>} />
+          <Route path="/history" element={<ProtectedMVPRoute><History /></ProtectedMVPRoute>} />
           <Route path="/messages" element={<ProtectedMVPRoute><Messages /></ProtectedMVPRoute>} />
           <Route path="/store" element={<ProtectedMVPRoute><Store /></ProtectedMVPRoute>} />
           <Route path="/leaderboards" element={<ProtectedMVPRoute><Leaderboards /></ProtectedMVPRoute>} />

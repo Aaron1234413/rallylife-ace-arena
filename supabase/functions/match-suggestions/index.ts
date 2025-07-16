@@ -68,14 +68,14 @@ Deno.serve(async (req) => {
       .neq('id', user.id)
       .eq('role', 'player')
 
-    // Filter by skill level range (±1 level by default)
-    const skillRange = preferences?.skillLevelRange ?? 1
-    const userSkillNum = parseInt(userProfile.skill_level?.replace('level_', '') || '3')
-    const minSkill = Math.max(1, userSkillNum - skillRange)
-    const maxSkill = Math.min(5, userSkillNum + skillRange)
+    // Filter by UTR rating range (±1.0 rating by default)
+    const utrRange = preferences?.skillLevelRange ?? 1.0
+    const userUTR = userProfile.utr_rating || 4.0 // Default UTR if not set
+    const minUTR = Math.max(1.0, userUTR - utrRange)
+    const maxUTR = Math.min(16.0, userUTR + utrRange)
     
-    query = query.gte('skill_level', `level_${minSkill}`)
-    query = query.lte('skill_level', `level_${maxSkill}`)
+    query = query.gte('utr_rating', minUTR)
+    query = query.lte('utr_rating', maxUTR)
 
     const { data: potentialMatches, error: matchError } = await query
 
@@ -92,10 +92,10 @@ Deno.serve(async (req) => {
       .map(match => {
         let score = 0
         
-        // Skill level compatibility (higher score for closer levels)
-        const matchSkillNum = parseInt(match.skill_level?.replace('level_', '') || '3')
-        const skillDiff = Math.abs(userSkillNum - matchSkillNum)
-        score += Math.max(0, 50 - (skillDiff * 15)) // 50 for exact match, decreasing
+        // UTR compatibility (higher score for closer ratings)
+        const matchUTR = match.utr_rating || 4.0
+        const utrDiff = Math.abs(userUTR - matchUTR)
+        score += Math.max(0, 50 - (utrDiff * 25)) // 50 for exact match, decreasing by 25 per UTR point difference
         
         // UTR rating compatibility
         if (userProfile.utr_rating && match.utr_rating) {
@@ -130,7 +130,7 @@ Deno.serve(async (req) => {
           ...match,
           match_score: score,
           compatibility_factors: {
-            skill_compatibility: Math.max(0, 50 - (skillDiff * 15)),
+            skill_compatibility: Math.max(0, 50 - (utrDiff * 25)),
             location_match: userProfile.location === match.location,
             stake_compatible: true // simplified
           }
@@ -143,9 +143,9 @@ Deno.serve(async (req) => {
     return new Response(JSON.stringify({ 
       matches: scoredMatches,
       user_profile: {
-        skill_level: userProfile.skill_level,
+        utr_rating: userProfile.utr_rating,
         location: userProfile.location,
-        utr_rating: userProfile.utr_rating
+        manual_level: userProfile.manual_level
       }
     }), {
       headers: { ...corsHeaders, 'Content-Type': 'application/json' }
