@@ -31,6 +31,7 @@ import Leaderboards from "@/pages/Leaderboards";
 import { ProtectedMVPRoute } from "@/components/ProtectedMVPRoute";
 import Messages from "@/pages/Messages";
 import History from "@/pages/History";
+import Events from "@/pages/Events";
 // import Scheduling from "@/pages/Scheduling"; // Archived for MVP
 
 import StartMatch from "@/pages/StartMatch";
@@ -75,6 +76,7 @@ function AppWithGuide() {
           <Route path="/play" element={<ProtectedMVPRoute><Play /></ProtectedMVPRoute>} />
           <Route path="/history" element={<ProtectedMVPRoute><History /></ProtectedMVPRoute>} />
           <Route path="/messages" element={<ProtectedMVPRoute><Messages /></ProtectedMVPRoute>} />
+          <Route path="/events" element={<ProtectedMVPRoute><Events /></ProtectedMVPRoute>} />
           <Route path="/store" element={<ProtectedMVPRoute><Store /></ProtectedMVPRoute>} />
           <Route path="/leaderboards" element={<ProtectedMVPRoute><Leaderboards /></ProtectedMVPRoute>} />
           <Route path="/profile" element={<ProtectedMVPRoute><Profile /></ProtectedMVPRoute>} />

@@ -47,12 +47,13 @@ export function QuickActionsGrid({ onFindMatch, onCreateSession, className }: Qu
       disabled: false
     },
     {
-      id: 'tournaments',
-      title: 'Tournaments',
-      description: 'Coming soon',
+      id: 'events',
+      title: 'Events',
+      description: 'Host & join events',
       icon: Trophy,
-      color: 'from-tennis-neutral-400 to-tennis-neutral-500',
-      disabled: true
+      color: 'from-yellow-500 to-yellow-600',
+      link: '/events',
+      disabled: false
     }
   ];
 
