@@ -152,7 +152,7 @@ export function usePlayerHP() {
   };
 
   useEffect(() => {
-    if (user && !subscriptionInitialized.current) {
+    if (user) {
       const loadData = async () => {
         setLoading(true);
         await fetchHP();
@@ -197,23 +197,20 @@ export function usePlayerHP() {
           }
         );
 
-      // Only subscribe if not already subscribed
-      if (!isSubscribed.current) {
-        channel.subscribe((status) => {
-          console.log('HP Channel subscription status:', status);
-          if (status === 'SUBSCRIBED') {
-            subscriptionInitialized.current = true;
-            isSubscribed.current = true;
-          }
-        });
-      }
+      channel.subscribe((status) => {
+        console.log('HP Channel subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          subscriptionInitialized.current = true;
+          isSubscribed.current = true;
+        }
+      });
 
       channelRef.current = channel;
 
       return () => {
         cleanupChannel();
       };
-    } else if (!user) {
+    } else {
       // Clean up when no user
       cleanupChannel();
       setHpData(null);

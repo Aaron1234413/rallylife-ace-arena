@@ -207,7 +207,7 @@ export function usePlayerTokens() {
   };
 
   useEffect(() => {
-    if (user && !subscriptionInitialized.current) {
+    if (user) {
       const loadData = async () => {
         setLoading(true);
         await fetchTokens();
@@ -251,23 +251,20 @@ export function usePlayerTokens() {
           }
         );
 
-      // Only subscribe if not already subscribed
-      if (!isSubscribed.current) {
-        channel.subscribe((status) => {
-          console.log('Token Channel subscription status:', status);
-          if (status === 'SUBSCRIBED') {
-            subscriptionInitialized.current = true;
-            isSubscribed.current = true;
-          }
-        });
-      }
+      channel.subscribe((status) => {
+        console.log('Token Channel subscription status:', status);
+        if (status === 'SUBSCRIBED') {
+          subscriptionInitialized.current = true;
+          isSubscribed.current = true;
+        }
+      });
 
       channelRef.current = channel;
 
       return () => {
         cleanupChannel();
       };
-    } else if (!user) {
+    } else {
       cleanupChannel();
       setTokenData(null);
       setTransactions([]);
