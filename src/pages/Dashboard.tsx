@@ -1,7 +1,6 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
-import { useUserProfile } from '@/hooks/useUserProfile';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
@@ -9,15 +8,10 @@ import { useMatchmaking } from '@/hooks/useMatchmaking';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { ActiveMatches } from '@/components/dashboard/ActiveMatches';
-import { ActivityFeed } from '@/components/activities/ActivityFeed';
-import { UTRStatusDisplay } from '@/components/dashboard/UTRStatusDisplay';
-import { UpcomingAvailability } from '@/components/dashboard/UpcomingAvailability';
-import { MessageSquare } from 'lucide-react';
 
 const Dashboard = () => {
   const { user } = useAuth();
   const navigate = useNavigate();
-  const { data: profile, isLoading: profileLoading } = useUserProfile();
   const { regularTokens, loading: tokensLoading } = usePlayerTokens();
   const { xpData, loading: xpLoading } = usePlayerXP();
   const { hpData, loading: hpLoading } = usePlayerHP();
@@ -33,7 +27,6 @@ const Dashboard = () => {
 
   const goToPlay = () => navigate('/play');
   const goToStore = () => navigate('/store');
-  const goToMessages = () => navigate('/messages');
 
   return (
     <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light">
@@ -44,7 +37,7 @@ const Dashboard = () => {
             <span className="text-xl">🎾</span>
           </div>
           <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
-            Welcome back, {profile?.full_name || 'Player'}!
+            Welcome back, {user?.email?.split('@')[0]}!
           </h2>
           <p className="text-tennis-green-bg/90">Ready for your next challenge?</p>
         </div>
@@ -59,32 +52,17 @@ const Dashboard = () => {
             maxHp={hpLoading ? 100 : hpData?.max_hp || 100}
           />
 
-          {/* Quick Actions */}
+          {/* Choose Your Adventure Quick Actions */}
           <QuickActions
             actions={[
               { icon: "🎾", label: "Start Match", onClick: goToPlay },
-              { icon: "💬", label: "Messages", onClick: goToMessages },
-              { icon: "🛍️", label: "Store", onClick: goToStore },
+              { icon: "🛍️", label: "Purchase Items", onClick: goToStore },
+              { icon: "👤", label: "Find Matches", onClick: goToPlay },
             ]}
           />
 
-          {/* Active Matches */}
+          {/* Upcoming Matches */}
           <ActiveMatches matches={allMatches} />
-
-          {/* Secondary Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Recent Activity Feed */}
-            <ActivityFeed limit={5} showFilters={false} />
-            
-            {/* UTR Status Display */}
-            <UTRStatusDisplay 
-              utrRating={profile?.utr_rating}
-              utrVerified={profile?.utr_verified}
-            />
-          </div>
-
-          {/* Upcoming Availability */}
-          <UpcomingAvailability />
         </div>
       </div>
     </div>
