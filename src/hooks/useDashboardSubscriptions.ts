@@ -44,7 +44,7 @@ export function useDashboardSubscriptions() {
       const existingChannels = supabase.getChannels();
       const existingChannel = existingChannels.find(ch => ch.topic === topic);
       if (existingChannel) {
-        console.log(`StrictMode: Reusing existing channel: ${topic}`);
+        console.log(`StrictMode: Reusing existing channel: ${topic} (status: ${existingChannel.state})`);
         return existingChannel;
       }
     }
@@ -53,7 +53,7 @@ export function useDashboardSubscriptions() {
     let channel = existingChannels.find(ch => ch.topic === topic);
     
     if (channel) {
-      console.log(`Reusing existing channel: ${topic}`);
+      console.log(`Reusing existing channel: ${topic} (status: ${channel.state})`);
       subscriptionStateRef.current.activeChannels.add(topic);
       if (!channelsRef.current.includes(topic)) {
         channelsRef.current.push(topic);
@@ -66,6 +66,64 @@ export function useDashboardSubscriptions() {
     channelsRef.current.push(topic);
     subscriptionStateRef.current.activeChannels.add(topic);
     return channel;
+  };
+
+  // Idempotent subscription setup - only subscribes if not already subscribed
+  const setupChannelSubscription = (channel: any, config: {
+    table: string;
+    filter: string;
+    event?: string;
+    callback: () => void;
+  }) => {
+    const { table, filter, event = '*', callback } = config;
+    
+    // Check if channel is already subscribed and has listeners
+    if (channel.state === 'joined' || channel.state === 'joining') {
+      console.log(`Channel ${channel.topic} already subscribed (${channel.state}), skipping duplicate subscription`);
+      return channel;
+    }
+
+    console.log(`Setting up subscription for ${channel.topic} on table ${table}`);
+    
+    channel.on(
+      'postgres_changes',
+      {
+        event,
+        schema: 'public',
+        table,
+        filter
+      },
+      callback
+    );
+
+    return channel;
+  };
+
+  // Idempotent channel subscription - ensures channel is subscribed only once
+  const subscribeChannel = (channel: any) => {
+    if (channel.state === 'joined') {
+      console.log(`Channel ${channel.topic} already joined, skipping subscribe call`);
+      return Promise.resolve();
+    }
+
+    if (channel.state === 'joining') {
+      console.log(`Channel ${channel.topic} currently joining, waiting for completion`);
+      return new Promise((resolve) => {
+        const checkState = () => {
+          if (channel.state === 'joined') {
+            resolve(undefined);
+          } else {
+            setTimeout(checkState, 50);
+          }
+        };
+        checkState();
+      });
+    }
+
+    console.log(`Subscribing to channel: ${channel.topic}`);
+    return channel.subscribe((status: string) => {
+      console.log(`Channel ${channel.topic} subscription status: ${status}`);
+    });
   };
 
   // StrictMode-compatible cleanup with idempotent operations
@@ -186,148 +244,104 @@ export function useDashboardSubscriptions() {
     try {
       // Clean up any existing channels first to prevent conflicts
       cleanupChannels();
+      // Idempotent subscription setup for all dashboard data
+      const subscriptions = [];
+
       // Player HP subscription
       const hpChannel = getOrCreateChannel(`player_hp_${user.id}`);
-      hpChannel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'player_hp',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => triggerUpdate('playerHP')
-        )
-        .subscribe();
+      setupChannelSubscription(hpChannel, {
+        table: 'player_hp',
+        filter: `player_id=eq.${user.id}`,
+        callback: () => triggerUpdate('playerHP')
+      });
+      subscriptions.push(subscribeChannel(hpChannel));
 
       // Player XP subscription
       const xpChannel = getOrCreateChannel(`player_xp_${user.id}`);
-      xpChannel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'player_xp',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => triggerUpdate('playerXP')
-        )
-        .subscribe();
+      setupChannelSubscription(xpChannel, {
+        table: 'player_xp',
+        filter: `player_id=eq.${user.id}`,
+        callback: () => triggerUpdate('playerXP')
+      });
+      subscriptions.push(subscribeChannel(xpChannel));
 
       // XP Activities subscription
       const xpActivitiesChannel = getOrCreateChannel(`xp_activities_${user.id}`);
-      xpActivitiesChannel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'xp_activities',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => triggerUpdate('recentActivities')
-        )
-        .subscribe();
+      setupChannelSubscription(xpActivitiesChannel, {
+        table: 'xp_activities',
+        filter: `player_id=eq.${user.id}`,
+        callback: () => triggerUpdate('recentActivities')
+      });
+      subscriptions.push(subscribeChannel(xpActivitiesChannel));
 
       // HP Activities subscription
       const hpActivitiesChannel = getOrCreateChannel(`hp_activities_${user.id}`);
-      hpActivitiesChannel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'hp_activities',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => triggerUpdate('recentActivities')
-        )
-        .subscribe();
+      setupChannelSubscription(hpActivitiesChannel, {
+        table: 'hp_activities',
+        filter: `player_id=eq.${user.id}`,
+        callback: () => triggerUpdate('recentActivities')
+      });
+      subscriptions.push(subscribeChannel(hpActivitiesChannel));
 
       // Activity Logs subscription
       const activityChannel = getOrCreateChannel(`activity_logs_${user.id}`);
-      activityChannel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'activity_logs',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => triggerUpdate('recentActivities')
-        )
-        .subscribe();
+      setupChannelSubscription(activityChannel, {
+        table: 'activity_logs',
+        filter: `player_id=eq.${user.id}`,
+        callback: () => triggerUpdate('recentActivities')
+      });
+      subscriptions.push(subscribeChannel(activityChannel));
 
       // Challenges subscription (as challenger)
       const challengesChannel = getOrCreateChannel(`challenges_challenger_${user.id}`);
-      challengesChannel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'challenges',
-            filter: `challenger_id=eq.${user.id}`
-          },
-          () => {
-            triggerUpdate('pendingChallenges');
-            triggerUpdate('activeMatches');
-            triggerUpdate('recentActivities');
-          }
-        )
-        .subscribe();
+      setupChannelSubscription(challengesChannel, {
+        table: 'challenges',
+        filter: `challenger_id=eq.${user.id}`,
+        callback: () => {
+          triggerUpdate('pendingChallenges');
+          triggerUpdate('activeMatches');
+          triggerUpdate('recentActivities');
+        }
+      });
+      subscriptions.push(subscribeChannel(challengesChannel));
 
       // Challenges subscription (as challenged)
       const challengedChannel = getOrCreateChannel(`challenges_challenged_${user.id}`);
-      challengedChannel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'challenges',
-            filter: `challenged_id=eq.${user.id}`
-          },
-          () => {
-            triggerUpdate('pendingChallenges');
-            triggerUpdate('activeMatches');
-            triggerUpdate('recentActivities');
-          }
-        )
-        .subscribe();
+      setupChannelSubscription(challengedChannel, {
+        table: 'challenges',
+        filter: `challenged_id=eq.${user.id}`,
+        callback: () => {
+          triggerUpdate('pendingChallenges');
+          triggerUpdate('activeMatches');
+          triggerUpdate('recentActivities');
+        }
+      });
+      subscriptions.push(subscribeChannel(challengedChannel));
 
       // Token Balances subscription
       const tokensChannel = getOrCreateChannel(`token_balances_${user.id}`);
-      tokensChannel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'token_balances',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => triggerUpdate('playerTokens')
-        )
-        .subscribe();
+      setupChannelSubscription(tokensChannel, {
+        table: 'token_balances',
+        filter: `player_id=eq.${user.id}`,
+        callback: () => triggerUpdate('playerTokens')
+      });
+      subscriptions.push(subscribeChannel(tokensChannel));
 
       // Profiles subscription
       const profilesChannel = getOrCreateChannel(`profiles_${user.id}`);
-      profilesChannel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'profiles',
-            filter: `id=eq.${user.id}`
-          },
-          () => triggerUpdate('profileUpdated')
-        )
-        .subscribe();
+      setupChannelSubscription(profilesChannel, {
+        table: 'profiles',
+        filter: `id=eq.${user.id}`,
+        callback: () => triggerUpdate('profileUpdated')
+      });
+      subscriptions.push(subscribeChannel(profilesChannel));
+
+      // Wait for all subscriptions to complete (idempotent)
+      console.log(`Waiting for ${subscriptions.length} subscriptions to complete...`);
+      Promise.allSettled(subscriptions).then((results) => {
+        const successful = results.filter(r => r.status === 'fulfilled').length;
+        console.log(`Dashboard subscriptions setup complete: ${successful}/${results.length} successful`);
+      });
 
     } catch (error) {
       console.error('StrictMode: Error setting up dashboard subscriptions:', error);
