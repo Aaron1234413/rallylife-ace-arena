@@ -30,6 +30,7 @@ export function usePlayerHP() {
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
   const subscriptionInitialized = useRef(false);
+  const isSubscribed = useRef(false);
 
   const fetchHP = async () => {
     if (!user) return;
@@ -146,6 +147,7 @@ export function usePlayerHP() {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
       subscriptionInitialized.current = false;
+      isSubscribed.current = false;
     }
   };
 
@@ -193,13 +195,18 @@ export function usePlayerHP() {
             console.log('HP activity real-time update received:', payload);
             fetchActivities();
           }
-        )
-        .subscribe((status) => {
+        );
+
+      // Only subscribe if not already subscribed
+      if (!isSubscribed.current) {
+        channel.subscribe((status) => {
           console.log('HP Channel subscription status:', status);
           if (status === 'SUBSCRIBED') {
             subscriptionInitialized.current = true;
+            isSubscribed.current = true;
           }
         });
+      }
 
       channelRef.current = channel;
 

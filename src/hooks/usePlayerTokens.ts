@@ -72,6 +72,7 @@ export function usePlayerTokens() {
   const [loading, setLoading] = useState(true);
   const channelRef = useRef<any>(null);
   const subscriptionInitialized = useRef(false);
+  const isSubscribed = useRef(false);
 
   const fetchTokens = async () => {
     if (!user) return;
@@ -201,6 +202,7 @@ export function usePlayerTokens() {
       supabase.removeChannel(channelRef.current);
       channelRef.current = null;
       subscriptionInitialized.current = false;
+      isSubscribed.current = false;
     }
   };
 
@@ -247,13 +249,18 @@ export function usePlayerTokens() {
             console.log('Token transaction added');
             fetchTransactions();
           }
-        )
-        .subscribe((status) => {
+        );
+
+      // Only subscribe if not already subscribed
+      if (!isSubscribed.current) {
+        channel.subscribe((status) => {
           console.log('Token Channel subscription status:', status);
           if (status === 'SUBSCRIBED') {
             subscriptionInitialized.current = true;
+            isSubscribed.current = true;
           }
         });
+      }
 
       channelRef.current = channel;
 
