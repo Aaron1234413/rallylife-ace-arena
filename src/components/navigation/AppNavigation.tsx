@@ -19,7 +19,7 @@ export function AppNavigation() {
   const { signOut, user } = useAuth();
   const location = useLocation();
 
-  // Primary navigation items
+  // MVP navigation items only
   const primaryRoutes = [
     { path: '/dashboard', label: 'Dashboard', icon: Home },
     { path: '/play', label: 'Play', icon: Gamepad2 },
@@ -29,7 +29,7 @@ export function AppNavigation() {
 
   // Secondary navigation items
   const secondaryRoutes = [
-    { path: '/clubs', label: 'Clubs', icon: Users },
+    { path: '/leaderboards', label: 'Leaderboards', icon: Activity },
     { path: '/profile', label: 'Profile', icon: User }
   ];
 

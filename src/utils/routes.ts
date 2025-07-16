@@ -1,52 +1,47 @@
-// Central route configuration for the application
+// Central route configuration for the MVP application
 export const ROUTES = {
   // Public routes (no auth required)
   LANDING: '/',
   AUTH: '/auth',
   
-  
-  // Protected routes (auth required)
+  // MVP-only protected routes (auth required)
   DASHBOARD: '/dashboard',
-  COACH_DASHBOARD: '/coach-dashboard',
-  PROFILE: '/profile',
-  STORE: '/store',
-  ACADEMY: '/academy',
-  CLUBS: '/clubs',
-  SEARCH: '/search',
-  SCHEDULING: '/scheduling',
+  PLAY: '/play',
   MESSAGES: '/messages',
-  MAPS: '/maps',
-  SESSIONS: '/sessions',
-  PULSE: '/pulse',
+  STORE: '/store',
+  LEADERBOARDS: '/leaderboards',
+  PROFILE: '/profile',
+  
+  // Non-MVP routes (archived)
+  // COACH_DASHBOARD: '/coach-dashboard',
+  // ACADEMY: '/academy', 
+  // CLUBS: '/clubs',
+  // SEARCH: '/search',
+  // SCHEDULING: '/scheduling',
+  // MAPS: '/maps',
+  // SESSIONS: '/sessions',
+  // PULSE: '/pulse',
 } as const;
 
 // Public routes where navigation/guide should be hidden
 export const PUBLIC_ROUTES = [
   ROUTES.LANDING,
   ROUTES.AUTH,
-  
 ];
 
-// Protected app routes where onboarding guide can appear
+// MVP-only protected app routes 
 export const APP_ROUTES = [
   ROUTES.DASHBOARD,
-  ROUTES.COACH_DASHBOARD,
-  ROUTES.PROFILE,
-  ROUTES.STORE,
-  ROUTES.ACADEMY,
-  ROUTES.CLUBS,
-  ROUTES.SEARCH,
-  ROUTES.SCHEDULING,
+  ROUTES.PLAY,
   ROUTES.MESSAGES,
-  ROUTES.MAPS,
-  ROUTES.SESSIONS,
-  ROUTES.PULSE,
+  ROUTES.STORE,
+  ROUTES.LEADERBOARDS,
+  ROUTES.PROFILE,
 ];
 
 // Dashboard routes for tour auto-start
 export const DASHBOARD_ROUTES = [
   ROUTES.DASHBOARD,
-  ROUTES.COACH_DASHBOARD,
 ];
 
 // Helper functions

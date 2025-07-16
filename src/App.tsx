@@ -24,10 +24,11 @@ import Search from "@/pages/Search";
 import Store from "@/pages/Store";
 import Profile from "@/pages/Profile";
 import Play from "@/pages/Play";
-import Academy from "@/pages/Academy";
-import ProtectedRoute from "@/components/ProtectedRoute";
+import Leaderboards from "@/pages/Leaderboards";
+// import Academy from "@/pages/Academy"; // Archived for MVP
+import { ProtectedMVPRoute } from "@/components/ProtectedMVPRoute";
 import Messages from "@/pages/Messages";
-import Scheduling from "@/pages/Scheduling";
+// import Scheduling from "@/pages/Scheduling"; // Archived for MVP
 
 import StartMatch from "@/pages/StartMatch";
 import EndMatch from "@/pages/EndMatch";
@@ -35,15 +36,15 @@ import EndMatch from "@/pages/EndMatch";
 import EndTraining from "@/pages/EndTraining";
 import StartSocialPlay from "@/pages/StartSocialPlay";
 import JoinSocialPlay from "@/pages/JoinSocialPlay";
-import CoachDashboard from "@/pages/CoachDashboard";
+// import CoachDashboard from "@/pages/CoachDashboard"; // Archived for MVP
 import { MockDashboard } from "@/pages/MockDashboard";
 import { PlayMockup } from "@/pages/mockups/PlayMockup";
 import Sessions from "@/pages/Sessions";
 import CreateSession from "@/pages/CreateSession";
 import EditSession from "@/pages/EditSession";
-import Club from "@/pages/Club";
-import Clubs from "@/pages/ClubsOld";
-import JoinClub from "@/pages/JoinClub";
+// import Club from "@/pages/Club"; // Archived for MVP
+// import Clubs from "@/pages/ClubsOld"; // Archived for MVP  
+// import JoinClub from "@/pages/JoinClub"; // Archived for MVP
 import { MockupRouter } from "@/pages/mockups/MockupRouter";
 
 
@@ -65,34 +66,45 @@ function AppWithGuide() {
           <Route path="/auth/login" element={<Auth />} />
           <Route path="/auth/signup" element={<Auth />} />
           <Route path="/auth/forgot-password" element={<Auth />} />
-          <Route path="/dashboard" element={<ProtectedRoute><Index /></ProtectedRoute>} />
-          <Route path="/mock-dashboard" element={<ProtectedRoute><MockDashboard /></ProtectedRoute>} />
-          <Route path="/coach-dashboard" element={<ProtectedRoute><CoachDashboard /></ProtectedRoute>} />
+          {/* MVP Core Routes */}
+          <Route path="/dashboard" element={<ProtectedMVPRoute><Index /></ProtectedMVPRoute>} />
+          <Route path="/play" element={<ProtectedMVPRoute><Play /></ProtectedMVPRoute>} />
+          <Route path="/messages" element={<ProtectedMVPRoute><Messages /></ProtectedMVPRoute>} />
+          <Route path="/store" element={<ProtectedMVPRoute><Store /></ProtectedMVPRoute>} />
+          <Route path="/leaderboards" element={<ProtectedMVPRoute><Leaderboards /></ProtectedMVPRoute>} />
+          <Route path="/profile" element={<ProtectedMVPRoute><Profile /></ProtectedMVPRoute>} />
           
-          <Route path="/play" element={<ProtectedRoute><Play /></ProtectedRoute>} />
-          <Route path="/play-mockup" element={<ProtectedRoute><PlayMockup /></ProtectedRoute>} />
-          <Route path="/sessions" element={<ProtectedRoute><Sessions /></ProtectedRoute>} />
-          <Route path="/sessions/create" element={<ProtectedRoute><CreateSession /></ProtectedRoute>} />
-          <Route path="/sessions/:sessionId/edit" element={<ProtectedRoute><EditSession /></ProtectedRoute>} />
-          <Route path="/search" element={<ProtectedRoute><Search /></ProtectedRoute>} />
-          <Route path="/store" element={<ProtectedRoute><Store /></ProtectedRoute>} />
-          <Route path="/profile" element={<ProtectedRoute><Profile /></ProtectedRoute>} />
-          <Route path="/academy" element={<ProtectedRoute><Academy /></ProtectedRoute>} />
-          <Route path="/messages" element={<ProtectedRoute><Messages /></ProtectedRoute>} />
-          <Route path="/scheduling" element={<ProtectedRoute><Scheduling /></ProtectedRoute>} />
+          {/* MVP Utility Routes */}
+          <Route path="/start-match" element={<ProtectedMVPRoute><StartMatch /></ProtectedMVPRoute>} />
+          <Route path="/end-match" element={<ProtectedMVPRoute><EndMatch /></ProtectedMVPRoute>} />
           
-          <Route path="/start-match" element={<ProtectedRoute><StartMatch /></ProtectedRoute>} />
-          <Route path="/end-match" element={<ProtectedRoute><EndMatch /></ProtectedRoute>} />
-          <Route path="/start-training" element={<ProtectedRoute><CreateSession /></ProtectedRoute>} />
-          <Route path="/end-training" element={<ProtectedRoute><EndTraining /></ProtectedRoute>} />
-          <Route path="/start-social-play" element={<ProtectedRoute><StartSocialPlay /></ProtectedRoute>} />
-          <Route path="/join-social-play" element={<ProtectedRoute><JoinSocialPlay /></ProtectedRoute>} />
+          {/* Development/Testing Routes */}
+          <Route path="/mock-dashboard" element={<ProtectedMVPRoute><MockDashboard /></ProtectedMVPRoute>} />
+          <Route path="/play-mockup" element={<ProtectedMVPRoute><PlayMockup /></ProtectedMVPRoute>} />
+          <Route path="/sessions" element={<ProtectedMVPRoute><Sessions /></ProtectedMVPRoute>} />
+          <Route path="/sessions/create" element={<ProtectedMVPRoute><CreateSession /></ProtectedMVPRoute>} />
+          <Route path="/sessions/:sessionId/edit" element={<ProtectedMVPRoute><EditSession /></ProtectedMVPRoute>} />
           
-          <Route path="/clubs" element={<ProtectedRoute><Clubs /></ProtectedRoute>} />
-          <Route path="/club/:clubId" element={<ProtectedRoute><Club /></ProtectedRoute>} />
-          <Route path="/club/:clubId/sessions/create" element={<ProtectedRoute><CreateSession /></ProtectedRoute>} />
-          <Route path="/join/:inviteCode" element={<ProtectedRoute><JoinClub /></ProtectedRoute>} />
-          <Route path="/join-club/:linkSlug" element={<ProtectedRoute><JoinClub /></ProtectedRoute>} />
+          {/* Archived Routes - Commented Out for MVP
+          <Route path="/coach-dashboard" element={<ProtectedMVPRoute><CoachDashboard /></ProtectedMVPRoute>} />
+          <Route path="/search" element={<ProtectedMVPRoute><Search /></ProtectedMVPRoute>} />
+          <Route path="/academy" element={<ProtectedMVPRoute><Academy /></ProtectedMVPRoute>} />
+          <Route path="/scheduling" element={<ProtectedMVPRoute><Scheduling /></ProtectedMVPRoute>} />
+          */}
+          
+          {/* Legacy Training & Social Play Routes - Keep for now */}
+          <Route path="/start-training" element={<ProtectedMVPRoute><CreateSession /></ProtectedMVPRoute>} />
+          <Route path="/end-training" element={<ProtectedMVPRoute><EndTraining /></ProtectedMVPRoute>} />
+          <Route path="/start-social-play" element={<ProtectedMVPRoute><StartSocialPlay /></ProtectedMVPRoute>} />
+          <Route path="/join-social-play" element={<ProtectedMVPRoute><JoinSocialPlay /></ProtectedMVPRoute>} />
+          
+          {/* Club Routes - Archived for MVP
+          <Route path="/clubs" element={<ProtectedMVPRoute><Clubs /></ProtectedMVPRoute>} />
+          <Route path="/club/:clubId" element={<ProtectedMVPRoute><Club /></ProtectedMVPRoute>} />
+          <Route path="/club/:clubId/sessions/create" element={<ProtectedMVPRoute><CreateSession /></ProtectedMVPRoute>} />
+          <Route path="/join/:inviteCode" element={<ProtectedMVPRoute><JoinClub /></ProtectedMVPRoute>} />
+          <Route path="/join-club/:linkSlug" element={<ProtectedMVPRoute><JoinClub /></ProtectedMVPRoute>} />
+          */}
           
           {/* Mockup Routes */}
           <Route path="/mockups/*" element={<MockupRouter />} />
