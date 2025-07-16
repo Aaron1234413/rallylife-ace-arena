@@ -126,6 +126,7 @@ export function PlayerOnboarding({ user, profile, onComplete }: PlayerOnboarding
   const handleFinalComplete = async () => {
     try {
       setLoading(true);
+      console.log('🏁 Starting onboarding completion for user:', user?.id);
       
       // Ensure token initialization for onboarding completion
       const { error: tokenError } = await supabase.rpc('initialize_player_tokens', {
@@ -133,13 +134,24 @@ export function PlayerOnboarding({ user, profile, onComplete }: PlayerOnboarding
       });
       
       if (tokenError) {
-        console.error('Error initializing tokens:', tokenError);
+        console.error('❌ Error initializing tokens:', tokenError);
         // Don't block onboarding completion for token initialization errors
+      } else {
+        console.log('✅ Tokens initialized successfully');
       }
+      
+      // Verify token initialization worked
+      const { data: tokenCheck } = await supabase
+        .from('profiles')
+        .select('tokens, lifetime_tokens_earned')
+        .eq('id', user?.id)
+        .single();
+      
+      console.log('🪙 Token verification:', tokenCheck);
       
       onComplete();
     } catch (error) {
-      console.error('Error completing onboarding:', error);
+      console.error('❌ Error completing onboarding:', error);
       // Still complete onboarding even if token initialization fails
       onComplete();
     } finally {

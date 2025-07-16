@@ -36,9 +36,13 @@ export function useCoachCXP() {
   const { data: cxpData, isLoading: cxpLoading, error } = useQuery({
     queryKey: ["coach_cxp"],
     queryFn: async () => {
+      const { data: user } = await supabase.auth.getUser();
+      if (!user.user) throw new Error("Not authenticated");
+      
       const { data, error } = await supabase
         .from("coach_cxp")
         .select("*")
+        .eq("coach_id", user.user.id)
         .single();
       if (error) throw error;
       return data as CoachCXP;
