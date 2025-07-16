@@ -145,7 +145,7 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
 
     // Subscribe to sessions table changes
     const sessionsChannel = supabase
-      .channel('sessions-changes')
+      .channel(`sessions-changes-${Date.now()}`)
       .on(
         'postgres_changes',
         {
@@ -161,7 +161,7 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
 
     // Subscribe to session_participants table changes
     const participantsChannel = supabase
-      .channel('participants-changes')
+      .channel(`participants-changes-${Date.now()}`)
       .on(
         'postgres_changes',
         {

@@ -128,7 +128,7 @@ export function useCoachLeaderboards() {
 
     // Create new subscription
     const channel = supabase
-      .channel('coach_leaderboard_changes')
+      .channel(`coach_leaderboard_changes_${Date.now()}`)
       .on(
         'postgres_changes',
         {

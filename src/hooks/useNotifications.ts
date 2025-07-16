@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
+import { useAuth } from '@/hooks/useAuth';
 
 interface Notification {
   id: string;
@@ -15,6 +16,7 @@ interface Notification {
 }
 
 export const useNotifications = () => {
+  const { user } = useAuth();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
@@ -88,9 +90,9 @@ export const useNotifications = () => {
   useEffect(() => {
     fetchNotifications();
 
-    // Subscribe to real-time updates
+    // Subscribe to real-time updates with a unique channel name per user
     const channel = supabase
-      .channel('notifications')
+      .channel(`notifications-${user?.id || 'anonymous'}-${Date.now()}`)
       .on(
         'postgres_changes',
         {
@@ -133,7 +135,7 @@ export const useNotifications = () => {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [toast]);
+  }, [toast, user]);
 
   const unreadCount = notifications.filter(n => !n.read).length;
 

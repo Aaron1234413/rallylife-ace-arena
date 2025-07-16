@@ -52,7 +52,7 @@ export function useRealTimeTokens() {
         supabase.removeChannel(channelRef.current);
       }
 
-      const channel = supabase.channel(`user-tokens-${user.id}`);
+      const channel = supabase.channel(`user-tokens-${user.id}-${Date.now()}`);
 
       // Personal token balance changes
       channel.on(
