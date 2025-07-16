@@ -13,6 +13,7 @@ import { CRPDisplay } from '@/components/crp/CRPDisplay';
 import { CXPDisplay } from '@/components/cxp/CXPDisplay';
 import { CTKDisplay } from '@/components/ctk/CTKDisplay';
 import { ProfileEditDialog } from '@/components/profile/ProfileEditDialog';
+import { ProfileAvailability } from '@/components/profile/ProfileAvailability';
 import { User, Mail, UserCheck, Edit, Trophy, Target, Calendar, Settings, Palette, MapPin } from 'lucide-react';
 
 const Profile = () => {
@@ -309,6 +310,11 @@ const Profile = () => {
                 </CardContent>
               </Card>
             </div>
+          )}
+
+          {/* Availability Section - Only for players */}
+          {isPlayer && (
+            <ProfileAvailability />
           )}
 
           {/* Quick Actions */}
