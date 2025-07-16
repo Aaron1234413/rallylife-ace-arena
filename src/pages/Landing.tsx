@@ -53,12 +53,12 @@ export default function Landing() {
                       RAKO
                     </h1>
                     <div className="text-xl md:text-3xl lg:text-4xl font-orbitron font-bold text-tennis-yellow animate-pulse mb-2">
-                      Compete. Connect. Level Up.
+                      Find Tennis Matches. UTR Verified. Win Tokens.
                     </div>
                   </div>
                   
                   <p className="text-sm md:text-base lg:text-lg text-tennis-green-medium font-poppins max-w-2xl mx-auto leading-relaxed mb-4 md:mb-6 px-2">
-                    The only gamified tennis platform where players, coaches & clubs earn HP, XP & tokens—wager, win, shop, and improve your game at every level.
+                    The first gamified tennis matchmaking platform where players compete with UTR verification, earn XP & tokens, and level up their game.
                   </p>
                 </div>
               </CRTMonitor>
@@ -69,18 +69,18 @@ export default function Landing() {
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4 md:gap-6">
                 <div className="text-center bg-tennis-green-dark/80 border border-tennis-green-primary/40 rounded-lg p-4 md:p-6 backdrop-blur-sm hover:border-tennis-green-primary transition-all duration-300">
                   <div className="text-2xl md:text-3xl mb-3">🎾</div>
-                  <h3 className="text-lg md:text-xl font-orbitron font-bold text-tennis-yellow mb-2">Play & Compete</h3>
-                  <p className="text-sm md:text-base text-tennis-green-bg font-poppins">Challenge anyone, anywhere—wager tokens to climb leaderboards.</p>
+                  <h3 className="text-lg md:text-xl font-orbitron font-bold text-tennis-yellow mb-2">UTR Verified Matches</h3>
+                  <p className="text-sm md:text-base text-tennis-green-bg font-poppins">Find opponents at your skill level with official UTR verification and ratings.</p>
                 </div>
                 <div className="text-center bg-tennis-green-dark/80 border border-tennis-green-primary/40 rounded-lg p-4 md:p-6 backdrop-blur-sm hover:border-tennis-green-primary transition-all duration-300">
-                  <div className="text-2xl md:text-3xl mb-3">🤝</div>
-                  <h3 className="text-lg md:text-xl font-orbitron font-bold text-tennis-yellow mb-2">Join Clubs</h3>
-                  <p className="text-sm md:text-base text-tennis-green-bg font-poppins">Become part of your favorite clubs—participate in events & network.</p>
+                  <div className="text-2xl md:text-3xl mb-3">⚡</div>
+                  <h3 className="text-lg md:text-xl font-orbitron font-bold text-tennis-yellow mb-2">Gamified Experience</h3>
+                  <p className="text-sm md:text-base text-tennis-green-bg font-poppins">Earn XP, level up, and unlock rewards as you compete and improve.</p>
                 </div>
                 <div className="text-center bg-tennis-green-dark/80 border border-tennis-green-primary/40 rounded-lg p-4 md:p-6 backdrop-blur-sm hover:border-tennis-green-primary transition-all duration-300">
-                  <div className="text-2xl md:text-3xl mb-3">📈</div>
-                  <h3 className="text-lg md:text-xl font-orbitron font-bold text-tennis-yellow mb-2">Train & Develop</h3>
-                  <p className="text-sm md:text-base text-tennis-green-bg font-poppins">Log sessions to earn XP—unlock drills, power-ups & pro feedback.</p>
+                  <div className="text-2xl md:text-3xl mb-3">🏆</div>
+                  <h3 className="text-lg md:text-xl font-orbitron font-bold text-tennis-yellow mb-2">Token Stakes</h3>
+                  <p className="text-sm md:text-base text-tennis-green-bg font-poppins">Wager tokens on matches and climb leaderboards to prove your skills.</p>
                 </div>
               </div>
             </div>
