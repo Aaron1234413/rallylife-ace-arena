@@ -10,8 +10,6 @@ import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
 import { QuickActions } from '@/components/dashboard/QuickActions';
 import { ActiveMatches } from '@/components/dashboard/ActiveMatches';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
-import { UTRStatus } from '@/components/dashboard/UTRStatus';
-import { UpcomingAvailability } from '@/components/dashboard/UpcomingAvailability';
 import { MessageSquare } from 'lucide-react';
 
 const Dashboard = () => {
@@ -36,7 +34,7 @@ const Dashboard = () => {
   const goToMessages = () => navigate('/messages');
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light">
+    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
       <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Welcome Header */}
         <div className="text-center mb-6 sm:mb-8 space-y-2">
@@ -57,6 +55,7 @@ const Dashboard = () => {
             level={xpLoading ? 1 : xpData?.current_level || 1}
             hp={hpLoading ? 100 : hpData?.current_hp || 100}
             maxHp={hpLoading ? 100 : hpData?.max_hp || 100}
+            xpToNextLevel={xpLoading ? 0 : xpData?.xp_to_next_level || 0}
           />
 
           {/* Quick Actions */}
@@ -69,26 +68,15 @@ const Dashboard = () => {
           />
 
           {/* Main Content Grid */}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Left Column */}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+            {/* Upcoming Matches */}
             <div className="space-y-6">
-              {/* Active Matches */}
               <ActiveMatches matches={allMatches} />
-              
-              {/* UTR Status */}
-              <UTRStatus 
-                utrRating={profile?.utr_rating} 
-                isVerified={profile?.utr_verified} 
-              />
             </div>
 
-            {/* Right Column */}
+            {/* Recent Activity */}
             <div className="space-y-6">
-              {/* Recent Activity */}
               <RecentActivity />
-              
-              {/* Upcoming Availability */}
-              <UpcomingAvailability />
             </div>
           </div>
         </div>
