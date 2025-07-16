@@ -123,8 +123,28 @@ export function PlayerOnboarding({ user, profile, onComplete }: PlayerOnboarding
   };
 
   // Step 4: Welcome Complete
-  const handleFinalComplete = () => {
-    onComplete();
+  const handleFinalComplete = async () => {
+    try {
+      setLoading(true);
+      
+      // Ensure token initialization for onboarding completion
+      const { error: tokenError } = await supabase.rpc('initialize_player_tokens', {
+        user_id: user?.id
+      });
+      
+      if (tokenError) {
+        console.error('Error initializing tokens:', tokenError);
+        // Don't block onboarding completion for token initialization errors
+      }
+      
+      onComplete();
+    } catch (error) {
+      console.error('Error completing onboarding:', error);
+      // Still complete onboarding even if token initialization fails
+      onComplete();
+    } finally {
+      setLoading(false);
+    }
   };
 
   const steps = [
