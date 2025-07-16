@@ -1,87 +1,99 @@
 import React, { useState, useMemo } from 'react';
-import ErrorBoundary from '@/components/ErrorBoundary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
+import { Input } from '@/components/ui/input';
+import { Progress } from '@/components/ui/progress';
 import { 
+  Search, 
+  Filter, 
+  Plus, 
   Users, 
   Trophy, 
-  Calendar, 
+  Star, 
   MapPin, 
   Clock, 
-  Star,
-  Search,
-  Filter,
-  Plus,
-  Gamepad2,
   Coins,
-  SlidersHorizontal,
-  Trash2,
-  Loader2
+  Gamepad2,
+  X,
+  ChevronDown,
+  Zap,
+  Target,
+  Award,
+  TrendingUp,
+  Timer,
+  Flame
 } from 'lucide-react';
-import { Input } from '@/components/ui/input';
 import { Link, useSearchParams } from 'react-router-dom';
-import { useLocationBasedSessions } from '@/hooks/useLocationBasedSessions';
-import { useLocationBasedRecommendations } from '@/hooks/useLocationBasedRecommendations';
+import {
+  Sheet,
+  SheetContent,
+  SheetDescription,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import { useAuth } from '@/hooks/useAuth';
-import { EnhancedLocationFilters } from '@/components/play/EnhancedLocationFilters';
-import { NearbyPlayersWidget } from '@/components/play/NearbyPlayersWidget';
-import { useEnhancedLocation } from '@/hooks/useEnhancedLocation';
-import { LocationPermissionHandler } from '@/components/location/LocationPermissionHandler';
-import { useJoinSessionState } from '@/hooks/useJoinSessionState';
+import { useStandardSessionFetch } from '@/hooks/useStandardSessionFetch';
+import { useSessionAutomation } from '@/hooks/useSessionAutomation';
 import { usePlayerTokens } from '@/hooks/usePlayerTokens';
 import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useMatchHistory } from '@/hooks/useMatchHistory';
-import { useUnifiedSessions } from '@/hooks/useUnifiedSessions';
-import { useStandardSessionFetch } from '@/hooks/useStandardSessionFetch';
-import { useSessionAutomation } from '@/hooks/useSessionAutomation';
-import { toast } from 'sonner';
-import { MobileSessionCard } from '@/components/play/MobileSessionCard';
-import { useIsMobile } from '@/hooks/use-mobile';
-import { PlayerStatsWidget } from '@/components/play/PlayerStatsWidget';
-import { SessionCard } from '@/components/sessions/SessionCard';
-import { RecommendedSection } from '@/components/play/RecommendedSection';
-import { SessionCreationDialog } from '@/components/sessions/SessionCreationDialog';
-import { SessionErrorWrapper } from '@/components/sessions/SessionErrorWrapper';
-import { SessionListSkeleton } from '@/components/sessions/SessionSkeletons';
-import { SessionLoadingState } from '@/components/sessions/SessionLoadingState';
-import { PlayerSuggestions } from '@/components/matchmaking/PlayerSuggestions';
-import { MatchCard } from '@/components/matchmaking/MatchCard';
 import { useMatchmaking } from '@/hooks/useMatchmaking';
+import { usePlayerDiscovery } from '@/hooks/usePlayerDiscovery';
+import { useIsMobile } from '@/hooks/use-mobile';
+import { SessionCreationDialog } from '@/components/sessions/SessionCreationDialog';
+import { QuickActionsGrid } from '@/components/play/QuickActionsGrid';
+import { ActiveMatches } from '@/components/play/ActiveMatches';
+import { FeaturedSessions } from '@/components/play/FeaturedSessions';
+import { PlayerSuggestions } from '@/components/matchmaking/PlayerSuggestions';
+import { XPDisplay } from '@/components/xp/XPDisplay';
+import { toast } from 'sonner';
+
+// Mock player stats - will be replaced with real data
+const mockPlayerStats = {
+  level: 12,
+  xp: 2850,
+  xpToNext: 3000,
+  tokens: 1240,
+  streak: 7,
+  wins: 34,
+  totalMatches: 52
+};
 
 const Play = () => {
   const { user } = useAuth();
-  const { isJoining, startJoining, stopJoining } = useJoinSessionState();
   const isMobile = useIsMobile();
   const [searchParams, setSearchParams] = useSearchParams();
   
   // Get initial tab from URL params or default to "for-you"
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'for-you');
   
-  // Matchmaking data
-  const { 
-    getPendingChallenges,
-    getActiveMatches,
-    isLoading: matchmakingLoading 
-  } = useMatchmaking();
-  
-  const pendingMatches = getPendingChallenges();
-  const activeMatches = getActiveMatches();
-  
   // Session creation dialog state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   
-  // Standardized session fetching with enhanced error handling
+  // Filter states
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterOpen, setFilterOpen] = useState(false);
+  const [sessionTypeFilter, setSessionTypeFilter] = useState('all');
+  const [stakesFilter, setStakesFilter] = useState('all');
+  const [distanceFilter, setDistanceFilter] = useState('all');
+  
+  // Data hooks
   const { 
-    sessions: allSessions,
     availableSessions,
-    mySessions,
+    mySessions, 
     loading: sessionsLoading,
-    joining,
     joinSession,
-    cancelSession,
     refreshSessions
   } = useStandardSessionFetch({
     includeNonClubSessions: true
@@ -90,615 +102,467 @@ const Play = () => {
   // Enable real-time updates for Play page sessions
   useSessionAutomation(refreshSessions);
   
-  // State for delete operations
-  const [deletingStates, setDeletingStates] = useState<Record<string, boolean>>({});
-  
-  // Token balance for checking stakes
-  const { 
-    regularTokens, 
-    loading: tokensLoading,
-    refreshTokens 
-  } = usePlayerTokens();
-
-  // Player XP and stats
+  // Player data
+  const { regularTokens, loading: tokensLoading } = usePlayerTokens();
   const { xpData, loading: xpLoading } = usePlayerXP();
-  
-  // Player HP data
   const { hpData, loading: hpLoading } = usePlayerHP();
-  
-  // Match history data  
   const { matchHistory, loading: matchLoading } = useMatchHistory();
-  const [searchQuery, setSearchQuery] = useState('');
-  const [selectedFormat, setSelectedFormat] = useState('all');
-  const [showFilters, setShowFilters] = useState(false);
   
-  // Location and filter states
-  const [radiusKm, setRadiusKm] = useState(50);
-  const [sortBy, setSortBy] = useState('created_at'); // Default to created_at instead of distance
-  const [sessionTypeFilter, setSessionTypeFilter] = useState('all');
-  const [stakesFilter, setStakesFilter] = useState('all');
-  const [levelFilter, setLevelFilter] = useState('all');
-  const [availabilityFilter, setAvailabilityFilter] = useState('all');
-  const [showOnlyWithLocation, setShowOnlyWithLocation] = useState(false);
-  const [showTravelTime, setShowTravelTime] = useState(true);
-  
-  // Enhanced location service
-  const {
-    hasLocation,
-    currentLocation,
-    permission,
-    isLoading: locationLoading,
-    filterByDistance,
-    formatDistance,
-    formatTravelTime
-  } = useEnhancedLocation();
-  
-  // Location-based data
-  const { 
-    nearbySessions, 
-    nearbyPlayers, 
-    loading: nearbyDataLoading
-  } = useLocationBasedSessions(radiusKm);
-
-  // Recommendations
-  const { recommendations, loading: recommendationsLoading } = useLocationBasedRecommendations(radiusKm);
-
-  // Auto-switch to distance sorting when location becomes available
-  React.useEffect(() => {
-    if (hasLocation && sortBy === 'created_at') {
-      setSortBy('distance');
-    }
-  }, [hasLocation, sortBy]);
+  // Matchmaking and discovery
+  const { suggestions, loading: discoveryLoading } = usePlayerDiscovery();
 
   // Handle tab switching from URL parameters
   React.useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['for-you', 'matchmaking', 'nearby', 'all', 'mine'].includes(tabParam)) {
+    if (tabParam && ['for-you', 'nearby', 'all'].includes(tabParam)) {
       setActiveTab(tabParam);
       // Clear the URL parameter after switching
       setSearchParams({});
     }
   }, [searchParams, setSearchParams]);
 
-  // Use data from standardized hook that already provides filtered sessions
-  // No need for manual filtering since useStandardSessionFetch handles this
-  
-  // Debug logging
-  console.log('All sessions:', allSessions.length);
-  console.log('Available sessions:', availableSessions.length);
-  console.log('My sessions:', mySessions.length);
-  console.log('User ID:', user?.id);
-  
-  // Use static loading state from standardized sessions
-  const availableLoading = sessionsLoading;
-  const mySessionsLoading = sessionsLoading;
-
-  // Enhanced session filtering and sorting with location integration
-  const filteredAndSortedSessions = useMemo(() => {
-    let filtered = availableSessions.filter(session => {
-      // Search filter
+  // Filter sessions based on current filters
+  const filteredSessions = useMemo(() => {
+    return availableSessions.filter(session => {
       const matchesSearch = !searchQuery || 
         session.location?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         session.creator?.full_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
         session.session_type.toLowerCase().includes(searchQuery.toLowerCase());
       
-      // Format filter
-      const matchesFormat = selectedFormat === 'all' || 
-        session.session_type === selectedFormat ||
-        session.format === selectedFormat;
-
-      // Session type filter
-      const matchesSessionType = sessionTypeFilter === 'all' || 
+      const matchesType = sessionTypeFilter === 'all' || 
         session.session_type === sessionTypeFilter;
 
-      // Stakes filter
       const matchesStakes = stakesFilter === 'all' || 
-        (stakesFilter === 'free' && session.stakes_amount === 0) ||
-        (stakesFilter === 'low' && session.stakes_amount > 0 && session.stakes_amount <= 50) ||
-        (stakesFilter === 'medium' && session.stakes_amount > 50 && session.stakes_amount <= 200) ||
-        (stakesFilter === 'high' && session.stakes_amount > 200);
+        (stakesFilter === 'free' && (session.stakes_amount || 0) === 0) ||
+        (stakesFilter === 'low' && (session.stakes_amount || 0) > 0 && (session.stakes_amount || 0) <= 50) ||
+        (stakesFilter === 'medium' && (session.stakes_amount || 0) > 50 && (session.stakes_amount || 0) <= 200) ||
+        (stakesFilter === 'high' && (session.stakes_amount || 0) > 200);
 
-      // Location filter
-      const matchesLocation = !showOnlyWithLocation || 
-        (session.latitude && session.longitude);
-      
-      return matchesSearch && matchesFormat && matchesSessionType && matchesStakes && matchesLocation;
+      return matchesSearch && matchesType && matchesStakes;
     });
+  }, [availableSessions, searchQuery, sessionTypeFilter, stakesFilter]);
 
-    // Apply distance filtering if location is available
-    if (hasLocation && currentLocation) {
-      const sessionsWithLocation = filtered.filter(s => s.latitude && s.longitude);
-      const filteredByDistance = filterByDistance(sessionsWithLocation, radiusKm);
-      
-      // Combine with sessions without location if not filtering by location only
-      if (!showOnlyWithLocation) {
-        const sessionsWithoutLocation = filtered.filter(s => !s.latitude || !s.longitude);
-        filtered = [...filteredByDistance, ...sessionsWithoutLocation];
-      } else {
-        filtered = filteredByDistance;
-      }
-    }
-
-    // Enhanced sorting with location awareness
-    filtered.sort((a, b) => {
-      switch (sortBy) {
-        case 'distance':
-          if (!hasLocation || !currentLocation) return 0;
-          
-          const aHasLocation = a.latitude && a.longitude;
-          const bHasLocation = b.latitude && b.longitude;
-          
-          if (!aHasLocation && !bHasLocation) return 0;
-          if (!aHasLocation) return 1;
-          if (!bHasLocation) return -1;
-          
-          // Use enhanced location service for distance calculation
-          const aDistance = filterByDistance([a], radiusKm)[0]?.distance?.distanceKm ?? 999;
-          const bDistance = filterByDistance([b], radiusKm)[0]?.distance?.distanceKm ?? 999;
-          return aDistance - bDistance;
-          
-        case 'travel_time':
-          if (!hasLocation || !currentLocation) return 0;
-          
-          const aTravelTime = filterByDistance([a], radiusKm)[0]?.distance?.drivingTimeMinutes ?? 999;
-          const bTravelTime = filterByDistance([b], radiusKm)[0]?.distance?.drivingTimeMinutes ?? 999;
-          return aTravelTime - bTravelTime;
-          
-        case 'participants':
-          return (b.participant_count || 0) - (a.participant_count || 0);
-        case 'stakes':
-          return b.stakes_amount - a.stakes_amount;
-        case 'created_at':
-        default:
-          return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-      }
-    });
-
-    return filtered;
-  }, [
-    availableSessions, 
-    searchQuery, 
-    selectedFormat, 
-    sessionTypeFilter, 
-    stakesFilter, 
-    sortBy, 
-    showOnlyWithLocation,
-    hasLocation,
-    currentLocation,
-    radiusKm,
-    filterByDistance
-  ]);
-
-  // Count active filters
-  const activeFiltersCount = [
-    sessionTypeFilter !== 'all',
-    stakesFilter !== 'all',
-    levelFilter !== 'all',
-    availabilityFilter !== 'all',
-    showOnlyWithLocation,
-    sortBy !== (hasLocation ? 'distance' : 'created_at')
-  ].filter(Boolean).length;
-
-  const clearFilters = () => {
-    setSessionTypeFilter('all');
-    setStakesFilter('all');
-    setLevelFilter('all');
-    setAvailabilityFilter('all');
-    setShowOnlyWithLocation(false);
-    setShowTravelTime(true);
-    setSortBy(hasLocation ? 'distance' : 'created_at');
+  const handleFindMatch = () => {
+    setActiveTab('for-you');
   };
 
-  // For now, all sessions are considered "active" (available)
-  const activeSessions = filteredAndSortedSessions;
-  const upcomingSessions = []; // We'll enhance this later with scheduled sessions
-
-  // Mobile-first session handlers
-  const handleJoinSession = async (sessionId: string): Promise<boolean> => {
-    if (isJoining(sessionId)) return false;
-    
-    startJoining(sessionId);
-    
-    try {
-      await joinSession(sessionId);
-      return true;
-    } catch (error) {
-      console.error('Failed to join session:', error);
-      return false;
-    } finally {
-      stopJoining();
-    }
+  const handleCreateSession = () => {
+    setShowCreateDialog(true);
   };
 
-  const handleDeleteSession = async (sessionId: string) => {
-    setDeletingStates(prev => ({ ...prev, [sessionId]: true }));
-    try {
-      const success = await cancelSession(sessionId);
-      if (success) {
-        toast.success('Session deleted successfully');
+  // Enhanced session card with gamification (from PlayMockup)
+  const SessionCard = ({ session, isRecommended = false }: { session: any, isRecommended?: boolean }) => {
+    const getTypeIcon = (type: string) => {
+      switch (type) {
+        case 'match': return Trophy;
+        case 'social': return Users;
+        case 'training': return Star;
+        default: return Gamepad2;
       }
-    } catch (error) {
-      console.error('Error deleting session:', error);
-      toast.error('Failed to delete session');
-    } finally {
-      setDeletingStates(prev => ({ ...prev, [sessionId]: false }));
-    }
+    };
+
+    const getRewardPreview = (stakes: number, type: string) => {
+      const baseXP = type === 'match' ? 50 : type === 'training' ? 30 : 20;
+      const stakesBonus = Math.floor(stakes * 0.1);
+      return {
+        xp: baseXP + stakesBonus,
+        tokens: Math.floor(stakes * 1.5) || 10
+      };
+    };
+
+    const TypeIcon = getTypeIcon(session.session_type);
+    const reward = getRewardPreview(session.stakes_amount || 0, session.session_type);
+
+    return (
+      <Card className={`group hover:shadow-xl hover:scale-[1.02] transition-all duration-300 border-l-4 ${
+        isRecommended 
+          ? 'border-l-tennis-green-accent bg-gradient-to-br from-tennis-green-subtle to-tennis-green-bg ring-2 ring-tennis-green-primary/20' 
+          : 'border-l-tennis-green-primary hover:border-l-tennis-green-accent'
+      }`}>
+        <CardContent className="p-4">
+          <div className="space-y-4">
+            {/* Header with enhanced badges */}
+            <div className="flex items-start justify-between">
+              <div className="flex items-center gap-2 flex-1">
+                <div className="relative">
+                  <TypeIcon className={`h-5 w-5 ${isRecommended ? 'text-tennis-green-accent' : 'text-tennis-green-primary'} transition-colors`} />
+                  {isRecommended && (
+                    <div className="absolute -top-1 -right-1 w-2 h-2 bg-tennis-green-accent rounded-full animate-pulse" />
+                  )}
+                </div>
+                <h3 className="font-semibold text-sm line-clamp-1 group-hover:text-tennis-green-primary transition-colors">
+                  {session.session_type} Session
+                </h3>
+              </div>
+              <Badge variant="outline" className="text-xs bg-tennis-green-subtle text-tennis-green-dark border-tennis-green-primary/30">
+                {session.session_type}
+              </Badge>
+            </div>
+
+            {/* Location */}
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <MapPin className="h-3 w-3" />
+              <span className="line-clamp-1 font-medium">{session.location || 'Location TBD'}</span>
+            </div>
+
+            {/* Participants */}
+            <div className="flex items-center justify-between p-2 bg-tennis-green-bg/50 rounded-lg">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center gap-1 text-xs font-medium">
+                  <Users className="h-3 w-3 text-tennis-green-primary" />
+                  <span>{session.participant_count || 0}/{session.max_players || 4}</span>
+                </div>
+                <div className="w-8 h-1 bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-tennis-green-primary transition-all duration-300"
+                    style={{ width: `${((session.participant_count || 0) / (session.max_players || 4)) * 100}%` }}
+                  />
+                </div>
+              </div>
+              <div className="text-xs text-muted-foreground font-medium">
+                by {session.creator?.full_name || 'Unknown'}
+              </div>
+            </div>
+
+            {/* Gamified rewards preview */}
+            <div className="flex items-center justify-between p-2 bg-gradient-to-r from-tennis-green-subtle to-tennis-green-bg rounded-lg border border-tennis-green-primary/20">
+              <div className="flex items-center gap-3">
+                {session.stakes_amount && session.stakes_amount > 0 && (
+                  <div className="flex items-center gap-1 text-xs font-semibold text-tennis-yellow-dark">
+                    <Coins className="h-3 w-3" />
+                    <span>{session.stakes_amount} stake</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-1 text-xs font-semibold text-tennis-green-accent">
+                  <Zap className="h-3 w-3" />
+                  <span>+{reward.xp} XP</span>
+                </div>
+                <div className="flex items-center gap-1 text-xs font-semibold text-tennis-green-primary">
+                  <Target className="h-3 w-3" />
+                  <span>+{reward.tokens} tokens</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Action button */}
+            <Button 
+              size="sm" 
+              className="w-full font-semibold bg-tennis-green-primary hover:bg-tennis-green-accent text-white"
+              onClick={() => joinSession(session.id)}
+            >
+              Join Session
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
   };
 
   return (
-    <div className="min-h-screen bg-background">
-      {/* Sticky header */}
+    <div className="min-h-screen bg-gradient-to-br from-background via-tennis-green-bg/20 to-tennis-green-subtle/30">
+      {/* Sticky Header */}
       <div className="sticky top-0 z-40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60 border-b">
-        <div className="container mx-auto px-4 py-4">
-          <div className="flex items-center justify-between mb-4">
-            <h1 className="text-2xl font-bold">Play Tennis</h1>
+        <div className="container mx-auto px-4 py-3">
+          <div className="flex items-center gap-4">
+            {/* Logo/Title */}
             <div className="flex items-center gap-2">
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setShowFilters(!showFilters)}
-                className="relative"
+              <h1 className="text-xl font-bold">🎾 Play</h1>
+            </div>
+            
+            {/* Search - Mobile Optimized */}
+            <div className="flex-1 relative">
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground h-4 w-4" />
+              <Input
+                placeholder="Search sessions, players, locations..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="pl-10 bg-muted/50 text-sm md:text-base"
+              />
+            </div>
+
+            {/* Quick Actions - Responsive */}
+            <div className="flex items-center gap-2">
+              {/* Filter */}
+              <Sheet open={filterOpen} onOpenChange={setFilterOpen}>
+                <SheetTrigger asChild>
+                  <Button variant="outline" size="sm" className="px-2 md:px-4">
+                    <Filter className="h-4 w-4" />
+                    <span className="hidden md:inline ml-2">Filter</span>
+                  </Button>
+                </SheetTrigger>
+                <SheetContent side="right" className="w-full sm:w-96">
+                  <SheetHeader>
+                    <SheetTitle>Filter Sessions</SheetTitle>
+                    <SheetDescription>
+                      Refine your search to find the perfect match
+                    </SheetDescription>
+                  </SheetHeader>
+                  <div className="space-y-6 mt-6">
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Session Type</label>
+                      <Select value={sessionTypeFilter} onValueChange={setSessionTypeFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="All session types" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                          <SelectItem value="all">All Types</SelectItem>
+                          <SelectItem value="match">Matches</SelectItem>
+                          <SelectItem value="social">Social Games</SelectItem>
+                          <SelectItem value="training">Training</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Stakes</label>
+                      <Select value={stakesFilter} onValueChange={setStakesFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Any stakes" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                          <SelectItem value="all">Any Stakes</SelectItem>
+                          <SelectItem value="free">Free (0 tokens)</SelectItem>
+                          <SelectItem value="low">Low (1-50 tokens)</SelectItem>
+                          <SelectItem value="medium">Medium (51-200 tokens)</SelectItem>
+                          <SelectItem value="high">High (200+ tokens)</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="space-y-2">
+                      <label className="text-sm font-medium">Distance</label>
+                      <Select value={distanceFilter} onValueChange={setDistanceFilter}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Any distance" />
+                        </SelectTrigger>
+                        <SelectContent className="bg-white border border-gray-200 shadow-lg z-50">
+                          <SelectItem value="all">Any Distance</SelectItem>
+                          <SelectItem value="close">Within 2km</SelectItem>
+                          <SelectItem value="medium">Within 10km</SelectItem>
+                          <SelectItem value="far">Within 25km</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    <div className="pt-4">
+                      <Button 
+                        variant="outline" 
+                        onClick={() => {
+                          setSessionTypeFilter('all');
+                          setStakesFilter('all');
+                          setDistanceFilter('all');
+                        }}
+                        className="w-full"
+                      >
+                        Clear Filters
+                      </Button>
+                    </div>
+                  </div>
+                </SheetContent>
+              </Sheet>
+
+              {/* Create Session */}
+              <Button 
+                onClick={handleCreateSession}
+                size="sm" 
+                className="bg-tennis-green-primary hover:bg-tennis-green-accent px-2 md:px-4"
               >
-                <SlidersHorizontal className="h-4 w-4" />
-                {isMobile && "Filters"}
-                {activeFiltersCount > 0 && (
-                  <Badge className="absolute -top-2 -right-2 h-5 w-5 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center p-0">
-                    {activeFiltersCount}
-                  </Badge>
-                )}
-              </Button>
-              <Button size="sm" onClick={() => setShowCreateDialog(true)}>
                 <Plus className="h-4 w-4" />
-                {!isMobile && "Create"}
+                <span className="hidden md:inline ml-2">Create</span>
               </Button>
             </div>
-          </div>
-          
-          {/* Search bar */}
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search by location, player, or session type..."
-              value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
-              className="pl-10"
-            />
           </div>
         </div>
       </div>
 
       {/* Main content */}
       <div className="container mx-auto px-4 pb-24">
-        {/* Player Stats Widget */}
+        {/* Player Stats Display */}
         <div className="my-6">
-          <PlayerStatsWidget
-            level={xpData?.current_level || 1}
-            currentXP={xpData?.current_xp || 0}
-            xpToNext={xpData?.xp_to_next_level || 100}
-            tokens={regularTokens}
-            hp={hpData?.current_hp || 100}
-            maxHP={hpData?.max_hp || 100}
-            matchesWon={matchHistory.matchesWon}
-            totalMatches={matchHistory.totalMatches}
-            loading={xpLoading || hpLoading || tokensLoading || matchLoading}
+          <Card className="bg-gradient-to-r from-tennis-green-primary to-tennis-green-accent text-white overflow-hidden relative">
+            <CardContent className="p-6">
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{xpData?.current_level || mockPlayerStats.level}</div>
+                  <div className="text-sm opacity-90">Level</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{regularTokens || mockPlayerStats.tokens}</div>
+                  <div className="text-sm opacity-90">Tokens</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{hpData?.current_hp || 100}</div>
+                  <div className="text-sm opacity-90">HP</div>
+                </div>
+                <div className="text-center">
+                  <div className="text-2xl font-bold">{matchHistory.matchesWon || mockPlayerStats.wins}</div>
+                  <div className="text-sm opacity-90">Wins</div>
+                </div>
+              </div>
+              
+              {/* XP Progress */}
+              <div className="mt-4">
+                <div className="flex justify-between text-sm mb-1">
+                  <span>XP Progress</span>
+                  <span>{xpData?.current_xp || mockPlayerStats.xp}/{xpData?.xp_to_next_level || mockPlayerStats.xpToNext}</span>
+                </div>
+                <Progress 
+                  value={((xpData?.current_xp || mockPlayerStats.xp) / (xpData?.xp_to_next_level || mockPlayerStats.xpToNext)) * 100} 
+                  className="h-2 bg-white/20"
+                />
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Quick Actions Grid */}
+        <div className="mb-6">
+          <QuickActionsGrid 
+            onFindMatch={handleFindMatch}
+            onCreateSession={handleCreateSession}
           />
         </div>
 
-        {/* Enhanced Filters */}
-        {showFilters && (
-          <EnhancedLocationFilters
-            radiusKm={radiusKm}
-            onRadiusChange={setRadiusKm}
-            sortBy={sortBy}
-            onSortChange={setSortBy}
-            sessionTypeFilter={sessionTypeFilter}
-            onSessionTypeFilterChange={setSessionTypeFilter}
-            stakesFilter={stakesFilter}
-            onStakesFilterChange={setStakesFilter}
-            levelFilter={levelFilter}
-            onLevelFilterChange={setLevelFilter}
-            availabilityFilter={availabilityFilter}
-            onAvailabilityFilterChange={setAvailabilityFilter}
-            showOnlyWithLocation={showOnlyWithLocation}
-            onShowOnlyWithLocationChange={setShowOnlyWithLocation}
-            showTravelTime={showTravelTime}
-            onShowTravelTimeChange={setShowTravelTime}
-            hasLocation={hasLocation}
-            activeFiltersCount={activeFiltersCount}
-            onClearFilters={clearFilters}
-            currentLocation={currentLocation}
-          />
-        )}
+        {/* Active Matches & Featured Sessions */}
+        <div className="grid md:grid-cols-2 gap-6 mb-6">
+          <ActiveMatches />
+          <FeaturedSessions />
+        </div>
 
-        {/* Enhanced Tabs */}
+        {/* Session Discovery Tabs */}
         <Tabs 
           value={activeTab} 
           onValueChange={setActiveTab}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-5 mb-6">
-            <TabsTrigger 
-              value="for-you" 
-              className="flex items-center gap-2"
-            >
+          <TabsList className="grid w-full grid-cols-3 mb-6">
+            <TabsTrigger value="for-you" className="flex items-center gap-2">
               <Star className="h-4 w-4" />
               For You
             </TabsTrigger>
-            <TabsTrigger 
-              value="matchmaking"
-              className="flex items-center gap-2"
-            >
-              <Gamepad2 className="h-4 w-4" />
-              Matches
-            </TabsTrigger>
-            <TabsTrigger 
-              value="nearby"
-              className="flex items-center gap-2"
-            >
+            <TabsTrigger value="nearby" className="flex items-center gap-2">
               <MapPin className="h-4 w-4" />
               Nearby
             </TabsTrigger>
-            <TabsTrigger 
-              value="all"
-              className="flex items-center gap-2"
-            >
+            <TabsTrigger value="all" className="flex items-center gap-2">
               <Users className="h-4 w-4" />
-              All ({activeSessions.length})
-            </TabsTrigger>
-            <TabsTrigger 
-              value="mine"
-              className="flex items-center gap-2"
-            >
-              <Trophy className="h-4 w-4" />
-              Mine ({mySessions.length})
+              All Sessions
             </TabsTrigger>
           </TabsList>
 
           {/* For You Tab */}
-          <TabsContent value="for-you" className="space-y-4">
-            <RecommendedSection
-              recommendations={recommendations}
-              onJoinSession={handleJoinSession}
-              loading={recommendationsLoading}
-            />
+          <TabsContent value="for-you" className="space-y-6">
+            <div className="text-center py-4">
+              <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-tennis-green-primary to-tennis-green-accent bg-clip-text text-transparent">
+                ✨ Recommended for You
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                AI-powered matches based on your skill level and preferences
+              </p>
+            </div>
             
-            {/* Recent Sessions */}
-            <div>
-              <h2 className="text-lg font-semibold mb-3">Recent Sessions</h2>
-              <SessionErrorWrapper 
-                context="recent sessions"
-                onRetry={refreshSessions}
-              >
-                {availableLoading ? (
-                  <SessionListSkeleton count={3} />
-                ) : activeSessions.length === 0 ? (
-                  <Card>
-                    <CardContent className="p-8 text-center">
-                      <div className="space-y-4">
-                        <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto" />
-                        <div>
-                          <h3 className="text-lg font-semibold">No Sessions Available</h3>
-                          <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
-                        </div>
-                        <Button onClick={() => setShowCreateDialog(true)}>
-                          <Plus className="h-4 w-4 mr-2" />
-                          Create Session
-                        </Button>
-                      </div>
-                    </CardContent>
-                  </Card>
-                ) : (
-                  <div className="space-y-4">
-                    {activeSessions.slice(0, 3).map((session) => (
-                       <SessionCard
-                         key={session.id}
-                          session={{...session, status: 'waiting'}}
-                         participants={session.participants || []}
-                         onJoin={handleJoinSession}
-                         onRefresh={refreshSessions}
-                         isJoining={isJoining(session.id)}
-                         showJoinButton={true}
-                       />
-                     ))}
-                  </div>
-                )}
-              </SessionErrorWrapper>
-            </div>
-          </TabsContent>
-
-           {/* Matchmaking Tab */}
-          <TabsContent value="matchmaking" className="space-y-6">
+            {/* Player Suggestions */}
+            {suggestions.length > 0 && (
+              <div className="space-y-4">
+                <h4 className="font-semibold">Recommended Players</h4>
+                <PlayerSuggestions />
+              </div>
+            )}
+            
+            {/* Top recommendations */}
             <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Find Players</h2>
-              <PlayerSuggestions />
+              {filteredSessions
+                .slice(0, 2)
+                .map((session) => (
+                  <SessionCard key={session.id} session={session} isRecommended={true} />
+                ))}
             </div>
 
-            {/* Active Matches */}
-            <div className="space-y-4">
-              <h2 className="text-lg font-semibold">Your Matches</h2>
-              
-              {(activeMatches.length > 0 || pendingMatches.length > 0) ? (
-                <>
-                  {/* Pending Matches */}
-                  {pendingMatches.length > 0 && (
-                    <div className="space-y-3">
-                      <h3 className="text-md font-medium text-muted-foreground">Pending Challenges</h3>
-                      {pendingMatches.map((match: any) => (
-                        <MatchCard key={match.id} match={match} variant="challenge" />
-                      ))}
-                    </div>
-                  )}
+            {/* Section divider */}
+            <div className="flex items-center gap-4 py-2">
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+              <span className="text-sm font-medium text-muted-foreground bg-background px-4">
+                Other Sessions
+              </span>
+              <div className="flex-1 h-px bg-gradient-to-r from-transparent via-border to-transparent" />
+            </div>
 
-                  {/* Active Matches */}
-                  {activeMatches.length > 0 && (
-                    <div className="space-y-3">
-                      <h3 className="text-md font-medium text-muted-foreground">Active Matches</h3>
-                      {activeMatches.map((match: any) => (
-                        <MatchCard key={match.id} match={match} variant="active" />
-                      ))}
-                    </div>
-                  )}
-                </>
-              ) : (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <div className="space-y-4">
-                      <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto" />
-                      <div>
-                        <h3 className="text-lg font-semibold">No Matches Yet</h3>
-                        <p className="text-muted-foreground">Challenge players above to start your first match!</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              )}
+            {/* Regular sessions */}
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredSessions.slice(2).map((session) => (
+                <SessionCard key={session.id} session={session} />
+              ))}
             </div>
           </TabsContent>
 
           {/* Nearby Tab */}
-          <TabsContent value="nearby" className="space-y-4">
-            {!hasLocation && (
-              <LocationPermissionHandler 
-                onLocationObtained={() => {
-                  toast.success('Location enabled! Finding nearby sessions...');
-                }}
-                autoRequest={false}
-                showDetails={true}
-                compact={false}
-              />
-            )}
+          <TabsContent value="nearby" className="space-y-6">
+            <div className="text-center py-4">
+              <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-tennis-green-accent to-tennis-green-primary bg-clip-text text-transparent">
+                📍 Sessions Near You
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Sessions in your area
+              </p>
+            </div>
             
-            <SessionErrorWrapper 
-              context="nearby sessions"
-              onRetry={refreshSessions}
-            >
-              {(locationLoading || nearbyDataLoading) ? (
-                <SessionListSkeleton count={3} />
-              ) : !hasLocation ? (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <div className="space-y-4">
-                      <MapPin className="h-12 w-12 text-muted-foreground mx-auto" />
-                      <div>
-                        <h3 className="text-lg font-semibold">Location Services Required</h3>
-                        <p className="text-muted-foreground">Enable location access to find nearby sessions and players.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : filteredAndSortedSessions.length === 0 ? (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <div className="space-y-4">
-                      <MapPin className="h-12 w-12 text-muted-foreground mx-auto" />
-                      <div>
-                        <h3 className="text-lg font-semibold">No Nearby Sessions</h3>
-                        <p className="text-muted-foreground">No sessions found within {radiusKm}km of your location.</p>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-4">
-                  {filteredAndSortedSessions.map((session) => (
-                    <SessionCard
-                      key={session.id}
-                      session={{...session, status: 'waiting'}}
-                      participants={session.participants || []}
-                      onJoin={handleJoinSession}
-                      onRefresh={refreshSessions}
-                      isJoining={isJoining(session.id)}
-                      showJoinButton={true}
-                      showDistance={true}
-                    />
-                  ))}
-                </div>
-              )}
-            </SessionErrorWrapper>
+            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+              {filteredSessions
+                .filter(session => session.location)
+                .map((session) => (
+                  <SessionCard key={session.id} session={session} />
+                ))}
+            </div>
           </TabsContent>
 
           {/* All Sessions Tab */}
-          <TabsContent value="all" className="space-y-4">
-            <SessionErrorWrapper 
-              context="all sessions"
-              onRetry={refreshSessions}
-            >
-              {availableLoading ? (
-                <SessionListSkeleton count={6} />
-              ) : activeSessions.length === 0 ? (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <div className="space-y-4">
-                      <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto" />
-                      <div>
-                        <h3 className="text-lg font-semibold">No Active Sessions</h3>
-                        <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
+          <TabsContent value="all" className="space-y-6">
+            <div className="text-center py-4">
+              <h3 className="text-2xl font-bold mb-2 bg-gradient-to-r from-tennis-green-dark to-tennis-green-primary bg-clip-text text-transparent">
+                🎾 All Available Sessions
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Browse all sessions or use filters to narrow down your search
+              </p>
+            </div>
+            
+            {sessionsLoading ? (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {[1, 2, 3, 4, 5, 6].map((i) => (
+                  <Card key={i} className="animate-pulse">
+                    <CardContent className="p-4">
+                      <div className="space-y-3">
+                        <div className="h-4 bg-muted rounded" />
+                        <div className="h-3 bg-muted rounded w-3/4" />
+                        <div className="h-3 bg-muted rounded w-1/2" />
                       </div>
-                      <Button onClick={() => setShowCreateDialog(true)}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Session
-                      </Button>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            ) : filteredSessions.length === 0 ? (
+              <Card>
+                <CardContent className="p-8 text-center">
+                  <div className="space-y-4">
+                    <Gamepad2 className="h-12 w-12 text-muted-foreground mx-auto" />
+                    <div>
+                      <h3 className="text-lg font-semibold">No Sessions Available</h3>
+                      <p className="text-muted-foreground">Be the first to create a session and start playing!</p>
                     </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                <div className="space-y-4">
-                  {activeSessions.map((session) => (
-                         <SessionCard
-                           key={session.id}
-                           session={{...session, status: 'waiting'}}
-                           participants={session.participants || []}
-                           onJoin={handleJoinSession}
-                           onRefresh={refreshSessions}
-                           isJoining={isJoining(session.id)}
-                           showJoinButton={true}
-                         />
-                  ))}
-                </div>
-              )}
-            </SessionErrorWrapper>
-          </TabsContent>
-
-          {/* Mine Tab */}
-          <TabsContent value="mine" className="space-y-4">
-            <SessionErrorWrapper 
-              context="my sessions"
-              onRetry={refreshSessions}
-            >
-              {mySessionsLoading ? (
-                <SessionListSkeleton count={4} />
-              ) : mySessions.length === 0 ? (
-                <Card>
-                  <CardContent className="p-8 text-center">
-                    <div className="space-y-4">
-                      <Trophy className="h-12 w-12 text-muted-foreground mx-auto" />
-                      <div>
-                        <h3 className="text-lg font-semibold">No Sessions Yet</h3>
-                        <p className="text-muted-foreground">You haven't joined or created any sessions.</p>
-                      </div>
-                      <Button onClick={() => setShowCreateDialog(true)}>
-                        <Plus className="h-4 w-4 mr-2" />
-                        Create Your First Session
-                      </Button>
-                    </div>
-                  </CardContent>
-                </Card>
-              ) : (
-                 <div className="space-y-4">
-                  {mySessions.map((session) => (
-                     <SessionCard
-                       key={session.id}
-                       session={{...session, status: 'waiting'}}
-                       participants={session.participants || []}
-                       onJoin={handleJoinSession}
-                       onRefresh={refreshSessions}
-                       isJoining={isJoining(session.id)}
-                       showJoinButton={true}
-                     />
-                  ))}
-                </div>
-              )}
-            </SessionErrorWrapper>
+                    <Button onClick={() => setShowCreateDialog(true)}>
+                      <Plus className="h-4 w-4 mr-2" />
+                      Create Session
+                    </Button>
+                  </div>
+                </CardContent>
+              </Card>
+            ) : (
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                {filteredSessions.map((session) => (
+                  <SessionCard key={session.id} session={session} />
+                ))}
+              </div>
+            )}
           </TabsContent>
         </Tabs>
       </div>
@@ -709,7 +573,6 @@ const Play = () => {
         onOpenChange={setShowCreateDialog}
         onSuccess={() => {
           setShowCreateDialog(false);
-          // Refresh sessions after creation
           refreshSessions();
         }}
       />
@@ -717,10 +580,4 @@ const Play = () => {
   );
 };
 
-export default function WrappedPlay() {
-  return (
-    <ErrorBoundary fallbackTitle="Play Page Error">
-      <Play />
-    </ErrorBoundary>
-  );
-}
+export default Play;
