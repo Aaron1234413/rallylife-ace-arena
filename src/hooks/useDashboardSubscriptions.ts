@@ -27,17 +27,35 @@ export function useDashboardSubscriptions() {
   const channelsRef = useRef<string[]>([]);
   const subscribedRef = useRef(false);
 
-  // Helper function to check if channel already exists
+  // Helper function to check if channel already exists and reuse it
   const getOrCreateChannel = (topic: string) => {
     const existingChannels = supabase.getChannels();
     let channel = existingChannels.find(ch => ch.topic === topic);
     
-    if (!channel) {
-      channel = supabase.channel(topic);
-      channelsRef.current.push(topic);
+    if (channel) {
+      console.log(`Reusing existing channel: ${topic}`);
+      return channel;
     }
     
+    console.log(`Creating new channel: ${topic}`);
+    channel = supabase.channel(topic);
+    channelsRef.current.push(topic);
     return channel;
+  };
+
+  // Helper function to safely remove channels
+  const cleanupChannels = () => {
+    const existingChannels = supabase.getChannels();
+    
+    channelsRef.current.forEach(topic => {
+      const channelToRemove = existingChannels.find(ch => ch.topic === topic);
+      if (channelToRemove) {
+        console.log(`Removing channel: ${topic}`);
+        supabase.removeChannel(channelToRemove);
+      }
+    });
+    
+    channelsRef.current = [];
   };
 
   // Trigger data updates
@@ -49,11 +67,18 @@ export function useDashboardSubscriptions() {
   };
 
   useEffect(() => {
-    if (!user || subscribedRef.current) return;
+    // Prevent duplicate subscriptions
+    if (subscribedRef.current) {
+      console.log('Dashboard subscriptions already active');
+      return;
+    }
 
+    console.log('Setting up dashboard subscriptions for user:', user.id);
     subscribedRef.current = true;
 
     try {
+      // Clean up any existing channels first
+      cleanupChannels();
       // Player HP subscription
       const hpChannel = getOrCreateChannel(`player_hp_${user.id}`);
       hpChannel
@@ -200,40 +225,43 @@ export function useDashboardSubscriptions() {
     } catch (error) {
       console.error('Error setting up dashboard subscriptions:', error);
       subscribedRef.current = false;
+      cleanupChannels();
     }
 
     // Cleanup function
     return () => {
-      if (channelsRef.current.length > 0) {
-        const existingChannels = supabase.getChannels();
-        
-        // Remove channels that match our patterns
-        existingChannels.forEach(channel => {
-          if (channelsRef.current.includes(channel.topic)) {
-            supabase.removeChannel(channel);
-          }
-        });
-        
-        channelsRef.current = [];
-      }
+      console.log('Cleaning up dashboard subscriptions');
+      cleanupChannels();
       subscribedRef.current = false;
     };
   }, [user]);
 
-  // Also cleanup on user change
+  // Enhanced cleanup on user change with comprehensive channel removal
   useEffect(() => {
     return () => {
-      if (channelsRef.current.length > 0) {
-        const existingChannels = supabase.getChannels();
+      console.log('User change cleanup - removing all dashboard channels');
+      
+      // Find and remove all channels that could be related to dashboard subscriptions
+      const existingChannels = supabase.getChannels();
+      existingChannels.forEach(channel => {
+        const topic = channel.topic;
         
-        existingChannels.forEach(channel => {
-          if (channelsRef.current.includes(channel.topic)) {
-            supabase.removeChannel(channel);
-          }
-        });
-        
-        channelsRef.current = [];
-      }
+        // Remove channels that match our dashboard patterns
+        if (topic.includes('player_hp_') || 
+            topic.includes('player_xp_') || 
+            topic.includes('xp_activities_') ||
+            topic.includes('hp_activities_') ||
+            topic.includes('activity_logs_') ||
+            topic.includes('challenges_challenger_') ||
+            topic.includes('challenges_challenged_') ||
+            topic.includes('token_balances_') ||
+            topic.includes('profiles_')) {
+          console.log(`Removing dashboard channel: ${topic}`);
+          supabase.removeChannel(channel);
+        }
+      });
+      
+      channelsRef.current = [];
       subscribedRef.current = false;
     };
   }, []);
