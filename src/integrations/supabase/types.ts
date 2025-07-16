@@ -4401,11 +4401,14 @@ export type Database = {
           avatar_url: string | null
           bio: string | null
           created_at: string
+          daily_streak: number | null
           email: string
           experience_tags: string[] | null
           full_name: string | null
           id: string
+          last_login: string | null
           latitude: number | null
+          lifetime_tokens_earned: number | null
           location: string | null
           location_point: unknown | null
           location_updated_at: string | null
@@ -4417,6 +4420,7 @@ export type Database = {
           ready_player_me_url: string | null
           role: Database["public"]["Enums"]["user_role"]
           stake_preference: string | null
+          tokens: number | null
           updated_at: string
           usta_rating: number | null
           utr_rating: number | null
@@ -4427,11 +4431,14 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          daily_streak?: number | null
           email: string
           experience_tags?: string[] | null
           full_name?: string | null
           id: string
+          last_login?: string | null
           latitude?: number | null
+          lifetime_tokens_earned?: number | null
           location?: string | null
           location_point?: unknown | null
           location_updated_at?: string | null
@@ -4443,6 +4450,7 @@ export type Database = {
           ready_player_me_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           stake_preference?: string | null
+          tokens?: number | null
           updated_at?: string
           usta_rating?: number | null
           utr_rating?: number | null
@@ -4453,11 +4461,14 @@ export type Database = {
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
+          daily_streak?: number | null
           email?: string
           experience_tags?: string[] | null
           full_name?: string | null
           id?: string
+          last_login?: string | null
           latitude?: number | null
+          lifetime_tokens_earned?: number | null
           location?: string | null
           location_point?: unknown | null
           location_updated_at?: string | null
@@ -4469,6 +4480,7 @@ export type Database = {
           ready_player_me_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           stake_preference?: string | null
+          tokens?: number | null
           updated_at?: string
           usta_rating?: number | null
           utr_rating?: number | null
