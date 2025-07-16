@@ -20,7 +20,9 @@ import {
   Target,
   Award,
   TrendingUp,
+  Eye,
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { Link } from 'react-router-dom';
 import {
   Sheet,
@@ -403,10 +405,29 @@ const Play = () => {
               </CardContent>
             </Card>
           ) : (
-            <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-              {filteredSessions.map((session) => (
-                <SessionCard key={session.id} session={session} />
-              ))}
+            <div className="space-y-4">
+              {/* Best Match Sessions - Limit to 4 */}
+              <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-2">
+                {filteredSessions.slice(0, 4).map((session) => (
+                  <SessionCard key={session.id} session={session} />
+                ))}
+              </div>
+              
+              {/* Show more sessions button if there are more */}
+              {filteredSessions.length > 4 && (
+                <div className="text-center pt-4">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => {
+                      // Could expand to show all sessions, or implement pagination
+                      toast.info('More sessions feature coming soon!');
+                    }}
+                  >
+                    <Eye className="h-4 w-4 mr-2" />
+                    Show {filteredSessions.length - 4} More Sessions
+                  </Button>
+                </div>
+              )}
             </div>
           )}
         </div>
