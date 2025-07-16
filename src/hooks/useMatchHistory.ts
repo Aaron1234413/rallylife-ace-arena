@@ -1,8 +1,8 @@
 import { useState, useEffect } from 'react';
-import { useAuth } from './useAuth';
 import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 
-interface MatchHistory {
+export interface MatchHistory {
   totalMatches: number;
   matchesWon: number;
   matchesLost: number;
@@ -28,67 +28,46 @@ export function useMatchHistory() {
   });
   const [loading, setLoading] = useState(true);
 
-  const fetchMatchHistory = async () => {
+  const refreshMatchHistory = async () => {
     if (!user) return;
-
+    
+    setLoading(true);
     try {
-      setLoading(true);
-      
-      // Fetch completed match sessions
+      // Get completed matches from activity logs
       const { data: matches, error } = await supabase
-        .from('active_match_sessions')
+        .from('activity_logs')
         .select('*')
         .eq('player_id', user.id)
-        .eq('status', 'completed')
-        .order('completed_at', { ascending: false });
+        .eq('activity_category', 'match')
+        .not('result', 'is', null)
+        .order('logged_at', { ascending: false })
+        .limit(20);
 
-      if (error) {
-        console.error('Error fetching match history:', error);
-        return;
-      }
+      if (error) throw error;
 
-      const matchData = matches || [];
-      
-      // Calculate statistics
-      let matchesWon = 0;
-      let matchesLost = 0;
-      
-      const recentMatches = matchData.slice(0, 10).map(match => {
-        // Parse result to determine win/loss
-        const result = match.result;
-        let matchResult: 'won' | 'lost' | 'draw' = 'draw';
-        
-        if (result === 'won' || result === 'win') {
-          matchResult = 'won';
-          matchesWon++;
-        } else if (result === 'lost' || result === 'loss') {
-          matchResult = 'lost';
-          matchesLost++;
-        }
-        
-        return {
-          id: match.id,
-          result: matchResult,
-          opponent_name: match.opponent_name || 'Unknown',
-          final_score: match.final_score || 'N/A',
-          completed_at: match.completed_at,
-          match_type: match.match_type || 'casual'
-        };
-      });
+      const totalMatches = matches?.length || 0;
+      const wins = matches?.filter(match => match.result === 'win').length || 0;
+      const losses = totalMatches - wins;
+      const winRate = totalMatches > 0 ? (wins / totalMatches) * 100 : 0;
 
-      const totalMatches = matchData.length;
-      const winRate = totalMatches > 0 ? Math.round((matchesWon / totalMatches) * 100) : 0;
+      const recentMatches = matches?.slice(0, 5).map(match => ({
+        id: match.id,
+        result: match.result === 'win' ? 'won' as const : 'lost' as const,
+        opponent_name: match.opponent_name || 'Unknown',
+        final_score: match.score || '',
+        completed_at: match.logged_at,
+        match_type: match.activity_type || 'casual'
+      })) || [];
 
       setMatchHistory({
         totalMatches,
-        matchesWon,
-        matchesLost,
+        matchesWon: wins,
+        matchesLost: losses,
         winRate,
         recentMatches
       });
-
     } catch (error) {
-      console.error('Error in fetchMatchHistory:', error);
+      console.error('Error fetching match history:', error);
     } finally {
       setLoading(false);
     }
@@ -96,15 +75,13 @@ export function useMatchHistory() {
 
   useEffect(() => {
     if (user) {
-      fetchMatchHistory();
-    } else {
-      setLoading(false);
+      refreshMatchHistory();
     }
   }, [user]);
 
   return {
     matchHistory,
     loading,
-    refreshMatchHistory: fetchMatchHistory
+    refreshMatchHistory
   };
 }
