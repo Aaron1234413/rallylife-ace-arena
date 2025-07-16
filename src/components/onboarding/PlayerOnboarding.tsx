@@ -11,6 +11,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 import { AvatarSelector } from './AvatarSelector';
 import { UTRSetup } from '../profile/UTRSetup';
+import { LocationInput, LocationData } from '@/components/ui/location-input';
 import { CheckCircle, MapPin, Calendar, Trophy, Heart } from 'lucide-react';
 
 interface PlayerOnboardingProps {
@@ -24,7 +25,7 @@ export function PlayerOnboarding({ user, profile, onComplete }: PlayerOnboarding
   const [formData, setFormData] = useState({
     full_name: profile.full_name || '',
     avatar_url: profile.avatar_url || '',
-    location: '',
+    location: null as LocationData | null,
     utr_rating: null as number | null,
     utr_verified: false,
     manual_level: '',
@@ -49,7 +50,7 @@ export function PlayerOnboarding({ user, profile, onComplete }: PlayerOnboarding
 
   // Step 1: Basic Info
   const handleStep1Submit = async () => {
-    if (!formData.full_name.trim() || !formData.location.trim()) {
+    if (!formData.full_name.trim() || !formData.location?.address?.trim()) {
       toast.error('Please fill in all required fields');
       return;
     }
@@ -61,7 +62,7 @@ export function PlayerOnboarding({ user, profile, onComplete }: PlayerOnboarding
         .update({ 
           full_name: formData.full_name,
           avatar_url: formData.avatar_url,
-          location: formData.location
+          location: formData.location.address
         })
         .eq('id', user.id);
 
@@ -192,11 +193,10 @@ export function PlayerOnboarding({ user, profile, onComplete }: PlayerOnboarding
 
             <div className="space-y-2">
               <Label htmlFor="location">Location *</Label>
-              <Input
-                id="location"
+              <LocationInput
                 value={formData.location}
-                onChange={(e) => updateFormData('location', e.target.value)}
-                placeholder="e.g., New York, NY"
+                onChange={(location) => updateFormData('location', location)}
+                placeholder="Enter your location (e.g., New York, NY)"
               />
             </div>
 
@@ -354,7 +354,7 @@ export function PlayerOnboarding({ user, profile, onComplete }: PlayerOnboarding
                 
                 <div className="p-4 bg-blue-50 rounded-lg">
                   <h3 className="font-semibold text-blue-800 mb-2">Location</h3>
-                  <p className="text-blue-700">{formData.location}</p>
+                  <p className="text-blue-700">{formData.location?.address || 'Not set'}</p>
                 </div>
               </div>
 
