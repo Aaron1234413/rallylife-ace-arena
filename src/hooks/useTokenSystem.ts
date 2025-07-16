@@ -1,6 +1,10 @@
 import { usePlayerTokens } from './usePlayerTokens';
+import { supabase } from '@/integrations/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
+import { toast } from 'sonner';
 
 export function useTokenSystem() {
+  const { user } = useAuth();
   const { 
     tokenData, 
     transactions, 
@@ -25,27 +29,65 @@ export function useTokenSystem() {
     matchId?: string,
     description?: string
   ) => {
-    return await addTokens(amount, type, matchId || 'system', description);
+    if (!user) return { success: false, error: 'User not authenticated' };
+
+    try {
+      const { data, error } = await supabase.rpc('award_tokens', {
+        target_user_id: user.id,
+        token_amount: amount,
+        transaction_type: type,
+        match_id: matchId || null,
+        description_text: description
+      });
+
+      if (error) {
+        console.error('Error awarding tokens:', error);
+        return { success: false, error: error.message };
+      }
+
+      const result = data as any;
+      if (result?.tokens_awarded > 0) {
+        toast.success(`🪙 +${result.tokens_awarded} tokens earned!`);
+        await refreshTokens();
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in awardTokens:', error);
+      return { success: false, error: 'Failed to award tokens' };
+    }
   };
 
   const updateDailyStreak = async () => {
-    // This would be handled by the existing token system
-    // For now, return a mock response
-    return {
-      success: true,
-      already_logged_today: false,
-      current_streak: 1,
-      new_streak: 1,
-      tokens_awarded: 10
-    };
+    try {
+      const { data, error } = await supabase.rpc('handle_daily_login', {
+        user_id: user?.id
+      });
+
+      if (error) {
+        console.error('Error updating daily streak:', error);
+        return { success: false, error: error.message };
+      }
+
+      const result = data as any;
+      if (result?.tokens_awarded > 0) {
+        toast.success(`🎯 Daily login streak! +${result.tokens_awarded} tokens`);
+        await refreshTokens();
+      }
+
+      return data;
+    } catch (error) {
+      console.error('Error in updateDailyStreak:', error);
+      return { success: false, error: 'Failed to update daily streak' };
+    }
   };
 
   return {
     tokenData: tokenData ? {
       tokens: regularTokens,
-      dailyStreak: 0, // Would need to be added to existing system
+      dailyStreak: 0, // Will be fetched from profiles table
       lifetimeTokensEarned: lifetimeEarned,
-      lastLogin: null, // Would need to be added to existing system
+      lastLogin: null, // Will be fetched from profiles table
       transactions: transactions || []
     } : null,
     loading,

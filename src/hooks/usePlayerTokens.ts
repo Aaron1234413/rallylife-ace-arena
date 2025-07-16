@@ -15,9 +15,9 @@ export interface CoachTokens {
 export interface PlayerTokens {
   id: string;
   player_id: string;
-  personal_tokens?: number; // Accumulating balance (renamed from regular_tokens)
-  monthly_subscription_tokens?: number; // Added monthly based on subscription
-  regular_tokens: number; // For backward compatibility
+  personal_tokens?: number;
+  monthly_subscription_tokens?: number;
+  regular_tokens: number;
   premium_tokens?: number;
   lifetime_earned: number;
   created_at: string;
@@ -28,7 +28,7 @@ export interface TokenRedemption {
   id: string;
   club_id: string;
   player_id: string;
-  service_type: string; // 'lesson', 'court_time', 'clinic'
+  service_type: string;
   cash_amount: number;
   tokens_used: number;
   redemption_percentage: number;
@@ -65,16 +65,6 @@ export interface TokenTransaction {
   created_at: string;
 }
 
-interface TokenResult {
-  tokens_added?: number;
-  tokens_spent?: number;
-  new_balance: number;
-  lifetime_earned?: number;
-  success?: boolean;
-  error?: string;
-  tokens_earned?: number;
-}
-
 export function usePlayerTokens() {
   const { user } = useAuth();
   const [tokenData, setTokenData] = useState<PlayerTokens | null>(null);
@@ -87,18 +77,31 @@ export function usePlayerTokens() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('token_balances')
-        .select('*')
-        .eq('player_id', user.id)
+      const response = await supabase
+        .from('profiles')
+        .select('id, tokens, daily_streak, last_login, lifetime_tokens_earned')
+        .eq('id', user.id)
         .single();
 
-      if (error) {
-        console.error('Error fetching tokens:', error);
+      if (response.error) {
+        console.error('Error fetching tokens:', response.error);
         return;
       }
 
-      setTokenData(data);
+      const data = response.data;
+      const transformedData: PlayerTokens = {
+        id: data.id,
+        player_id: data.id,
+        regular_tokens: data.tokens || 0,
+        personal_tokens: data.tokens || 0,
+        monthly_subscription_tokens: 0,
+        premium_tokens: 0,
+        lifetime_earned: data.lifetime_tokens_earned || 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      setTokenData(transformedData);
     } catch (error) {
       console.error('Error in fetchTokens:', error);
     }
@@ -108,21 +111,11 @@ export function usePlayerTokens() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .from('token_transactions')
-        .select('*')
-        .eq('player_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50);
-
-      if (error) {
-        console.error('Error fetching token transactions:', error);
-        return;
-      }
-
-      setTransactions(data || []);
+      // For now, return empty array - transactions will be added when we use the system
+      setTransactions([]);
     } catch (error) {
       console.error('Error in fetchTransactions:', error);
+      setTransactions([]);
     }
   };
 
@@ -135,14 +128,13 @@ export function usePlayerTokens() {
     if (!user) return;
 
     try {
-      const { data, error } = await supabase
-        .rpc('add_tokens', {
-          user_id: user.id,
-          amount: amount,
-          token_type: tokenType,
-          source: source,
-          description: description
-        });
+      const { data, error } = await supabase.rpc('award_tokens', {
+        target_user_id: user.id,
+        token_amount: amount,
+        transaction_type: tokenType,
+        match_id: null,
+        description_text: description
+      });
 
       if (error) {
         console.error('Error adding tokens:', error);
@@ -150,11 +142,12 @@ export function usePlayerTokens() {
         return;
       }
 
-      const result = data as unknown as TokenResult;
-      toast.success(`🪙 +${amount} Tokens earned!`);
-
-      await fetchTokens();
-      await fetchTransactions();
+      const result = data as any;
+      if (result?.success) {
+        toast.success(`🪙 +${amount} Tokens earned!`);
+        await fetchTokens();
+        await fetchTransactions();
+      }
     } catch (error) {
       console.error('Error in addTokens:', error);
       toast.error('An error occurred while adding tokens');
@@ -170,14 +163,12 @@ export function usePlayerTokens() {
     if (!user) return false;
 
     try {
-      const { data, error } = await supabase
-        .rpc('spend_tokens', {
-          user_id: user.id,
-          amount: amount,
-          token_type: tokenType,
-          source: source,
-          description: description
-        });
+      const { data, error } = await supabase.rpc('spend_tokens', {
+        spender_user_id: user.id,
+        token_amount: amount,
+        transaction_type: tokenType,
+        description_text: description
+      });
 
       if (error) {
         console.error('Error spending tokens:', error);
@@ -185,10 +176,10 @@ export function usePlayerTokens() {
         return false;
       }
 
-      const result = data as unknown as TokenResult;
+      const result = data as any;
       
-      if (!result.success) {
-        toast.error(result.error || 'Insufficient tokens');
+      if (!result?.success) {
+        toast.error(result?.error || 'Insufficient tokens');
         return false;
       }
 
@@ -227,7 +218,6 @@ export function usePlayerTokens() {
       // Clean up any existing channel first
       cleanupChannel();
 
-      // Only create new subscription if not already subscribed
       const channelName = `tokens-${user.id}-${Date.now()}`;
       const channel = supabase.channel(channelName);
       
@@ -235,10 +225,10 @@ export function usePlayerTokens() {
         .on(
           'postgres_changes',
           {
-            event: '*',
+            event: 'UPDATE',
             schema: 'public',
-            table: 'token_balances',
-            filter: `player_id=eq.${user.id}`
+            table: 'profiles',
+            filter: `id=eq.${user.id}`
           },
           () => {
             console.log('Token balance updated');
@@ -251,20 +241,13 @@ export function usePlayerTokens() {
             event: 'INSERT',
             schema: 'public',
             table: 'token_transactions',
-            filter: `player_id=eq.${user.id}`
+            filter: `user_id=eq.${user.id}`
           },
           () => {
             console.log('Token transaction added');
             fetchTransactions();
           }
-        )
-        // TEMPORARILY DISABLED: Real-time subscription to fix Play page loading
-        // .subscribe((status) => {
-        //   console.log('Token Channel subscription status:', status);
-        //   if (status === 'SUBSCRIBED') {
-        //     subscriptionInitialized.current = true;
-        //   }
-        // });
+        );
 
       channelRef.current = channel;
 
@@ -272,7 +255,6 @@ export function usePlayerTokens() {
         cleanupChannel();
       };
     } else if (!user) {
-      // Clean up when no user
       cleanupChannel();
       setTokenData(null);
       setTransactions([]);
@@ -292,7 +274,6 @@ export function usePlayerTokens() {
     addTokens,
     spendTokens,
     refreshTokens: fetchTokens,
-    // Real-time balance updates
     hasRecentTransaction: (timeWindow = 30000) => {
       const now = Date.now();
       return transactions.some(tx => {
@@ -300,14 +281,12 @@ export function usePlayerTokens() {
         return now - txTime < timeWindow;
       });
     },
-    // Get session-related transactions
     getSessionTransactions: () => {
       return transactions.filter(tx => 
         tx.source?.includes('session') || 
         tx.description?.toLowerCase().includes('session')
       );
     },
-    // Check if user has sufficient balance
     hasSufficientBalance: (amount: number) => {
       return (tokenData?.regular_tokens || 0) >= amount;
     }

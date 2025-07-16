@@ -6187,6 +6187,16 @@ export type Database = {
         }
         Returns: Json
       }
+      award_tokens: {
+        Args: {
+          target_user_id: string
+          token_amount: number
+          transaction_type: string
+          match_id?: string
+          description_text?: string
+        }
+        Returns: Json
+      }
       book_club_service: {
         Args: {
           service_id_param: string
@@ -7141,6 +7151,10 @@ export type Database = {
       gidx_out: {
         Args: { "": unknown }
         Returns: unknown
+      }
+      handle_daily_login: {
+        Args: { user_id: string }
+        Returns: Json
       }
       initialize_academy_progress: {
         Args: { user_id: string }
