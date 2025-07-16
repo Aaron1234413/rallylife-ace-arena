@@ -14,22 +14,26 @@ interface QuickActionsProps {
 }
 
 export function QuickActions({ actions }: QuickActionsProps) {
+  const cardColors = [
+    'bg-gradient-to-br from-green-500 to-green-600',
+    'bg-gradient-to-br from-purple-500 to-purple-600', 
+    'bg-gradient-to-br from-orange-500 to-orange-600'
+  ];
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
       {actions.map((action, index) => (
-        <Card key={index} className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">
-          <CardHeader className="pb-3">
-            <CardTitle className="flex items-center gap-2 text-tennis-green-dark">
-              <span className="text-xl">{action.icon}</span>
-              {action.label}
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
+        <Card key={index} className={`${cardColors[index]} border-none shadow-lg hover:shadow-xl transition-shadow cursor-pointer`} onClick={action.onClick}>
+          <CardContent className="p-6 text-center">
+            <div className="flex items-center justify-center w-12 h-12 bg-white/20 rounded-full mx-auto mb-3">
+              <span className="text-2xl">{action.icon}</span>
+            </div>
+            <h3 className="text-lg font-semibold text-white mb-2">{action.label}</h3>
             <Button 
-              onClick={action.onClick}
-              className="w-full bg-tennis-green-primary hover:bg-tennis-green-medium"
+              variant="secondary"
+              className="w-full bg-white/20 hover:bg-white/30 text-white border-none"
             >
-              Get Started
+              Go
               <ArrowRight className="h-4 w-4 ml-2" />
             </Button>
           </CardContent>

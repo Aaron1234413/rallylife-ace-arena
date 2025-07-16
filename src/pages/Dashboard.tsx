@@ -68,8 +68,11 @@ const Dashboard = () => {
             ]}
           />
 
-          {/* Active Matches */}
-          <ActiveMatches matches={allMatches} />
+          {/* Your Sessions */}
+          <div className="bg-white/95 backdrop-blur-sm rounded-lg border border-white/20 shadow-lg p-6">
+            <h3 className="text-xl font-semibold text-gray-800 mb-4">Your Sessions</h3>
+            <ActiveMatches matches={allMatches} />
+          </div>
 
           {/* Secondary Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -82,9 +85,6 @@ const Dashboard = () => {
               utrVerified={profile?.utr_verified}
             />
           </div>
-
-          {/* Upcoming Availability */}
-          <UpcomingAvailability />
         </div>
       </div>
     </div>
