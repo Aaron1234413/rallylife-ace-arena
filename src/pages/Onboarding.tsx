@@ -3,7 +3,6 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { PlayerOnboarding } from '@/components/onboarding/PlayerOnboarding';
-import { CoachOnboarding } from '@/components/onboarding/CoachOnboarding';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -73,8 +72,8 @@ export default function Onboarding() {
         return;
       }
 
-      toast.success('Profile setup complete! Let\'s take a quick tour.');
-      navigate('/');
+      toast.success('Welcome to Rako! Ready to find your first match?');
+      navigate('/dashboard');
     } catch (error) {
       console.error('Error:', error);
       toast.error('An error occurred');
@@ -110,23 +109,15 @@ export default function Onboarding() {
             <span className="text-2xl">🎾</span>
           </div>
           <h1 className="text-4xl font-bold text-white tracking-tight">Welcome to Rako!</h1>
-          <p className="text-tennis-green-bg/90 text-lg">Let's set up your profile to get started</p>
+          <p className="text-tennis-green-bg/90 text-lg">Find Tennis Matches. UTR Verified. Win Tokens.</p>
         </div>
 
         <div className="bg-white/95 backdrop-blur-sm rounded-xl shadow-xl border border-white/20 max-w-4xl mx-auto">
-          {userProfile.role === 'player' ? (
-            <PlayerOnboarding 
-              user={user} 
-              profile={userProfile} 
-              onComplete={handleOnboardingComplete} 
-            />
-          ) : (
-            <CoachOnboarding 
-              user={user} 
-              profile={userProfile} 
-              onComplete={handleOnboardingComplete} 
-            />
-          )}
+          <PlayerOnboarding 
+            user={user} 
+            profile={userProfile} 
+            onComplete={handleOnboardingComplete} 
+          />
         </div>
       </div>
     </div>

@@ -50,7 +50,7 @@ export default function Auth() {
               <span className="text-2xl">🎾</span>
             </div>
             <h1 className="text-4xl font-bold text-white tracking-tight">Rako</h1>
-            <p className="text-tennis-green-bg/90 text-lg">The gamified tennis platform</p>
+            <p className="text-tennis-green-bg/90 text-lg">Find Tennis Matches. UTR Verified. Win Tokens.</p>
           </div>
           
           {/* Form Container */}
@@ -60,7 +60,7 @@ export default function Auth() {
           
           {/* Footer */}
           <div className="text-center text-tennis-green-bg/80 text-sm">
-            Transform your tennis journey with Rako
+            Join the future of tennis matchmaking
           </div>
         </div>
       </div>
