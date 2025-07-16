@@ -38,21 +38,18 @@ export function MobileBottomNav() {
               key={path}
               onClick={() => navigate(path)}
               className={cn(
-                "flex flex-col items-center py-2 px-1 transition-colors",
+                "flex flex-col items-center py-3 px-2 transition-colors min-h-[44px]",
                 isActive 
                   ? "text-tennis-green-primary" 
                   : "text-tennis-green-medium hover:text-tennis-green-primary"
               )}
             >
               <Icon className={cn(
-                "h-5 w-5 mb-1",
+                "h-6 w-6",
                 isActive && "text-tennis-green-primary"
               )} />
-              <span className="text-xs font-medium leading-none">
-                {label}
-              </span>
               {isActive && (
-                <div className="w-8 h-0.5 bg-tennis-green-primary rounded-full mt-1" />
+                <div className="w-8 h-0.5 bg-tennis-green-primary rounded-full mt-2" />
               )}
             </button>
           );
