@@ -39,16 +39,12 @@ export function AppNavigation() {
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <div className="flex items-center flex-shrink-0">
-            <Link 
-              to="/dashboard" 
-              className="text-lg sm:text-xl font-bold text-tennis-green-dark hover:text-tennis-green-primary transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-tennis-green-primary focus:ring-offset-2 rounded-lg px-2 py-1"
-              aria-label="Go to Dashboard - Rako Tennis App"
-            >
+            <Link to="/dashboard" className="text-lg sm:text-xl font-bold text-tennis-green-dark hover:text-tennis-green-primary transition-all duration-300 hover:scale-105">
               🎾 <span className="font-orbitron">Rako</span>
             </Link>
           </div>
 
-          {/* Desktop Navigation Links - Enhanced UX */}
+          {/* Desktop Navigation Links - Responsive Text */}
           <div className="hidden lg:flex items-center space-x-1 xl:space-x-2">
             {allNavItems.map((item) => {
               const Icon = item.icon;
@@ -56,73 +52,65 @@ export function AppNavigation() {
                 <Link
                   key={item.path}
                   to={item.path}
-                  aria-label={`Navigate to ${item.label}`}
-                  className={`min-w-[44px] min-h-[44px] px-3 xl:px-4 py-2.5 rounded-xl text-xs xl:text-sm font-medium transition-all duration-300 flex items-center justify-center gap-1 xl:gap-2 transform hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-tennis-green-primary focus:ring-offset-1 ${
+                  className={`px-2 xl:px-3 py-2 rounded-xl text-xs xl:text-sm font-medium transition-all duration-300 flex items-center gap-1 xl:gap-2 transform hover:scale-105 ${
                     isActive(item.path)
-                      ? 'bg-gradient-to-r from-tennis-green-primary to-tennis-green-medium text-white shadow-lg shadow-tennis-green-primary/25 scale-105'
-                      : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gradient-to-r hover:from-tennis-green-bg/40 hover:to-tennis-green-subtle/30 hover:shadow-lg active:shadow-sm'
+                      ? 'bg-gradient-to-r from-tennis-green-primary to-tennis-green-medium text-white shadow-lg shadow-tennis-green-primary/25'
+                      : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gradient-to-r hover:from-tennis-green-bg/30 hover:to-tennis-green-subtle/20 hover:shadow-md'
                   }`}
                 >
-                  <Icon className="h-4 w-4 xl:h-5 xl:w-5 flex-shrink-0" />
-                  <span className="hidden xl:inline whitespace-nowrap">{item.label}</span>
-                  <span className="xl:hidden whitespace-nowrap">{item.label.substring(0, 4)}</span>
+                  <Icon className="h-3 w-3 xl:h-4 xl:w-4" />
+                  <span className="hidden xl:inline">{item.label}</span>
+                  <span className="xl:hidden">{item.label.substring(0, 4)}</span>
                 </Link>
               );
             })}
           </div>
 
-          {/* Medium Screen Navigation - Enhanced Touch Targets */}
-          <div className="hidden md:flex lg:hidden items-center space-x-2">
+          {/* Medium Screen Navigation - Icons Only */}
+          <div className="hidden md:flex lg:hidden items-center space-x-1">
             {allNavItems.map((item) => {
               const Icon = item.icon;
               return (
                 <Link
                   key={item.path}
                   to={item.path}
-                  aria-label={`Navigate to ${item.label}`}
-                  className={`min-w-[48px] min-h-[48px] p-3 rounded-xl transition-all duration-300 flex items-center justify-center transform hover:scale-110 active:scale-95 focus:outline-none focus:ring-2 focus:ring-tennis-green-primary focus:ring-offset-1 ${
+                  className={`p-2 rounded-xl transition-all duration-300 flex items-center justify-center transform hover:scale-105 ${
                     isActive(item.path)
-                      ? 'bg-gradient-to-r from-tennis-green-primary to-tennis-green-medium text-white shadow-lg shadow-tennis-green-primary/25 scale-105'
-                      : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gradient-to-r hover:from-tennis-green-bg/40 hover:to-tennis-green-subtle/30 hover:shadow-lg active:shadow-sm'
+                      ? 'bg-gradient-to-r from-tennis-green-primary to-tennis-green-medium text-white shadow-lg shadow-tennis-green-primary/25'
+                      : 'text-gray-600 hover:text-tennis-green-dark hover:bg-gradient-to-r hover:from-tennis-green-bg/30 hover:to-tennis-green-subtle/20 hover:shadow-md'
                   }`}
                   title={item.label}
                 >
-                  <Icon className="h-5 w-5" />
+                  <Icon className="h-4 w-4" />
                 </Link>
               );
             })}
           </div>
 
-          {/* Desktop Actions - Enhanced Interactions */}
-          <div className="hidden md:flex items-center gap-3 flex-shrink-0">
-            <div className="transform hover:scale-105 transition-transform duration-200">
-              <NotificationCenter />
-            </div>
+          {/* Desktop Actions */}
+          <div className="hidden md:flex items-center gap-2 flex-shrink-0">
+            <NotificationCenter />
             <Button
               variant="ghost"
               size="sm"
               onClick={signOut}
-              aria-label="Sign out of your account"
-              className="min-w-[44px] min-h-[44px] text-red-600 hover:text-red-700 hover:bg-red-50 hover:shadow-lg active:shadow-sm transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 px-3 lg:px-4 rounded-xl"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 hover:shadow-md transition-all duration-300 hover:scale-105 px-2 lg:px-3"
             >
-              <LogOut className="h-4 w-4 lg:mr-2 flex-shrink-0" />
-              <span className="hidden lg:inline whitespace-nowrap">Sign Out</span>
+              <LogOut className="h-4 w-4 lg:mr-2" />
+              <span className="hidden lg:inline">Sign Out</span>
             </Button>
           </div>
 
-          {/* Mobile Actions - Enhanced Touch Experience */}
-          <div className="md:hidden flex items-center gap-3 flex-shrink-0">
-            <div className="transform hover:scale-105 active:scale-95 transition-transform duration-200">
-              <NotificationCenter />
-            </div>
+          {/* Mobile Actions */}
+          <div className="md:hidden flex items-center gap-2 flex-shrink-0">
+            <NotificationCenter />
             <Button
               variant="ghost"
               size="sm"
               onClick={signOut}
-              aria-label="Sign out of your account"
-              className="min-w-[44px] min-h-[44px] text-red-600 hover:text-red-700 hover:bg-red-50 active:bg-red-100 p-3 hover:shadow-lg active:shadow-sm transition-all duration-300 hover:scale-105 active:scale-95 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1 rounded-xl"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 p-2 hover:shadow-md transition-all duration-300"
             >
-              <LogOut className="h-5 w-5" />
+              <LogOut className="h-4 w-4" />
             </Button>
           </div>
         </div>
