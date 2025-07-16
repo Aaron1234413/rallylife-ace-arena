@@ -4400,6 +4400,7 @@ export type Database = {
           availability: Json | null
           avatar_url: string | null
           bio: string | null
+          contact_preferences: Json | null
           created_at: string
           daily_streak: number | null
           email: string
@@ -4413,13 +4414,17 @@ export type Database = {
           lifetime_tokens_earned: number | null
           location: string | null
           location_point: unknown | null
+          location_sharing: boolean | null
           location_updated_at: string | null
           longitude: number | null
           looking_to_play_until: string | null
           manual_level: string | null
+          match_history_visibility: string | null
           max_hp: number | null
+          member_since: string | null
           onboarding_completed: boolean
           preferences: Json | null
+          profile_visibility: string | null
           ready_player_me_url: string | null
           role: Database["public"]["Enums"]["user_role"]
           stake_preference: string | null
@@ -4433,6 +4438,7 @@ export type Database = {
           availability?: Json | null
           avatar_url?: string | null
           bio?: string | null
+          contact_preferences?: Json | null
           created_at?: string
           daily_streak?: number | null
           email: string
@@ -4446,13 +4452,17 @@ export type Database = {
           lifetime_tokens_earned?: number | null
           location?: string | null
           location_point?: unknown | null
+          location_sharing?: boolean | null
           location_updated_at?: string | null
           longitude?: number | null
           looking_to_play_until?: string | null
           manual_level?: string | null
+          match_history_visibility?: string | null
           max_hp?: number | null
+          member_since?: string | null
           onboarding_completed?: boolean
           preferences?: Json | null
+          profile_visibility?: string | null
           ready_player_me_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           stake_preference?: string | null
@@ -4466,6 +4476,7 @@ export type Database = {
           availability?: Json | null
           avatar_url?: string | null
           bio?: string | null
+          contact_preferences?: Json | null
           created_at?: string
           daily_streak?: number | null
           email?: string
@@ -4479,13 +4490,17 @@ export type Database = {
           lifetime_tokens_earned?: number | null
           location?: string | null
           location_point?: unknown | null
+          location_sharing?: boolean | null
           location_updated_at?: string | null
           longitude?: number | null
           looking_to_play_until?: string | null
           manual_level?: string | null
+          match_history_visibility?: string | null
           max_hp?: number | null
+          member_since?: string | null
           onboarding_completed?: boolean
           preferences?: Json | null
+          profile_visibility?: string | null
           ready_player_me_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
           stake_preference?: string | null
@@ -5735,6 +5750,45 @@ export type Database = {
           location?: unknown
           location_accuracy?: number | null
           user_id?: string
+        }
+        Relationships: []
+      }
+      user_notification_preferences: {
+        Row: {
+          achievements: boolean | null
+          created_at: string | null
+          email_notifications: boolean | null
+          id: string
+          match_requests: boolean | null
+          push_notifications: boolean | null
+          system_updates: boolean | null
+          updated_at: string | null
+          user_id: string | null
+          weekly_summary: boolean | null
+        }
+        Insert: {
+          achievements?: boolean | null
+          created_at?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          match_requests?: boolean | null
+          push_notifications?: boolean | null
+          system_updates?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          weekly_summary?: boolean | null
+        }
+        Update: {
+          achievements?: boolean | null
+          created_at?: string | null
+          email_notifications?: boolean | null
+          id?: string
+          match_requests?: boolean | null
+          push_notifications?: boolean | null
+          system_updates?: boolean | null
+          updated_at?: string | null
+          user_id?: string | null
+          weekly_summary?: boolean | null
         }
         Relationships: []
       }

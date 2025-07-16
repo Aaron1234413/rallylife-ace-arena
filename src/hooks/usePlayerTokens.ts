@@ -247,7 +247,13 @@ export function usePlayerTokens() {
             console.log('Token transaction added');
             fetchTransactions();
           }
-        );
+        )
+        .subscribe((status) => {
+          console.log('Token Channel subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            subscriptionInitialized.current = true;
+          }
+        });
 
       channelRef.current = channel;
 

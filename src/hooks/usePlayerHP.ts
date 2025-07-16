@@ -194,13 +194,12 @@ export function usePlayerHP() {
             fetchActivities();
           }
         )
-        // TEMPORARILY DISABLED: Real-time subscription to fix Play page loading
-        // .subscribe((status) => {
-        //   console.log('HP Channel subscription status:', status);
-        //   if (status === 'SUBSCRIBED') {
-        //     subscriptionInitialized.current = true;
-        //   }
-        // });
+        .subscribe((status) => {
+          console.log('HP Channel subscription status:', status);
+          if (status === 'SUBSCRIBED') {
+            subscriptionInitialized.current = true;
+          }
+        });
 
       channelRef.current = channel;
 
