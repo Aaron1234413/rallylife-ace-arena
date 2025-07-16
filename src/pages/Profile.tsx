@@ -177,10 +177,36 @@ const Profile = () => {
                         </p>
                       </div>
                     </div>
-                  )}
-                </div>
-              </CardContent>
-            </Card>
+                   )}
+
+                   {/* Availability */}
+                   {profile?.availability && profile.availability.length > 0 && (
+                     <div className="flex items-center gap-3 p-3 bg-tennis-green-bg/50 rounded-lg">
+                       <Calendar className="h-5 w-5 text-tennis-green-medium" />
+                       <div className="flex-1">
+                         <p className="text-sm text-tennis-green-dark/70 font-medium">Availability</p>
+                         <p className="text-tennis-green-dark font-semibold text-sm">
+                           {profile.availability.length} time slots set
+                         </p>
+                       </div>
+                     </div>
+                   )}
+
+                   {/* Stake Preferences */}
+                   {profile?.stake_preference && Object.keys(profile.stake_preference).length > 0 && (
+                     <div className="flex items-center gap-3 p-3 bg-tennis-green-bg/50 rounded-lg">
+                       <Trophy className="h-5 w-5 text-tennis-green-medium" />
+                       <div className="flex-1">
+                         <p className="text-sm text-tennis-green-dark/70 font-medium">Stake Preference</p>
+                         <p className="text-tennis-green-dark font-semibold text-sm">
+                           {profile.stake_preference.preferred_stakes || 'Configured'}
+                         </p>
+                       </div>
+                     </div>
+                   )}
+                 </div>
+               </CardContent>
+             </Card>
 
             {/* Role-specific Information */}
             <Card className="bg-white/95 backdrop-blur-sm border-white/20 shadow-xl">

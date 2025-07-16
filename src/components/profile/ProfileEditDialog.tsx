@@ -40,6 +40,8 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
   const [location, setLocation] = useState<LocationData | null>(null);
   const [utrRating, setUtrRating] = useState(4.0);
   const [ustaRating, setUstaRating] = useState(3.0);
+  const [availability, setAvailability] = useState<any[]>([]);
+  const [stakePreference, setStakePreference] = useState<any>({});
 
   useEffect(() => {
     if (profile && open) {
@@ -47,6 +49,8 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
       setLocation(profile.location ? { address: profile.location } : null);
       setUtrRating(profile.utr_rating || 4.0);
       setUstaRating(profile.usta_rating || 3.0);
+      setAvailability(profile.availability || []);
+      setStakePreference(profile.stake_preference || {});
     }
   }, [profile, open]);
 
@@ -58,6 +62,8 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
         location: location?.address || null,
         utr_rating: utrRating,
         usta_rating: ustaRating,
+        availability: availability,
+        stake_preference: stakePreference,
         updated_at: new Date().toISOString()
       };
 
@@ -185,6 +191,32 @@ export const ProfileEditDialog: React.FC<ProfileEditDialogProps> = ({
               <p className="text-xs text-muted-foreground">
                 USTA Rating (1.0 - 7.0)
               </p>
+            </div>
+          </div>
+
+          {/* Availability Settings */}
+          <div className="space-y-2">
+            <Label className="text-base font-medium">
+              Weekly Availability
+            </Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Set your preferred times for tennis sessions (coming soon)
+            </p>
+            <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
+              Availability picker will be available in a future update
+            </div>
+          </div>
+
+          {/* Stake Preferences */}
+          <div className="space-y-2">
+            <Label className="text-base font-medium">
+              Match Stake Preferences
+            </Label>
+            <p className="text-xs text-muted-foreground mb-2">
+              Configure your preferred stakes for competitive matches (coming soon)
+            </p>
+            <div className="p-3 bg-muted rounded-lg text-sm text-muted-foreground">
+              Stake preferences will be available in a future update
             </div>
           </div>
         </div>

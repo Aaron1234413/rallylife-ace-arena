@@ -47,6 +47,9 @@ import { SessionCreationDialog } from '@/components/sessions/SessionCreationDial
 import { SessionErrorWrapper } from '@/components/sessions/SessionErrorWrapper';
 import { SessionListSkeleton } from '@/components/sessions/SessionSkeletons';
 import { SessionLoadingState } from '@/components/sessions/SessionLoadingState';
+import { PlayerSuggestions } from '@/components/matchmaking/PlayerSuggestions';
+import { MatchCard } from '@/components/matchmaking/MatchCard';
+import { useMatchmaking } from '@/hooks/useMatchmaking';
 
 const Play = () => {
   const { user } = useAuth();
@@ -56,6 +59,16 @@ const Play = () => {
   
   // Get initial tab from URL params or default to "for-you"
   const [activeTab, setActiveTab] = useState(searchParams.get('tab') || 'for-you');
+  
+  // Matchmaking data
+  const { 
+    getPendingChallenges,
+    getActiveMatches,
+    isLoading: matchmakingLoading 
+  } = useMatchmaking();
+  
+  const pendingMatches = getPendingChallenges();
+  const activeMatches = getActiveMatches();
   
   // Session creation dialog state
   const [showCreateDialog, setShowCreateDialog] = useState(false);
@@ -140,7 +153,7 @@ const Play = () => {
   // Handle tab switching from URL parameters
   React.useEffect(() => {
     const tabParam = searchParams.get('tab');
-    if (tabParam && ['for-you', 'nearby', 'all', 'mine'].includes(tabParam)) {
+    if (tabParam && ['for-you', 'matchmaking', 'nearby', 'all', 'mine'].includes(tabParam)) {
       setActiveTab(tabParam);
       // Clear the URL parameter after switching
       setSearchParams({});
@@ -403,13 +416,20 @@ const Play = () => {
           onValueChange={setActiveTab}
           className="w-full"
         >
-          <TabsList className="grid w-full grid-cols-4 mb-6">
+          <TabsList className="grid w-full grid-cols-5 mb-6">
             <TabsTrigger 
               value="for-you" 
               className="flex items-center gap-2"
             >
               <Star className="h-4 w-4" />
               For You
+            </TabsTrigger>
+            <TabsTrigger 
+              value="matchmaking"
+              className="flex items-center gap-2"
+            >
+              <Gamepad2 className="h-4 w-4" />
+              Matches
             </TabsTrigger>
             <TabsTrigger 
               value="nearby"
@@ -484,6 +504,41 @@ const Play = () => {
                 )}
               </SessionErrorWrapper>
             </div>
+          </TabsContent>
+
+          {/* Matchmaking Tab */}
+          <TabsContent value="matchmaking" className="space-y-6">
+            <div className="space-y-4">
+              <h2 className="text-lg font-semibold">Find Players</h2>
+              <PlayerSuggestions />
+            </div>
+
+            {/* Active Matches */}
+            {(activeMatches.length > 0 || pendingMatches.length > 0) && (
+              <div className="space-y-4">
+                <h2 className="text-lg font-semibold">Your Matches</h2>
+                
+                 {/* Pending Matches */}
+                {pendingMatches.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-md font-medium text-muted-foreground">Pending Challenges</h3>
+                    {pendingMatches.map((match: any) => (
+                      <MatchCard key={match.id} match={match} />
+                    ))}
+                  </div>
+                )}
+
+                {/* Active Matches */}
+                {activeMatches.length > 0 && (
+                  <div className="space-y-3">
+                    <h3 className="text-md font-medium text-muted-foreground">Active Matches</h3>
+                    {activeMatches.map((match: any) => (
+                      <MatchCard key={match.id} match={match} />
+                    ))}
+                  </div>
+                )}
+              </div>
+            )}
           </TabsContent>
 
           {/* Nearby Tab */}
