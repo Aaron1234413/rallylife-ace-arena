@@ -1,128 +1,62 @@
-
 import { useQuery } from '@tanstack/react-query';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 
-type ConversationParticipantWithProfile = {
-  user_id: string;
-  conversation_id: string;
-  joined_at: string;
-  last_read_at: string | null;
-  id: string;
-  profiles: {
-    id: string;
-    full_name: string | null;
-    avatar_url: string | null;
-  } | null;
-};
-
-type ConversationWithData = {
-  id: string;
-  name: string | null;
-  is_group: boolean;
-  created_by: string;
-  created_at: string;
-  updated_at: string;
-  otherParticipant: {
-    id: string;
-    full_name: string | null;
-    avatar_url: string | null;
-  } | null;
-  lastMessage: string;
-  lastMessageTime: string;
-};
-
 export function useConversations() {
   const { user } = useAuth();
 
-  return useQuery({
-    queryKey: ['conversations', user?.id],
+  const conversationsQuery = useQuery({
+    queryKey: ['conversations'],
     queryFn: async () => {
-      if (!user) throw new Error('User not authenticated');
+      if (!user) return [];
 
-      // First get conversation IDs where user participates
-      const { data: participantData, error: participantError } = await supabase
-        .from('conversation_participants')
-        .select('conversation_id')
-        .eq('user_id', user.id);
-
-      if (participantError) throw participantError;
-
-      const conversationIds = participantData?.map(p => p.conversation_id) || [];
-      
-      if (conversationIds.length === 0) {
-        return [];
-      }
-
-      // Get conversations
-      const { data: conversations, error: conversationsError } = await supabase
+      const { data, error } = await supabase
         .from('conversations')
         .select(`
-          id,
-          name,
-          is_group,
-          created_by,
-          created_at,
-          updated_at
+          *,
+          conversation_participants!inner(
+            user_id,
+            profiles!conversation_participants_user_id_fkey(
+              id,
+              full_name,
+              avatar_url
+            )
+          ),
+          messages(
+            content,
+            created_at,
+            sender_id
+          )
         `)
-        .in('id', conversationIds)
         .order('updated_at', { ascending: false });
 
-      if (conversationsError) throw conversationsError;
+      if (error) throw error;
 
-      // Get participant details and latest messages for each conversation
-      const conversationsWithData: ConversationWithData[] = await Promise.all(
-        (conversations || []).map(async (conversation) => {
-          // Get other participants (not the current user) with their profiles
-          const { data: otherParticipants, error: participantsError } = await supabase
-            .from('conversation_participants')
-            .select(`
-              user_id,
-              conversation_id,
-              joined_at,
-              last_read_at,
-              id,
-              profiles (
-                id,
-                full_name,
-                avatar_url
-              )
-            `)
-            .eq('conversation_id', conversation.id)
-            .neq('user_id', user.id)
-            .returns<ConversationParticipantWithProfile[]>();
+      // Process conversations to get the other participant and last message
+      return data?.map(conversation => {
+        const participants = conversation.conversation_participants || [];
+        const otherParticipant = participants.find(
+          p => p.user_id !== user.id
+        )?.profiles;
 
-          if (participantsError) {
-            console.error('Error fetching participants:', participantsError);
-          }
+        const messages = conversation.messages || [];
+        const lastMessage = messages.length > 0 ? messages[messages.length - 1] : null;
 
-          // Get latest message
-          const { data: latestMessage, error: messageError } = await supabase
-            .from('messages')
-            .select('content, created_at')
-            .eq('conversation_id', conversation.id)
-            .order('created_at', { ascending: false })
-            .limit(1)
-            .single();
-
-          if (messageError && messageError.code !== 'PGRST116') {
-            console.error('Error fetching latest message:', messageError);
-          }
-
-          // For direct conversations, get the other participant's profile
-          const otherParticipant = otherParticipants?.[0]?.profiles || null;
-
-          return {
-            ...conversation,
-            otherParticipant,
-            lastMessage: latestMessage?.content || 'No messages yet',
-            lastMessageTime: latestMessage?.created_at || conversation.created_at
-          };
-        })
-      );
-
-      return conversationsWithData;
+        return {
+          ...conversation,
+          otherParticipant,
+          lastMessage: lastMessage?.content || 'No messages yet',
+          lastMessageTime: lastMessage?.created_at || conversation.created_at,
+          unreadCount: 0 // TODO: Implement unread count logic
+        };
+      }) || [];
     },
     enabled: !!user
   });
+
+  return {
+    conversations: conversationsQuery.data || [],
+    loading: conversationsQuery.isLoading,
+    error: conversationsQuery.error
+  };
 }

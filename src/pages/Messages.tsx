@@ -1,73 +1,115 @@
+import React, { useState } from 'react';
+import { Input } from '@/components/ui/input';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { Search, Plus } from 'lucide-react';
+import { ConversationList } from '@/components/messages/ConversationList';
+import { MessageThread } from '@/components/messages/MessageThread';
+import { NewConversationDialog } from '@/components/messages/NewConversationDialog';
+import { useConversations } from '@/hooks/useConversations';
+import { useSearchParams } from 'react-router-dom';
 
-import React from 'react';
-import { MessageSquare, Lock, Gamepad2 } from 'lucide-react';
+const Messages = () => {
+  const [searchParams, setSearchParams] = useSearchParams();
+  const conversationId = searchParams.get('conversation');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [showNewConversation, setShowNewConversation] = useState(false);
+  
+  const { conversations, loading } = useConversations();
 
-export default function Messages() {
+  const handleConversationSelect = (id: string) => {
+    setSearchParams({ conversation: id });
+  };
+
   return (
-    <div className="min-h-screen bg-gradient-to-br from-tennis-green-dark via-tennis-green-medium to-tennis-green-light">
-      <div className="container mx-auto px-4 py-6 sm:py-8">
+    <div className="min-h-screen bg-tennis-green-bg">
+      <div className="container mx-auto h-screen flex flex-col">
         {/* Header */}
-        <div className="text-center mb-6 sm:mb-8 space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full shadow-lg">
-            <span className="text-xl">💬</span>
-          </div>
-          <h1 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">Messages</h1>
-          <p className="text-tennis-green-bg/90">Connect with players and coaches</p>
-        </div>
-
-        {/* Gaming Terminal Coming Soon */}
-        <div className="bg-black/90 backdrop-blur-sm rounded-xl shadow-xl border-4 border-tennis-yellow overflow-hidden max-w-2xl mx-auto">
-          <div className="p-8 text-center space-y-6">
-            {/* Gaming Header */}
-            <div className="space-y-4">
-              <div className="flex items-center justify-center gap-2 text-tennis-yellow">
-                <Gamepad2 className="h-8 w-8 animate-pulse" />
-                <span className="text-2xl font-orbitron font-bold tracking-wider">FEATURE LOCKED</span>
-                <Gamepad2 className="h-8 w-8 animate-pulse" />
+        <div className="bg-white border-b border-tennis-green-light/20 p-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-tennis-green-primary rounded-full flex items-center justify-center">
+                <span className="text-white text-lg">💬</span>
               </div>
-              
-              <div className="font-orbitron text-tennis-green-primary text-lg tracking-widest animate-pulse">
-                [ MESSAGES SYSTEM INITIALIZING... ]
-              </div>
+              <h1 className="text-2xl font-bold text-tennis-green-dark">Messages</h1>
             </div>
-
-            {/* Lock Icon */}
-            <div className="relative">
-              <div className="inline-flex items-center justify-center w-20 h-20 bg-tennis-yellow/20 rounded-full border-2 border-tennis-yellow">
-                <Lock className="h-10 w-10 text-tennis-yellow animate-bounce" />
-              </div>
-              <div className="absolute inset-0 bg-tennis-yellow/10 rounded-full animate-ping"></div>
-            </div>
-
-            {/* Description */}
-            <div className="space-y-4 text-white">
-              <p className="text-lg font-poppins">
-                This communication module is currently under development.
-              </p>
-              <p className="text-tennis-green-bg font-poppins">
-                Connect with players through the <span className="text-tennis-yellow font-semibold">Pulse</span> and <span className="text-tennis-yellow font-semibold">Feed</span> features for now!
-              </p>
-            </div>
-
-            {/* Status */}
-            <div className="bg-tennis-green-dark/50 border border-tennis-green-primary/30 rounded-lg p-4">
-              <div className="flex items-center justify-center gap-2">
-                <div className="w-2 h-2 bg-tennis-green-primary rounded-full animate-pulse"></div>
-                <span className="text-tennis-green-primary font-orbitron font-bold tracking-wider text-sm">
-                  STATUS: COMING SOON™
-                </span>
-                <div className="w-2 h-2 bg-tennis-green-primary rounded-full animate-pulse"></div>
-              </div>
-            </div>
-
-            {/* Gaming Style Border Effects */}
-            <div className="absolute top-2 left-2 w-4 h-4 border-t-2 border-l-2 border-tennis-yellow"></div>
-            <div className="absolute top-2 right-2 w-4 h-4 border-t-2 border-r-2 border-tennis-yellow"></div>
-            <div className="absolute bottom-2 left-2 w-4 h-4 border-b-2 border-l-2 border-tennis-yellow"></div>
-            <div className="absolute bottom-2 right-2 w-4 h-4 border-b-2 border-r-2 border-tennis-yellow"></div>
+            <Button 
+              onClick={() => setShowNewConversation(true)}
+              size="sm"
+              className="bg-tennis-green-primary hover:bg-tennis-green-medium"
+            >
+              <Plus className="h-4 w-4 mr-2" />
+              New Chat
+            </Button>
           </div>
         </div>
+
+        {/* Main Content */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Sidebar - Conversation List */}
+          <div className="w-80 bg-white border-r border-tennis-green-light/20 flex flex-col">
+            {/* Search */}
+            <div className="p-4 border-b border-tennis-green-light/20">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
+                <Input
+                  placeholder="Search conversations..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            {/* Conversation List */}
+            <ConversationList
+              conversations={conversations}
+              loading={loading}
+              selectedConversation={conversationId}
+              onConversationSelect={handleConversationSelect}
+              searchTerm={searchTerm}
+            />
+          </div>
+
+          {/* Main Chat Area */}
+          <div className="flex-1 flex flex-col">
+            {conversationId ? (
+              <MessageThread conversationId={conversationId} />
+            ) : (
+              <div className="flex-1 flex items-center justify-center bg-tennis-green-bg/50">
+                <Card className="p-8 text-center max-w-md mx-auto">
+                  <div className="w-16 h-16 bg-tennis-green-primary rounded-full flex items-center justify-center mx-auto mb-4">
+                    <span className="text-white text-2xl">💬</span>
+                  </div>
+                  <h3 className="text-lg font-semibold text-tennis-green-dark mb-2">
+                    Select a conversation
+                  </h3>
+                  <p className="text-tennis-green-medium mb-4">
+                    Choose a conversation from the list to start messaging, or create a new one.
+                  </p>
+                  <Button 
+                    onClick={() => setShowNewConversation(true)}
+                    className="bg-tennis-green-primary hover:bg-tennis-green-medium"
+                  >
+                    <Plus className="h-4 w-4 mr-2" />
+                    Start New Conversation
+                  </Button>
+                </Card>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* New Conversation Dialog */}
+        {showNewConversation && (
+          <NewConversationDialog
+            open={showNewConversation}
+            onOpenChange={setShowNewConversation}
+          />
+        )}
       </div>
     </div>
   );
-}
+};
+
+export default Messages;

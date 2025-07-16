@@ -21,11 +21,15 @@ import { useQueryClient } from '@tanstack/react-query';
 import { toast } from 'sonner';
 
 interface NewConversationDialogProps {
-  children: React.ReactNode;
+  open?: boolean;
+  onOpenChange?: (open: boolean) => void;
+  children?: React.ReactNode;
 }
 
-export function NewConversationDialog({ children }: NewConversationDialogProps) {
-  const [open, setOpen] = useState(false);
+export function NewConversationDialog({ open, onOpenChange, children }: NewConversationDialogProps) {
+  const [internalOpen, setInternalOpen] = useState(false);
+  const isOpen = open !== undefined ? open : internalOpen;
+  const setIsOpen = onOpenChange || setInternalOpen;
   const [searchTerm, setSearchTerm] = useState('');
   const [creating, setCreating] = useState(false);
   
@@ -58,7 +62,7 @@ export function NewConversationDialog({ children }: NewConversationDialogProps) 
       console.log('Conversation created successfully:', data);
 
       // First close the dialog and clear the search
-      setOpen(false);
+      setIsOpen(false);
       setSearchTerm('');
       
       // Show success message
@@ -79,7 +83,7 @@ export function NewConversationDialog({ children }: NewConversationDialogProps) 
   };
 
   return (
-    <Dialog open={open} onOpenChange={setOpen}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogTrigger asChild>
         {children}
       </DialogTrigger>
