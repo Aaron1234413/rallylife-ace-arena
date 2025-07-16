@@ -4343,6 +4343,7 @@ export type Database = {
           location_updated_at: string | null
           longitude: number | null
           looking_to_play_until: string | null
+          manual_level: string | null
           onboarding_completed: boolean
           preferences: Json | null
           ready_player_me_url: string | null
@@ -4350,6 +4351,7 @@ export type Database = {
           updated_at: string
           usta_rating: number | null
           utr_rating: number | null
+          utr_verified: boolean | null
         }
         Insert: {
           avatar_url?: string | null
@@ -4365,6 +4367,7 @@ export type Database = {
           location_updated_at?: string | null
           longitude?: number | null
           looking_to_play_until?: string | null
+          manual_level?: string | null
           onboarding_completed?: boolean
           preferences?: Json | null
           ready_player_me_url?: string | null
@@ -4372,6 +4375,7 @@ export type Database = {
           updated_at?: string
           usta_rating?: number | null
           utr_rating?: number | null
+          utr_verified?: boolean | null
         }
         Update: {
           avatar_url?: string | null
@@ -4387,6 +4391,7 @@ export type Database = {
           location_updated_at?: string | null
           longitude?: number | null
           looking_to_play_until?: string | null
+          manual_level?: string | null
           onboarding_completed?: boolean
           preferences?: Json | null
           ready_player_me_url?: string | null
@@ -4394,6 +4399,7 @@ export type Database = {
           updated_at?: string
           usta_rating?: number | null
           utr_rating?: number | null
+          utr_verified?: boolean | null
         }
         Relationships: []
       }
