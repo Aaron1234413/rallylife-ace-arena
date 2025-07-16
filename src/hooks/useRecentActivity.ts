@@ -144,9 +144,10 @@ export function useRecentActivity(limit: number = 10) {
   useEffect(() => {
     if (!user) return;
 
+    const timestamp = Date.now();
     const channels = [
       supabase
-        .channel('activity_logs_changes')
+        .channel(`activity_logs_changes_${user.id}_${timestamp}`)
         .on(
           'postgres_changes',
           {
@@ -158,7 +159,7 @@ export function useRecentActivity(limit: number = 10) {
           () => fetchRecentActivity()
         ),
       supabase
-        .channel('xp_activities_changes')
+        .channel(`xp_activities_changes_${user.id}_${timestamp}`)
         .on(
           'postgres_changes',
           {
@@ -170,7 +171,7 @@ export function useRecentActivity(limit: number = 10) {
           () => fetchRecentActivity()
         ),
       supabase
-        .channel('hp_activities_changes')
+        .channel(`hp_activities_changes_${user.id}_${timestamp}`)
         .on(
           'postgres_changes',
           {
@@ -182,7 +183,7 @@ export function useRecentActivity(limit: number = 10) {
           () => fetchRecentActivity()
         ),
       supabase
-        .channel('challenges_changes')
+        .channel(`challenges_changes_${user.id}_${timestamp}`)
         .on(
           'postgres_changes',
           {
@@ -194,7 +195,7 @@ export function useRecentActivity(limit: number = 10) {
           () => fetchRecentActivity()
         ),
       supabase
-        .channel('challenged_changes')
+        .channel(`challenged_changes_${user.id}_${timestamp}`)
         .on(
           'postgres_changes',
           {
