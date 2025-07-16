@@ -13,7 +13,6 @@ import {
 } from 'lucide-react';
 import { useAuth } from '@/hooks/useAuth';
 import { NotificationCenter } from '@/components/notifications/NotificationCenter';
-import { MessageCenter } from '@/components/messages/MessageCenter';
 
 
 export function AppNavigation() {
@@ -26,6 +25,7 @@ export function AppNavigation() {
     { path: '/play', label: 'Play', icon: Play },
     { path: '/leaderboards', label: 'Leaderboards', icon: Trophy },
     { path: '/store', label: 'Store', icon: ShoppingBag },
+    { path: '/messages', label: 'Messages', icon: MessageSquare },
     { path: '/profile', label: 'Profile', icon: User }
   ];
 
@@ -89,7 +89,6 @@ export function AppNavigation() {
 
           {/* Desktop Actions */}
           <div className="hidden md:flex items-center gap-2 flex-shrink-0">
-            <MessageCenter />
             <NotificationCenter />
             <Button
               variant="ghost"
@@ -104,8 +103,6 @@ export function AppNavigation() {
 
           {/* Mobile Actions */}
           <div className="md:hidden flex items-center gap-1 flex-shrink-0">
-            <MessageCenter />
-            <NotificationCenter />
             <Button
               variant="ghost"
               size="sm"
@@ -119,8 +116,8 @@ export function AppNavigation() {
 
         {/* Mobile Navigation - Improved Grid */}
         <div className="md:hidden pb-3 pt-2">
-          <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
-            {allNavItems.slice(0, 6).map((item) => {
+          <div className="grid grid-cols-4 gap-1.5 sm:gap-2">
+            {allNavItems.slice(0, 8).map((item) => {
               const Icon = item.icon;
               return (
                 <Link
