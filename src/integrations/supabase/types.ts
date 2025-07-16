@@ -3416,6 +3416,73 @@ export type Database = {
           },
         ]
       }
+      matches: {
+        Row: {
+          challenger_id: string | null
+          court_location: string | null
+          created_at: string | null
+          expires_at: string | null
+          id: string
+          opponent_id: string | null
+          scheduled_time: string | null
+          score: string | null
+          stake_amount: number | null
+          status: string | null
+          updated_at: string | null
+          winner_id: string | null
+        }
+        Insert: {
+          challenger_id?: string | null
+          court_location?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          opponent_id?: string | null
+          scheduled_time?: string | null
+          score?: string | null
+          stake_amount?: number | null
+          status?: string | null
+          updated_at?: string | null
+          winner_id?: string | null
+        }
+        Update: {
+          challenger_id?: string | null
+          court_location?: string | null
+          created_at?: string | null
+          expires_at?: string | null
+          id?: string
+          opponent_id?: string | null
+          scheduled_time?: string | null
+          score?: string | null
+          stake_amount?: number | null
+          status?: string | null
+          updated_at?: string | null
+          winner_id?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "matches_challenger_id_fkey"
+            columns: ["challenger_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_opponent_id_fkey"
+            columns: ["opponent_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "matches_winner_id_fkey"
+            columns: ["winner_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       meditation_progress: {
         Row: {
           created_at: string
