@@ -7,14 +7,10 @@ import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useMatchmaking } from '@/hooks/useMatchmaking';
 import { DashboardHeader } from '@/components/dashboard/DashboardHeader';
-import { QuickActions } from '@/components/dashboard/QuickActions';
+import { SmartQuickActions } from '@/components/dashboard/SmartQuickActions';
 import { ActiveMatches } from '@/components/dashboard/ActiveMatches';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
-import { MessageSquare } from 'lucide-react';
-
 const Dashboard = () => {
-  const { user } = useAuth();
-  const navigate = useNavigate();
   const { data: profile, isLoading: profileLoading } = useCurrentProfile();
   const { regularTokens, loading: tokensLoading } = usePlayerTokens();
   const { xpData, loading: xpLoading } = usePlayerXP();
@@ -29,22 +25,18 @@ const Dashboard = () => {
   const activeMatches = getActiveMatches();
   const allMatches = [...pendingChallenges, ...activeMatches];
 
-  const goToPlay = () => navigate('/play');
-  const goToStore = () => navigate('/store');
-  const goToMessages = () => navigate('/messages');
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900">
+    <div className="min-h-screen bg-background">
       <div className="container mx-auto px-4 py-6 sm:py-8">
         {/* Welcome Header */}
         <div className="text-center mb-6 sm:mb-8 space-y-2">
-          <div className="inline-flex items-center justify-center w-12 h-12 bg-white rounded-full shadow-lg">
+          <div className="inline-flex items-center justify-center w-12 h-12 bg-tennis-green-primary rounded-full shadow-lg">
             <span className="text-xl">🎾</span>
           </div>
-          <h2 className="text-3xl sm:text-4xl font-bold text-white tracking-tight">
+          <h2 className="text-3xl sm:text-4xl font-bold text-tennis-green-dark tracking-tight">
             Welcome back, {profileLoading ? 'Player' : profile?.full_name || 'Player'}!
           </h2>
-          <p className="text-tennis-green-bg/90">Ready for your next challenge?</p>
+          <p className="text-tennis-green-medium">Ready for your next challenge?</p>
         </div>
 
         <div className="max-w-6xl mx-auto space-y-6">
@@ -59,13 +51,7 @@ const Dashboard = () => {
           />
 
           {/* Quick Actions */}
-          <QuickActions
-            actions={[
-              { icon: "🎾", label: "Play", onClick: goToPlay },
-              { icon: "💬", label: "Messages", onClick: goToMessages, iconComponent: MessageSquare },
-              { icon: "🛍️", label: "Store", onClick: goToStore },
-            ]}
-          />
+          <SmartQuickActions />
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
