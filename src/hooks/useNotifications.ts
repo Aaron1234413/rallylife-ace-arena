@@ -21,6 +21,7 @@ export const useNotifications = () => {
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
   const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const isSubscribedRef = useRef(false);
 
   const fetchNotifications = async () => {
     try {
@@ -93,57 +94,81 @@ export const useNotifications = () => {
 
     fetchNotifications();
 
-    // Only initialize channel once
-    if (!channelRef.current) {
-      const channel = supabase
-        .channel(`notifications-${user.id}-${Date.now()}`)
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'match_notifications'
-          },
-          (payload) => {
-            const newNotification = payload.new as Notification;
-            setNotifications(prev => [newNotification, ...prev]);
-            
-            // Show toast for new notifications
-            toast({
-              title: newNotification.title,
-              description: newNotification.message,
-              duration: 5000,
-            });
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'UPDATE',
-            schema: 'public',
-            table: 'match_notifications'
-          },
-          (payload) => {
-            const updatedNotification = payload.new as Notification;
-            setNotifications(prev =>
-              prev.map(notification =>
-                notification.id === updatedNotification.id
-                  ? updatedNotification
-                  : notification
-              )
-            );
-          }
-        );
-      channelRef.current = channel;
+    const channelName = `notifications-${user.id}`;
+    
+    // Check if channel already exists
+    const existingChannels = supabase.getChannels();
+    const existingChannel = existingChannels.find(ch => ch.topic === channelName);
+    
+    if (existingChannel && existingChannel.state === 'joined') {
+      // Reuse existing channel
+      channelRef.current = existingChannel;
+      console.log(`Reusing existing notifications channel for user ${user.id}`);
+    } else {
+      // Create new channel only if none exists
+      if (!channelRef.current || channelRef.current.state === 'closed') {
+        const channel = supabase
+          .channel(channelName)
+          .on(
+            'postgres_changes',
+            {
+              event: 'INSERT',
+              schema: 'public',
+              table: 'match_notifications'
+            },
+            (payload) => {
+              const newNotification = payload.new as Notification;
+              setNotifications(prev => [newNotification, ...prev]);
+              
+              // Show toast for new notifications
+              toast({
+                title: newNotification.title,
+                description: newNotification.message,
+                duration: 5000,
+              });
+            }
+          )
+          .on(
+            'postgres_changes',
+            {
+              event: 'UPDATE',
+              schema: 'public',
+              table: 'match_notifications'
+            },
+            (payload) => {
+              const updatedNotification = payload.new as Notification;
+              setNotifications(prev =>
+                prev.map(notification =>
+                  notification.id === updatedNotification.id
+                    ? updatedNotification
+                    : notification
+                )
+              );
+            }
+          );
+
+        channelRef.current = channel;
+        
+        // Subscribe only if not already subscribed
+        if (!isSubscribedRef.current) {
+          channel.subscribe((status) => {
+            console.log(`Notifications subscription status: ${status}`);
+            if (status === 'SUBSCRIBED') {
+              isSubscribedRef.current = true;
+            }
+          });
+        }
+      }
     }
 
-    // Subscribe exactly once
-    channelRef.current.subscribe();
-
     return () => {
-      // Clean up on unmount or before next effect run
-      channelRef.current?.unsubscribe();
-      channelRef.current = null;
+      // Only unsubscribe if we're the ones who subscribed
+      if (channelRef.current && isSubscribedRef.current) {
+        console.log('Cleaning up notifications subscription');
+        channelRef.current.unsubscribe();
+        isSubscribedRef.current = false;
+        channelRef.current = null;
+      }
     };
   }, [toast, user]);
 

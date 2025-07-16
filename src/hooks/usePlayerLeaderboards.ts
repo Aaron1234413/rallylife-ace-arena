@@ -15,7 +15,8 @@ export interface PlayerLeaderboardEntry {
 
 export function usePlayerLeaderboards(limit: number = 50, offset: number = 0) {
   const queryClient = useQueryClient();
-  const channelRef = useRef<any>(null);
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const isSubscribedRef = useRef(false);
 
   // Main leaderboard query
   const { data: leaderboard = [], isLoading, error } = useQuery({
@@ -71,47 +72,68 @@ export function usePlayerLeaderboards(limit: number = 50, offset: number = 0) {
 
   // Real-time subscription for live updates
   useEffect(() => {
-    // Only initialize channel once
-    if (!channelRef.current) {
-      const channel = supabase
-        .channel(`player_leaderboard_changes_${Date.now()}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'player_xp'
-          },
-          () => {
-            console.log('Player XP data changed, refreshing leaderboard...');
-            // Invalidate queries to trigger refetch
-            queryClient.invalidateQueries({ queryKey: ["player_leaderboard"] });
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'profiles'
-          },
-          () => {
-            console.log('Profile data changed, refreshing leaderboard...');
-            // Invalidate queries to trigger refetch
-            queryClient.invalidateQueries({ queryKey: ["player_leaderboard"] });
-          }
-        );
-      channelRef.current = channel;
-    }
+    const channelName = 'player_leaderboard_changes';
+    
+    // Check if channel already exists
+    const existingChannels = supabase.getChannels();
+    const existingChannel = existingChannels.find(ch => ch.topic === channelName);
+    
+    if (existingChannel && existingChannel.state === 'joined') {
+      // Reuse existing channel
+      channelRef.current = existingChannel;
+      console.log('Reusing existing player leaderboard channel');
+    } else {
+      // Create new channel only if none exists
+      if (!channelRef.current || channelRef.current.state === 'closed') {
+        const channel = supabase
+          .channel(channelName)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'player_xp'
+            },
+            () => {
+              console.log('Player XP data changed, refreshing leaderboard...');
+              queryClient.invalidateQueries({ queryKey: ["player_leaderboard"] });
+            }
+          )
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'profiles'
+            },
+            () => {
+              console.log('Profile data changed, refreshing leaderboard...');
+              queryClient.invalidateQueries({ queryKey: ["player_leaderboard"] });
+            }
+          );
 
-    // Subscribe exactly once
-    channelRef.current.subscribe();
+        channelRef.current = channel;
+        
+        // Subscribe only if not already subscribed
+        if (!isSubscribedRef.current) {
+          channel.subscribe((status) => {
+            console.log('Player leaderboard subscription status:', status);
+            if (status === 'SUBSCRIBED') {
+              isSubscribedRef.current = true;
+            }
+          });
+        }
+      }
+    }
 
     // Cleanup on unmount
     return () => {
-      // Clean up on unmount or before next effect run
-      channelRef.current?.unsubscribe();
-      channelRef.current = null;
+      if (channelRef.current && isSubscribedRef.current) {
+        console.log('Cleaning up player leaderboard subscription');
+        channelRef.current.unsubscribe();
+        isSubscribedRef.current = false;
+        channelRef.current = null;
+      }
     };
   }, [queryClient]);
 

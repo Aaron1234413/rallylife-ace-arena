@@ -46,6 +46,7 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
   const channelsRef = useRef<ReturnType<typeof supabase.channel>[]>([]);
+  const isSubscribedRef = useRef(false);
 
   const fetchSessions = async () => {
     try {
@@ -144,46 +145,84 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
   useEffect(() => {
     if (!userId) return;
 
-    // Only initialize channels once
-    if (channelsRef.current.length === 0) {
-      const sessionsChannel = supabase
-        .channel(`sessions-changes-${Date.now()}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'sessions'
-          },
-          () => {
-            fetchSessions();
-          }
-        );
+    // Only set up subscriptions if not already done
+    if (channelsRef.current.length === 0 && !isSubscribedRef.current) {
+      const existingChannels = supabase.getChannels();
+      const sessionsChannelName = 'sessions-changes';
+      const participantsChannelName = 'participants-changes';
+      
+      const channels: ReturnType<typeof supabase.channel>[] = [];
+      
+      // Check for existing sessions channel
+      const existingSessionsChannel = existingChannels.find(ch => ch.topic === sessionsChannelName);
+      if (existingSessionsChannel && existingSessionsChannel.state === 'joined') {
+        channels.push(existingSessionsChannel);
+        console.log('Reusing existing sessions channel');
+      } else {
+        const sessionsChannel = supabase
+          .channel(sessionsChannelName)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'sessions'
+            },
+            () => {
+              fetchSessions();
+            }
+          );
+        channels.push(sessionsChannel);
+      }
 
-      const participantsChannel = supabase
-        .channel(`participants-changes-${Date.now()}`)
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'session_participants'
-          },
-          () => {
-            fetchSessions();
-          }
-        );
+      // Check for existing participants channel
+      const existingParticipantsChannel = existingChannels.find(ch => ch.topic === participantsChannelName);
+      if (existingParticipantsChannel && existingParticipantsChannel.state === 'joined') {
+        channels.push(existingParticipantsChannel);
+        console.log('Reusing existing participants channel');
+      } else {
+        const participantsChannel = supabase
+          .channel(participantsChannelName)
+          .on(
+            'postgres_changes',
+            {
+              event: '*',
+              schema: 'public',
+              table: 'session_participants'
+            },
+            () => {
+              fetchSessions();
+            }
+          );
+        channels.push(participantsChannel);
+      }
 
-      channelsRef.current = [sessionsChannel, participantsChannel];
+      channelsRef.current = channels;
+      
+      // Subscribe to new channels only
+      channels.forEach(channel => {
+        if (channel.state !== 'joined') {
+          channel.subscribe((status) => {
+            console.log(`Real-time sessions channel subscription status: ${status}`);
+          });
+        }
+      });
+      
+      isSubscribedRef.current = true;
     }
 
-    // Subscribe exactly once
-    channelsRef.current.forEach(channel => channel.subscribe());
-
     return () => {
-      // Clean up on unmount or before next effect run
-      channelsRef.current.forEach(channel => channel.unsubscribe());
-      channelsRef.current = [];
+      // Clean up subscriptions
+      if (isSubscribedRef.current && channelsRef.current.length > 0) {
+        console.log('Cleaning up sessions subscriptions');
+        channelsRef.current.forEach(channel => {
+          if (channel.state === 'joined') {
+            channel.unsubscribe();
+          }
+        });
+        channelsRef.current = [];
+        isSubscribedRef.current = false;
+      }
     };
   }, [userId, activeTab]);
 
