@@ -19,6 +19,7 @@ import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
 import Landing from "@/pages/Landing";
 import NotFound from "@/pages/NotFound";
+import Onboarding from "@/pages/Onboarding";
 
 import Search from "@/pages/Search";
 import Store from "@/pages/Store";
@@ -66,6 +67,7 @@ function AppWithGuide() {
           <Route path="/auth/login" element={<Auth />} />
           <Route path="/auth/signup" element={<Auth />} />
           <Route path="/auth/forgot-password" element={<Auth />} />
+          <Route path="/onboarding" element={<Onboarding />} />
           {/* MVP Core Routes */}
           <Route path="/dashboard" element={<ProtectedMVPRoute><Index /></ProtectedMVPRoute>} />
           <Route path="/play" element={<ProtectedMVPRoute><Play /></ProtectedMVPRoute>} />
