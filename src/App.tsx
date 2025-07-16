@@ -17,6 +17,7 @@ import { PWAInstaller } from "@/components/mobile/PWAInstaller";
 
 import Auth from "@/pages/Auth";
 import Index from "@/pages/Index";
+import Dashboard from "@/pages/Dashboard";
 import Landing from "@/pages/Landing";
 import NotFound from "@/pages/NotFound";
 import Onboarding from "@/pages/Onboarding";
@@ -69,7 +70,7 @@ function AppWithGuide() {
           <Route path="/auth/forgot-password" element={<Auth />} />
           <Route path="/onboarding" element={<Onboarding />} />
           {/* MVP Core Routes */}
-          <Route path="/dashboard" element={<ProtectedMVPRoute><Index /></ProtectedMVPRoute>} />
+          <Route path="/dashboard" element={<ProtectedMVPRoute><Dashboard /></ProtectedMVPRoute>} />
           <Route path="/play" element={<ProtectedMVPRoute><Play /></ProtectedMVPRoute>} />
           <Route path="/messages" element={<ProtectedMVPRoute><Messages /></ProtectedMVPRoute>} />
           <Route path="/store" element={<ProtectedMVPRoute><Store /></ProtectedMVPRoute>} />
