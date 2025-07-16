@@ -4330,6 +4330,7 @@ export type Database = {
       }
       profiles: {
         Row: {
+          availability: Json | null
           avatar_url: string | null
           bio: string | null
           created_at: string
@@ -4348,12 +4349,14 @@ export type Database = {
           preferences: Json | null
           ready_player_me_url: string | null
           role: Database["public"]["Enums"]["user_role"]
+          stake_preference: string | null
           updated_at: string
           usta_rating: number | null
           utr_rating: number | null
           utr_verified: boolean | null
         }
         Insert: {
+          availability?: Json | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
@@ -4372,12 +4375,14 @@ export type Database = {
           preferences?: Json | null
           ready_player_me_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          stake_preference?: string | null
           updated_at?: string
           usta_rating?: number | null
           utr_rating?: number | null
           utr_verified?: boolean | null
         }
         Update: {
+          availability?: Json | null
           avatar_url?: string | null
           bio?: string | null
           created_at?: string
@@ -4396,6 +4401,7 @@ export type Database = {
           preferences?: Json | null
           ready_player_me_url?: string | null
           role?: Database["public"]["Enums"]["user_role"]
+          stake_preference?: string | null
           updated_at?: string
           usta_rating?: number | null
           utr_rating?: number | null
