@@ -121,52 +121,47 @@ export function useCoachLeaderboards() {
 
   // Real-time subscription for CXP leaderboard
   useEffect(() => {
-    // Clean up existing channel
-    if (channelRef.current) {
-      supabase.removeChannel(channelRef.current);
+    // Only initialize channel once
+    if (!channelRef.current) {
+      const channel = supabase
+        .channel(`coach_leaderboard_changes_${Date.now()}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'coach_cxp'
+          },
+          () => {
+            console.log('Coach CXP data changed, refreshing leaderboard...');
+            // Invalidate queries to trigger refetch
+            queryClient.invalidateQueries({ queryKey: ["coach_cxp_leaderboard"] });
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'profiles'
+          },
+          () => {
+            console.log('Profile data changed, refreshing coach leaderboard...');
+            // Invalidate queries to trigger refetch
+            queryClient.invalidateQueries({ queryKey: ["coach_cxp_leaderboard"] });
+          }
+        );
+      channelRef.current = channel;
     }
 
-    // Create new subscription
-    const channel = supabase
-      .channel(`coach_leaderboard_changes_${Date.now()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'coach_cxp'
-        },
-        () => {
-          console.log('Coach CXP data changed, refreshing leaderboard...');
-          // Invalidate queries to trigger refetch
-          queryClient.invalidateQueries({ queryKey: ["coach_cxp_leaderboard"] });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'profiles'
-        },
-        () => {
-          console.log('Profile data changed, refreshing coach leaderboard...');
-          // Invalidate queries to trigger refetch
-          queryClient.invalidateQueries({ queryKey: ["coach_cxp_leaderboard"] });
-        }
-      )
-      .subscribe((status) => {
-        console.log('Coach leaderboard subscription status:', status);
-      });
-
-    channelRef.current = channel;
+    // Subscribe exactly once
+    channelRef.current.subscribe();
 
     // Cleanup on unmount
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-        channelRef.current = null;
-      }
+      // Clean up on unmount or before next effect run
+      channelRef.current?.unsubscribe();
+      channelRef.current = null;
     };
   }, [queryClient]);
 

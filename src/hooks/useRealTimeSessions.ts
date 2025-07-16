@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
 
@@ -45,6 +45,7 @@ interface Session {
 export function useRealTimeSessions(activeTab: string, userId?: string) {
   const [sessions, setSessions] = useState<Session[]>([]);
   const [loading, setLoading] = useState(true);
+  const channelsRef = useRef<ReturnType<typeof supabase.channel>[]>([]);
 
   const fetchSessions = async () => {
     try {
@@ -143,41 +144,46 @@ export function useRealTimeSessions(activeTab: string, userId?: string) {
   useEffect(() => {
     if (!userId) return;
 
-    // Subscribe to sessions table changes
-    const sessionsChannel = supabase
-      .channel(`sessions-changes-${Date.now()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'sessions'
-        },
-        () => {
-          fetchSessions();
-        }
-      )
-      .subscribe();
+    // Only initialize channels once
+    if (channelsRef.current.length === 0) {
+      const sessionsChannel = supabase
+        .channel(`sessions-changes-${Date.now()}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'sessions'
+          },
+          () => {
+            fetchSessions();
+          }
+        );
 
-    // Subscribe to session_participants table changes
-    const participantsChannel = supabase
-      .channel(`participants-changes-${Date.now()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: '*',
-          schema: 'public',
-          table: 'session_participants'
-        },
-        () => {
-          fetchSessions();
-        }
-      )
-      .subscribe();
+      const participantsChannel = supabase
+        .channel(`participants-changes-${Date.now()}`)
+        .on(
+          'postgres_changes',
+          {
+            event: '*',
+            schema: 'public',
+            table: 'session_participants'
+          },
+          () => {
+            fetchSessions();
+          }
+        );
+
+      channelsRef.current = [sessionsChannel, participantsChannel];
+    }
+
+    // Subscribe exactly once
+    channelsRef.current.forEach(channel => channel.subscribe());
 
     return () => {
-      supabase.removeChannel(sessionsChannel);
-      supabase.removeChannel(participantsChannel);
+      // Clean up on unmount or before next effect run
+      channelsRef.current.forEach(channel => channel.unsubscribe());
+      channelsRef.current = [];
     };
   }, [userId, activeTab]);
 

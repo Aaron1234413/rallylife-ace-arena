@@ -44,14 +44,10 @@ export function useRealTimeTokens() {
   };
 
   useEffect(() => {
-    if (!user || initialized.current) return;
+    if (!user) return;
 
-    const setupSubscriptions = () => {
-      // Clean up existing channel
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-      }
-
+    // Only initialize channel once
+    if (!channelRef.current) {
       const channel = supabase.channel(`user-tokens-${user.id}-${Date.now()}`);
 
       // Personal token balance changes
@@ -215,23 +211,16 @@ export function useRealTimeTokens() {
         }
       );
 
-      channel.subscribe((status) => {
-        console.log('Real-time tokens subscription status:', status);
-        if (status === 'SUBSCRIBED') {
-          initialized.current = true;
-        }
-      });
-
       channelRef.current = channel;
-    };
+    }
 
-    setupSubscriptions();
+    // Subscribe exactly once
+    channelRef.current.subscribe();
 
     return () => {
-      if (channelRef.current) {
-        supabase.removeChannel(channelRef.current);
-      }
-      initialized.current = false;
+      // Clean up on unmount or before next effect run
+      channelRef.current?.unsubscribe();
+      channelRef.current = null;
     };
   }, [user]);
 

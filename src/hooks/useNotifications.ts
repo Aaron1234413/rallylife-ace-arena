@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/hooks/useAuth';
@@ -20,6 +20,7 @@ export const useNotifications = () => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const { toast } = useToast();
+  const channelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
 
   const fetchNotifications = async () => {
     try {
@@ -88,52 +89,61 @@ export const useNotifications = () => {
   };
 
   useEffect(() => {
+    if (!user) return;
+
     fetchNotifications();
 
-    // Subscribe to real-time updates with a unique channel name per user
-    const channel = supabase
-      .channel(`notifications-${user?.id || 'anonymous'}-${Date.now()}`)
-      .on(
-        'postgres_changes',
-        {
-          event: 'INSERT',
-          schema: 'public',
-          table: 'match_notifications'
-        },
-        (payload) => {
-          const newNotification = payload.new as Notification;
-          setNotifications(prev => [newNotification, ...prev]);
-          
-          // Show toast for new notifications
-          toast({
-            title: newNotification.title,
-            description: newNotification.message,
-            duration: 5000,
-          });
-        }
-      )
-      .on(
-        'postgres_changes',
-        {
-          event: 'UPDATE',
-          schema: 'public',
-          table: 'match_notifications'
-        },
-        (payload) => {
-          const updatedNotification = payload.new as Notification;
-          setNotifications(prev =>
-            prev.map(notification =>
-              notification.id === updatedNotification.id
-                ? updatedNotification
-                : notification
-            )
-          );
-        }
-      )
-      .subscribe();
+    // Only initialize channel once
+    if (!channelRef.current) {
+      const channel = supabase
+        .channel(`notifications-${user.id}-${Date.now()}`)
+        .on(
+          'postgres_changes',
+          {
+            event: 'INSERT',
+            schema: 'public',
+            table: 'match_notifications'
+          },
+          (payload) => {
+            const newNotification = payload.new as Notification;
+            setNotifications(prev => [newNotification, ...prev]);
+            
+            // Show toast for new notifications
+            toast({
+              title: newNotification.title,
+              description: newNotification.message,
+              duration: 5000,
+            });
+          }
+        )
+        .on(
+          'postgres_changes',
+          {
+            event: 'UPDATE',
+            schema: 'public',
+            table: 'match_notifications'
+          },
+          (payload) => {
+            const updatedNotification = payload.new as Notification;
+            setNotifications(prev =>
+              prev.map(notification =>
+                notification.id === updatedNotification.id
+                  ? updatedNotification
+                  : notification
+              )
+            );
+          }
+        );
+      channelRef.current = channel;
+    }
+
+    // Subscribe exactly once
+    channelRef.current.subscribe();
 
     return () => {
-      supabase.removeChannel(channel);
+      // Clean up on unmount or before next effect run
+      channelRef.current?.unsubscribe();
+      channelRef.current = null;
     };
   }, [toast, user]);
 
