@@ -7,7 +7,7 @@ import { usePlayerXP } from '@/hooks/usePlayerXP';
 import { usePlayerHP } from '@/hooks/usePlayerHP';
 import { useMatchmaking } from '@/hooks/useMatchmaking';
 import { CompactDashboardHeader } from '@/components/dashboard/CompactDashboardHeader';
-import { FloatingQuickActions } from '@/components/dashboard/FloatingQuickActions';
+import { QuickActions } from '@/components/dashboard/FloatingQuickActions';
 import { ActiveMatches } from '@/components/dashboard/ActiveMatches';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 const Dashboard = () => {
@@ -50,8 +50,8 @@ const Dashboard = () => {
             xpToNextLevel={xpLoading ? 0 : xpData?.xp_to_next_level || 0}
           />
 
-          {/* Floating Quick Actions */}
-          <FloatingQuickActions />
+          {/* Quick Actions */}
+          <QuickActions />
 
           {/* Main Content Grid */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
