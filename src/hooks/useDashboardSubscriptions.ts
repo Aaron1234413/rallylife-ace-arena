@@ -95,6 +95,13 @@ interface SubscriptionStatus {
 export function useDashboardSubscriptions() {
   const { user } = useAuth();
   const { toast } = useToast();
+
+  // DEBUG: Clear any stale channels on mount
+  useEffect(() => {
+    const active = supabase.getChannels();
+    console.log('🔍 Clearing stale channels on mount:', active.map(c => c.topic));
+    active.forEach(ch => supabase.removeChannel(ch));
+  }, []);
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     playerHP: null,
     playerXP: null,
