@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -39,8 +39,6 @@ export function usePlayerXP() {
   const [xpData, setXpData] = useState<PlayerXP | null>(null);
   const [activities, setActivities] = useState<XPActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const channelRef = useRef<any>(null);
-  const subscriptionInitialized = useRef(false);
 
   const fetchXP = async () => {
     if (!user) return;
@@ -143,17 +141,8 @@ export function usePlayerXP() {
     }
   };
 
-  const cleanupChannel = () => {
-    if (channelRef.current) {
-      console.log('Cleaning up XP channel subscription');
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-      subscriptionInitialized.current = false;
-    }
-  };
-
   useEffect(() => {
-    if (user && !subscriptionInitialized.current) {
+    if (user) {
       const loadData = async () => {
         setLoading(true);
         await fetchXP();
@@ -162,55 +151,7 @@ export function usePlayerXP() {
       };
 
       loadData();
-
-      // Clean up any existing channel
-      cleanupChannel();
-
-      // Set up real-time subscription for XP changes with unique channel name
-      const channelName = `xp-${user.id}-${Date.now()}`;
-      const channel = supabase.channel(channelName);
-      
-      channel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'player_xp',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => {
-            fetchXP();
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'xp_activities',
-            filter: `player_id=eq.${user.id}`
-          },
-          () => {
-            fetchActivities();
-          }
-        )
-        // TEMPORARILY DISABLED: Real-time subscription to fix Play page loading
-        // .subscribe((status) => {
-        //   console.log('XP Channel subscription status:', status);
-        //   if (status === 'SUBSCRIBED') {
-        //     subscriptionInitialized.current = true;
-        //   }
-        // });
-
-      channelRef.current = channel;
-
-      return () => {
-        cleanupChannel();
-      };
-    } else if (!user) {
-      // Clean up when no user
-      cleanupChannel();
+    } else {
       setXpData(null);
       setActivities([]);
       setLoading(false);

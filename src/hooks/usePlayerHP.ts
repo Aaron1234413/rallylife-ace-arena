@@ -1,5 +1,5 @@
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect } from 'react';
 import { useAuth } from '@/hooks/useAuth';
 import { supabase } from '@/integrations/supabase/client';
 import { toast } from 'sonner';
@@ -28,8 +28,6 @@ export function usePlayerHP() {
   const [hpData, setHpData] = useState<PlayerHP | null>(null);
   const [activities, setActivities] = useState<HPActivity[]>([]);
   const [loading, setLoading] = useState(true);
-  const channelRef = useRef<any>(null);
-  const subscriptionInitialized = useRef(false);
 
   const fetchHP = async () => {
     if (!user) return;
@@ -140,17 +138,8 @@ export function usePlayerHP() {
     console.log('HP data refresh completed');
   };
 
-  const cleanupChannel = () => {
-    if (channelRef.current) {
-      console.log('Cleaning up HP channel subscription');
-      supabase.removeChannel(channelRef.current);
-      channelRef.current = null;
-      subscriptionInitialized.current = false;
-    }
-  };
-
   useEffect(() => {
-    if (user && !subscriptionInitialized.current) {
+    if (user) {
       const loadData = async () => {
         setLoading(true);
         await fetchHP();
@@ -159,57 +148,7 @@ export function usePlayerHP() {
       };
 
       loadData();
-
-      // Clean up any existing channel first
-      cleanupChannel();
-
-      // Set up new real-time subscription
-      const channelName = `hp-updates-${user.id}-${Date.now()}`;
-      const channel = supabase.channel(channelName);
-      
-      channel
-        .on(
-          'postgres_changes',
-          {
-            event: '*',
-            schema: 'public',
-            table: 'player_hp',
-            filter: `player_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('HP real-time update received:', payload);
-            fetchHP();
-          }
-        )
-        .on(
-          'postgres_changes',
-          {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'hp_activities',
-            filter: `player_id=eq.${user.id}`
-          },
-          (payload) => {
-            console.log('HP activity real-time update received:', payload);
-            fetchActivities();
-          }
-        )
-        // TEMPORARILY DISABLED: Real-time subscription to fix Play page loading
-        // .subscribe((status) => {
-        //   console.log('HP Channel subscription status:', status);
-        //   if (status === 'SUBSCRIBED') {
-        //     subscriptionInitialized.current = true;
-        //   }
-        // });
-
-      channelRef.current = channel;
-
-      return () => {
-        cleanupChannel();
-      };
-    } else if (!user) {
-      // Clean up when no user
-      cleanupChannel();
+    } else {
       setHpData(null);
       setActivities([]);
       setLoading(false);
