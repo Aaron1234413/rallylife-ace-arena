@@ -22,8 +22,8 @@ interface RecentActivityItem {
 interface TokenTransaction {
   id: string;
   player_id: string;
-  transaction_type: 'earn' | 'spend';
-  token_type: 'regular' | 'premium' | 'subscription';
+  transaction_type: string; // Allow any string from DB
+  token_type: string; // Allow any string from DB  
   amount: number;
   source: string;
   description?: string;
@@ -79,7 +79,7 @@ interface Session {
   location?: string;
   max_participants: number;
   current_participants: number;
-  status: 'upcoming' | 'active' | 'completed' | 'cancelled';
+  status: string; // Allow any string from DB
   creator_id: string;
   creator_name?: string;
   skill_level?: string;
@@ -111,7 +111,7 @@ interface SessionParticipation {
   id: string;
   session_id: string;
   user_id: string;
-  status: 'joined' | 'left' | 'banned';
+  status: string; // Allow any string from DB
   joined_at: string;
   left_at?: string;
   notes?: string;
@@ -293,6 +293,12 @@ interface LoadingStates {
   challenges: boolean;
   matches: boolean;
   matchHistory: boolean;
+  // === New consolidated loading states ===
+  tokenData: boolean;
+  enhancedActivities: boolean;
+  sessionData: boolean;
+  notifications: boolean;
+  clubData: boolean;
 }
 
 interface ErrorStates {
@@ -304,6 +310,12 @@ interface ErrorStates {
   matches: string | null;
   matchHistory: string | null;
   subscription: string | null;
+  // === New consolidated error states ===
+  tokenData: string | null;
+  enhancedActivities: string | null;
+  sessionData: string | null;
+  notifications: string | null;
+  clubData: string | null;
 }
 
 interface SubscriptionStatus {
@@ -364,7 +376,13 @@ export function useDashboardSubscriptions() {
     activities: true,
     challenges: true,
     matches: true,
-    matchHistory: true
+    matchHistory: true,
+    // === New consolidated loading states ===
+    tokenData: true,
+    enhancedActivities: true,
+    sessionData: true,
+    notifications: true,
+    clubData: true
   });
 
   const [errors, setErrors] = useState<ErrorStates>({
@@ -375,7 +393,13 @@ export function useDashboardSubscriptions() {
     challenges: null,
     matches: null,
     matchHistory: null,
-    subscription: null
+    subscription: null,
+    // === New consolidated error states ===
+    tokenData: null,
+    enhancedActivities: null,
+    sessionData: null,
+    notifications: null,
+    clubData: null
   });
 
   const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>({
@@ -660,6 +684,219 @@ export function useDashboardSubscriptions() {
     }
   }, [user, updateLoading, updateError]);
 
+  // === NEW CONSOLIDATED FETCH FUNCTIONS ===
+
+  const fetchTokenData = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    
+    updateLoading('tokenData', true);
+    updateError('tokenData', null);
+
+    try {
+      // Fetch token transactions
+      const { data: transactions, error: transactionError } = await supabase
+        .from('token_transactions')
+        .select('*')
+        .eq('player_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (transactionError) {
+        console.warn('Error fetching token transactions:', transactionError);
+      }
+
+      // Fetch token redemptions 
+      const { data: redemptions, error: redemptionError } = await supabase
+        .from('token_redemptions')
+        .select('*')
+        .eq('player_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(10);
+
+      if (redemptionError) {
+        console.warn('Error fetching token redemptions:', redemptionError);
+      }
+
+      setDashboardData(prev => ({ 
+        ...prev, 
+        tokenTransactions: transactions || [],
+        // Initialize with empty notifications - will be populated by real-time events
+        tokenNotifications: []
+      }));
+    } catch (error) {
+      console.error('Error in fetchTokenData:', error);
+      updateError('tokenData', 'Network error while loading token data');
+    } finally {
+      updateLoading('tokenData', false);
+    }
+  }, [user, updateLoading, updateError]);
+
+  const fetchEnhancedActivities = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    
+    updateLoading('enhancedActivities', true);
+    updateError('enhancedActivities', null);
+
+    try {
+      // Fetch XP activities
+      const { data: xpActivities, error: xpError } = await supabase
+        .from('xp_activities')
+        .select('*')
+        .eq('player_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(15);
+
+      if (xpError) {
+        console.warn('Error fetching XP activities:', xpError);
+      }
+
+      // Fetch HP activities
+      const { data: hpActivities, error: hpError } = await supabase
+        .from('hp_activities')
+        .select('*')
+        .eq('player_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(15);
+
+      if (hpError) {
+        console.warn('Error fetching HP activities:', hpError);
+      }
+
+      setDashboardData(prev => ({ 
+        ...prev, 
+        xpActivities: xpActivities || [],
+        hpActivities: hpActivities || []
+      }));
+    } catch (error) {
+      console.error('Error in fetchEnhancedActivities:', error);
+      updateError('enhancedActivities', 'Network error while loading enhanced activities');
+    } finally {
+      updateLoading('enhancedActivities', false);
+    }
+  }, [user, updateLoading, updateError]);
+
+  const fetchSessionData = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    
+    updateLoading('sessionData', true);
+    updateError('sessionData', null);
+
+    try {
+      // For now, use mock data since session tables aren't fully implemented
+      const mockSessions: Session[] = [];
+      const mockParticipations: SessionParticipation[] = [];
+
+      setDashboardData(prev => ({ 
+        ...prev, 
+        userSessions: mockSessions,
+        sessionParticipations: mockParticipations
+      }));
+    } catch (error) {
+      console.error('Error in fetchSessionData:', error);
+      updateError('sessionData', 'Network error while loading session data');
+    } finally {
+      updateLoading('sessionData', false);
+    }
+  }, [user, updateLoading, updateError]);
+
+  const fetchNotifications = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    
+    updateLoading('notifications', true);
+    updateError('notifications', null);
+
+    try {
+      // Fetch match notifications
+      const { data: notifications, error: notificationsError } = await supabase
+        .from('match_notifications')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (notificationsError) {
+        console.warn('Error fetching notifications:', notificationsError);
+      }
+
+      setDashboardData(prev => ({ 
+        ...prev, 
+        notifications: notifications || []
+      }));
+    } catch (error) {
+      console.error('Error in fetchNotifications:', error);
+      updateError('notifications', 'Network error while loading notifications');
+    } finally {
+      updateLoading('notifications', false);
+    }
+  }, [user, updateLoading, updateError]);
+
+  const fetchClubData = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    
+    updateLoading('clubData', true);
+    updateError('clubData', null);
+
+    try {
+      // Fetch user's club memberships
+      const { data: memberships, error: membershipsError } = await supabase
+        .from('club_memberships')
+        .select(`
+          *,
+          club:clubs(
+            id,
+            name,
+            description,
+            logo_url,
+            is_public
+          )
+        `)
+        .eq('user_id', user.id)
+        .eq('status', 'active')
+        .order('joined_at', { ascending: false });
+
+      if (membershipsError) {
+        console.warn('Error fetching club memberships:', membershipsError);
+      }
+
+      // Fetch club activities for user's clubs
+      let clubActivities: ClubActivityItem[] = [];
+      if (memberships && memberships.length > 0) {
+        const clubIds = memberships.map(m => m.club_id);
+        const { data: activities, error: activitiesError } = await supabase
+          .from('club_activity_stream')
+          .select(`
+            *,
+            user:profiles(
+              id,
+              full_name,
+              avatar_url
+            )
+          `)
+          .in('club_id', clubIds)
+          .eq('is_public', true)
+          .order('created_at', { ascending: false })
+          .limit(20);
+
+        if (activitiesError) {
+          console.warn('Error fetching club activities:', activitiesError);
+        } else {
+          clubActivities = activities || [];
+        }
+      }
+
+      setDashboardData(prev => ({ 
+        ...prev, 
+        clubMemberships: memberships || [],
+        clubActivities
+      }));
+    } catch (error) {
+      console.error('Error in fetchClubData:', error);
+      updateError('clubData', 'Network error while loading club data');
+    } finally {
+      updateLoading('clubData', false);
+    }
+  }, [user, updateLoading, updateError]);
+
   // Enhanced refresh function with error handling
   const refreshAll = useCallback(async (): Promise<void> => {
     if (!user) return;
@@ -676,17 +913,30 @@ export function useDashboardSubscriptions() {
         challenges: null,
         matches: null,
         matchHistory: null,
-        subscription: null
+        subscription: null,
+        // === New consolidated error states ===
+        tokenData: null,
+        enhancedActivities: null,
+        sessionData: null,
+        notifications: null,
+        clubData: null
       });
 
       // Fetch all data in parallel with individual error handling
       await Promise.allSettled([
+        // === Core data fetching ===
         fetchPlayerHP(),
         fetchPlayerXP(),
         fetchPlayerTokens(),
         fetchRecentActivities(),
         fetchMatches(),
-        fetchMatchHistory()
+        fetchMatchHistory(),
+        // === NEW consolidated data fetching ===
+        fetchTokenData(),
+        fetchEnhancedActivities(),
+        fetchSessionData(),
+        fetchNotifications(),
+        fetchClubData()
       ]);
       
       console.log('✅ Dashboard refresh completed');
@@ -699,7 +949,7 @@ export function useDashboardSubscriptions() {
       console.error('Error during dashboard refresh:', error);
       showErrorToast('Failed to refresh dashboard data', refreshAll);
     }
-  }, [user, fetchPlayerHP, fetchPlayerXP, fetchPlayerTokens, fetchRecentActivities, fetchMatches, fetchMatchHistory, toast, showErrorToast]);
+  }, [user, fetchPlayerHP, fetchPlayerXP, fetchPlayerTokens, fetchRecentActivities, fetchMatches, fetchMatchHistory, fetchTokenData, fetchEnhancedActivities, fetchSessionData, fetchNotifications, fetchClubData, toast, showErrorToast]);
 
   // Enhanced subscription setup with retry logic
   const setupSubscriptions = useCallback(() => {
@@ -969,7 +1219,13 @@ export function useDashboardSubscriptions() {
         activities: false,
         challenges: false,
         matches: false,
-        matchHistory: false
+        matchHistory: false,
+        // === New consolidated loading states ===
+        tokenData: false,
+        enhancedActivities: false,
+        sessionData: false,
+        notifications: false,
+        clubData: false
       });
 
       setErrors({
@@ -980,7 +1236,13 @@ export function useDashboardSubscriptions() {
         challenges: null,
         matches: null,
         matchHistory: null,
-        subscription: null
+        subscription: null,
+        // === New consolidated error states ===
+        tokenData: null,
+        enhancedActivities: null,
+        sessionData: null,
+        notifications: null,
+        clubData: null
       });
 
       cleanupChannels();
@@ -999,6 +1261,12 @@ export function useDashboardSubscriptions() {
     refreshPlayerTokens: fetchPlayerTokens,
     refreshActivities: fetchRecentActivities,
     refreshMatches: fetchMatches,
-    refreshMatchHistory: fetchMatchHistory
+    refreshMatchHistory: fetchMatchHistory,
+    // === NEW consolidated refresh functions ===
+    refreshTokenData: fetchTokenData,
+    refreshEnhancedActivities: fetchEnhancedActivities,
+    refreshSessionData: fetchSessionData,
+    refreshNotifications: fetchNotifications,
+    refreshClubData: fetchClubData
   };
 }
