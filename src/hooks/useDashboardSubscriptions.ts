@@ -6,13 +6,16 @@ import { useToast } from '@/hooks/use-toast';
 
 interface RecentActivityItem {
   id: string;
-  type: 'match' | 'training' | 'xp' | 'hp' | 'challenge' | 'general';
   title: string;
-  description: string;
-  timestamp: string;
-  iconType: 'Trophy' | 'Target' | 'Star' | 'Heart' | 'Clock' | 'Activity';
-  color: string;
-  createdAt: Date;
+  description?: string;
+  activity_type: string;
+  logged_at: string;
+  xp_earned?: number;
+  hp_impact?: number;
+  duration_minutes?: number;
+  score?: string;
+  opponent_name?: string;
+  location?: string;
 }
 
 interface PlayerHP {
@@ -272,13 +275,16 @@ export function useDashboardSubscriptions() {
         activityLogs.forEach(log => {
           recentActivities.push({
             id: `activity-${log.id}`,
-            type: log.activity_type === 'match' ? 'match' : 'training',
+            activity_type: log.activity_type,
             title: log.title,
             description: log.description || `${log.activity_type} - ${log.duration_minutes ? `${log.duration_minutes} minutes` : 'Completed'}`,
-            timestamp: log.created_at,
-            iconType: log.activity_type === 'match' ? 'Trophy' : 'Target',
-            color: log.activity_type === 'match' ? 'text-green-600' : 'text-blue-600',
-            createdAt: new Date(log.created_at)
+            logged_at: log.created_at,
+            xp_earned: log.xp_earned,
+            hp_impact: log.hp_impact,
+            duration_minutes: log.duration_minutes,
+            score: log.score,
+            opponent_name: log.opponent_name,
+            location: log.location
           });
         });
       }
@@ -297,20 +303,18 @@ export function useDashboardSubscriptions() {
         xpActivities.forEach(xp => {
           recentActivities.push({
             id: `xp-${xp.id}`,
-            type: 'xp',
+            activity_type: 'xp_earned',
             title: `Earned ${xp.xp_earned} XP`,
             description: xp.description || `From ${xp.activity_type}`,
-            timestamp: xp.created_at,
-            iconType: 'Star',
-            color: 'text-yellow-600',
-            createdAt: new Date(xp.created_at)
+            logged_at: xp.created_at,
+            xp_earned: xp.xp_earned
           });
         });
       }
 
       // Sort and limit activities
       const sortedActivities = recentActivities
-        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        .sort((a, b) => new Date(b.logged_at).getTime() - new Date(a.logged_at).getTime())
         .slice(0, 10);
 
       setDashboardData(prev => ({ ...prev, recentActivities: sortedActivities }));
