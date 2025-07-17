@@ -685,6 +685,7 @@ export function useDashboardSubscriptions() {
   }, [user, updateLoading, updateError]);
 
   // === NEW CONSOLIDATED FETCH FUNCTIONS ===
+  // Define these before refreshAll to fix hoisting errors
 
   const fetchTokenData = useCallback(async (): Promise<void> => {
     if (!user) return;
