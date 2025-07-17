@@ -2,27 +2,25 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '@/hooks/useAuth';
 import { useCurrentProfile } from '@/hooks/useCurrentProfile';
-import { usePlayerTokens } from '@/hooks/usePlayerTokens';
-import { usePlayerXP } from '@/hooks/usePlayerXP';
-import { usePlayerHP } from '@/hooks/usePlayerHP';
-import { useMatchmaking } from '@/hooks/useMatchmaking';
+import { useDashboardSubscriptions } from '@/hooks/useDashboardSubscriptions';
 import { CompactDashboardHeader } from '@/components/dashboard/CompactDashboardHeader';
 import { QuickActions } from '@/components/dashboard/FloatingQuickActions';
 import { ActiveMatches } from '@/components/dashboard/ActiveMatches';
 import { RecentActivity } from '@/components/dashboard/RecentActivity';
 const Dashboard = () => {
   const { data: profile, isLoading: profileLoading } = useCurrentProfile();
-  const { regularTokens, loading: tokensLoading } = usePlayerTokens();
-  const { xpData, loading: xpLoading } = usePlayerXP();
-  const { hpData, loading: hpLoading } = usePlayerHP();
   const { 
-    getPendingChallenges,
-    getActiveMatches,
-    isLoading: matchesLoading 
-  } = useMatchmaking();
+    dashboardData: { 
+      playerHP, 
+      playerXP, 
+      playerTokens, 
+      recentActivities, 
+      pendingChallenges, 
+      activeMatches 
+    },
+    loading
+  } = useDashboardSubscriptions();
 
-  const pendingChallenges = getPendingChallenges();
-  const activeMatches = getActiveMatches();
   const allMatches = [...pendingChallenges, ...activeMatches];
 
   return (
@@ -42,12 +40,12 @@ const Dashboard = () => {
         <div className="max-w-6xl mx-auto space-y-6">
           {/* Compact Player Vitals */}
           <CompactDashboardHeader 
-            tokens={tokensLoading ? 0 : regularTokens}
-            xp={xpLoading ? 0 : xpData?.current_xp || 0}
-            level={xpLoading ? 1 : xpData?.current_level || 1}
-            hp={hpLoading ? 100 : hpData?.current_hp || 100}
-            maxHp={hpLoading ? 100 : hpData?.max_hp || 100}
-            xpToNextLevel={xpLoading ? 0 : xpData?.xp_to_next_level || 0}
+            tokens={loading.tokens ? 0 : playerTokens?.regular_tokens || 0}
+            xp={loading.xp ? 0 : playerXP?.current_xp || 0}
+            level={loading.xp ? 1 : playerXP?.current_level || 1}
+            hp={loading.hp ? 100 : playerHP?.current_hp || 100}
+            maxHp={loading.hp ? 100 : playerHP?.max_hp || 100}
+            xpToNextLevel={loading.xp ? 0 : playerXP?.xp_to_next_level || 0}
           />
 
           {/* Quick Actions */}
@@ -62,7 +60,7 @@ const Dashboard = () => {
 
             {/* Recent Activity */}
             <div className="space-y-6">
-              <RecentActivity />
+              <RecentActivity activities={recentActivities} />
             </div>
           </div>
         </div>

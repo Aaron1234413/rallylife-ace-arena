@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Activity, Trophy, Target, Star, Heart, Clock } from 'lucide-react';
-import { useRecentActivity } from '@/hooks/useRecentActivity';
+import { formatDistanceToNow } from 'date-fns';
 
 const iconComponents = {
   Trophy,
@@ -12,8 +12,55 @@ const iconComponents = {
   Activity
 };
 
-export function RecentActivity() {
-  const { activities, loading } = useRecentActivity(2);
+interface RecentActivityItem {
+  id: string;
+  title: string;
+  description?: string;
+  activity_type: string;
+  logged_at: string;
+  xp_earned?: number;
+  hp_impact?: number;
+  duration_minutes?: number;
+  score?: string;
+  opponent_name?: string;
+  location?: string;
+}
+
+interface RecentActivityProps {
+  activities: RecentActivityItem[];
+  loading?: boolean;
+}
+
+export function RecentActivity({ activities, loading = false }: RecentActivityProps) {
+  // Transform activities to match expected format
+  const formattedActivities = activities.map(activity => ({
+    id: activity.id,
+    title: activity.title,
+    description: activity.description || `${activity.activity_type} activity`,
+    timestamp: formatDistanceToNow(new Date(activity.logged_at), { addSuffix: true }),
+    iconType: getIconType(activity.activity_type),
+    color: getColor(activity.activity_type)
+  }));
+
+  function getIconType(activityType: string): keyof typeof iconComponents {
+    switch (activityType) {
+      case 'match': return 'Trophy';
+      case 'training': return 'Target';
+      case 'achievement': return 'Star';
+      case 'health': return 'Heart';
+      default: return 'Activity';
+    }
+  }
+
+  function getColor(activityType: string): string {
+    switch (activityType) {
+      case 'match': return 'text-yellow-400';
+      case 'training': return 'text-blue-400';
+      case 'achievement': return 'text-purple-400';
+      case 'health': return 'text-red-400';
+      default: return 'text-green-400';
+    }
+  }
 
   return (
     <Card className="relative overflow-hidden bg-gradient-to-br from-slate-800/90 to-slate-900/90 backdrop-blur-sm border-0 shadow-2xl hover:shadow-3xl transition-all duration-300">
@@ -38,14 +85,14 @@ export function RecentActivity() {
               </div>
             ))}
           </div>
-        ) : activities.length === 0 ? (
+        ) : formattedActivities.length === 0 ? (
           <div className="text-center py-8">
             <Activity className="h-12 w-12 text-white/40 mx-auto mb-3" />
             <p className="text-white/70 text-sm">No recent activity</p>
             <p className="text-white/50 text-xs mt-1">Start playing to see your activity here!</p>
           </div>
         ) : (
-          activities.map((activity) => {
+          formattedActivities.map((activity) => {
             const IconComponent = iconComponents[activity.iconType];
             return (
               <div key={activity.id} className="flex items-start gap-3 p-3 bg-white/10 rounded-lg hover:bg-white/15 transition-colors duration-200">

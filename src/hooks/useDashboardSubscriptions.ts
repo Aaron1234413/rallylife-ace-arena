@@ -18,7 +18,8 @@ interface PlayerXP {
 
 interface PlayerTokens {
   regular_tokens: number;
-  premium_tokens: number;
+  personal_tokens: number;
+  monthly_subscription_tokens: number;
   lifetime_earned: number;
 }
 
@@ -54,9 +55,12 @@ interface Match {
   scheduled_time?: string;
   court_location?: string;
   stake_amount?: number;
-  opponent_id: string;
+  opponent_id?: string;
   challenger_id: string;
+  challenged_id?: string;
   created_at: string;
+  challenge_type?: string;
+  message?: string;
 }
 
 interface MatchHistory {
@@ -157,16 +161,14 @@ export const useDashboardSubscriptions = (): UseDashboardSubscriptionsReturn => 
         tokensResponse,
         activitiesResponse,
         challengesResponse,
-        matchesResponse,
-        matchHistoryResponse
+        matchesResponse
       ] = await Promise.allSettled([
         supabase.from('player_hp').select('*').eq('player_id', user.id).single(),
         supabase.from('player_xp').select('*').eq('player_id', user.id).single(),
-        supabase.from('player_tokens').select('*').eq('player_id', user.id).single(),
+        supabase.from('token_balances').select('*').eq('player_id', user.id).single(),
         supabase.from('activity_logs').select('*').eq('player_id', user.id).order('logged_at', { ascending: false }).limit(10),
         supabase.from('challenges').select('*').or(`challenger_id.eq.${user.id},challenged_id.eq.${user.id}`).eq('status', 'pending').order('created_at', { ascending: false }),
-        supabase.from('challenges').select('*').or(`challenger_id.eq.${user.id},challenged_id.eq.${user.id}`).in('status', ['accepted', 'active']).order('created_at', { ascending: false }),
-        supabase.rpc('get_match_history', { player_user_id: user.id })
+        supabase.from('challenges').select('*').or(`challenger_id.eq.${user.id},challenged_id.eq.${user.id}`).in('status', ['accepted', 'active']).order('created_at', { ascending: false })
       ]);
 
       // Process HP data
@@ -205,10 +207,17 @@ export const useDashboardSubscriptions = (): UseDashboardSubscriptionsReturn => 
       }
       setLoading(prev => ({ ...prev, matches: false }));
 
-      // Process match history data
-      if (matchHistoryResponse.status === 'fulfilled' && matchHistoryResponse.value.data) {
-        setDashboardData(prev => ({ ...prev, matchHistory: matchHistoryResponse.value.data }));
-      }
+      // Set dummy match history for now
+      setDashboardData(prev => ({ 
+        ...prev, 
+        matchHistory: { 
+          totalMatches: 0, 
+          wins: 0, 
+          losses: 0, 
+          winRate: 0, 
+          recentMatches: [] 
+        } 
+      }));
       setLoading(prev => ({ ...prev, matchHistory: false }));
 
     } catch (err) {
