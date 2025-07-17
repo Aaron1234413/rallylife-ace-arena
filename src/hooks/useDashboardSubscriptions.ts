@@ -1,90 +1,63 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
-import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
+// import type { RecentActivityItem } from '@/hooks/useRecentActivity';
+
+interface RecentActivityItem {
+  id: string;
+  type: 'match' | 'training' | 'xp' | 'hp' | 'challenge' | 'general';
+  title: string;
+  description: string;
+  timestamp: string;
+  iconType: 'Trophy' | 'Target' | 'Star' | 'Heart' | 'Clock' | 'Activity';
+  color: string;
+  createdAt: Date;
+}
 
 interface PlayerHP {
+  id: string;
   current_hp: number;
   max_hp: number;
   last_activity: string;
+  decay_rate: number;
   decay_paused: boolean;
 }
 
 interface PlayerXP {
+  id: string;
   current_xp: number;
   total_xp_earned: number;
   current_level: number;
   xp_to_next_level: number;
+  created_at: string;
+  updated_at: string;
 }
 
 interface PlayerTokens {
+  id: string;
+  player_id: string;
+  personal_tokens?: number;
+  monthly_subscription_tokens?: number;
   regular_tokens: number;
-  personal_tokens: number;
-  monthly_subscription_tokens: number;
+  premium_tokens?: number;
   lifetime_earned: number;
-}
-
-interface RecentActivity {
-  id: string;
-  title: string;
-  description?: string;
-  activity_type: string;
-  logged_at: string;
-  xp_earned?: number;
-  hp_impact?: number;
-  duration_minutes?: number;
-  score?: string;
-  opponent_name?: string;
-  location?: string;
-}
-
-interface Challenge {
-  id: string;
-  challenger_id: string;
-  challenged_id: string;
-  challenge_type: string;
-  status: string;
-  message?: string;
-  stakes_tokens?: number;
-  stakes_premium_tokens?: number;
   created_at: string;
-}
-
-interface Match {
-  id: string;
-  status: string;
-  scheduled_time?: string;
-  court_location?: string;
-  stake_amount?: number;
-  opponent_id?: string;
-  challenger_id: string;
-  challenged_id?: string;
-  created_at: string;
-  challenge_type?: string;
-  message?: string;
+  updated_at: string;
 }
 
 interface MatchHistory {
   totalMatches: number;
-  wins: number;
-  losses: number;
   winRate: number;
-  recentMatches: Array<{
-    id: string;
-    result: string;
-    opponent_name: string;
-    final_score: string;
-    completed_at: string;
-    match_type: string;
-  }>;
 }
 
 interface DashboardData {
   playerHP: PlayerHP | null;
   playerXP: PlayerXP | null;
   playerTokens: PlayerTokens | null;
-  recentActivities: RecentActivity[];
-  pendingChallenges: Challenge[];
-  activeMatches: Match[];
+  recentActivities: RecentActivityItem[];
+  pendingChallenges: any[];
+  activeMatches: any[];
   matchHistory: MatchHistory | null;
 }
 
@@ -98,19 +71,27 @@ interface LoadingStates {
   matchHistory: boolean;
 }
 
-interface UseDashboardSubscriptionsReturn {
-  dashboardData: DashboardData;
-  loading: LoadingStates;
-  refreshAll: () => Promise<void>;
-  error: string | null;
+interface ErrorStates {
+  hp: string | null;
+  xp: string | null;
+  tokens: string | null;
+  activities: string | null;
+  challenges: string | null;
+  matches: string | null;
+  matchHistory: string | null;
+  subscription: string | null;
 }
 
-export const useDashboardSubscriptions = (): UseDashboardSubscriptionsReturn => {
-  const { user } = useAuth();
-  const mountRef = useRef(0);
-  const subscriptionsRef = useRef<Set<string>>(new Set());
-  const cleanupInProgressRef = useRef(false);
+interface SubscriptionStatus {
+  connected: boolean;
+  lastConnected: Date | null;
+  retryCount: number;
+  maxRetries: number;
+}
 
+export function useDashboardSubscriptions() {
+  const { user } = useAuth();
+  const { toast } = useToast();
   const [dashboardData, setDashboardData] = useState<DashboardData>({
     playerHP: null,
     playerXP: null,
@@ -118,7 +99,7 @@ export const useDashboardSubscriptions = (): UseDashboardSubscriptionsReturn => 
     recentActivities: [],
     pendingChallenges: [],
     activeMatches: [],
-    matchHistory: null,
+    matchHistory: null
   });
 
   const [loading, setLoading] = useState<LoadingStates>({
@@ -128,330 +109,616 @@ export const useDashboardSubscriptions = (): UseDashboardSubscriptionsReturn => 
     activities: true,
     challenges: true,
     matches: true,
-    matchHistory: true,
+    matchHistory: true
   });
 
-  const [error, setError] = useState<string | null>(null);
+  const [errors, setErrors] = useState<ErrorStates>({
+    hp: null,
+    xp: null,
+    tokens: null,
+    activities: null,
+    challenges: null,
+    matches: null,
+    matchHistory: null,
+    subscription: null
+  });
 
-  // Channel deduplication helper
-  const getOrCreateChannel = useCallback((channelName: string) => {
-    const existingChannels = supabase.getChannels();
-    const existing = existingChannels.find(ch => ch.topic === channelName);
-    
-    if (existing) {
-      console.log(`[Dashboard] Reusing existing channel: ${channelName}`);
-      return existing;
-    }
-    
-    console.log(`[Dashboard] Creating new channel: ${channelName}`);
-    return supabase.channel(channelName);
+  const [subscriptionStatus, setSubscriptionStatus] = useState<SubscriptionStatus>({
+    connected: false,
+    lastConnected: null,
+    retryCount: 0,
+    maxRetries: 3
+  });
+
+  const channelRef = useRef<any>(null);
+  const retryTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+
+  // Helper function to update loading state
+  const updateLoading = useCallback((key: keyof LoadingStates, value: boolean) => {
+    setLoading(prev => ({ ...prev, [key]: value }));
   }, []);
 
-  // Fetch initial data
-  const fetchDashboardData = useCallback(async () => {
-    if (!user?.id) return;
+  // Helper function to update error state
+  const updateError = useCallback((key: keyof ErrorStates, error: string | null) => {
+    setErrors(prev => ({ ...prev, [key]: error }));
+  }, []);
+
+  // Helper function to show error toast
+  const showErrorToast = useCallback((message: string, retry?: () => void) => {
+    toast({
+      title: "Connection Error",
+      description: message,
+      variant: "destructive",
+    });
+  }, [toast]);
+
+  const fetchPlayerHP = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    
+    updateLoading('hp', true);
+    updateError('hp', null);
 
     try {
-      setError(null);
-      
-      // Fetch all data in parallel
-      const [
-        hpResponse,
-        xpResponse,
-        tokensResponse,
-        activitiesResponse,
-        challengesResponse,
-        matchesResponse
-      ] = await Promise.allSettled([
-        supabase.from('player_hp').select('*').eq('player_id', user.id).single(),
-        supabase.from('player_xp').select('*').eq('player_id', user.id).single(),
-        supabase.from('token_balances').select('*').eq('player_id', user.id).single(),
-        supabase.from('activity_logs').select('*').eq('player_id', user.id).order('logged_at', { ascending: false }).limit(10),
-        supabase.from('challenges').select('*').or(`challenger_id.eq.${user.id},challenged_id.eq.${user.id}`).eq('status', 'pending').order('created_at', { ascending: false }),
-        supabase.from('challenges').select('*').or(`challenger_id.eq.${user.id},challenged_id.eq.${user.id}`).in('status', ['accepted', 'active']).order('created_at', { ascending: false })
-      ]);
+      const { data, error } = await supabase
+        .from('player_hp')
+        .select('*')
+        .eq('player_id', user.id)
+        .single();
 
-      // Process HP data
-      if (hpResponse.status === 'fulfilled' && hpResponse.value.data) {
-        setDashboardData(prev => ({ ...prev, playerHP: hpResponse.value.data }));
+      if (error) {
+        console.error('Error fetching HP:', error);
+        updateError('hp', 'Failed to load HP data');
+        return;
       }
-      setLoading(prev => ({ ...prev, hp: false }));
 
-      // Process XP data
-      if (xpResponse.status === 'fulfilled' && xpResponse.value.data) {
-        setDashboardData(prev => ({ ...prev, playerXP: xpResponse.value.data }));
-      }
-      setLoading(prev => ({ ...prev, xp: false }));
-
-      // Process tokens data
-      if (tokensResponse.status === 'fulfilled' && tokensResponse.value.data) {
-        setDashboardData(prev => ({ ...prev, playerTokens: tokensResponse.value.data }));
-      }
-      setLoading(prev => ({ ...prev, tokens: false }));
-
-      // Process activities data
-      if (activitiesResponse.status === 'fulfilled' && activitiesResponse.value.data) {
-        setDashboardData(prev => ({ ...prev, recentActivities: activitiesResponse.value.data }));
-      }
-      setLoading(prev => ({ ...prev, activities: false }));
-
-      // Process challenges data
-      if (challengesResponse.status === 'fulfilled' && challengesResponse.value.data) {
-        setDashboardData(prev => ({ ...prev, pendingChallenges: challengesResponse.value.data }));
-      }
-      setLoading(prev => ({ ...prev, challenges: false }));
-
-      // Process matches data
-      if (matchesResponse.status === 'fulfilled' && matchesResponse.value.data) {
-        setDashboardData(prev => ({ ...prev, activeMatches: matchesResponse.value.data }));
-      }
-      setLoading(prev => ({ ...prev, matches: false }));
-
-      // Set dummy match history for now
-      setDashboardData(prev => ({ 
-        ...prev, 
-        matchHistory: { 
-          totalMatches: 0, 
-          wins: 0, 
-          losses: 0, 
-          winRate: 0, 
-          recentMatches: [] 
-        } 
-      }));
-      setLoading(prev => ({ ...prev, matchHistory: false }));
-
-    } catch (err) {
-      console.error('[Dashboard] Error fetching data:', err);
-      setError(err instanceof Error ? err.message : 'Failed to fetch dashboard data');
+      setDashboardData(prev => ({ ...prev, playerHP: data }));
+    } catch (error) {
+      console.error('Error in fetchPlayerHP:', error);
+      updateError('hp', 'Network error while loading HP');
+    } finally {
+      updateLoading('hp', false);
     }
-  }, [user?.id]);
+  }, [user, updateLoading, updateError]);
 
-  // Setup real-time subscriptions
-  const setupSubscriptions = useCallback(async () => {
-    if (!user?.id || subscriptionsRef.current.size > 0) return;
+  const fetchPlayerXP = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    
+    updateLoading('xp', true);
+    updateError('xp', null);
 
     try {
-      const userId = user.id;
-      console.log(`[Dashboard] Setting up subscriptions for user: ${userId}`);
+      const { data, error } = await supabase
+        .from('player_xp')
+        .select('*')
+        .eq('player_id', user.id)
+        .single();
 
-      // HP updates channel
-      const hpChannel = getOrCreateChannel(`dashboard-hp-${userId}`);
-      if (!subscriptionsRef.current.has(`dashboard-hp-${userId}`)) {
-        hpChannel
-          .on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'player_hp',
-            filter: `player_id=eq.${userId}`
-          }, (payload) => {
-            console.log('[Dashboard] HP update:', payload);
-            if (payload.new) {
-              setDashboardData(prev => ({ ...prev, playerHP: payload.new as PlayerHP }));
-            }
-          })
-          .subscribe((status) => {
-            console.log(`[Dashboard] HP channel status: ${status}`);
-            if (status === 'SUBSCRIBED') {
-              subscriptionsRef.current.add(`dashboard-hp-${userId}`);
-            }
-          });
+      if (error) {
+        console.error('Error fetching XP:', error);
+        updateError('xp', 'Failed to load XP data');
+        return;
       }
 
-      // XP updates channel
-      const xpChannel = getOrCreateChannel(`dashboard-xp-${userId}`);
-      if (!subscriptionsRef.current.has(`dashboard-xp-${userId}`)) {
-        xpChannel
-          .on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'player_xp',
-            filter: `player_id=eq.${userId}`
-          }, (payload) => {
-            console.log('[Dashboard] XP update:', payload);
-            if (payload.new) {
-              setDashboardData(prev => ({ ...prev, playerXP: payload.new as PlayerXP }));
-            }
-          })
-          .subscribe((status) => {
-            console.log(`[Dashboard] XP channel status: ${status}`);
-            if (status === 'SUBSCRIBED') {
-              subscriptionsRef.current.add(`dashboard-xp-${userId}`);
-            }
-          });
-      }
-
-      // Tokens updates channel
-      const tokensChannel = getOrCreateChannel(`dashboard-tokens-${userId}`);
-      if (!subscriptionsRef.current.has(`dashboard-tokens-${userId}`)) {
-        tokensChannel
-          .on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'player_tokens',
-            filter: `player_id=eq.${userId}`
-          }, (payload) => {
-            console.log('[Dashboard] Tokens update:', payload);
-            if (payload.new) {
-              setDashboardData(prev => ({ ...prev, playerTokens: payload.new as PlayerTokens }));
-            }
-          })
-          .subscribe((status) => {
-            console.log(`[Dashboard] Tokens channel status: ${status}`);
-            if (status === 'SUBSCRIBED') {
-              subscriptionsRef.current.add(`dashboard-tokens-${userId}`);
-            }
-          });
-      }
-
-      // Activities updates channel
-      const activitiesChannel = getOrCreateChannel(`dashboard-activities-${userId}`);
-      if (!subscriptionsRef.current.has(`dashboard-activities-${userId}`)) {
-        activitiesChannel
-          .on('postgres_changes', {
-            event: 'INSERT',
-            schema: 'public',
-            table: 'activity_logs',
-            filter: `player_id=eq.${userId}`
-          }, (payload) => {
-            console.log('[Dashboard] New activity:', payload);
-            if (payload.new) {
-              setDashboardData(prev => ({
-                ...prev,
-                recentActivities: [payload.new as RecentActivity, ...prev.recentActivities.slice(0, 9)]
-              }));
-            }
-          })
-          .subscribe((status) => {
-            console.log(`[Dashboard] Activities channel status: ${status}`);
-            if (status === 'SUBSCRIBED') {
-              subscriptionsRef.current.add(`dashboard-activities-${userId}`);
-            }
-          });
-      }
-
-      // Challenges updates channel
-      const challengesChannel = getOrCreateChannel(`dashboard-challenges-${userId}`);
-      if (!subscriptionsRef.current.has(`dashboard-challenges-${userId}`)) {
-        challengesChannel
-          .on('postgres_changes', {
-            event: '*',
-            schema: 'public',
-            table: 'challenges',
-            filter: `challenger_id=eq.${userId},challenged_id=eq.${userId}`
-          }, () => {
-            console.log('[Dashboard] Challenges update, refetching...');
-            // Refetch challenges data
-            supabase.from('challenges')
-              .select('*')
-              .or(`challenger_id.eq.${userId},challenged_id.eq.${userId}`)
-              .order('created_at', { ascending: false })
-              .then(({ data }) => {
-                if (data) {
-                  const pending = data.filter(c => c.status === 'pending');
-                  const active = data.filter(c => ['accepted', 'active'].includes(c.status));
-                  setDashboardData(prev => ({
-                    ...prev,
-                    pendingChallenges: pending,
-                    activeMatches: active
-                  }));
-                }
-              });
-          })
-          .subscribe((status) => {
-            console.log(`[Dashboard] Challenges channel status: ${status}`);
-            if (status === 'SUBSCRIBED') {
-              subscriptionsRef.current.add(`dashboard-challenges-${userId}`);
-            }
-          });
-      }
-
-    } catch (err) {
-      console.error('[Dashboard] Error setting up subscriptions:', err);
-      setError(err instanceof Error ? err.message : 'Failed to setup real-time updates');
+      setDashboardData(prev => ({ ...prev, playerXP: data }));
+    } catch (error) {
+      console.error('Error in fetchPlayerXP:', error);
+      updateError('xp', 'Network error while loading XP');
+    } finally {
+      updateLoading('xp', false);
     }
-  }, [user?.id, getOrCreateChannel]);
+  }, [user, updateLoading, updateError]);
 
-  // Cleanup function
-  const cleanupSubscriptions = useCallback(() => {
-    if (cleanupInProgressRef.current) return;
-    cleanupInProgressRef.current = true;
+  const fetchPlayerTokens = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    
+    updateLoading('tokens', true);
+    updateError('tokens', null);
 
     try {
-      console.log('[Dashboard] Cleaning up subscriptions...');
-      const channels = supabase.getChannels();
-      const dashboardChannels = channels.filter(ch => 
-        ch.topic.includes('dashboard-') || 
-        ch.topic.includes(user?.id || '')
-      );
+      const response = await supabase
+        .from('profiles')
+        .select('id, tokens, daily_streak, last_login, lifetime_tokens_earned')
+        .eq('id', user.id)
+        .single();
 
-      dashboardChannels.forEach(channel => {
-        try {
-          console.log(`[Dashboard] Removing channel: ${channel.topic}`);
-          supabase.removeChannel(channel);
-        } catch (err) {
-          console.error(`[Dashboard] Error removing channel ${channel.topic}:`, err);
-        }
+      if (response.error) {
+        console.error('Error fetching tokens:', response.error);
+        updateError('tokens', 'Failed to load token data');
+        return;
+      }
+
+      const data = response.data;
+      const transformedData = {
+        id: data.id,
+        player_id: data.id,
+        regular_tokens: data.tokens || 0,
+        personal_tokens: data.tokens || 0,
+        monthly_subscription_tokens: 0,
+        premium_tokens: 0,
+        lifetime_earned: data.lifetime_tokens_earned || 0,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      setDashboardData(prev => ({ ...prev, playerTokens: transformedData }));
+    } catch (error) {
+      console.error('Error in fetchPlayerTokens:', error);
+      updateError('tokens', 'Network error while loading tokens');
+    } finally {
+      updateLoading('tokens', false);
+    }
+  }, [user, updateLoading, updateError]);
+
+  const fetchRecentActivities = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    
+    updateLoading('activities', true);
+    updateError('activities', null);
+
+    try {
+      const recentActivities: RecentActivityItem[] = [];
+
+      // Fetch activity logs with error handling
+      const { data: activityLogs, error: activityError } = await supabase
+        .from('activity_logs')
+        .select('*')
+        .eq('player_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(5);
+
+      if (activityError) {
+        console.warn('Error fetching activity logs:', activityError);
+      } else if (activityLogs) {
+        activityLogs.forEach(log => {
+          recentActivities.push({
+            id: `activity-${log.id}`,
+            type: log.activity_type === 'match' ? 'match' : 'training',
+            title: log.title,
+            description: log.description || `${log.activity_type} - ${log.duration_minutes ? `${log.duration_minutes} minutes` : 'Completed'}`,
+            timestamp: log.created_at,
+            iconType: log.activity_type === 'match' ? 'Trophy' : 'Target',
+            color: log.activity_type === 'match' ? 'text-green-600' : 'text-blue-600',
+            createdAt: new Date(log.created_at)
+          });
+        });
+      }
+
+      // Fetch XP activities with error handling
+      const { data: xpActivities, error: xpError } = await supabase
+        .from('xp_activities')
+        .select('*')
+        .eq('player_id', user.id)
+        .order('created_at', { ascending: false })
+        .limit(3);
+
+      if (xpError) {
+        console.warn('Error fetching XP activities:', xpError);
+      } else if (xpActivities) {
+        xpActivities.forEach(xp => {
+          recentActivities.push({
+            id: `xp-${xp.id}`,
+            type: 'xp',
+            title: `Earned ${xp.xp_earned} XP`,
+            description: xp.description || `From ${xp.activity_type}`,
+            timestamp: xp.created_at,
+            iconType: 'Star',
+            color: 'text-yellow-600',
+            createdAt: new Date(xp.created_at)
+          });
+        });
+      }
+
+      // Sort and limit activities
+      const sortedActivities = recentActivities
+        .sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime())
+        .slice(0, 10);
+
+      setDashboardData(prev => ({ ...prev, recentActivities: sortedActivities }));
+    } catch (error) {
+      console.error('Error in fetchRecentActivities:', error);
+      updateError('activities', 'Network error while loading activities');
+    } finally {
+      updateLoading('activities', false);
+    }
+  }, [user, updateLoading, updateError]);
+
+  const fetchMatches = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    
+    updateLoading('challenges', true);
+    updateLoading('matches', true);
+    updateError('challenges', null);
+    updateError('matches', null);
+
+    try {
+      // Fetch matches with error handling
+      const { data: matchesData, error: matchesError } = await supabase
+        .from('matches')
+        .select(`
+          *,
+          challenger:challenger_id(id, full_name, avatar_url),
+          opponent:opponent_id(id, full_name, avatar_url),
+          winner:winner_id(id, full_name, avatar_url)
+        `)
+        .or(`challenger_id.eq.${user.id},opponent_id.eq.${user.id}`)
+        .order('created_at', { ascending: false });
+
+      if (matchesError) {
+        console.error('Error fetching matches:', matchesError);
+        updateError('challenges', 'Failed to load challenges');
+        updateError('matches', 'Failed to load matches');
+      } else if (matchesData) {
+        const pendingChallenges = matchesData.filter(match => 
+          match.status === 'pending' && match.opponent_id === user.id
+        );
+        
+        const activeMatches = matchesData.filter(match => match.status === 'accepted');
+
+        setDashboardData(prev => ({ 
+          ...prev, 
+          pendingChallenges,
+          activeMatches
+        }));
+      }
+    } catch (error) {
+      console.error('Error in fetchMatches:', error);
+      updateError('challenges', 'Network error while loading challenges');
+      updateError('matches', 'Network error while loading matches');
+    } finally {
+      updateLoading('challenges', false);
+      updateLoading('matches', false);
+    }
+  }, [user, updateLoading, updateError]);
+
+  const fetchMatchHistory = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    
+    updateLoading('matchHistory', true);
+    updateError('matchHistory', null);
+
+    try {
+      const { data: completedMatches, error: historyError } = await supabase
+        .from('matches')
+        .select('*')
+        .or(`challenger_id.eq.${user.id},opponent_id.eq.${user.id}`)
+        .eq('status', 'completed');
+
+      if (historyError) {
+        console.error('Error fetching match history:', historyError);
+        updateError('matchHistory', 'Failed to load match history');
+      } else if (completedMatches) {
+        const totalMatches = completedMatches.length;
+        const wonMatches = completedMatches.filter(match => match.winner_id === user.id).length;
+        const winRate = totalMatches > 0 ? Math.round((wonMatches / totalMatches) * 100) : 0;
+
+        setDashboardData(prev => ({ 
+          ...prev, 
+          matchHistory: { totalMatches, winRate }
+        }));
+      }
+    } catch (error) {
+      console.error('Error in fetchMatchHistory:', error);
+      updateError('matchHistory', 'Network error while loading match history');
+    } finally {
+      updateLoading('matchHistory', false);
+    }
+  }, [user, updateLoading, updateError]);
+
+  // Enhanced refresh function with error handling
+  const refreshAll = useCallback(async (): Promise<void> => {
+    if (!user) return;
+    
+    console.log('🔄 Refreshing all dashboard data...');
+    
+    try {
+      // Reset all errors before refresh
+      setErrors({
+        hp: null,
+        xp: null,
+        tokens: null,
+        activities: null,
+        challenges: null,
+        matches: null,
+        matchHistory: null,
+        subscription: null
       });
 
-      subscriptionsRef.current.clear();
-    } catch (err) {
-      console.error('[Dashboard] Error during cleanup:', err);
-    } finally {
-      cleanupInProgressRef.current = false;
+      // Fetch all data in parallel with individual error handling
+      await Promise.allSettled([
+        fetchPlayerHP(),
+        fetchPlayerXP(),
+        fetchPlayerTokens(),
+        fetchRecentActivities(),
+        fetchMatches(),
+        fetchMatchHistory()
+      ]);
+      
+      console.log('✅ Dashboard refresh completed');
+      
+      toast({
+        title: "Dashboard Updated",
+        description: "All data has been refreshed successfully.",
+      });
+    } catch (error) {
+      console.error('Error during dashboard refresh:', error);
+      showErrorToast('Failed to refresh dashboard data', refreshAll);
     }
-  }, [user?.id]);
+  }, [user, fetchPlayerHP, fetchPlayerXP, fetchPlayerTokens, fetchRecentActivities, fetchMatches, fetchMatchHistory, toast, showErrorToast]);
 
-  // Refresh all data
-  const refreshAll = useCallback(async () => {
-    console.log('[Dashboard] Manual refresh triggered');
-    setLoading({
-      hp: true,
-      xp: true,
-      tokens: true,
-      activities: true,
-      challenges: true,
-      matches: true,
-      matchHistory: true,
-    });
-    await fetchDashboardData();
-  }, [fetchDashboardData]);
-
-  // Main effect
-  useEffect(() => {
-    const currentMount = ++mountRef.current;
-    console.log(`[Dashboard] Mount ${currentMount}, user:`, user?.id);
-
-    if (!user?.id) {
-      console.log('[Dashboard] No user, skipping setup');
+  // Enhanced subscription setup with retry logic
+  const setupSubscriptions = useCallback(() => {
+    if (!user || subscriptionStatus.retryCount >= subscriptionStatus.maxRetries) {
       return;
     }
 
-    // Initial data fetch
-    fetchDashboardData();
+    // Clear any existing timeout
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+    }
 
-    // Setup subscriptions after a brief delay to ensure proper initialization
-    const subscriptionTimeout = setTimeout(() => {
-      if (mountRef.current === currentMount) {
-        setupSubscriptions();
-      }
-    }, 100);
-
-    // Cleanup function
-    return () => {
-      console.log(`[Dashboard] Cleanup for mount ${currentMount}`);
-      clearTimeout(subscriptionTimeout);
+    try {
+      console.log('🔌 Setting up dashboard subscriptions...');
       
-      // Only cleanup if this is the most recent mount
-      if (mountRef.current === currentMount) {
-        cleanupSubscriptions();
+      // Clean up existing channels
+      cleanupChannels();
+
+      // Check if there are existing channels to avoid duplicates
+      const existingChannels = supabase.getChannels();
+      const dashboardChannels = existingChannels.filter(ch => 
+        ch.topic?.includes('dashboard-') || 
+        ch.topic?.includes(user.id)
+      );
+
+      if (dashboardChannels.length > 0) {
+        console.log('🚨 Found existing dashboard channels, cleaning up first');
+        dashboardChannels.forEach(ch => {
+          supabase.removeChannel(ch);
+        });
       }
-    };
-  }, [user?.id, fetchDashboardData, setupSubscriptions, cleanupSubscriptions]);
+
+      // Create single consolidated channel for all subscriptions
+      const channelName = `dashboard-${user.id}-${Date.now()}`;
+      const channel = supabase.channel(channelName);
+
+      // HP updates
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'player_hp',
+          filter: `player_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 HP real-time update:', payload);
+          fetchPlayerHP();
+        }
+      );
+
+      // XP updates
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'player_xp',
+          filter: `player_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 XP real-time update:', payload);
+          fetchPlayerXP();
+        }
+      );
+
+      // Token updates
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'profiles',
+          filter: `id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 Token real-time update:', payload);
+          fetchPlayerTokens();
+        }
+      );
+
+      // Activity updates
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'activity_logs',
+          filter: `player_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 Activity real-time update:', payload);
+          fetchRecentActivities();
+        }
+      );
+
+      // Match updates
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'matches',
+          filter: `challenger_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 Match real-time update:', payload);
+          fetchMatches();
+          fetchMatchHistory();
+        }
+      );
+
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'matches',
+          filter: `opponent_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 Match real-time update:', payload);
+          fetchMatches();
+          fetchMatchHistory();
+        }
+      );
+
+      // Subscribe with enhanced error handling
+      channel.subscribe((status, err) => {
+        console.log('📡 Dashboard subscription status:', status, err);
+        
+        if (status === 'SUBSCRIBED') {
+          setSubscriptionStatus(prev => ({
+            ...prev,
+            connected: true,
+            lastConnected: new Date(),
+            retryCount: 0
+          }));
+          updateError('subscription', null);
+          console.log('✅ Dashboard subscriptions active');
+        } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+          console.error('❌ Subscription error:', err);
+          setSubscriptionStatus(prev => ({
+            ...prev,
+            connected: false,
+            retryCount: prev.retryCount + 1
+          }));
+          updateError('subscription', 'Real-time updates temporarily unavailable');
+          
+          // Retry with exponential backoff
+          if (subscriptionStatus.retryCount < subscriptionStatus.maxRetries) {
+            const retryDelay = Math.pow(2, subscriptionStatus.retryCount) * 1000; // 1s, 2s, 4s
+            console.log(`🔄 Retrying subscription in ${retryDelay}ms...`);
+            
+            retryTimeoutRef.current = setTimeout(() => {
+              setupSubscriptions();
+            }, retryDelay);
+          } else {
+            showErrorToast(
+              'Real-time updates unavailable. Data will refresh manually.',
+              () => {
+                setSubscriptionStatus(prev => ({ ...prev, retryCount: 0 }));
+                setupSubscriptions();
+              }
+            );
+          }
+        }
+      });
+
+      channelRef.current = channel;
+    } catch (error) {
+      console.error('Error setting up subscriptions:', error);
+      updateError('subscription', 'Failed to establish real-time connection');
+      
+      // Fallback to manual refresh interval
+      if (!retryTimeoutRef.current) {
+        retryTimeoutRef.current = setTimeout(() => {
+          refreshAll();
+        }, 30000); // Refresh every 30 seconds as fallback
+      }
+    }
+  }, [user, subscriptionStatus.retryCount, subscriptionStatus.maxRetries, fetchPlayerHP, fetchPlayerXP, fetchPlayerTokens, fetchRecentActivities, fetchMatches, fetchMatchHistory, refreshAll, updateError, showErrorToast]);
+
+  // Enhanced cleanup function
+  const cleanupChannels = useCallback(() => {
+    if (retryTimeoutRef.current) {
+      clearTimeout(retryTimeoutRef.current);
+      retryTimeoutRef.current = null;
+    }
+
+    if (channelRef.current) {
+      console.log('🧹 Cleaning up dashboard channel');
+      supabase.removeChannel(channelRef.current);
+      channelRef.current = null;
+    }
+
+    setSubscriptionStatus(prev => ({
+      ...prev,
+      connected: false
+    }));
+  }, []);
+
+  // Enhanced main effect with error boundaries
+  useEffect(() => {
+    if (user) {
+      console.log('👤 User authenticated, initializing dashboard...');
+      
+      const initializeDashboard = async () => {
+        try {
+          // Initial data fetch
+          await refreshAll();
+          
+          // Set up subscriptions after initial fetch
+          setupSubscriptions();
+        } catch (error) {
+          console.error('Failed to initialize dashboard:', error);
+          showErrorToast('Failed to load dashboard. Please try refreshing.', refreshAll);
+        }
+      };
+
+      initializeDashboard();
+
+      return () => {
+        console.log('🧹 User logged out, cleaning up dashboard...');
+        cleanupChannels();
+      };
+    } else {
+      // Reset state when no user
+      setDashboardData({
+        playerHP: null,
+        playerXP: null,
+        playerTokens: null,
+        recentActivities: [],
+        pendingChallenges: [],
+        activeMatches: [],
+        matchHistory: null
+      });
+      
+      setLoading({
+        hp: false,
+        xp: false,
+        tokens: false,
+        activities: false,
+        challenges: false,
+        matches: false,
+        matchHistory: false
+      });
+
+      setErrors({
+        hp: null,
+        xp: null,
+        tokens: null,
+        activities: null,
+        challenges: null,
+        matches: null,
+        matchHistory: null,
+        subscription: null
+      });
+
+      cleanupChannels();
+    }
+  }, [user, refreshAll, setupSubscriptions, cleanupChannels, showErrorToast]);
 
   return {
     dashboardData,
     loading,
+    errors,
+    subscriptionStatus,
     refreshAll,
-    error
+    // Individual refresh functions for granular control
+    refreshPlayerHP: fetchPlayerHP,
+    refreshPlayerXP: fetchPlayerXP,
+    refreshPlayerTokens: fetchPlayerTokens,
+    refreshActivities: fetchRecentActivities,
+    refreshMatches: fetchMatches,
+    refreshMatchHistory: fetchMatchHistory
   };
-};
+}
