@@ -1502,8 +1502,8 @@ export function useDashboardSubscriptions() {
           // Initial data fetch
           await refreshAll();
           
-          // Set up subscriptions after initial fetch
-          setupSubscriptions();
+          // COMMENTED OUT: Set up subscriptions after initial fetch
+          // setupSubscriptions();
         } catch (error) {
           console.error('Failed to initialize dashboard:', error);
           showErrorToast('Failed to load dashboard. Please try refreshing.', refreshAll);
