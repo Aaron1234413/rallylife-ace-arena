@@ -18,6 +18,203 @@ interface RecentActivityItem {
   location?: string;
 }
 
+// === Token System Interfaces ===
+interface TokenTransaction {
+  id: string;
+  player_id: string;
+  transaction_type: 'earn' | 'spend';
+  token_type: 'regular' | 'premium' | 'subscription';
+  amount: number;
+  source: string;
+  description?: string;
+  created_at: string;
+  balance_after?: number;
+  balance_before?: number;
+  metadata?: any;
+}
+
+interface TokenNotification {
+  type: 'earning' | 'spending' | 'subscription' | 'redemption' | 'pool_update' | 'overdraft_warning';
+  message: string;
+  amount?: number;
+  clubName?: string;
+  serviceType?: string;
+  timestamp?: string;
+}
+
+// === Enhanced Activity System Interfaces ===
+interface XPActivity {
+  id: string;
+  player_id: string;
+  activity_type: string;
+  xp_earned: number;
+  description?: string;
+  level_before: number;
+  level_after: number;
+  created_at: string;
+  metadata?: any;
+}
+
+interface HPActivity {
+  id: string;
+  player_id: string;
+  activity_type: string;
+  hp_change: number;
+  hp_before: number;
+  hp_after: number;
+  description?: string;
+  created_at: string;
+  metadata?: any;
+}
+
+// === Session Management Interfaces ===
+interface Session {
+  id: string;
+  title: string;
+  description?: string;
+  start_time: string;
+  end_time: string;
+  start_datetime?: string;
+  end_datetime?: string;
+  location?: string;
+  max_participants: number;
+  current_participants: number;
+  status: 'upcoming' | 'active' | 'completed' | 'cancelled';
+  creator_id: string;
+  creator_name?: string;
+  skill_level?: string;
+  session_type: string;
+  club_id?: string;
+  notes?: string;
+  format?: string;
+  created_at: string;
+  updated_at: string;
+  participants?: Array<{
+    id: string;
+    user_id: string;
+    status: string;
+    joined_at: string;
+    user?: {
+      id: string;
+      full_name?: string;
+      avatar_url?: string;
+    };
+  }>;
+  stakes_amount?: number;
+  cost_tokens?: number;
+  cost_money?: number;
+  payment_method?: 'tokens' | 'money';
+  max_players?: number;
+}
+
+interface SessionParticipation {
+  id: string;
+  session_id: string;
+  user_id: string;
+  status: 'joined' | 'left' | 'banned';
+  joined_at: string;
+  left_at?: string;
+  notes?: string;
+  session?: Session;
+}
+
+// === Notification System Interfaces ===
+interface Notification {
+  id: string;
+  user_id: string;
+  match_id?: string;
+  type: string;
+  title: string;
+  message: string;
+  read: boolean;
+  created_at: string;
+  updated_at: string;
+  metadata?: any;
+}
+
+// === Club Data Interfaces ===
+interface ClubMembership {
+  id: string;
+  club_id: string;
+  user_id: string;
+  role: string;
+  status: string;
+  joined_at: string;
+  updated_at: string;
+  permissions?: any;
+  club?: {
+    id: string;
+    name: string;
+    description?: string;
+    logo_url?: string;
+    is_public: boolean;
+  };
+}
+
+interface ClubActivityItem {
+  id: string;
+  club_id: string;
+  user_id: string;
+  activity_type: string;
+  activity_data: any;
+  created_at: string;
+  user?: {
+    id: string;
+    full_name?: string;
+    avatar_url?: string;
+  };
+}
+
+// === Coaching Data Interfaces ===
+interface Appointment {
+  id: string;
+  coach_id: string;
+  player_id: string;
+  title: string;
+  description?: string;
+  scheduled_date: string;
+  start_time: string;
+  end_time: string;
+  duration_minutes: number;
+  status: string;
+  appointment_type: string;
+  location?: string;
+  notes?: string;
+  price_amount?: number;
+  payment_status?: string;
+  created_at: string;
+  updated_at: string;
+  coach?: {
+    id: string;
+    full_name?: string;
+    avatar_url?: string;
+  };
+  player?: {
+    id: string;
+    full_name?: string;
+    avatar_url?: string;
+  };
+}
+
+interface CoachBooking {
+  id: string;
+  coach_id: string;
+  player_id: string;
+  club_id: string;
+  service_id: string;
+  start_datetime: string;
+  end_datetime: string;
+  status: string;
+  total_cost_tokens: number;
+  total_cost_money: number;
+  payment_method: string;
+  feedback_rating?: number;
+  feedback_comment?: string;
+  notes?: string;
+  created_at: string;
+  updated_at: string;
+}
+
 interface PlayerHP {
   id: string;
   current_hp: number;
@@ -55,6 +252,7 @@ interface MatchHistory {
 }
 
 interface DashboardData {
+  // === Core Player Data ===
   playerHP: PlayerHP | null;
   playerXP: PlayerXP | null;
   playerTokens: PlayerTokens | null;
@@ -62,6 +260,29 @@ interface DashboardData {
   pendingChallenges: any[];
   activeMatches: any[];
   matchHistory: MatchHistory | null;
+
+  // === Expanded Token System Data ===
+  tokenTransactions: TokenTransaction[];
+  tokenNotifications: TokenNotification[];
+
+  // === Enhanced Activity System Data ===
+  xpActivities: XPActivity[];
+  hpActivities: HPActivity[];
+
+  // === Session Management Data ===
+  userSessions: Session[];
+  sessionParticipations: SessionParticipation[];
+
+  // === Notification System Data ===
+  notifications: Notification[];
+
+  // === Club Data ===
+  clubMemberships: ClubMembership[];
+  clubActivities: ClubActivityItem[];
+
+  // === Coaching Data ===
+  appointments: Appointment[];
+  coachBookings: CoachBooking[];
 }
 
 interface LoadingStates {
@@ -103,13 +324,37 @@ export function useDashboardSubscriptions() {
     active.forEach(ch => supabase.removeChannel(ch));
   }, []);
   const [dashboardData, setDashboardData] = useState<DashboardData>({
+    // === Core Player Data ===
     playerHP: null,
     playerXP: null,
     playerTokens: null,
     recentActivities: [],
     pendingChallenges: [],
     activeMatches: [],
-    matchHistory: null
+    matchHistory: null,
+
+    // === Expanded Token System Data ===
+    tokenTransactions: [],
+    tokenNotifications: [],
+
+    // === Enhanced Activity System Data ===
+    xpActivities: [],
+    hpActivities: [],
+
+    // === Session Management Data ===
+    userSessions: [],
+    sessionParticipations: [],
+
+    // === Notification System Data ===
+    notifications: [],
+
+    // === Club Data ===
+    clubMemberships: [],
+    clubActivities: [],
+
+    // === Coaching Data ===
+    appointments: [],
+    coachBookings: []
   });
 
   const [loading, setLoading] = useState<LoadingStates>({
@@ -684,13 +929,37 @@ export function useDashboardSubscriptions() {
     } else {
       // Reset state when no user
       setDashboardData({
+        // === Core Player Data ===
         playerHP: null,
         playerXP: null,
         playerTokens: null,
         recentActivities: [],
         pendingChallenges: [],
         activeMatches: [],
-        matchHistory: null
+        matchHistory: null,
+
+        // === Expanded Token System Data ===
+        tokenTransactions: [],
+        tokenNotifications: [],
+
+        // === Enhanced Activity System Data ===
+        xpActivities: [],
+        hpActivities: [],
+
+        // === Session Management Data ===
+        userSessions: [],
+        sessionParticipations: [],
+
+        // === Notification System Data ===
+        notifications: [],
+
+        // === Club Data ===
+        clubMemberships: [],
+        clubActivities: [],
+
+        // === Coaching Data ===
+        appointments: [],
+        coachBookings: []
       });
       
       setLoading({
