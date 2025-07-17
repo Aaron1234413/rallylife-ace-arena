@@ -897,6 +897,202 @@ export function useDashboardSubscriptions() {
     }
   }, [user, updateLoading, updateError]);
 
+  // === NEW EVENT HANDLERS WITH TOAST INTEGRATION ===
+
+  // Token update handler with earning/spending notifications
+  const handleTokenUpdate = useCallback((payload: any) => {
+    console.log('🪙 Token update event:', payload);
+    
+    // Refresh token data
+    fetchTokenData();
+    fetchPlayerTokens();
+
+    // Show appropriate toast based on token change
+    if (payload.new && payload.old) {
+      const oldTokens = payload.old.tokens || 0;
+      const newTokens = payload.new.tokens || 0;
+      const difference = newTokens - oldTokens;
+
+      if (difference > 0) {
+        toast({
+          title: "Tokens Earned! 🪙",
+          description: `You earned ${difference} tokens`,
+          variant: "default",
+        });
+      } else if (difference < 0) {
+        toast({
+          title: "Tokens Spent 💰",
+          description: `You spent ${Math.abs(difference)} tokens`,
+          variant: "default",
+        });
+      }
+    }
+  }, [fetchTokenData, fetchPlayerTokens, toast]);
+
+  // Transaction insert handler with detailed notifications
+  const handleTransactionInsert = useCallback((payload: any) => {
+    console.log('💸 Transaction insert event:', payload);
+    
+    // Refresh token data
+    fetchTokenData();
+    fetchPlayerTokens();
+
+    // Show detailed transaction notification
+    if (payload.new) {
+      const { amount, type, description } = payload.new;
+      const isEarning = amount > 0;
+      
+      toast({
+        title: isEarning ? "Tokens Earned! 🎉" : "Tokens Spent 💰",
+        description: description || `${isEarning ? 'Earned' : 'Spent'} ${Math.abs(amount)} tokens from ${type}`,
+        variant: "default",
+      });
+    }
+  }, [fetchTokenData, fetchPlayerTokens, toast]);
+
+  // XP activity handler with level-up detection
+  const handleXPActivity = useCallback((payload: any) => {
+    console.log('⭐ XP activity event:', payload);
+    
+    // Refresh XP and enhanced activities
+    fetchPlayerXP();
+    fetchEnhancedActivities();
+
+    // Show XP earning notification with level-up detection
+    if (payload.new) {
+      const { xp_earned, level_before, level_after, description } = payload.new;
+      const leveledUp = level_after > level_before;
+      
+      if (leveledUp) {
+        toast({
+          title: "🎊 LEVEL UP! 🎊",
+          description: `Congratulations! You reached level ${level_after}!`,
+          variant: "default",
+        });
+        // Follow-up toast for XP earned
+        setTimeout(() => {
+          toast({
+            title: "XP Earned ⭐",
+            description: `+${xp_earned} XP from ${description || 'activity'}`,
+            variant: "default",
+          });
+        }, 1000);
+      } else {
+        toast({
+          title: "XP Earned ⭐",
+          description: `+${xp_earned} XP from ${description || 'activity'}`,
+          variant: "default",
+        });
+      }
+    }
+  }, [fetchPlayerXP, fetchEnhancedActivities, toast]);
+
+  // HP activity handler
+  const handleHPActivity = useCallback((payload: any) => {
+    console.log('❤️ HP activity event:', payload);
+    
+    // Refresh HP and enhanced activities
+    fetchPlayerHP();
+    fetchEnhancedActivities();
+
+    // Show HP change notification
+    if (payload.new) {
+      const { hp_change, activity_type, description } = payload.new;
+      const isRestoration = hp_change > 0;
+      
+      if (Math.abs(hp_change) >= 5) { // Only show for significant changes
+        toast({
+          title: isRestoration ? "HP Restored ❤️" : "HP Lost 💔",
+          description: description || `${isRestoration ? '+' : ''}${hp_change} HP from ${activity_type}`,
+          variant: isRestoration ? "default" : "destructive",
+        });
+      }
+    }
+  }, [fetchPlayerHP, fetchEnhancedActivities, toast]);
+
+  // Session update handler
+  const handleSessionUpdate = useCallback((payload: any) => {
+    console.log('🎾 Session update event:', payload);
+    
+    // Refresh session data
+    fetchSessionData();
+
+    // Show session status notifications
+    if (payload.new && payload.old) {
+      const oldStatus = payload.old.status;
+      const newStatus = payload.new.status;
+      
+      if (oldStatus !== newStatus) {
+        const sessionName = payload.new.title || 'Session';
+        
+        switch (newStatus) {
+          case 'active':
+            toast({
+              title: "Session Started 🎾",
+              description: `${sessionName} is now active`,
+              variant: "default",
+            });
+            break;
+          case 'completed':
+            toast({
+              title: "Session Completed ✅",
+              description: `${sessionName} has finished`,
+              variant: "default",
+            });
+            break;
+          case 'cancelled':
+            toast({
+              title: "Session Cancelled ❌",
+              description: `${sessionName} was cancelled`,
+              variant: "destructive",
+            });
+            break;
+        }
+      }
+    }
+  }, [fetchSessionData, toast]);
+
+  // Match notification handler
+  const handleMatchNotification = useCallback((payload: any) => {
+    console.log('🔔 Match notification event:', payload);
+    
+    // Refresh notifications
+    fetchNotifications();
+
+    // Show match notification toast
+    if (payload.new) {
+      const { title, message, type } = payload.new;
+      
+      toast({
+        title: title || "Match Update 🎾",
+        description: message,
+        variant: type === 'error' ? "destructive" : "default",
+      });
+    }
+  }, [fetchNotifications, toast]);
+
+  // Club activity handler
+  const handleClubActivity = useCallback((payload: any) => {
+    console.log('🏟️ Club activity event:', payload);
+    
+    // Check if user is member of the club before showing notification
+    const clubIds = dashboardData.clubMemberships.map(m => m.club_id);
+    if (payload.new && clubIds.includes(payload.new.club_id)) {
+      // Refresh club data
+      fetchClubData();
+
+      // Show club activity notification (only for significant activities)
+      const { activity_type, activity_data } = payload.new;
+      if (['match_completed', 'tournament_created', 'member_joined'].includes(activity_type)) {
+        toast({
+          title: "Club Activity 🏟️",
+          description: `New ${activity_type.replace('_', ' ')} in your club`,
+          variant: "default",
+        });
+      }
+    }
+  }, [dashboardData.clubMemberships, fetchClubData, toast]);
+
   // Enhanced refresh function with error handling
   const refreshAll = useCallback(async (): Promise<void> => {
     if (!user) return;
@@ -1027,7 +1223,7 @@ export function useDashboardSubscriptions() {
         },
         (payload) => {
           console.log('🔄 Token real-time update:', payload);
-          fetchPlayerTokens();
+          handleTokenUpdate(payload);
         }
       );
 
@@ -1090,8 +1286,7 @@ export function useDashboardSubscriptions() {
         },
         (payload) => {
           console.log('🔄 Token transaction update:', payload);
-          fetchTokenData();
-          fetchPlayerTokens(); // Keep existing token balance sync
+          handleTransactionInsert(payload);
         }
       );
 
@@ -1106,7 +1301,7 @@ export function useDashboardSubscriptions() {
         },
         (payload) => {
           console.log('🔄 XP activity update:', payload);
-          fetchEnhancedActivities();
+          handleXPActivity(payload);
         }
       );
 
@@ -1121,7 +1316,7 @@ export function useDashboardSubscriptions() {
         },
         (payload) => {
           console.log('🔄 HP activity update:', payload);
-          fetchEnhancedActivities();
+          handleHPActivity(payload);
         }
       );
 
