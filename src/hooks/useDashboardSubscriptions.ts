@@ -1077,6 +1077,150 @@ export function useDashboardSubscriptions() {
         }
       );
 
+      // === NEW CONSOLIDATED LISTENERS ===
+
+      // Token system listeners
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'token_transactions',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 Token transaction update:', payload);
+          fetchTokenData();
+          fetchPlayerTokens(); // Keep existing token balance sync
+        }
+      );
+
+      // XP activities listener
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'xp_activities',
+          filter: `player_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 XP activity update:', payload);
+          fetchEnhancedActivities();
+        }
+      );
+
+      // HP activities listener
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'hp_activities',
+          filter: `player_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 HP activity update:', payload);
+          fetchEnhancedActivities();
+        }
+      );
+
+      // Sessions listener (when available)
+      // Note: sessions table schema needs verification
+      /*
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'sessions',
+          filter: `creator_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 Session update:', payload);
+          fetchSessionData();
+        }
+      );
+      */
+
+      // Match notifications listener
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'match_notifications',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 Match notification update:', payload);
+          fetchNotifications();
+        }
+      );
+
+      // Club memberships listener
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'club_memberships',
+          filter: `user_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 Club membership update:', payload);
+          fetchClubData();
+        }
+      );
+
+      // Club activity stream listener
+      channel.on(
+        'postgres_changes',
+        {
+          event: 'INSERT',
+          schema: 'public',
+          table: 'club_activity_stream'
+        },
+        (payload) => {
+          console.log('🔄 Club activity update:', payload);
+          // Only refresh if user is member of the club
+          const clubIds = dashboardData.clubMemberships.map(m => m.club_id);
+          if (payload.new && clubIds.includes(payload.new.club_id)) {
+            fetchClubData();
+          }
+        }
+      );
+
+      // Appointments listener
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'appointments',
+          filter: `player_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 Appointment update:', payload);
+          fetchNotifications(); // Appointments affect notifications
+        }
+      );
+
+      // Coach bookings listener (if user is a coach)
+      channel.on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'coach_bookings',
+          filter: `coach_id=eq.${user.id}`
+        },
+        (payload) => {
+          console.log('🔄 Coach booking update:', payload);
+          fetchNotifications(); // Bookings affect notifications
+        }
+      );
+
       // Subscribe with enhanced error handling
       channel.subscribe((status, err) => {
         console.log('📡 Dashboard subscription status:', status, err);
